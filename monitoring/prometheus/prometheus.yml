@@ -1,0 +1,94 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'enterprise-loan-system'
+    environment: 'production'
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Enterprise Loan Management Application
+  - job_name: 'loan-management-app'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['localhost:5000']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'loan_.*|customer_.*|payment_.*'
+        target_label: business_metric
+        replacement: 'true'
+
+  # PostgreSQL Database Metrics
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 15s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'pg_stat_database_.*'
+        target_label: database_metric
+        replacement: 'true'
+
+  # Redis Cache Metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 15s
+
+  # Apache Kafka Metrics
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+    scrape_interval: 15s
+
+  # System Metrics (Node Exporter)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 10s
+
+  # Application Load Balancer
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+    scrape_interval: 15s
+
+  # Prometheus Self-Monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Banking Compliance Metrics
+  - job_name: 'compliance-metrics'
+    metrics_path: '/api/v1/monitoring/compliance'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['localhost:5000']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'banking_compliance_.*|fapi_security_.*|tdd_coverage_.*'
+        target_label: compliance_metric
+        replacement: 'true'
+
+  # FAPI Security Metrics
+  - job_name: 'fapi-security'
+    metrics_path: '/api/v1/monitoring/security'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['localhost:5000']
+
+# Remote storage configuration for long-term retention
+remote_write:
+  - url: "http://victoria-metrics:8428/api/v1/write"
+    queue_config:
+      max_samples_per_send: 10000
+      batch_send_deadline: 5s

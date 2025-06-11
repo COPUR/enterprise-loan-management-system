@@ -1,0 +1,40 @@
+apiVersion: v2
+name: enterprise-loan-system
+description: A Helm chart for Enterprise Loan Management System with Banking Standards Compliance
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - banking
+  - loan-management
+  - fintech
+  - java
+  - spring-boot
+  - redis
+  - postgresql
+home: https://github.com/your-org/enterprise-loan-system
+sources:
+  - https://github.com/your-org/enterprise-loan-system
+maintainers:
+  - name: Banking Platform Team
+    email: platform@yourbank.com
+dependencies:
+  - name: postgresql
+    version: "12.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: "17.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+  - name: prometheus
+    version: "23.x.x"
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: monitoring.prometheus.enabled
+  - name: grafana
+    version: "6.x.x"
+    repository: https://grafana.github.io/helm-charts
+    condition: monitoring.grafana.enabled
+annotations:
+  category: Banking
+  licenses: MIT

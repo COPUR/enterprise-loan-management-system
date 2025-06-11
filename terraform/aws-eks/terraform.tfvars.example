@@ -1,0 +1,19 @@
+# Example Terraform variables for Enterprise Loan System EKS Deployment
+aws_region         = "us-west-2"
+environment        = "prod"
+cluster_name       = "enterprise-loan-system"
+kubernetes_version = "1.28"
+
+# Network Configuration
+vpc_cidr        = "10.0.0.0/16"
+private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+public_subnets  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+# Database Configuration
+db_password = "your-secure-password-here"
+
+# Node Group Configuration
+node_instance_types    = ["t3.large", "t3.xlarge"]
+node_desired_capacity  = 3
+node_max_capacity      = 10
+node_min_capacity      = 2

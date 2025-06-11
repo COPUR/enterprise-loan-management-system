@@ -1,0 +1,106 @@
+groups:
+  - name: banking_compliance_alerts
+    rules:
+      - alert: TDDCoverageBelowBankingStandards
+        expr: tdd_coverage_percentage < 75
+        for: 5m
+        labels:
+          severity: critical
+          compliance: banking_standards
+        annotations:
+          summary: "TDD coverage below banking compliance threshold"
+          description: "Test coverage is {{ $value }}%, below the required 75% for banking standards"
+
+      - alert: FAPIComplianceIssue
+        expr: fapi_compliance_score < 70
+        for: 2m
+        labels:
+          severity: high
+          compliance: fapi_security
+        annotations:
+          summary: "FAPI security compliance below threshold"
+          description: "FAPI compliance score is {{ $value }}%, indicating security gaps"
+
+      - alert: LoanProcessingFailureRate
+        expr: rate(loan_creation_failures_total[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: high
+          business_impact: critical
+        annotations:
+          summary: "High loan processing failure rate"
+          description: "Loan creation failure rate is {{ $value | humanizePercentage }} over 5 minutes"
+
+      - alert: PaymentProcessingLatency
+        expr: histogram_quantile(0.95, payment_processing_duration_seconds_bucket) > 0.75
+        for: 2m
+        labels:
+          severity: warning
+          business_impact: medium
+        annotations:
+          summary: "Payment processing latency high"
+          description: "95th percentile payment processing time is {{ $value }}s"
+
+  - name: infrastructure_alerts
+    rules:
+      - alert: DatabaseConnectionsHigh
+        expr: pg_stat_activity_count > 80
+        for: 2m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High number of database connections"
+          description: "PostgreSQL has {{ $value }} active connections"
+
+      - alert: RedisMemoryUsageHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: KafkaConsumerLag
+        expr: kafka_consumer_lag_sum > 1000
+        for: 3m
+        labels:
+          severity: warning
+          component: messaging
+        annotations:
+          summary: "Kafka consumer lag high"
+          description: "Consumer lag is {{ $value }} messages"
+
+  - name: security_alerts
+    rules:
+      - alert: SecurityAuthenticationFailures
+        expr: rate(authentication_failures_total[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: high
+          security: authentication
+        annotations:
+          summary: "High authentication failure rate"
+          description: "Authentication failure rate is {{ $value | humanizePercentage }}"
+
+      - alert: RateLimitExceeded
+        expr: rate(rate_limit_exceeded_total[1m]) > 5
+        for: 30s
+        labels:
+          severity: high
+          security: rate_limiting
+        annotations:
+          summary: "Rate limit frequently exceeded"
+          description: "Rate limit exceeded {{ $value }} times per minute"
+
+      - alert: SecurityHeadersMissing
+        expr: security_headers_missing_total > 0
+        for: 1m
+        labels:
+          severity: medium
+          security: headers
+        annotations:
+          summary: "Security headers missing in responses"
+          description: "{{ $value }} responses missing required security headers"

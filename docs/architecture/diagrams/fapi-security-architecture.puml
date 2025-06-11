@@ -1,0 +1,214 @@
+@startuml FAPI Security Architecture
+
+!define SECURITY_COLOR #FF6B6B
+!define OAUTH_COLOR #4A90E2
+!define JWT_COLOR #7ED321
+!define MTLS_COLOR #BD10E0
+!define RATE_LIMIT_COLOR #F5A623
+
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+
+package "FAPI 1.0 Advanced Security Framework" {
+    
+    package "Client Layer" {
+        actor "Bank Employee" as Employee
+        actor "Customer" as Customer
+        actor "Admin User" as Admin
+        
+        component [Web Application\nSPA Client] as WebApp OAUTH_COLOR
+        component [Mobile Application\nNative Client] as MobileApp OAUTH_COLOR
+        component [API Testing Tools\nPostman/Insomnia] as APITools OAUTH_COLOR
+    }
+    
+    package "Security Gateway Layer" <<Layer>> {
+        
+        component [API Gateway\n(Kong/NGINX)] as APIGateway SECURITY_COLOR
+        
+        package "FAPI Authentication" {
+            component [OAuth 2.0 Authorization\nServer] as AuthServer OAUTH_COLOR
+            component [JWT Token Provider\n(RS256 Signing)] as JWTProvider JWT_COLOR
+            component [Client Certificate\nValidation (mTLS)] as MTLSValidator MTLS_COLOR
+        }
+        
+        package "FAPI Request Processing" {
+            component [Request Object\nValidation] as RequestValidator SECURITY_COLOR
+            component [Rate Limiting\n(100 req/min)] as RateLimiter RATE_LIMIT_COLOR
+            component [Security Headers\nEnforcement] as SecurityHeaders SECURITY_COLOR
+        }
+        
+        package "FAPI Compliance" {
+            component [FAPI Interaction ID\nGeneration] as InteractionID SECURITY_COLOR
+            component [Request Signing\nValidation] as RequestSigning SECURITY_COLOR
+            component [Response Encryption] as ResponseEncryption SECURITY_COLOR
+        }
+    }
+    
+    package "Application Layer" <<Layer>> {
+        component [Loan Management\nService] as LoanService JWT_COLOR
+        component [Customer Management\nService] as CustomerService JWT_COLOR
+        component [Payment Processing\nService] as PaymentService JWT_COLOR
+        
+        package "Security Services" {
+            component [FAPI Security\nService] as FAPISecurityService SECURITY_COLOR
+            component [Audit Logging\nService] as AuditService SECURITY_COLOR
+            component [Compliance\nReporting] as ComplianceService SECURITY_COLOR
+        }
+    }
+    
+    package "Data Layer" <<Layer>> {
+        database "PostgreSQL\n(Encrypted at Rest)" as Database
+        storage "Redis Cache\n(Session Storage)" as Cache
+        queue "Kafka\n(Audit Events)" as Kafka
+    }
+}
+
+package "External Security Systems" {
+    component [Certificate Authority\n(CA)] as CertificateAuthority MTLS_COLOR
+    component [Hardware Security\nModule (HSM)] as HSM SECURITY_COLOR
+    component [SIEM System\n(Security Monitoring)" as SIEM SECURITY_COLOR
+}
+
+' Client to Gateway Flow
+Employee --> WebApp : Browser Access
+Customer --> MobileApp : Mobile Access
+Admin --> APITools : API Testing
+
+WebApp --> APIGateway : HTTPS Request\n+ Client Certificate
+MobileApp --> APIGateway : HTTPS Request\n+ mTLS
+APITools --> APIGateway : HTTPS Request\n+ Bearer Token
+
+' Security Gateway Processing
+APIGateway --> MTLSValidator : Client Certificate\nValidation
+APIGateway --> RateLimiter : Rate Limit Check
+APIGateway --> RequestValidator : Request Structure\nValidation
+APIGateway --> SecurityHeaders : Security Headers\nValidation
+
+MTLSValidator --> AuthServer : Certificate-bound\nToken Request
+AuthServer --> JWTProvider : Generate JWT\n(RS256)
+JWTProvider --> AuthServer : Signed JWT Token
+
+RequestValidator --> RequestSigning : Validate Request\nSignature
+RequestValidator --> InteractionID : Generate/Validate\nX-FAPI-Interaction-ID
+
+' Application Layer Processing
+APIGateway --> LoanService : Authenticated Request
+APIGateway --> CustomerService : Authenticated Request
+APIGateway --> PaymentService : Authenticated Request
+
+LoanService --> FAPISecurityService : Security Context\nValidation
+CustomerService --> FAPISecurityService : Security Context\nValidation
+PaymentService --> FAPISecurityService : Security Context\nValidation
+
+FAPISecurityService --> AuditService : Log Security Events
+AuditService --> ComplianceService : Generate Compliance\nReports
+
+' Data Layer Connections
+LoanService --> Database : Encrypted Connection
+CustomerService --> Database : Encrypted Connection
+PaymentService --> Database : Encrypted Connection
+
+LoanService --> Cache : Session Management
+CustomerService --> Cache : Session Management
+PaymentService --> Cache : Session Management
+
+AuditService --> Kafka : Security Audit Events
+ComplianceService --> Kafka : Compliance Events
+
+' External Security Integrations
+MTLSValidator --> CertificateAuthority : Certificate\nValidation
+JWTProvider --> HSM : Private Key\nOperations
+AuditService --> SIEM : Security Event\nStreaming
+
+' Response Flow with Encryption
+LoanService --> ResponseEncryption : Encrypt Response\nPayload
+ResponseEncryption --> APIGateway : Encrypted Response
+APIGateway --> WebApp : HTTPS Response\n+ Security Headers
+
+note top of APIGateway
+    <b>FAPI Security Headers:</b>
+    
+    • Strict-Transport-Security
+    • X-Content-Type-Options: nosniff
+    • X-Frame-Options: DENY
+    • X-FAPI-Interaction-ID: [UUID]
+    • Cache-Control: no-store
+    • Pragma: no-cache
+end note
+
+note right of AuthServer
+    <b>OAuth 2.0 FAPI Flow:</b>
+    
+    1. Client presents certificate
+    2. Authorization code + PKCE
+    3. Token exchange with mTLS
+    4. Certificate-bound access token
+    5. Request object signing
+    6. Response encryption
+end note
+
+note bottom of RateLimiter
+    <b>Rate Limiting Rules:</b>
+    
+    • 100 requests/minute per client
+    • 1000 requests/hour per IP
+    • Exponential backoff on limits
+    • 429 status on rate exceeded
+    • DDoS protection enabled
+end note
+
+note left of RequestValidator
+    <b>FAPI Request Validation:</b>
+    
+    • Request object structure
+    • Digital signature verification
+    • Timestamp validation (±5 min)
+    • Nonce uniqueness check
+    • Client assertion validation
+end note
+
+note bottom of Database
+    <b>Data Protection:</b>
+    
+    • AES-256 encryption at rest
+    • TLS 1.3 in transit
+    • Column-level encryption for PII
+    • Database audit logging
+    • Access control matrices
+end note
+
+note as FAPICompliance
+    <b>FAPI 1.0 Advanced Compliance Status: 71.4%</b>
+    
+    ✅ <b>Implemented (High Priority):</b>
+    • OAuth 2.0 Authorization Code Flow + PKCE
+    • JWT access tokens (RS256 signing)
+    • Rate limiting and DDoS protection
+    • Security headers enforcement
+    • Request/response validation
+    • Audit logging and monitoring
+    
+    🔄 <b>Partial Implementation:</b>
+    • mTLS client certificate binding (60%)
+    • Request object signing (45%)
+    • Response encryption (40%)
+    
+    📋 <b>Future Enhancements:</b>
+    • Full mTLS implementation
+    • Request object encryption
+    • Advanced threat detection
+    • Behavioral analytics
+end note
+
+note as SecurityMetrics
+    <b>Security Metrics & SLAs:</b>
+    
+    • <b>Authentication Success Rate:</b> >99.5%
+    • <b>Response Time:</b> <100ms for auth
+    • <b>Threat Detection:</b> Real-time monitoring
+    • <b>Compliance Score:</b> 71.4% FAPI Advanced
+    • <b>Uptime:</b> 99.9% availability
+    • <b>Recovery Time:</b> <5 minutes
+end note
+
+@enduml
