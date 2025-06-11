@@ -58,17 +58,7 @@ A production-ready Enterprise Loan Management System implementing Banking Standa
 - **CloudWatch** integration for AWS resource monitoring
 - **Real-time Alerting** with AlertManager and notification channels
 
-## Test Coverage Report
 
-| Test Category | Coverage | Status | Tests |
-|---------------|----------|--------|-------|
-| Unit Tests | 92.1% | Excellent | 47 |
-| Integration Tests | 84.7% | Strong | 18 |
-| API Tests | 89.3% | Excellent | 15 |
-| Security Tests | 94.2% | Outstanding | 25 |
-| Exception Handling | 88.6% | Strong | 22 |
-| Edge Cases | 85.9% | Strong | 28 |
-| Performance Tests | 78.3% | Good | 12 |
 
 ##  System Architecture
 
@@ -348,6 +338,18 @@ kubectl get pods -n loan-management
 - **System Status:** http://localhost:5000/api/v1/system/status
 
 ## System Performance & Quality Metrics
+
+## Test Coverage Report
+
+| Test Category | Coverage | Status | Tests |
+|---------------|----------|--------|-------|
+| Unit Tests | 92.1% | Excellent | 47 |
+| Integration Tests | 84.7% | Strong | 18 |
+| API Tests | 89.3% | Excellent | 15 |
+| Security Tests | 94.2% | Outstanding | 25 |
+| Exception Handling | 88.6% | Strong | 22 |
+| Edge Cases | 85.9% | Strong | 28 |
+| Performance Tests | 78.3% | Good | 12 |
 
 ### Test-Driven Development Coverage
 
@@ -639,7 +641,7 @@ logging.level.com.bank.loanmanagement=INFO
 logging.level.org.springframework.cache=DEBUG
 ```
 
-## 🏗️ Development
+## Development
 
 ### Building the Project
 ```bash
@@ -662,13 +664,13 @@ docker-compose up -d postgres
 docker-compose up --build
 ```
 
-## 📚 Documentation
+## Documentation
 
 - **[TESTING.md](./TESTING.md)** - Comprehensive testing documentation
 - **[GIT_SETUP.md](./GIT_SETUP.md)** - Git repository setup guide
 - **[docs/](./docs/)** - Architecture diagrams and technical specifications
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/enhancement`)
@@ -685,7 +687,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 - `perf:` Performance improvements
 - `refactor:` Code refactoring
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
@@ -719,7 +721,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 -  **Event-Driven**: Kafka integration for scalable messaging
 -  **Microservices Ready**: Container-native with Kubernetes orchestration
 
-## 📚 Additional Documentation
+## Additional Documentation
 
 - **[AWS_EKS_DEPLOYMENT_COMPLETE.md](./AWS_EKS_DEPLOYMENT_COMPLETE.md)** - Complete AWS EKS production deployment guide
 - **[REGRESSION_TEST_REPORT.md](./REGRESSION_TEST_REPORT.md)** - Latest comprehensive test validation results
@@ -728,7 +730,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **[GIT_SETUP.md](./GIT_SETUP.md)** - Git repository setup and collaboration guide
 - **[docs/](./docs/)** - Complete architecture diagrams and technical specifications
 
-## 📞 Support & Resources
+## Support & Resources
 
 ### Production Support
 - **System Health**: Monitor at http://localhost:5000/actuator/health
