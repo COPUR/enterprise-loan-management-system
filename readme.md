@@ -395,7 +395,7 @@ The system architecture demonstrates clear separation of concerns with well-defi
 enterprise-loan-management-system/
 ├── src/
 │   ├── main/java/com/bank/loanmanagement/
-│   │   └── SimpleDbApplication.java          # Main Spring Boot application
+│   │   └──     #  Spring Boot Classes
 │   └── test/java/com/bank/loanmanagement/
 │       ├── CustomerTest.java                 # Customer entity tests (92.1% coverage)
 │       ├── LoanTest.java                     # Loan business logic tests
