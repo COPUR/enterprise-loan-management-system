@@ -1,0 +1,217 @@
+{
+  "info": {
+    "name": "Enterprise Loan Management System - DEV Environment",
+    "description": "Comprehensive API testing collection for Development environment with real PostgreSQL data",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{dev_jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// Set base URL for DEV environment",
+          "pm.environment.set('base_url', 'http://localhost:5000');",
+          "",
+          "// Generate FAPI Interaction ID",
+          "const uuid = require('uuid');",
+          "pm.environment.set('fapi_interaction_id', uuid.v4());"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health & Status",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-FAPI-Interaction-ID",
+                "value": "{{fapi_interaction_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains status', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData.status).to.eql('running');",
+                  "});",
+                  "",
+                  "pm.test('Database is connected', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('database_connected');",
+                  "    pm.expect(jsonData.database_connected).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Security headers present', function () {",
+                  "    pm.expect(pm.response.headers.get('X-Content-Type-Options')).to.eql('nosniff');",
+                  "    pm.expect(pm.response.headers.get('X-Frame-Options')).to.eql('DENY');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Customer Management",
+      "item": [
+        {
+          "name": "Get All Customers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-FAPI-Interaction-ID",
+                "value": "{{fapi_interaction_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns customer list', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('customers');",
+                  "    pm.expect(jsonData.customers).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Customer business rules validation', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    jsonData.customers.forEach(customer => {",
+                  "        pm.expect(customer.credit_score).to.be.at.least(300);",
+                  "        pm.expect(customer.credit_score).to.be.at.most(850);",
+                  "        pm.expect(customer.monthly_income).to.be.above(0);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Loan Origination",
+      "item": [
+        {
+          "name": "Get All Loans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-FAPI-Interaction-ID",
+                "value": "{{fapi_interaction_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "loans"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Loan business rules validation', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    jsonData.loans.forEach(loan => {",
+                  "        pm.expect(parseFloat(loan.loan_amount)).to.be.at.least(1000);",
+                  "        pm.expect(parseFloat(loan.loan_amount)).to.be.at.most(500000);",
+                  "        pm.expect(parseFloat(loan.interest_rate)).to.be.at.least(0.1);",
+                  "        pm.expect(parseFloat(loan.interest_rate)).to.be.at.most(0.5);",
+                  "        pm.expect([6, 9, 12, 24]).to.include(loan.installments);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "FAPI Compliance",
+      "item": [
+        {
+          "name": "FAPI Compliance Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/fapi/compliance-report",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "fapi", "compliance-report"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('FAPI compliance score acceptable', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const score = parseFloat(jsonData.fapi_compliance_assessment.overall_compliance_score);",
+                  "    pm.expect(score).to.be.at.least(70);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000"
+    }
+  ]
+}

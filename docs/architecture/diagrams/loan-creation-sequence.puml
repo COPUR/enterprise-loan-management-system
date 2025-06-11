@@ -1,0 +1,189 @@
+@startuml Loan Creation Sequence
+
+!define ACTOR_COLOR #4A90E2
+!define CONTROLLER_COLOR #F5A623
+!define APPLICATION_COLOR #7ED321
+!define DOMAIN_COLOR #BD10E0
+!define INFRASTRUCTURE_COLOR #FF6B6B
+
+participant "Bank Employee" as Employee ACTOR_COLOR
+participant "LoanController" as Controller CONTROLLER_COLOR
+participant "LoanApplicationService" as LoanService APPLICATION_COLOR
+participant "CustomerApplicationService" as CustomerService APPLICATION_COLOR
+participant "Loan" as LoanAggregate DOMAIN_COLOR
+participant "Customer" as CustomerAggregate DOMAIN_COLOR
+participant "LoanRepository" as LoanRepo INFRASTRUCTURE_COLOR
+participant "EventPublisher" as EventPub INFRASTRUCTURE_COLOR
+participant "LoanCreationSaga" as Saga APPLICATION_COLOR
+
+== Loan Creation Request ==
+
+Employee -> Controller : POST /api/v1/loans\n{customerId, amount, rate, installments}
+activate Controller
+
+Controller -> Controller : Validate request\n(amount, rate, installments)
+
+Controller -> LoanService : createLoan(CreateLoanCommand)
+activate LoanService
+
+== Business Rule Validation ==
+
+LoanService -> LoanService : Calculate total amount\n(principal + interest)
+
+LoanService -> CustomerService : isEligibleForLoan(customerId, totalAmount)
+activate CustomerService
+
+CustomerService -> CustomerAggregate : hasSufficientCredit(amount)
+activate CustomerAggregate
+
+CustomerAggregate -> CustomerAggregate : Check available credit\n(creditLimit - usedCredit)
+CustomerAggregate --> CustomerService : eligibility result
+deactivate CustomerAggregate
+
+CustomerService --> LoanService : eligibility result
+deactivate CustomerService
+
+alt Customer Not Eligible
+    LoanService --> Controller : throw InsufficientCreditException
+    Controller --> Employee : 400 Bad Request\n{errorCode: "INSUFFICIENT_CREDIT"}
+    deactivate LoanService
+    deactivate Controller
+else Customer Eligible
+
+== SAGA Initiation ==
+
+LoanService -> EventPub : publishAsync(LoanApplicationSubmitted)
+activate EventPub
+EventPub -> Saga : handle(LoanApplicationSubmitted)
+activate Saga
+Saga -> Saga : Start SAGA\n(store saga state)
+deactivate Saga
+deactivate EventPub
+
+== Credit Reservation ==
+
+LoanService -> CustomerService : reserveCredit(customerId, totalAmount)
+activate CustomerService
+
+CustomerService -> CustomerAggregate : reserveCredit(amount)
+activate CustomerAggregate
+
+CustomerAggregate -> CustomerAggregate : Validate sufficient credit
+CustomerAggregate -> CustomerAggregate : Update usedCreditLimit
+CustomerAggregate -> CustomerAggregate : raiseEvent(CreditReserved)
+
+CustomerAggregate --> CustomerService : reservation success
+deactivate CustomerAggregate
+
+CustomerService -> CustomerService : Save customer & publish events
+CustomerService --> LoanService : reservation result
+deactivate CustomerService
+
+alt Credit Reservation Failed
+    LoanService --> Controller : throw InsufficientCreditException
+    Controller --> Employee : 400 Bad Request\n{errorCode: "INSUFFICIENT_CREDIT"}
+    deactivate LoanService
+    deactivate Controller
+else Credit Reserved Successfully
+
+== Loan Creation ==
+
+LoanService -> LoanService : Generate LoanId
+
+LoanService -> LoanAggregate : new Loan(id, customerId, amount, installments, rate)
+activate LoanAggregate
+
+LoanAggregate -> LoanAggregate : Validate business rules
+LoanAggregate -> LoanAggregate : Calculate total amount\n(principal × (1 + rate))
+LoanAggregate -> LoanAggregate : Generate installment schedule\n(equal amounts, monthly due dates)
+LoanAggregate -> LoanAggregate : raiseEvent(LoanCreated)
+
+LoanAggregate --> LoanService : loan instance
+deactivate LoanAggregate
+
+LoanService -> LoanRepo : save(loan)
+activate LoanRepo
+LoanRepo --> LoanService : saved loan
+deactivate LoanRepo
+
+== Event Publishing ==
+
+LoanService -> LoanService : Get domain events from loan
+LoanService -> EventPub : publishAsync(LoanCreated)
+activate EventPub
+
+EventPub -> Saga : handle(LoanCreated)
+activate Saga
+Saga -> Saga : Complete SAGA\n(mark as successful)
+deactivate Saga
+
+deactivate EventPub
+
+LoanService -> LoanAggregate : clearDomainEvents()
+activate LoanAggregate
+deactivate LoanAggregate
+
+LoanService --> Controller : loanId
+deactivate LoanService
+
+== Response ==
+
+Controller -> LoanService : getLoan(loanId)
+activate LoanService
+LoanService -> LoanRepo : findById(loanId)
+activate LoanRepo
+LoanRepo --> LoanService : loan
+deactivate LoanRepo
+LoanService --> Controller : loan details
+deactivate LoanService
+
+Controller -> Controller : Convert to LoanResponse DTO
+Controller --> Employee : 201 Created\nLoanResponse{loanId, totalAmount, installments}
+deactivate Controller
+
+end
+end
+
+== Error Handling (Alternative Flow) ==
+
+group Loan Creation Failure
+    LoanService -> LoanRepo : save(loan) throws Exception
+    activate LoanRepo
+    LoanRepo --> LoanService : DatabaseException
+    deactivate LoanRepo
+    
+    LoanService -> CustomerService : releaseCredit(customerId, totalAmount)
+    activate CustomerService
+    CustomerService -> CustomerAggregate : releaseCredit(amount)
+    activate CustomerAggregate
+    CustomerAggregate -> CustomerAggregate : Decrease usedCreditLimit
+    CustomerAggregate -> CustomerAggregate : raiseEvent(CreditReleased)
+    deactivate CustomerAggregate
+    CustomerService -> CustomerService : Save customer & publish events
+    deactivate CustomerService
+    
+    LoanService --> Controller : throw BusinessException
+    Controller --> Employee : 500 Internal Server Error\n{errorCode: "BUSINESS_ERROR"}
+end
+
+note over Employee, Saga
+    <b>Key Business Rules Enforced:</b>
+    
+    1. Interest rate: 0.1 ≤ rate ≤ 0.5 (10% - 50%)
+    2. Installments: Only 6, 9, 12, or 24 allowed
+    3. Credit validation: totalAmount ≤ availableCredit
+    4. Equal installments with monthly due dates
+    5. First installment due on 1st of next month
+    6. Atomic credit reservation with rollback on failure
+end note
+
+note over Saga
+    <b>SAGA Pattern:</b>
+    
+    Ensures distributed transaction
+    consistency across Customer
+    and Loan contexts with proper
+    compensation on failures
+end note
+
+@enduml

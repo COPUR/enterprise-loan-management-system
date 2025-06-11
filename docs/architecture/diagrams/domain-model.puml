@@ -1,0 +1,269 @@
+@startuml Domain Model
+
+!define AGGREGATE_ROOT_COLOR #FFE4B5
+!define ENTITY_COLOR #E6F3FF
+!define VALUE_OBJECT_COLOR #E6FFE6
+!define DOMAIN_SERVICE_COLOR #FFE6F3
+
+package "Shared Kernel" {
+    abstract class AggregateRoot<<Root>> AGGREGATE_ROOT_COLOR {
+        +raiseEvent(event: DomainEvent)
+        +getDomainEvents(): List<DomainEvent>
+        +clearDomainEvents()
+    }
+    
+    abstract class Entity<<Entity>> ENTITY_COLOR {
+        -id: ID
+        -createdAt: LocalDateTime
+        -updatedAt: LocalDateTime
+        -version: Long
+    }
+    
+    interface ValueObject<<Value Object>> VALUE_OBJECT_COLOR {
+        +validate()
+    }
+    
+    abstract class DomainEvent<<Event>> {
+        -eventId: String
+        -occurredOn: LocalDateTime
+        -eventType: String
+    }
+    
+    class Money<<Value Object>> VALUE_OBJECT_COLOR {
+        -amount: BigDecimal
+        +of(amount: BigDecimal): Money
+        +add(other: Money): Money
+        +subtract(other: Money): Money
+        +multiply(factor: BigDecimal): Money
+        +divide(divisor: BigDecimal): Money
+        +isGreaterThan(other: Money): boolean
+        +isZero(): boolean
+    }
+    
+    class InterestRate<<Value Object>> VALUE_OBJECT_COLOR {
+        -rate: BigDecimal
+        +of(rate: BigDecimal): InterestRate
+        +calculateInterest(principal: Money): Money
+        +asPercentage(): BigDecimal
+    }
+    
+    class InstallmentCount<<Value Object>> VALUE_OBJECT_COLOR {
+        -count: Integer
+        +of(count: Integer): InstallmentCount
+        +getValidCounts(): Set<Integer>
+        +isValid(count: Integer): boolean
+    }
+}
+
+package "Customer Management" {
+    class Customer<<Aggregate Root>> AGGREGATE_ROOT_COLOR {
+        -customerId: CustomerId
+        -name: String
+        -surname: String
+        -creditLimit: CreditLimit
+        -usedCreditLimit: Money
+        +reserveCredit(amount: Money): boolean
+        +releaseCredit(amount: Money)
+        +getAvailableCredit(): Money
+        +hasSufficientCredit(amount: Money): boolean
+    }
+    
+    class CustomerId<<Value Object>> VALUE_OBJECT_COLOR {
+        -value: Long
+        +of(value: Long): CustomerId
+    }
+    
+    class CreditLimit<<Value Object>> VALUE_OBJECT_COLOR {
+        -limit: Money
+        +of(limit: Money): CreditLimit
+        +increase(amount: Money): CreditLimit
+        +decrease(amount: Money): CreditLimit
+    }
+    
+    class CreditAssessmentService<<Domain Service>> DOMAIN_SERVICE_COLOR {
+        +isEligibleForLoan(customer: Customer, amount: Money): boolean
+        +calculateMaximumLoanAmount(customer: Customer): Money
+        +assessCreditRisk(customer: Customer): CreditRiskLevel
+    }
+    
+    class CreditReserved<<Event>> {
+        -customerId: CustomerId
+        -reservedAmount: Money
+        -remainingCredit: Money
+    }
+    
+    class CreditReleased<<Event>> {
+        -customerId: CustomerId
+        -releasedAmount: Money
+        -availableCredit: Money
+    }
+    
+    enum CreditRiskLevel {
+        LOW
+        MEDIUM
+        HIGH
+    }
+}
+
+package "Loan Origination" {
+    class Loan<<Aggregate Root>> AGGREGATE_ROOT_COLOR {
+        -loanId: LoanId
+        -customerId: CustomerId
+        -loanAmount: Money
+        -numberOfInstallments: InstallmentCount
+        -interestRate: InterestRate
+        -createDate: LocalDateTime
+        -isPaid: boolean
+        -installments: List<LoanInstallment>
+        +getTotalAmount(): Money
+        +getRemainingAmount(): Money
+        +getUnpaidInstallments(): List<LoanInstallment>
+        +isFullyPaid(): boolean
+        +markAsPaid()
+    }
+    
+    class LoanInstallment<<Entity>> ENTITY_COLOR {
+        -installmentId: InstallmentId
+        -loan: Loan
+        -amount: Money
+        -paidAmount: Money
+        -dueDate: LocalDate
+        -paymentDate: LocalDateTime
+        -isPaid: boolean
+        +processPayment(amount: Money, date: LocalDateTime)
+        +calculateEarlyPaymentDiscount(paymentDate: LocalDate): Money
+        +calculateLatePaymentPenalty(paymentDate: LocalDate): Money
+        +isOverdue(): boolean
+    }
+    
+    class LoanId<<Value Object>> VALUE_OBJECT_COLOR {
+        -value: String
+        +of(value: String): LoanId
+        +generate(): LoanId
+    }
+    
+    class InstallmentId<<Value Object>> VALUE_OBJECT_COLOR {
+        -value: String
+        +of(value: String): InstallmentId
+        +generate(): InstallmentId
+    }
+    
+    class LoanCreated<<Event>> {
+        -loanId: LoanId
+        -customerId: CustomerId
+        -totalAmount: Money
+        -numberOfInstallments: InstallmentCount
+    }
+    
+    class LoanApplicationSubmitted<<Event>> {
+        -customerId: CustomerId
+        -loanAmount: Money
+        -interestRate: InterestRate
+        -numberOfInstallments: InstallmentCount
+        -applicationId: String
+    }
+}
+
+package "Payment Processing" {
+    class Payment<<Aggregate Root>> AGGREGATE_ROOT_COLOR {
+        -paymentId: PaymentId
+        -loanId: LoanId
+        -paymentAmount: Money
+        -paymentDate: LocalDateTime
+        -status: PaymentStatus
+        -installmentsPaid: Integer
+        -totalDiscount: Money
+        -totalPenalty: Money
+        -isLoanFullyPaid: boolean
+        +processPayment(result: PaymentResult)
+        +getTotalAmountSpent(): Money
+        +isSuccessful(): boolean
+    }
+    
+    class PaymentId<<Value Object>> VALUE_OBJECT_COLOR {
+        -value: String
+        +of(value: String): PaymentId
+        +generate(): PaymentId
+    }
+    
+    enum PaymentStatus {
+        INITIATED
+        PROCESSING
+        COMPLETED
+        FAILED
+    }
+    
+    class PaymentCalculationService<<Domain Service>> DOMAIN_SERVICE_COLOR {
+        +calculatePayment(installments: List<LoanInstallment>, amount: Money): PaymentCalculationResult
+        +isAdvancePaymentAllowed(installments: List<LoanInstallment>, date: LocalDate): boolean
+        +calculateTotalEffectiveAmount(installments: List<LoanInstallment>, date: LocalDate): Money
+    }
+    
+    class PaymentProcessed<<Event>> {
+        -paymentId: PaymentId
+        -loanId: LoanId
+        -paymentAmount: Money
+        -installmentsPaid: Integer
+        -totalAmountSpent: Money
+        -isLoanFullyPaid: Boolean
+    }
+    
+    class LoanFullyPaid<<Event>> {
+        -loanId: LoanId
+        -customerId: CustomerId
+        -totalLoanAmount: Money
+    }
+}
+
+' Relationships
+AggregateRoot --|> Entity
+Customer --|> AggregateRoot
+Loan --|> AggregateRoot
+Payment --|> AggregateRoot
+LoanInstallment --|> Entity
+
+Customer *-- CustomerId
+Customer *-- CreditLimit
+Customer *-- Money
+
+Loan *-- LoanId
+Loan *-- CustomerId
+Loan *-- Money
+Loan *-- InstallmentCount
+Loan *-- InterestRate
+Loan *-- LoanInstallment
+
+LoanInstallment *-- InstallmentId
+LoanInstallment *-- Money
+
+Payment *-- PaymentId
+Payment *-- LoanId
+Payment *-- Money
+Payment *-- PaymentStatus
+
+Money ..|> ValueObject
+InterestRate ..|> ValueObject
+InstallmentCount ..|> ValueObject
+CustomerId ..|> ValueObject
+CreditLimit ..|> ValueObject
+LoanId ..|> ValueObject
+InstallmentId ..|> ValueObject
+PaymentId ..|> ValueObject
+
+CreditReserved --|> DomainEvent
+CreditReleased --|> DomainEvent
+LoanCreated --|> DomainEvent
+LoanApplicationSubmitted --|> DomainEvent
+PaymentProcessed --|> DomainEvent
+LoanFullyPaid --|> DomainEvent
+
+Customer ..> CreditReserved : raises
+Customer ..> CreditReleased : raises
+Loan ..> LoanCreated : raises
+Payment ..> PaymentProcessed : raises
+
+CreditAssessmentService ..> Customer : uses
+CreditAssessmentService ..> CreditRiskLevel : returns
+PaymentCalculationService ..> LoanInstallment : uses
+
+@enduml

@@ -1,0 +1,369 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loan-management-config
+  namespace: loan-management-system
+  labels:
+    app.kubernetes.io/name: loan-management-system
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: configuration
+    app.kubernetes.io/part-of: banking-platform
+    app.kubernetes.io/managed-by: kubectl
+  annotations:
+    description: "Configuration for Loan Management System"
+data:
+  # Application configuration
+  application.yml: |
+    spring:
+      application:
+        name: loan-management-system
+      profiles:
+        active: production,kubernetes
+      
+      # JPA configuration
+      jpa:
+        hibernate:
+          ddl-auto: validate
+        show-sql: false
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+            format_sql: false
+            use_sql_comments: false
+            jdbc:
+              batch_size: 25
+            order_inserts: true
+            order_updates: true
+        open-in-view: false
+      
+      # Flyway configuration
+      flyway:
+        enabled: true
+        baseline-on-migrate: true
+        locations: classpath:db/migration
+        schemas: public
+        validate-on-migrate: true
+        out-of-order: false
+      
+      # Cache configuration
+      cache:
+        type: redis
+        redis:
+          time-to-live: 600000
+      
+      # Kafka configuration
+      kafka:
+        producer:
+          key-serializer: org.apache.kafka.common.serialization.StringSerializer
+          value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+          acks: all
+          retries: 3
+          properties:
+            enable.idempotence: true
+            max.in.flight.requests.per.connection: 1
+        consumer:
+          group-id: loan-management-prod
+          key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+          value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+          auto-offset-reset: earliest
+          enable-auto-commit: false
+          properties:
+            spring.json.trusted.packages: "com.bank.loanmanagement.*"
+    
+    # Server configuration
+    server:
+      port: 8000
+      servlet:
+        context-path: /
+      compression:
+        enabled: true
+        mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+      tomcat:
+        threads:
+          max: 200
+          min-spare: 10
+        connection-timeout: 20000
+        max-connections: 8192
+        accept-count: 100
+    
+    # Management endpoints
+    management:
+      server:
+        port: 8080
+      endpoints:
+        web:
+          exposure:
+            include: health,info,metrics,prometheus
+          base-path: /actuator
+      endpoint:
+        health:
+          show-details: when-authorized
+          probes:
+            enabled: true
+          group:
+            liveness:
+              include: livenessState,diskSpace
+            readiness:
+              include: readinessState,db,redis,kafka
+      metrics:
+        export:
+          prometheus:
+            enabled: true
+        distribution:
+          percentiles-histogram:
+            http.server.requests: true
+          percentiles:
+            http.server.requests: 0.5,0.9,0.95,0.99
+      health:
+        circuitbreakers:
+          enabled: true
+        livenessstate:
+          enabled: true
+        readinessstate:
+          enabled: true
+    
+    # Logging configuration
+    logging:
+      level:
+        com.bank.loanmanagement: INFO
+        org.springframework.security: WARN
+        org.hibernate.SQL: WARN
+        org.hibernate.type.descriptor.sql.BasicBinder: WARN
+        org.springframework.kafka: INFO
+      pattern:
+        console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
+        file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
+      file:
+        name: /app/logs/application.log
+        max-size: 100MB
+        max-history: 10
+    
+    # Circuit breaker configuration
+    resilience4j:
+      circuitbreaker:
+        instances:
+          customerService:
+            registerHealthIndicator: true
+            slidingWindowSize: 20
+            permittedNumberOfCallsInHalfOpenState: 5
+            slidingWindowType: COUNT_BASED
+            waitDurationInOpenState: 10s
+            failureRateThreshold: 50
+            eventConsumerBufferSize: 10
+            recordExceptions:
+              - java.lang.Exception
+          paymentService:
+            registerHealthIndicator: true
+            slidingWindowSize: 20
+            permittedNumberOfCallsInHalfOpenState: 5
+            slidingWindowType: COUNT_BASED
+            waitDurationInOpenState: 10s
+            failureRateThreshold: 50
+            eventConsumerBufferSize: 10
+      retry:
+        instances:
+          default:
+            maxAttempts: 3
+            waitDuration: 1s
+            exponentialBackoffMultiplier: 2
+      ratelimiter:
+        instances:
+          api:
+            registerHealthIndicator: true
+            limitForPeriod: 100
+            limitRefreshPeriod: 1s
+            timeoutDuration: 0s
+    
+    # OpenAPI documentation
+    springdoc:
+      api-docs:
+        path: /v3/api-docs
+      swagger-ui:
+        path: /swagger-ui.html
+        operationsSorter: method
+        disable-swagger-default-url: true
+      info:
+        title: Loan Management System API
+        description: Enterprise Loan Management System with DDD and Hexagonal Architecture
+        version: 1.0.0
+        contact:
+          name: Development Team
+          email: dev@bank.com
+
+  # Database connection properties
+  database.host: "postgres-service.database.svc.cluster.local"
+  database.port: "5432"
+  database.name: "loandb"
+  
+  # Redis connection properties
+  redis.host: "redis-service.cache.svc.cluster.local"
+  redis.port: "6379"
+  redis.timeout: "2000"
+  
+  # Kafka connection properties
+  kafka.bootstrap-servers: "kafka-service.messaging.svc.cluster.local:9092"
+  kafka.consumer.group-id: "loan-management-prod"
+  
+  # Application-specific configuration
+  app.loan.max-advance-payment-months: "3"
+  app.loan.early-payment-discount-rate: "0.001"
+  app.loan.late-payment-penalty-rate: "0.001"
+  app.customer.min-credit-limit: "1000"
+  app.customer.max-credit-limit: "1000000"
+  
+  # JVM configuration
+  java.opts: >-
+    -Xms512m
+    -Xmx1g
+    -XX:+UseG1GC
+    -XX:+UseStringDeduplication
+    -XX:+OptimizeStringConcat
+    -XX:+UseCompressedOops
+    -XX:+UseCompressedClassPointers
+    -XX:+UseBiasedLocking
+    -XX:+UseFastUnorderedTimeStamps
+    -XX:+AggressiveOpts
+    -XX:+TieredCompilation
+    -XX:TieredStopAtLevel=1
+    -XX:ReservedCodeCacheSize=256m
+    -XX:InitialCodeCacheSize=64m
+    -XX:+UnlockExperimentalVMOptions
+    -XX:+UseJVMCICompiler
+    -Djava.security.egd=file:/dev/./urandom
+    -Dspring.backgroundpreinitializer.ignore=true
+
+---
+# ConfigMap for logback configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loan-management-logback
+  namespace: loan-management-system
+  labels:
+    app.kubernetes.io/name: loan-management-system
+    app.kubernetes.io/component: logging-config
+data:
+  logback-spring.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <configuration>
+        <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+        
+        <!-- Console appender -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp/>
+                    <logLevel/>
+                    <loggerName/>
+                    <mdc/>
+                    <arguments/>
+                    <message/>
+                    <stackTrace/>
+                </providers>
+            </encoder>
+        </appender>
+        
+        <!-- File appender -->
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>/app/logs/application.log</file>
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp/>
+                    <logLevel/>
+                    <loggerName/>
+                    <mdc/>
+                    <arguments/>
+                    <message/>
+                    <stackTrace/>
+                </providers>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>/app/logs/application.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>100MB</maxFileSize>
+                <maxHistory>10</maxHistory>
+                <totalSizeCap>1GB</totalSizeCap>
+            </rollingPolicy>
+        </appender>
+        
+        <!-- Async appenders for better performance -->
+        <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="CONSOLE"/>
+            <queueSize>512</queueSize>
+            <discardingThreshold>0</discardingThreshold>
+            <includeCallerData>true</includeCallerData>
+        </appender>
+        
+        <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="FILE"/>
+            <queueSize>512</queueSize>
+            <discardingThreshold>0</discardingThreshold>
+            <includeCallerData>true</includeCallerData>
+        </appender>
+        
+        <!-- Logger configurations -->
+        <logger name="com.bank.loanmanagement" level="INFO"/>
+        <logger name="org.springframework.security" level="WARN"/>
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.springframework.kafka" level="INFO"/>
+        <logger name="org.apache.kafka" level="WARN"/>
+        
+        <!-- Root logger -->
+        <root level="INFO">
+            <appender-ref ref="ASYNC_CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
+        </root>
+        
+        <!-- Production profile specific configuration -->
+        <springProfile name="production">
+            <root level="WARN">
+                <appender-ref ref="ASYNC_CONSOLE"/>
+                <appender-ref ref="ASYNC_FILE"/>
+            </root>
+        </springProfile>
+    </configuration>
+
+---
+# ConfigMap for JVM tuning
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loan-management-jvm
+  namespace: loan-management-system
+  labels:
+    app.kubernetes.io/name: loan-management-system
+    app.kubernetes.io/component: jvm-config
+data:
+  # JVM tuning for G1GC
+  jvm-g1gc.options: |
+    -XX:+UseG1GC
+    -XX:MaxGCPauseMillis=200
+    -XX:G1HeapRegionSize=16m
+    -XX:G1NewSizePercent=30
+    -XX:G1MaxNewSizePercent=40
+    -XX:G1MixedGCLiveThresholdPercent=85
+    -XX:G1MixedGCCountTarget=8
+    -XX:G1OldCSetRegionThresholdPercent=10
+    -XX:+G1UseAdaptiveIHOP
+    -XX:G1MixedGCLiveThresholdPercent=90
+    
+  # JVM monitoring and debugging
+  jvm-monitoring.options: |
+    -XX:+UnlockDiagnosticVMOptions
+    -XX:+LogVMOutput
+    -XX:+PrintGCDetails
+    -XX:+PrintGCTimeStamps
+    -XX:+PrintGCApplicationStoppedTime
+    -XX:+UseGCLogFileRotation
+    -XX:NumberOfGCLogFiles=10
+    -XX:GCLogFileSize=10M
+    -Xloggc:/app/logs/gc.log
+    
+  # JVM security and performance
+  jvm-security.options: |
+    -Djava.security.egd=file:/dev/./urandom
+    -Djava.awt.headless=true
+    -Dfile.encoding=UTF-8
+    -Duser.timezone=UTC
+    -Djava.net.preferIPv4Stack=true
+    -Dsun.net.inetaddr.ttl=30

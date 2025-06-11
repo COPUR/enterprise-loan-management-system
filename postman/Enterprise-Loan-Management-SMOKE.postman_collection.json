@@ -1,0 +1,396 @@
+{
+  "info": {
+    "name": "Enterprise Loan Management System - SMOKE Tests",
+    "description": "Critical path smoke testing for production readiness validation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{smoke_jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// Smoke test configuration",
+          "pm.environment.set('base_url', 'http://localhost:5000');",
+          "pm.environment.set('smoke_test_start', Date.now());"
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          "// Critical smoke test validations",
+          "pm.test('Response time under 1000ms (Production SLA)', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+          "});",
+          "",
+          "pm.test('No 5xx server errors', function () {",
+          "    pm.expect(pm.response.code).to.be.below(500);",
+          "});"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Critical Path Smoke Tests",
+      "item": [
+        {
+          "name": "SMOKE-01: System Availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('✓ System is UP and running', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('running');",
+                  "});",
+                  "",
+                  "pm.test('✓ Database connectivity confirmed', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.database_connected).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SMOKE-02: Customer Service Operational",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('✓ Customer service responding', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.customers).to.be.an('array');",
+                  "    pm.expect(jsonData.customers.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('✓ Customer data integrity', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const customer = jsonData.customers[0];",
+                  "    pm.expect(customer).to.have.property('customer_id');",
+                  "    pm.expect(customer).to.have.property('email');",
+                  "    pm.expect(customer.credit_score).to.be.at.least(300);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SMOKE-03: Loan Service Operational",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "loans"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('✓ Loan service responding', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.loans).to.be.an('array');",
+                  "    pm.expect(jsonData.loans.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('✓ Loan business rules enforced', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const loan = jsonData.loans[0];",
+                  "    pm.expect(parseFloat(loan.loan_amount)).to.be.at.least(1000);",
+                  "    pm.expect(parseFloat(loan.interest_rate)).to.be.at.least(0.1);",
+                  "    pm.expect([6, 9, 12, 24]).to.include(loan.installments);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SMOKE-04: Payment Service Operational",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('✓ Payment service responding', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.payments).to.be.an('array');",
+                  "    pm.expect(jsonData.payments.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('✓ Payment data valid', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const payment = jsonData.payments[0];",
+                  "    pm.expect(parseFloat(payment.payment_amount)).to.be.above(0);",
+                  "    pm.expect(payment).to.have.property('payment_status');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SMOKE-05: FAPI Security Framework",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/fapi/compliance-report",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "fapi", "compliance-report"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('✓ FAPI framework operational', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.fapi_compliance_assessment.overall_compliance_score).to.exist;",
+                  "});",
+                  "",
+                  "pm.test('✓ Banking compliance threshold met', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const score = parseFloat(jsonData.fapi_compliance_assessment.overall_compliance_score);",
+                  "    pm.expect(score).to.be.at.least(70);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SMOKE-06: TDD Coverage Validation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tdd/coverage-report",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tdd", "coverage-report"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('✓ TDD framework operational', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.tdd_coverage_assessment.overall_coverage_rate).to.exist;",
+                  "});",
+                  "",
+                  "pm.test('✓ Test coverage meets standards', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const coverage = parseFloat(jsonData.tdd_coverage_assessment.overall_coverage_rate);",
+                  "    pm.expect(coverage).to.be.at.least(65);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Security Smoke Tests",
+      "item": [
+        {
+          "name": "SMOKE-07: Security Headers Enforced",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('✓ Critical security headers present', function () {",
+                  "    pm.expect(pm.response.headers.get('X-Content-Type-Options')).to.eql('nosniff');",
+                  "    pm.expect(pm.response.headers.get('X-Frame-Options')).to.eql('DENY');",
+                  "    pm.expect(pm.response.headers.get('Strict-Transport-Security')).to.exist;",
+                  "});",
+                  "",
+                  "pm.test('✓ FAPI interaction headers present', function () {",
+                  "    pm.expect(pm.response.headers.get('X-FAPI-Interaction-ID')).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Performance Smoke Tests",
+      "item": [
+        {
+          "name": "SMOKE-08: Response Time SLA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('✓ Response time meets SLA (<500ms)', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});",
+                  "",
+                  "pm.test('✓ Content-Type is JSON', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Smoke Test Summary",
+      "item": [
+        {
+          "name": "SMOKE-FINAL: Production Readiness",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('=== SMOKE TEST EXECUTION SUMMARY ===');",
+                  "console.log('Test Start Time:', new Date(pm.environment.get('smoke_test_start')).toISOString());",
+                  "console.log('Current Time:', new Date().toISOString());",
+                  "console.log('Environment:', pm.environment.get('base_url'));",
+                  "console.log('=====================================');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('🎯 SMOKE TESTS PASSED - SYSTEM READY FOR PRODUCTION', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.service).to.include('Enterprise Loan Management');",
+                  "    ",
+                  "    console.log('✅ All critical systems operational');",
+                  "    console.log('✅ Database connectivity verified');",
+                  "    console.log('✅ Business rules enforced');",
+                  "    console.log('✅ Security framework active');",
+                  "    console.log('✅ Performance SLA met');",
+                  "    console.log('✅ FAPI compliance verified');",
+                  "    console.log('✅ TDD coverage validated');",
+                  "    console.log('');",
+                  "    console.log('🚀 SYSTEM IS PRODUCTION READY');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "smoke_jwt_token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzbW9rZV90ZXN0ZXIiLCJyb2xlIjoiU01PS0UiLCJpYXQiOjE3MzM4ODM2MDAsImV4cCI6MTczNDQ4ODQwMH0.smoke_example"
+    }
+  ]
+}

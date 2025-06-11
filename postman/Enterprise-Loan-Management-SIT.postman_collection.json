@@ -1,0 +1,585 @@
+{
+  "info": {
+    "name": "Enterprise Loan Management System - SIT Environment",
+    "description": "System Integration Testing collection with comprehensive end-to-end workflows and data validation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{sit_jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// SIT Environment Configuration",
+          "pm.environment.set('base_url', 'http://localhost:5000');",
+          "pm.environment.set('fapi_interaction_id', pm.variables.replaceIn('{{$guid}}'));",
+          "pm.environment.set('test_run_id', pm.variables.replaceIn('{{$timestamp}}'));",
+          "",
+          "// Performance tracking",
+          "pm.environment.set('request_start_time', Date.now());"
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          "// Global SIT validations",
+          "pm.test('Response time under 2000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});",
+          "",
+          "pm.test('FAPI headers present', function () {",
+          "    pm.expect(pm.response.headers.get('X-FAPI-Interaction-ID')).to.exist;",
+          "});",
+          "",
+          "pm.test('Security headers enforced', function () {",
+          "    pm.expect(pm.response.headers.get('Strict-Transport-Security')).to.exist;",
+          "    pm.expect(pm.response.headers.get('X-Content-Type-Options')).to.eql('nosniff');",
+          "    pm.expect(pm.response.headers.get('X-Frame-Options')).to.eql('DENY');",
+          "});"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "System Integration Workflows",
+      "item": [
+        {
+          "name": "01 - System Health Validation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-FAPI-Interaction-ID",
+                "value": "{{fapi_interaction_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('System operational status', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('running');",
+                  "    pm.expect(jsonData.database_connected).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Technology stack validation', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.technology_stack.java).to.include('Java 21');",
+                  "    pm.expect(jsonData.technology_stack.framework).to.include('Spring Boot 3.2');",
+                  "    pm.expect(jsonData.technology_stack.database).to.include('PostgreSQL');",
+                  "});",
+                  "",
+                  "pm.test('Bounded contexts available', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.bounded_contexts).to.include('Customer Management');",
+                  "    pm.expect(jsonData.bounded_contexts).to.include('Loan Origination');",
+                  "    pm.expect(jsonData.bounded_contexts).to.include('Payment Processing');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 - Database Integration Test",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-FAPI-Interaction-ID",
+                "value": "{{fapi_interaction_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/database/test",
+              "host": ["{{base_url}}"],
+              "path": ["api", "database", "test"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Database connectivity verified', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.database_status).to.eql('Connected');",
+                  "});",
+                  "",
+                  "pm.test('All schemas validated', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const requiredSchemas = ['customer_management', 'loan_origination', 'payment_processing'];",
+                  "    requiredSchemas.forEach(schema => {",
+                  "        pm.expect(jsonData.schemas_validated).to.include(schema);",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('PostgreSQL version compatibility', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.database_version).to.include('PostgreSQL');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 - Customer Data Integration",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-FAPI-Interaction-ID",
+                "value": "{{fapi_interaction_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Customer data retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.customers).to.be.an('array');",
+                  "    pm.expect(jsonData.customers.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Customer data integrity validation', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const customer = jsonData.customers[0];",
+                  "    ",
+                  "    // Required fields validation",
+                  "    pm.expect(customer).to.have.property('customer_id');",
+                  "    pm.expect(customer).to.have.property('first_name');",
+                  "    pm.expect(customer).to.have.property('last_name');",
+                  "    pm.expect(customer).to.have.property('email');",
+                  "    pm.expect(customer).to.have.property('credit_score');",
+                  "    pm.expect(customer).to.have.property('monthly_income');",
+                  "    ",
+                  "    // Business rule validation",
+                  "    pm.expect(customer.credit_score).to.be.at.least(300);",
+                  "    pm.expect(customer.credit_score).to.be.at.most(850);",
+                  "    pm.expect(parseFloat(customer.monthly_income)).to.be.above(0);",
+                  "    ",
+                  "    // Store for subsequent tests",
+                  "    pm.environment.set('test_customer_id', customer.customer_id);",
+                  "    pm.environment.set('test_customer_email', customer.email);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 - Loan Data Integration",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-FAPI-Interaction-ID",
+                "value": "{{fapi_interaction_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "loans"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Loan data retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.loans).to.be.an('array');",
+                  "    pm.expect(jsonData.loans.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Comprehensive loan business rules validation', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    let validLoansCount = 0;",
+                  "    ",
+                  "    jsonData.loans.forEach(loan => {",
+                  "        // Loan amount validation: $1,000 - $500,000",
+                  "        const loanAmount = parseFloat(loan.loan_amount);",
+                  "        pm.expect(loanAmount).to.be.at.least(1000, 'Loan amount below minimum');",
+                  "        pm.expect(loanAmount).to.be.at.most(500000, 'Loan amount above maximum');",
+                  "        ",
+                  "        // Interest rate validation: 0.1% - 0.5%",
+                  "        const interestRate = parseFloat(loan.interest_rate);",
+                  "        pm.expect(interestRate).to.be.at.least(0.1, 'Interest rate below minimum');",
+                  "        pm.expect(interestRate).to.be.at.most(0.5, 'Interest rate above maximum');",
+                  "        ",
+                  "        // Installment validation: 6, 9, 12, 24",
+                  "        const validInstallments = [6, 9, 12, 24];",
+                  "        pm.expect(validInstallments).to.include(loan.installments, 'Invalid installment period');",
+                  "        ",
+                  "        // Status validation",
+                  "        const validStatuses = ['PENDING', 'APPROVED', 'ACTIVE', 'COMPLETED', 'REJECTED', 'DEFAULTED'];",
+                  "        pm.expect(validStatuses).to.include(loan.loan_status, 'Invalid loan status');",
+                  "        ",
+                  "        validLoansCount++;",
+                  "    });",
+                  "    ",
+                  "    pm.environment.set('valid_loans_count', validLoansCount);",
+                  "    pm.environment.set('test_loan_id', jsonData.loans[0].loan_id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 - Payment Processing Integration",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-FAPI-Interaction-ID",
+                "value": "{{fapi_interaction_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Payment data retrieved successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.payments).to.be.an('array');",
+                  "    pm.expect(jsonData.payments.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Payment data integrity and business rules', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    let processedPayments = 0;",
+                  "    let totalPaymentAmount = 0;",
+                  "    ",
+                  "    jsonData.payments.forEach(payment => {",
+                  "        // Required fields",
+                  "        pm.expect(payment).to.have.property('payment_id');",
+                  "        pm.expect(payment).to.have.property('loan_id');",
+                  "        pm.expect(payment).to.have.property('payment_amount');",
+                  "        pm.expect(payment).to.have.property('payment_status');",
+                  "        ",
+                  "        // Payment amount validation",
+                  "        const amount = parseFloat(payment.payment_amount);",
+                  "        pm.expect(amount).to.be.above(0, 'Payment amount must be positive');",
+                  "        totalPaymentAmount += amount;",
+                  "        ",
+                  "        // Status validation",
+                  "        const validStatuses = ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'REVERSED', 'CANCELLED'];",
+                  "        pm.expect(validStatuses).to.include(payment.payment_status);",
+                  "        ",
+                  "        processedPayments++;",
+                  "    });",
+                  "    ",
+                  "    pm.environment.set('total_payment_amount', totalPaymentAmount);",
+                  "    pm.environment.set('processed_payments_count', processedPayments);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "FAPI Compliance Integration",
+      "item": [
+        {
+          "name": "06 - FAPI Compliance Assessment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-FAPI-Interaction-ID",
+                "value": "{{fapi_interaction_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/fapi/compliance-report",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "fapi", "compliance-report"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('FAPI compliance report generation', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('fapi_compliance_assessment');",
+                  "    pm.expect(jsonData.fapi_compliance_assessment).to.have.property('overall_compliance_score');",
+                  "});",
+                  "",
+                  "pm.test('Banking standards compliance threshold', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const complianceScore = parseFloat(jsonData.fapi_compliance_assessment.overall_compliance_score);",
+                  "    pm.expect(complianceScore).to.be.at.least(70, 'Compliance score below banking threshold');",
+                  "    pm.environment.set('fapi_compliance_score', complianceScore);",
+                  "});",
+                  "",
+                  "pm.test('Essential security features implemented', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.security_profile.oauth2_pkce).to.eql('Implemented');",
+                  "    pm.expect(jsonData.security_profile.jwt_secured_authorization_request).to.eql('Implemented');",
+                  "    pm.expect(jsonData.security_profile.authorization_code_flow).to.eql('Implemented');",
+                  "});",
+                  "",
+                  "pm.test('Rate limiting and security headers', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.rate_limiting.per_client_limits).to.exist;",
+                  "    pm.expect(jsonData.security_headers.x_fapi_interaction_id).to.eql('Implemented');",
+                  "    pm.expect(jsonData.security_headers.strict_transport_security).to.eql('Implemented');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 - Security Assessment Integration",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-FAPI-Interaction-ID",
+                "value": "{{fapi_interaction_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/fapi/security-assessment",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "fapi", "security-assessment"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Security assessment comprehensive', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('security_strengths');",
+                  "    pm.expect(jsonData).to.have.property('vulnerabilities');",
+                  "    pm.expect(jsonData).to.have.property('fapi_test_results');",
+                  "});",
+                  "",
+                  "pm.test('Critical security tests passing', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const passingTests = ['oauth2_authorization_code_flow', 'jwt_token_validation', 'rate_limiting_enforcement', 'security_headers_present', 'tls_configuration'];",
+                  "    ",
+                  "    passingTests.forEach(test => {",
+                  "        pm.expect(jsonData.fapi_test_results[test]).to.eql('PASS', `${test} should pass`);",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Security rating acceptable', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.overall_security_rating).to.include('B+');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TDD Coverage Integration",
+      "item": [
+        {
+          "name": "08 - TDD Coverage Assessment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-FAPI-Interaction-ID",
+                "value": "{{fapi_interaction_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tdd/coverage-report",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tdd", "coverage-report"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('TDD coverage report comprehensive', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('tdd_coverage_assessment');",
+                  "    pm.expect(jsonData).to.have.property('test_categories');",
+                  "    pm.expect(jsonData).to.have.property('business_rule_coverage');",
+                  "});",
+                  "",
+                  "pm.test('Banking standards coverage threshold', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const coverageRate = parseFloat(jsonData.tdd_coverage_assessment.overall_coverage_rate);",
+                  "    pm.expect(coverageRate).to.be.at.least(65, 'Coverage below banking standards threshold');",
+                  "    pm.environment.set('tdd_coverage_rate', coverageRate);",
+                  "});",
+                  "",
+                  "pm.test('Critical business rules fully tested', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const criticalRules = ['loan_amount_validation', 'interest_rate_range', 'installment_periods'];",
+                  "    ",
+                  "    criticalRules.forEach(rule => {",
+                  "        pm.expect(jsonData.business_rule_coverage[rule]).to.eql('100% Covered', `${rule} should be fully tested`);",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Test success rate acceptable', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const successRate = parseFloat(jsonData.test_metrics.test_success_rate);",
+                  "    pm.expect(successRate).to.be.at.least(95, 'Test success rate below threshold');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "End-to-End Integration Summary",
+      "item": [
+        {
+          "name": "09 - Integration Test Summary",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate comprehensive test summary",
+                  "console.log('=== SIT INTEGRATION TEST SUMMARY ===');",
+                  "console.log('Test Run ID:', pm.environment.get('test_run_id'));",
+                  "console.log('Customer ID Tested:', pm.environment.get('test_customer_id'));",
+                  "console.log('Loan ID Tested:', pm.environment.get('test_loan_id'));",
+                  "console.log('Valid Loans Count:', pm.environment.get('valid_loans_count'));",
+                  "console.log('Total Payment Amount:', pm.environment.get('total_payment_amount'));",
+                  "console.log('FAPI Compliance Score:', pm.environment.get('fapi_compliance_score'));",
+                  "console.log('TDD Coverage Rate:', pm.environment.get('tdd_coverage_rate'));",
+                  "console.log('======================================');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('SIT Integration Test Suite - All Systems Operational', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    ",
+                  "    // Validate all critical metrics",
+                  "    const fapiScore = parseFloat(pm.environment.get('fapi_compliance_score') || '0');",
+                  "    const tddCoverage = parseFloat(pm.environment.get('tdd_coverage_rate') || '0');",
+                  "    const validLoans = parseInt(pm.environment.get('valid_loans_count') || '0');",
+                  "    ",
+                  "    pm.expect(fapiScore).to.be.at.least(70, 'FAPI compliance below threshold');",
+                  "    pm.expect(tddCoverage).to.be.at.least(65, 'TDD coverage below threshold');",
+                  "    pm.expect(validLoans).to.be.above(0, 'No valid loans found');",
+                  "    ",
+                  "    console.log('✓ All integration tests passed successfully');",
+                  "    console.log('✓ Banking standards compliance verified');",
+                  "    console.log('✓ FAPI security framework operational');",
+                  "    console.log('✓ TDD coverage meets industry standards');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "sit_jwt_token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzaXRfdXNlciIsInJvbGUiOiJURVNURVIiLCJpYXQiOjE3MzM4ODM2MDAsImV4cCI6MTczNDQ4ODQwMH0.sit_example"
+    }
+  ]
+}

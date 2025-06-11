@@ -1,0 +1,125 @@
+@startuml Hexagonal Architecture
+
+!define PRIMARY_COLOR #4A90E2
+!define SECONDARY_COLOR #7ED321
+!define INFRASTRUCTURE_COLOR #F5A623
+!define DOMAIN_COLOR #BD10E0
+
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+
+package "Infrastructure Layer" <<Frame>> {
+    
+    package "Input Adapters" {
+        component [REST API\nControllers] as RestAPI INFRASTRUCTURE_COLOR
+        component [Event Listeners\n(Kafka)] as EventListeners INFRASTRUCTURE_COLOR
+        component [Scheduled Jobs] as ScheduledJobs INFRASTRUCTURE_COLOR
+    }
+    
+    package "Output Adapters" {
+        component [JPA Repositories] as JpaRepositories INFRASTRUCTURE_COLOR
+        component [Event Publishers\n(Kafka)] as EventPublishers INFRASTRUCTURE_COLOR
+        component [Redis Cache] as RedisCache INFRASTRUCTURE_COLOR
+        component [External APIs] as ExternalAPIs INFRASTRUCTURE_COLOR
+    }
+    
+    package "Configuration" {
+        component [Spring Configuration] as SpringConfig INFRASTRUCTURE_COLOR
+        component [Security Configuration] as SecurityConfig INFRASTRUCTURE_COLOR
+    }
+}
+
+package "Application Layer" <<Frame>> {
+    component [Application Services] as AppServices SECONDARY_COLOR
+    component [SAGA Orchestrators] as SagaOrchestrators SECONDARY_COLOR
+    component [Use Case Implementations] as UseCases SECONDARY_COLOR
+    component [Event Handlers] as EventHandlers SECONDARY_COLOR
+}
+
+package "Domain Layer (Core)" <<Frame>> {
+    
+    package "Domain Model" {
+        component [Aggregates\n(Customer, Loan, Payment)] as Aggregates DOMAIN_COLOR
+        component [Entities\n(LoanInstallment)] as Entities DOMAIN_COLOR
+        component [Value Objects\n(Money, InterestRate)] as ValueObjects DOMAIN_COLOR
+        component [Domain Events] as DomainEvents DOMAIN_COLOR
+    }
+    
+    package "Domain Services" {
+        component [Credit Assessment\nService] as DomainServices DOMAIN_COLOR
+        component [Payment Calculation\nService] as PaymentService DOMAIN_COLOR
+    }
+    
+    package "Ports (Interfaces)" {
+        component [Input Ports\n(Use Cases)] as InputPorts PRIMARY_COLOR
+        component [Output Ports\n(Repositories)] as OutputPorts PRIMARY_COLOR
+    }
+}
+
+' External Systems
+cloud "External Systems" {
+    database "PostgreSQL\nDatabase" as Database
+    queue "Apache Kafka\nMessage Broker" as Kafka
+    storage "Redis\nCache" as Redis
+}
+
+' Connections - Input flow
+RestAPI --> UseCases : HTTP Requests
+EventListeners --> EventHandlers : Kafka Messages
+ScheduledJobs --> AppServices : Scheduled Tasks
+
+' Application to Domain
+UseCases --> InputPorts : implements
+AppServices --> InputPorts : uses
+SagaOrchestrators --> InputPorts : coordinates
+EventHandlers --> InputPorts : triggers
+
+' Domain internal relationships
+InputPorts --> Aggregates : orchestrates
+InputPorts --> DomainServices : uses
+Aggregates --> ValueObjects : contains
+Aggregates --> Entities : contains
+Aggregates --> DomainEvents : raises
+DomainServices --> Aggregates : operates on
+
+' Domain to Infrastructure
+OutputPorts <-- AppServices : uses
+JpaRepositories --> OutputPorts : implements
+EventPublishers --> OutputPorts : implements
+RedisCache --> OutputPorts : implements
+
+' Infrastructure to External
+JpaRepositories --> Database : SQL
+EventPublishers --> Kafka : Messages
+EventListeners <-- Kafka : Messages
+RedisCache --> Redis : Cache Operations
+
+' Dependencies direction (showing dependency inversion)
+note top of InputPorts : "Domain defines interfaces\n(Dependency Inversion Principle)"
+note bottom of OutputPorts : "Infrastructure implements interfaces\n(Adapters conform to ports)"
+
+' Hexagon visualization
+!define HEXAGON_SIDE 200
+!define HEXAGON_RADIUS 173
+
+note as N1
+  <b>Hexagonal Architecture Principles:</b>
+  
+  1. <b>Domain at the Center:</b> Business logic is isolated
+  2. <b>Ports:</b> Define contracts (interfaces)
+  3. <b>Adapters:</b> Implement ports for specific technologies
+  4. <b>Dependency Inversion:</b> Dependencies point inward
+  5. <b>Testability:</b> Domain can be tested in isolation
+  6. <b>Technology Independence:</b> Easy to swap adapters
+end note
+
+' Color legend
+note as Legend
+  <b>Layer Colors:</b>
+  <color:#BD10E0>■</color> Domain Layer (Core Business Logic)
+  <color:#4A90E2>■</color> Ports (Interfaces/Contracts)
+  <color:#7ED321>■</color> Application Layer (Coordination)
+  <color:#F5A623>■</color> Infrastructure Layer (Technical Details)
+end note
+
+@enduml
