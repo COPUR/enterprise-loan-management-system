@@ -1,0 +1,222 @@
+@startuml CI/CD Pipeline - Enterprise Loan Management System
+
+!define GITHUB_COLOR #24292E
+!define CI_COLOR #2088FF
+!define SECURITY_COLOR #F56565
+!define DOCKER_COLOR #2496ED
+!define KUBERNETES_COLOR #326CE5
+!define ARGOCD_COLOR #EF7B4D
+!define MONITORING_COLOR #E6522C
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+
+title Enterprise Loan Management System - CI/CD Pipeline Architecture
+
+' Source Control
+package "Source Control & Collaboration" <<GitHub>> #F6F8FA {
+    component [GitHub Repository\n(Enterprise Loan System)] as GitHubRepo GITHUB_COLOR
+    component [Feature Branches\n(GitFlow Strategy)] as FeatureBranches GITHUB_COLOR
+    component [Pull Requests\n(Code Review Process)] as PullRequests GITHUB_COLOR
+    component [Branch Protection\n(Quality Gates)] as BranchProtection GITHUB_COLOR
+}
+
+' Continuous Integration
+package "Continuous Integration Pipeline" <<GitHub Actions>> #E3F2FD {
+    
+    package "Code Quality Gates" <<Quality>> #F1F8E6 {
+        component [Code Checkout\n(Latest Source Code)] as CodeCheckout CI_COLOR
+        component [Java 21 Setup\n(OpenJDK 21)] as JavaSetup CI_COLOR
+        component [Dependency Caching\n(Maven/Gradle Cache)] as DependencyCaching CI_COLOR
+        component [Unit Tests\n(87.4% TDD Coverage)] as UnitTests CI_COLOR
+        component [Integration Tests\n(Banking Workflows)] as IntegrationTests CI_COLOR
+        component [Code Quality Analysis\n(SonarQube)] as CodeQuality CI_COLOR
+    }
+    
+    package "Security Pipeline" <<Security>> #FFEBEE {
+        component [Dependency Scan\n(OWASP Dependency Check)] as DependencyScan SECURITY_COLOR
+        component [SAST Security Scan\n(Static Analysis)] as SASTScan SECURITY_COLOR
+        component [Container Security\n(Trivy Image Scan)] as ContainerSecurity SECURITY_COLOR
+        component [Secrets Detection\n(GitLeaks)] as SecretsDetection SECURITY_COLOR
+        component [FAPI Compliance Check\n(Banking Security)] as FAPICompliance SECURITY_COLOR
+    }
+    
+    package "Build & Package" <<Build>> #E8F5E8 {
+        component [Maven/Gradle Build\n(Spring Boot Application)] as Build CI_COLOR
+        component [Docker Image Build\n(Multi-stage Build)] as DockerBuild DOCKER_COLOR
+        component [Image Optimization\n(Distroless Base)] as ImageOptimization DOCKER_COLOR
+        component [Container Registry Push\n(ECR/Docker Hub)] as RegistryPush DOCKER_COLOR
+        component [Image Vulnerability Scan\n(Security Validation)] as ImageScan SECURITY_COLOR
+    }
+}
+
+' Continuous Deployment
+package "Continuous Deployment (GitOps)" <<ArgoCD>> #FFF3E0 {
+    
+    package "GitOps Controller" <<ArgoCD>> #FFE0B2 {
+        component [ArgoCD Application\n(Kubernetes Sync)] as ArgoCDApp ARGOCD_COLOR
+        component [Git Repository Watch\n(Config Changes)] as GitWatch ARGOCD_COLOR
+        component [Kubernetes Manifest Sync\n(Desired State)] as K8sSync ARGOCD_COLOR
+        component [Health Monitoring\n(Application Status)] as ArgoCDHealth ARGOCD_COLOR
+        component [Rollback Management\n(Previous Versions)] as RollbackMgmt ARGOCD_COLOR
+    }
+    
+    package "Helm Chart Management" <<Helm>> #E1F5FE {
+        component [Helm Charts\n(Application Packaging)] as HelmCharts KUBERNETES_COLOR
+        component [Values Templates\n(Environment Configuration)] as ValuesTemplates KUBERNETES_COLOR
+        component [Configuration Management\n(Secrets & ConfigMaps)] as ConfigManagement KUBERNETES_COLOR
+        component [Release Management\n(Version Control)] as ReleaseManagement KUBERNETES_COLOR
+    }
+    
+    package "Environment Promotion" <<Environments>> #F3E5F5 {
+        component [Development Environment\n(Feature Testing)] as DevEnvironment KUBERNETES_COLOR
+        component [Staging Environment\n(Pre-production)] as StagingEnvironment KUBERNETES_COLOR
+        component [Production Environment\n(AWS EKS Cluster)] as ProductionEnvironment KUBERNETES_COLOR
+        component [Blue-Green Deployment\n(Zero Downtime)] as BlueGreenDeployment ARGOCD_COLOR
+    }
+}
+
+' Target Infrastructure
+package "Target Infrastructure (AWS EKS)" <<Kubernetes>> #E8F5E8 {
+    
+    package "EKS Cluster Components" <<AWS EKS>> #F0F8FF {
+        component [Kubernetes API Server\n(Control Plane)] as K8sAPIServer KUBERNETES_COLOR
+        component [Worker Nodes\n(Auto Scaling Groups)] as WorkerNodes KUBERNETES_COLOR
+        component [Load Balancer\n(Application Load Balancer)] as LoadBalancer KUBERNETES_COLOR
+        component [Ingress Controller\n(NGINX/ALB)] as IngressController KUBERNETES_COLOR
+    }
+    
+    package "Application Deployment" <<Workloads>> #E6F9F9 {
+        component [Banking Service Pods\n(Java 21 Application)] as BankingPods KUBERNETES_COLOR
+        component [Horizontal Pod Autoscaler\n(Scaling Rules)] as HPA KUBERNETES_COLOR
+        component [Service Discovery\n(ClusterIP Services)] as ServiceDiscovery KUBERNETES_COLOR
+        component [ConfigMaps & Secrets\n(Application Configuration)] as K8sConfig KUBERNETES_COLOR
+    }
+    
+    package "Persistent Storage" <<Storage>> #FFF8E1 {
+        component [Persistent Volumes\n(EBS Storage)] as PersistentVolumes KUBERNETES_COLOR
+        component [PostgreSQL StatefulSet\n(Database Deployment)] as PostgreSQLPods KUBERNETES_COLOR
+        component [Redis Deployment\n(Cache Layer)] as RedisPods KUBERNETES_COLOR
+    }
+}
+
+' Monitoring & Observability
+package "Monitoring & Observability" <<Monitoring>> #FFF0F0 {
+    
+    package "Pipeline Monitoring" <<CI/CD Monitoring>> #FFE0E0 {
+        component [Build Metrics\n(Success Rate, Duration)] as BuildMetrics MONITORING_COLOR
+        component [Deployment Metrics\n(Frequency, Lead Time)] as DeploymentMetrics MONITORING_COLOR
+        component [Quality Metrics\n(Test Coverage, Code Quality)] as QualityMetrics MONITORING_COLOR
+        component [Security Metrics\n(Vulnerability Count)] as SecurityMetrics MONITORING_COLOR
+    }
+    
+    package "Application Monitoring" <<Runtime Monitoring>> #E0FFE0 {
+        component [Prometheus Metrics\n(Application Performance)] as PrometheusMetrics MONITORING_COLOR
+        component [Grafana Dashboards\n(Visualization)] as GrafanaDashboards MONITORING_COLOR
+        component [AlertManager\n(Incident Management)] as AlertManager MONITORING_COLOR
+        component [Jaeger Tracing\n(Distributed Tracing)] as JaegerTracing MONITORING_COLOR
+    }
+}
+
+' Notification & Communication
+package "Notification & Communication" <<Collaboration>> #F8F9FA {
+    component [Slack Integration\n(Build Notifications)] as SlackNotifications CI_COLOR
+    component [Email Alerts\n(Critical Failures)] as EmailAlerts CI_COLOR
+    component [GitHub Status Checks\n(PR Validation)] as GitHubStatus CI_COLOR
+    component [JIRA Integration\n(Issue Tracking)] as JIRAIntegration CI_COLOR
+}
+
+' Pipeline Flow - Continuous Integration
+GitHubRepo --> CodeCheckout : Trigger on Push/PR
+CodeCheckout --> JavaSetup : Environment Setup
+JavaSetup --> DependencyCaching : Optimize Build Time
+DependencyCaching --> UnitTests : Execute Test Suite
+UnitTests --> IntegrationTests : Banking Workflow Tests
+IntegrationTests --> CodeQuality : Quality Analysis
+
+' Security Pipeline Flow
+CodeQuality --> DependencyScan : Security Validation
+DependencyScan --> SASTScan : Static Code Analysis
+SASTScan --> SecretsDetection : Secret Scanning
+SecretsDetection --> FAPICompliance : Banking Security Check
+
+' Build Pipeline Flow
+FAPICompliance --> Build : Compile Application
+Build --> DockerBuild : Container Image
+DockerBuild --> ImageOptimization : Optimize Image
+ImageOptimization --> ContainerSecurity : Security Scan
+ContainerSecurity --> ImageScan : Vulnerability Check
+ImageScan --> RegistryPush : Push to Registry
+
+' GitOps Flow
+RegistryPush --> GitWatch : Trigger Deployment
+GitWatch --> ArgoCDApp : Sync Application
+ArgoCDApp --> K8sSync : Update Kubernetes
+K8sSync --> HelmCharts : Deploy with Helm
+HelmCharts --> ValuesTemplates : Apply Configuration
+ValuesTemplates --> ConfigManagement : Manage Secrets
+
+' Environment Promotion
+ConfigManagement --> DevEnvironment : Development Deploy
+DevEnvironment --> StagingEnvironment : Staging Deploy
+StagingEnvironment --> ProductionEnvironment : Production Deploy
+ProductionEnvironment --> BlueGreenDeployment : Zero Downtime
+
+' Infrastructure Deployment
+BlueGreenDeployment --> K8sAPIServer : Kubernetes Deployment
+K8sAPIServer --> WorkerNodes : Pod Scheduling
+WorkerNodes --> BankingPods : Application Deployment
+BankingPods --> HPA : Auto Scaling
+BankingPods --> ServiceDiscovery : Service Registration
+BankingPods --> K8sConfig : Configuration Loading
+
+' Storage Integration
+BankingPods --> PersistentVolumes : Data Persistence
+PersistentVolumes --> PostgreSQLPods : Database Storage
+PersistentVolumes --> RedisPods : Cache Storage
+
+' Load Balancing
+LoadBalancer --> IngressController : Traffic Routing
+IngressController --> BankingPods : Application Traffic
+
+' Monitoring Integration
+BankingPods --> PrometheusMetrics : Metrics Collection
+PrometheusMetrics --> GrafanaDashboards : Visualization
+PrometheusMetrics --> AlertManager : Alert Generation
+BankingPods --> JaegerTracing : Distributed Tracing
+
+' Pipeline Monitoring
+UnitTests --> BuildMetrics : Test Results
+RegistryPush --> DeploymentMetrics : Deployment Stats
+CodeQuality --> QualityMetrics : Quality Reports
+ContainerSecurity --> SecurityMetrics : Security Reports
+
+' Health Monitoring
+BankingPods --> ArgoCDHealth : Application Health
+ArgoCDHealth --> RollbackMgmt : Rollback Trigger
+
+' Notification Flow
+BuildMetrics --> SlackNotifications : Build Status
+AlertManager --> EmailAlerts : Critical Alerts
+UnitTests --> GitHubStatus : PR Status
+DeploymentMetrics --> JIRAIntegration : Issue Updates
+
+' Branch Management
+FeatureBranches --> PullRequests : Code Review
+PullRequests --> BranchProtection : Quality Gates
+BranchProtection --> GitHubRepo : Merge to Main
+
+' Pipeline Quality Gates
+note top of UnitTests : Quality Gates\n• 87.4% Test Coverage Required\n• Unit Tests Must Pass\n• Integration Tests Must Pass\n• Banking Workflows Validated
+
+note top of FAPICompliance : Security Gates\n• FAPI Compliance: 71.4%\n• No Critical Vulnerabilities\n• Secrets Detection Clean\n• Banking Security Standards
+
+note top of ArgoCDApp : GitOps Principles\n• Declarative Configuration\n• Git as Single Source of Truth\n• Automated Synchronization\n• Rollback Capabilities
+
+note bottom of ProductionEnvironment : Production Deployment\n• AWS EKS Cluster\n• Multi-AZ High Availability\n• Auto Scaling Enabled\n• Zero Downtime Deployment
+
+' Performance Metrics
+note bottom of BuildMetrics : CI/CD Metrics\n• Build Success Rate: 98%\n• Average Build Time: 8 minutes\n• Deployment Frequency: 5x/day\n• Lead Time: 15 minutes\n• MTTR: 10 minutes
+
+@enduml
