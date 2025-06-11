@@ -1,0 +1,204 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: enterprise-loan-system-metrics
+  namespace: banking-system
+  labels:
+    app: enterprise-loan-system
+    prometheus: kube-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: enterprise-loan-system
+  endpoints:
+  - port: http
+    path: /actuator/prometheus
+    interval: 30s
+    scrapeTimeout: 10s
+    honorLabels: true
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: enterprise-loan-system-alerts
+  namespace: banking-system
+  labels:
+    app: enterprise-loan-system
+    prometheus: kube-prometheus
+spec:
+  groups:
+  - name: banking-system.rules
+    rules:
+    - alert: BankingSystemDown
+      expr: up{job="enterprise-loan-system"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        service: banking
+      annotations:
+        summary: "Banking system is down"
+        description: "Enterprise Loan Management System has been down for more than 5 minutes"
+
+    - alert: HighErrorRate
+      expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+      for: 2m
+      labels:
+        severity: warning
+        service: banking
+      annotations:
+        summary: "High error rate detected"
+        description: "Error rate is {{ $value }} requests per second"
+
+    - alert: HighLatency
+      expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+      for: 5m
+      labels:
+        severity: warning
+        service: banking
+      annotations:
+        summary: "High latency detected"
+        description: "95th percentile latency is {{ $value }} seconds"
+
+    - alert: DatabaseConnectionFailure
+      expr: hikaricp_connections_active / hikaricp_connections_max > 0.8
+      for: 3m
+      labels:
+        severity: critical
+        service: database
+      annotations:
+        summary: "Database connection pool exhaustion"
+        description: "Database connection pool is {{ $value }}% full"
+
+    - alert: CacheHitRateLow
+      expr: redis_cache_hit_ratio < 0.7
+      for: 10m
+      labels:
+        severity: warning
+        service: cache
+      annotations:
+        summary: "Redis cache hit ratio is low"
+        description: "Cache hit ratio is {{ $value }}, consider cache warming"
+
+    - alert: MemoryUsageHigh
+      expr: container_memory_usage_bytes / container_spec_memory_limit_bytes > 0.9
+      for: 5m
+      labels:
+        severity: warning
+        service: banking
+      annotations:
+        summary: "High memory usage"
+        description: "Memory usage is {{ $value }}% of limit"
+
+    - alert: CPUUsageHigh
+      expr: rate(container_cpu_usage_seconds_total[5m]) / container_spec_cpu_quota * container_spec_cpu_period > 0.8
+      for: 10m
+      labels:
+        severity: warning
+        service: banking
+      annotations:
+        summary: "High CPU usage"
+        description: "CPU usage is {{ $value }}% of limit"
+
+    - alert: PodRestartFrequent
+      expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+        service: banking
+      annotations:
+        summary: "Pod restarting frequently"
+        description: "Pod {{ $labels.pod }} is restarting frequently"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-banking
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "true"
+data:
+  banking-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Enterprise Banking System Dashboard",
+        "tags": ["banking", "loan-management"],
+        "timezone": "UTC",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Banking Transactions per Second",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=\"enterprise-loan-system\"}[5m])",
+                "legendFormat": "TPS"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Response Time (95th percentile)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"enterprise-loan-system\"}[5m]))",
+                "legendFormat": "95th percentile"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Error Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(http_requests_total{job=\"enterprise-loan-system\",status=~\"5..\"}[5m])",
+                "legendFormat": "5xx errors"
+              },
+              {
+                "expr": "rate(http_requests_total{job=\"enterprise-loan-system\",status=~\"4..\"}[5m])",
+                "legendFormat": "4xx errors"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "Cache Performance",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "redis_cache_hit_ratio",
+                "legendFormat": "Hit Ratio"
+              },
+              {
+                "expr": "redis_cache_operations_total",
+                "legendFormat": "Total Operations"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+          },
+          {
+            "id": 5,
+            "title": "Database Connections",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "hikaricp_connections_active",
+                "legendFormat": "Active Connections"
+              },
+              {
+                "expr": "hikaricp_connections_idle",
+                "legendFormat": "Idle Connections"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+          }
+        ],
+        "time": {"from": "now-1h", "to": "now"},
+        "refresh": "5s"
+      }
+    }

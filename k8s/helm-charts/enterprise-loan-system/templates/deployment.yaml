@@ -1,0 +1,134 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "enterprise-loan-system.fullname" . }}
+  namespace: {{ .Values.namespace | default "banking-system" }}
+  labels:
+    {{- include "enterprise-loan-system.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "enterprise-loan-system.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "enterprise-loan-system.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "enterprise-loan-system.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes,{{ .Values.app.env }}"
+            - name: DATABASE_URL
+              value: "jdbc:postgresql://{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}"
+            - name: DATABASE_USERNAME
+              value: "{{ .Values.database.username }}"
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "enterprise-loan-system.fullname" . }}-secrets
+                  key: database-password
+            - name: REDIS_HOST
+              value: "{{ .Values.redis.host }}"
+            - name: REDIS_PORT
+              value: "{{ .Values.redis.port }}"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "enterprise-loan-system.fullname" . }}-secrets
+                  key: redis-password
+            - name: JAVA_OPTS
+              value: "{{ .Values.app.javaOpts }}"
+            - name: BANKING_INSTALLMENTS_ALLOWED
+              value: "{{ .Values.app.banking.installments.allowed }}"
+            - name: BANKING_INTEREST_RATE_MIN
+              value: "{{ .Values.app.banking.interestRate.min }}"
+            - name: BANKING_INTEREST_RATE_MAX
+              value: "{{ .Values.app.banking.interestRate.max }}"
+            - name: BANKING_FAPI_ENABLED
+              value: "{{ .Values.app.banking.fapi.enabled }}"
+          {{- if .Values.monitoring.healthcheck.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.monitoring.healthcheck.path }}/liveness
+              port: http
+            initialDelaySeconds: {{ .Values.monitoring.healthcheck.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.monitoring.healthcheck.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.monitoring.healthcheck.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.monitoring.healthcheck.livenessProbe.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.monitoring.healthcheck.path }}/readiness
+              port: http
+            initialDelaySeconds: {{ .Values.monitoring.healthcheck.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.monitoring.healthcheck.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.monitoring.healthcheck.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.monitoring.healthcheck.readinessProbe.failureThreshold }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.monitoring.healthcheck.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.monitoring.healthcheck.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.monitoring.healthcheck.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.monitoring.healthcheck.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.monitoring.healthcheck.startupProbe.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+            {{- if .Values.persistence.logs.enabled }}
+            - name: logs
+              mountPath: /app/logs
+            {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "enterprise-loan-system.fullname" . }}-config
+        {{- if .Values.persistence.logs.enabled }}
+        - name: logs
+          persistentVolumeClaim:
+            claimName: {{ include "enterprise-loan-system.fullname" . }}-logs
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
