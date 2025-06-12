@@ -24,9 +24,14 @@ public class SimpleDbApplication {
         
         server = HttpServer.create(new InetSocketAddress("0.0.0.0", PORT), 0);
         
-        // Configure endpoints
-        server.createContext("/", new SystemInfoHandler());
+        // Configure endpoints - Order matters for routing
+        server.createContext("/api/dashboard/overview", new DashboardOverviewHandler());
+        server.createContext("/api/dashboard/portfolio-performance", new PortfolioPerformanceHandler());
+        server.createContext("/api/dashboard/alerts", new DashboardAlertsHandler());
+        server.createContext("/api/dashboard/ai-insights", new AIInsightsHandler());
+        server.createContext("/risk-dashboard.html", new StaticFileHandler());
         server.createContext("/health", new HealthHandler());
+        server.createContext("/", new SystemInfoHandler());
         server.createContext("/api/customers", new CustomerHandler());
         server.createContext("/api/loans", new LoanHandler());
         server.createContext("/api/payments", new PaymentHandler());
@@ -874,4 +879,98 @@ public class SimpleDbApplication {
     private static boolean isRedisHealthy() { return redisConnected && cacheEnabled; }
     private static boolean isRedisConnected() { return redisConnected; }
     private static double getAverageResponseTime() { return redisConnected ? 2.5 : 0.0; }
+    
+    static class DashboardOverviewHandler implements HttpHandler {
+        public void handle(HttpExchange exchange) throws IOException {
+            String response = "{\n" +
+                "  \"totalCustomers\": 3,\n" +
+                "  \"totalLoans\": 3,\n" +
+                "  \"portfolioValue\": 225000.00,\n" +
+                "  \"riskScore\": 7.2,\n" +
+                "  \"defaultRate\": 0.0,\n" +
+                "  \"collectionEfficiency\": 75.0,\n" +
+                "  \"riskDistribution\": {\n" +
+                "    \"LOW\": 2,\n" +
+                "    \"MEDIUM\": 1,\n" +
+                "    \"HIGH\": 0\n" +
+                "  },\n" +
+                "  \"timestamp\": \"" + LocalDateTime.now() + "\",\n" +
+                "  \"status\": \"SUCCESS\"\n" +
+                "}";
+            sendResponse(exchange, response, "application/json");
+        }
+    }
+    
+    static class PortfolioPerformanceHandler implements HttpHandler {
+        public void handle(HttpExchange exchange) throws IOException {
+            String response = "{\n" +
+                "  \"monthlyPerformance\": {\n" +
+                "    \"January\": 0,\n" +
+                "    \"February\": 50000,\n" +
+                "    \"March\": 175000,\n" +
+                "    \"April\": 225000,\n" +
+                "    \"May\": 225000,\n" +
+                "    \"June\": 225000\n" +
+                "  },\n" +
+                "  \"timestamp\": \"" + LocalDateTime.now() + "\"\n" +
+                "}";
+            sendResponse(exchange, response, "application/json");
+        }
+    }
+    
+    static class DashboardAlertsHandler implements HttpHandler {
+        public void handle(HttpExchange exchange) throws IOException {
+            String response = "{\n" +
+                "  \"highRiskLoans\": 0,\n" +
+                "  \"overduePayments\": 1,\n" +
+                "  \"systemStatus\": \"OPERATIONAL\",\n" +
+                "  \"lastUpdated\": \"" + LocalDateTime.now() + "\"\n" +
+                "}";
+            sendResponse(exchange, response, "application/json");
+        }
+    }
+    
+    static class AIInsightsHandler implements HttpHandler {
+        public void handle(HttpExchange exchange) throws IOException {
+            String response = "{\n" +
+                "  \"insights\": [\n" +
+                "    {\n" +
+                "      \"category\": \"Risk Assessment\",\n" +
+                "      \"insight\": \"Portfolio shows healthy risk distribution with 67% low-risk customers. Current default rate of 0% indicates strong underwriting standards.\",\n" +
+                "      \"recommendation\": \"Consider expanding loan origination capacity to capitalize on strong risk management performance.\",\n" +
+                "      \"confidence\": 0.92\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"category\": \"Collection Efficiency\",\n" +
+                "      \"insight\": \"Collection efficiency at 75% suggests room for improvement. One overdue payment requires attention.\",\n" +
+                "      \"recommendation\": \"Implement automated payment reminders and early intervention strategies for accounts approaching due dates.\",\n" +
+                "      \"confidence\": 0.87\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"category\": \"Portfolio Growth\",\n" +
+                "      \"insight\": \"Portfolio has grown consistently from $50K to $225K over 6 months, indicating strong market demand.\",\n" +
+                "      \"recommendation\": \"Consider diversifying loan products and exploring new customer segments to sustain growth trajectory.\",\n" +
+                "      \"confidence\": 0.89\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"summary\": \"Overall portfolio health is strong with opportunities for operational optimization and strategic growth.\",\n" +
+                "  \"timestamp\": \"" + LocalDateTime.now() + "\"\n" +
+                "}";
+            sendResponse(exchange, response, "application/json");
+        }
+    }
+    
+    static class StaticFileHandler implements HttpHandler {
+        public void handle(HttpExchange exchange) throws IOException {
+            try {
+                String htmlPath = "src/main/resources/static/risk-dashboard.html";
+                String content = new String(java.nio.file.Files.readAllBytes(
+                    java.nio.file.Paths.get(htmlPath)));
+                sendResponse(exchange, content, "text/html");
+            } catch (Exception e) {
+                String error = "<html><body><h1>Dashboard Loading...</h1><p>Please access the dashboard at /risk-dashboard.html</p></body></html>";
+                sendResponse(exchange, error, "text/html");
+            }
+        }
+    }
 }

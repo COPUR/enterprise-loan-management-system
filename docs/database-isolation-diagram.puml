@@ -1,0 +1,289 @@
+@startuml Database Isolation Architecture
+!theme plain
+
+skinparam backgroundColor #FAFAFA
+skinparam database {
+    BackgroundColor #E8F4FD
+    BorderColor #1976D2
+}
+skinparam rectangle {
+    BackgroundColor #F5F5F5
+    BorderColor #666666
+}
+
+title Microservices Database Isolation Architecture
+subtitle Independent Database Schemas for High Availability
+
+package "Microservice Database Isolation" {
+    
+    database "Customer Database" as CUSTOMER_DB #E8F5E8 {
+        **Schema: customer_db**
+        **Port: 5432**
+        **Pool: 15 max, 3 min**
+        
+        --Tables--
+        • customers
+        • credit_reservations
+        • account_status_history
+        • audit_logs
+        
+        --Isolation Level--
+        READ_COMMITTED
+        
+        --Backup Strategy--
+        Point-in-time recovery
+        Daily automated backups
+    }
+    
+    database "Loan Database" as LOAN_DB #FFE8E8 {
+        **Schema: loan_db**
+        **Port: 5432**
+        **Pool: 15 max, 3 min**
+        
+        --Tables--
+        • loans
+        • loan_installments
+        • loan_applications
+        • business_rules_cache
+        
+        --Isolation Level--
+        READ_COMMITTED
+        
+        --Backup Strategy--
+        Transactional consistency
+        Hourly incremental backups
+    }
+    
+    database "Payment Database" as PAYMENT_DB #E8F8E8 {
+        **Schema: payment_db**
+        **Port: 5432**
+        **Pool: 15 max, 3 min**
+        
+        --Tables--
+        • payments
+        • payment_installments
+        • payment_history
+        • discount_penalty_log
+        
+        --Isolation Level--
+        READ_COMMITTED
+        
+        --Backup Strategy--
+        Financial compliance
+        Real-time replication
+    }
+    
+    database "Gateway Database" as GATEWAY_DB #F0F0F0 {
+        **Schema: banking_gateway**
+        **Port: 5432**
+        **Pool: 20 max, 5 min**
+        
+        --Tables--
+        • saga_states
+        • audit_events
+        • session_data
+        • api_rate_limits
+        
+        --Isolation Level--
+        SERIALIZABLE
+        
+        --Backup Strategy--
+        SAGA state preservation
+        Continuous archival
+    }
+}
+
+package "Service-Database Mapping" {
+    
+    rectangle "Customer Service" as CUSTOMER_SVC #C8E6C9 {
+        **Port: 8081**
+        **Endpoints:**
+        • POST /customers
+        • GET /customers/{id}
+        • POST /credit/reserve
+        • POST /credit/release
+        
+        **Database Operations:**
+        • Customer CRUD
+        • Credit management
+        • Account validation
+    }
+    
+    rectangle "Loan Service" as LOAN_SVC #FFCDD2 {
+        **Port: 8082**
+        **Endpoints:**
+        • POST /loans
+        • GET /loans/{id}
+        • GET /loans/customer/{id}
+        • GET /installments/{loanId}
+        
+        **Database Operations:**
+        • Loan lifecycle management
+        • Installment calculations
+        • Business rule validation
+    }
+    
+    rectangle "Payment Service" as PAYMENT_SVC #DCEDC8 {
+        **Port: 8083**
+        **Endpoints:**
+        • POST /payments/{loanId}
+        • GET /payments/{paymentId}
+        • GET /payments/customer/{id}
+        • GET /payments/loan/{loanId}
+        
+        **Database Operations:**
+        • Payment processing
+        • Discount/penalty calculation
+        • Transaction history
+    }
+    
+    rectangle "API Gateway" as GATEWAY_SVC #E1F5FE {
+        **Port: 8080**
+        **Endpoints:**
+        • Circuit breaker status
+        • Rate limiting metrics
+        • Token validation
+        • SAGA orchestration
+        
+        **Database Operations:**
+        • SAGA state management
+        • Security audit logging
+        • Session management
+    }
+}
+
+package "Connection Pool Configuration" {
+    
+    rectangle "Customer Pool Config" as CUSTOMER_POOL #C8E6C9 {
+        **HikariCP Settings:**
+        maximum-pool-size: 15
+        minimum-idle: 3
+        idle-timeout: 300000ms
+        connection-timeout: 20000ms
+        leak-detection-threshold: 60000ms
+        
+        **Isolation Strategy:**
+        • Dedicated connection pool
+        • Independent transaction boundaries
+        • No cross-service queries
+    }
+    
+    rectangle "Loan Pool Config" as LOAN_POOL #FFCDD2 {
+        **HikariCP Settings:**
+        maximum-pool-size: 15
+        minimum-idle: 3
+        idle-timeout: 300000ms
+        connection-timeout: 20000ms
+        leak-detection-threshold: 60000ms
+        
+        **Isolation Strategy:**
+        • Separate pool configuration
+        • Loan-specific optimizations
+        • Read/write separation ready
+    }
+    
+    rectangle "Payment Pool Config" as PAYMENT_POOL #DCEDC8 {
+        **HikariCP Settings:**
+        maximum-pool-size: 15
+        minimum-idle: 3
+        idle-timeout: 300000ms
+        connection-timeout: 20000ms
+        leak-detection-threshold: 60000ms
+        
+        **Isolation Strategy:**
+        • Financial transaction tuning
+        • ACID compliance guarantees
+        • Performance monitoring
+    }
+    
+    rectangle "Gateway Pool Config" as GATEWAY_POOL #E1F5FE {
+        **HikariCP Settings:**
+        maximum-pool-size: 20
+        minimum-idle: 5
+        idle-timeout: 300000ms
+        connection-timeout: 20000ms
+        leak-detection-threshold: 60000ms
+        
+        **Isolation Strategy:**
+        • Higher concurrency support
+        • SAGA state reliability
+        • Audit log performance
+    }
+}
+
+' Service to Database connections
+CUSTOMER_SVC --> CUSTOMER_DB : Exclusive Access
+LOAN_SVC --> LOAN_DB : Exclusive Access
+PAYMENT_SVC --> PAYMENT_DB : Exclusive Access
+GATEWAY_SVC --> GATEWAY_DB : Exclusive Access
+
+' Pool configurations
+CUSTOMER_SVC --> CUSTOMER_POOL : Uses
+LOAN_SVC --> LOAN_POOL : Uses
+PAYMENT_SVC --> PAYMENT_POOL : Uses
+GATEWAY_SVC --> GATEWAY_POOL : Uses
+
+note top of CUSTOMER_DB
+**Data Isolation Benefits:**
+• Independent scaling per service
+• Fault isolation - service failures don't cascade
+• Technology diversity - different databases per need
+• Security boundaries - service-level data access
+• Performance tuning - optimized per workload
+end note
+
+note bottom of PAYMENT_DB
+**Financial Compliance:**
+• ACID transaction guarantees
+• Point-in-time recovery
+• Audit trail maintenance
+• Regulatory reporting support
+• Real-time fraud detection
+end note
+
+note right of GATEWAY_DB
+**SAGA State Management:**
+• Distributed transaction coordination
+• Compensation workflow tracking
+• Event sourcing for audit
+• Timeout detection and handling
+• Cross-service transaction integrity
+end note
+
+package "Cross-Service Communication" {
+    rectangle "Event-Driven Integration" as EVENTS #FFF3E0 {
+        **Kafka Topics:**
+        • customer-events
+        • loan-events  
+        • payment-events
+        • credit-events
+        • saga-events
+        
+        **Benefits:**
+        • Loose coupling between services
+        • Eventual consistency
+        • Scalable message processing
+        • Fault tolerance
+    }
+    
+    rectangle "SAGA Orchestration" as SAGA #FFE0B2 {
+        **Distributed Transactions:**
+        • Cross-service coordination
+        • Automatic compensation
+        • State persistence in gateway DB
+        • Timeout handling
+        • Audit trail maintenance
+        
+        **Isolation Maintained:**
+        • No direct database access
+        • Event-based communication only
+        • Service autonomy preserved
+    }
+}
+
+EVENTS --> CUSTOMER_SVC : Event Consumption
+EVENTS --> LOAN_SVC : Event Consumption  
+EVENTS --> PAYMENT_SVC : Event Consumption
+SAGA --> GATEWAY_DB : State Persistence
+
+@enduml

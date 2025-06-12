@@ -12,10 +12,10 @@
 Once your Gitpod workspace is running, use these URLs:
 
 ```
-🏦 Main Dashboard: https://5000-{workspace-id}.{cluster}.gitpod.io/
-📖 API Documentation: https://5000-{workspace-id}.{cluster}.gitpod.io/swagger-ui.html
-💚 Health Check: https://5000-{workspace-id}.{cluster}.gitpod.io/actuator/health
-📊 Metrics: https://5000-{workspace-id}.{cluster}.gitpod.io/actuator/prometheus
+Main Dashboard: https://5000-{workspace-id}.{cluster}.gitpod.io/
+API Documentation: https://5000-{workspace-id}.{cluster}.gitpod.io/swagger-ui.html
+Health Check: https://5000-{workspace-id}.{cluster}.gitpod.io/actuator/health
+Metrics: https://5000-{workspace-id}.{cluster}.gitpod.io/actuator/prometheus
 ```
 
 ---

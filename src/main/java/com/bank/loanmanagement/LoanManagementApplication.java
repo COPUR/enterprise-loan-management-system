@@ -2,19 +2,25 @@ package com.bank.loanmanagement;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
-@EnableTransactionManagement
-@EnableCaching
-@EnableAsync
 public class LoanManagementApplication {
-    
     public static void main(String[] args) {
-        // Enable Virtual Threads for Java 21
-        System.setProperty("spring.threads.virtual.enabled", "true");
         SpringApplication.run(LoanManagementApplication.class, args);
+    }
+}
+
+@RestController
+class HomeController {
+    @GetMapping("/")
+    public String home() {
+        return "Loan Management System is running!";
+    }
+    
+    @GetMapping("/health")
+    public String health() {
+        return "OK";
     }
 }

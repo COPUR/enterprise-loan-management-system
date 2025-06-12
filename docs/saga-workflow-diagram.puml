@@ -1,0 +1,199 @@
+@startuml SAGA Pattern - Loan Creation Workflow
+!theme plain
+
+skinparam backgroundColor #FAFAFA
+skinparam participant {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+}
+skinparam sequence {
+    ArrowColor #1976D2
+    LifeLineBorderColor #1976D2
+    LifeLineBackgroundColor #E3F2FD
+}
+
+title SAGA Pattern - Distributed Transaction Workflow
+subtitle Event Driven Architecture with Compensation Patterns
+
+participant "Client" as CLIENT
+participant "API Gateway" as GATEWAY
+participant "Loan Service" as LOAN
+participant "SAGA Orchestrator" as SAGA
+participant "Customer Service" as CUSTOMER
+participant "Kafka Events" as KAFKA
+participant "Payment Service" as PAYMENT
+
+== Loan Application Workflow ==
+
+CLIENT -> GATEWAY : POST /api/v1/loans\n{amount: 50000, rate: 0.15, term: 24}
+activate GATEWAY
+
+GATEWAY -> LOAN : Validate & Create Application
+activate LOAN
+
+LOAN -> KAFKA : Publish LoanApplicationSubmittedEvent
+KAFKA -> SAGA : Consume Event
+activate SAGA
+
+note over SAGA : **SAGA State: STARTED**\nStep 1: Validate Customer
+
+SAGA -> KAFKA : Publish ValidateCustomerCommand
+KAFKA -> CUSTOMER : Consume Command
+activate CUSTOMER
+
+CUSTOMER -> CUSTOMER : Validate Customer Exists
+CUSTOMER -> KAFKA : Publish CustomerValidatedEvent
+KAFKA -> SAGA : Consume Event
+
+note over SAGA : **SAGA State: CUSTOMER_VALIDATED**\nStep 2: Reserve Credit
+
+SAGA -> KAFKA : Publish ReserveCreditCommand
+KAFKA -> CUSTOMER : Consume Command
+
+CUSTOMER -> CUSTOMER : Check Credit Limit\n(Available: $100k, Requested: $50k)
+CUSTOMER -> CUSTOMER : Reserve Credit Amount
+CUSTOMER -> KAFKA : Publish CreditReservedEvent
+KAFKA -> SAGA : Consume Event
+
+note over SAGA : **SAGA State: CREDIT_RESERVED**\nStep 3: Create Loan
+
+SAGA -> KAFKA : Publish CreateLoanCommand
+KAFKA -> LOAN : Consume Command
+
+LOAN -> LOAN : Create Loan Entity\nTotal: $57,500 (50k * 1.15)
+LOAN -> KAFKA : Publish LoanCreatedEvent
+KAFKA -> SAGA : Consume Event
+
+note over SAGA : **SAGA State: LOAN_CREATED**\nStep 4: Generate Installments
+
+SAGA -> KAFKA : Publish GenerateInstallmentScheduleCommand
+KAFKA -> LOAN : Consume Command
+
+LOAN -> LOAN : Generate 24 Installments\nMonthly: $2,395.83\nFirst Due: 2025-07-01
+
+LOAN -> KAFKA : Publish InstallmentScheduleGeneratedEvent
+KAFKA -> SAGA : Consume Event
+
+note over SAGA : **SAGA State: COMPLETED**\nTransaction Successful
+
+SAGA -> KAFKA : Publish LoanCreationSuccessEvent
+deactivate SAGA
+
+LOAN -> GATEWAY : Return Success Response
+deactivate LOAN
+GATEWAY -> CLIENT : HTTP 201 Created\n{loanId: 123, status: "APPROVED"}
+deactivate GATEWAY
+
+== Compensation Scenario: Credit Reservation Failure ==
+
+group Alternative Flow - Insufficient Credit
+    CLIENT -> GATEWAY : POST /api/v1/loans\n{amount: 200000, rate: 0.15, term: 12}
+    GATEWAY -> LOAN : Create Application
+    LOAN -> KAFKA : Publish LoanApplicationSubmittedEvent
+    KAFKA -> SAGA : Start SAGA
+    activate SAGA
+    
+    SAGA -> KAFKA : Publish ValidateCustomerCommand
+    KAFKA -> CUSTOMER : Validate Customer
+    CUSTOMER -> KAFKA : Publish CustomerValidatedEvent
+    KAFKA -> SAGA : Customer Valid
+    
+    SAGA -> KAFKA : Publish ReserveCreditCommand
+    KAFKA -> CUSTOMER : Check Credit Limit
+    
+    note over CUSTOMER : **Insufficient Credit**\nAvailable: $100k\nRequested: $200k
+    
+    CUSTOMER -> KAFKA : Publish CreditReservationFailedEvent
+    KAFKA -> SAGA : Consume Failure Event
+    
+    note over SAGA : **SAGA State: FAILED**\nStarting Compensation
+    
+    SAGA -> KAFKA : Publish CancelLoanApplicationCommand
+    KAFKA -> LOAN : Cancel Application
+    LOAN -> LOAN : Mark Application as CANCELLED
+    
+    SAGA -> SAGA : Update SAGA Status to COMPENSATED
+    deactivate SAGA
+    
+    LOAN -> GATEWAY : Return Failure Response
+    GATEWAY -> CLIENT : HTTP 400 Bad Request\n{error: "Insufficient credit limit"}
+end
+
+== Payment Processing SAGA ==
+
+CLIENT -> GATEWAY : POST /api/v1/payments/123\n{amount: 2395.83}
+GATEWAY -> PAYMENT : Process Payment
+activate PAYMENT
+
+PAYMENT -> KAFKA : Publish PaymentInitiatedEvent
+KAFKA -> SAGA : Start Payment SAGA
+activate SAGA
+
+note over SAGA : **Payment SAGA State: STARTED**\nStep 1: Validate Payment
+
+SAGA -> KAFKA : Publish ValidatePaymentCommand
+KAFKA -> PAYMENT : Validate Amount & Loan
+
+PAYMENT -> PAYMENT : Check Payment Rules\n- Whole installments only\n- Max 3 months advance\n- Calculate discount/penalty
+
+PAYMENT -> KAFKA : Publish PaymentValidatedEvent
+KAFKA -> SAGA : Payment Valid
+
+note over SAGA : **Payment SAGA State: VALIDATED**\nStep 2: Process Installments
+
+SAGA -> KAFKA : Publish ProcessInstallmentsCommand
+KAFKA -> PAYMENT : Process Payment
+
+PAYMENT -> PAYMENT : Calculate Payment Distribution\nEarly Payment Discount: $2.39\nEffective Amount: $2,393.44
+
+PAYMENT -> KAFKA : Publish InstallmentPaidEvent
+KAFKA -> SAGA : Installment Processed
+
+SAGA -> KAFKA : Publish CheckLoanStatusCommand
+KAFKA -> LOAN : Check if Loan Fully Paid
+
+LOAN -> LOAN : Update Loan Status\n(23 installments remaining)
+LOAN -> KAFKA : Publish LoanStatusUpdatedEvent
+KAFKA -> SAGA : Status Updated
+
+note over SAGA : **Payment SAGA State: COMPLETED**\nPayment Successful
+
+SAGA -> KAFKA : Publish PaymentCompletedEvent
+deactivate SAGA
+
+PAYMENT -> GATEWAY : Return Payment Summary
+deactivate PAYMENT
+GATEWAY -> CLIENT : HTTP 200 OK\n{paidAmount: 2393.44, discount: 2.39}
+
+== SAGA State Management ==
+
+note over SAGA
+**SAGA State Persistence:**
+- saga_states table in banking_gateway DB
+- Timeout detection: 5 minutes
+- Automatic compensation on timeout
+- Event sourcing for audit trail
+
+**Compensation Patterns:**
+- Credit release on loan failure
+- Payment reversal on processing failure
+- Application cancellation on validation failure
+- Eventual consistency guarantees
+end note
+
+note over KAFKA
+**Event Topics:**
+- customer-events (validation, credit operations)
+- loan-events (creation, status updates)
+- payment-events (processing, completion)
+- credit-events (reservation, release)
+- saga-events (orchestration, compensation)
+
+**Event Reliability:**
+- At-least-once delivery
+- Idempotent consumers
+- Dead letter queues for failures
+- Event replay capability
+end note
+
+@enduml

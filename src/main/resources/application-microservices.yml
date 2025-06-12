@@ -1,0 +1,390 @@
+# Microservices Configuration with Isolated Databases
+spring:
+  application:
+    name: enterprise-loan-management-microservices
+  
+  profiles:
+    active: microservices
+  
+  # Database Configuration - Isolated per Microservice
+  datasource:
+    # Primary connection for gateway and shared services
+    url: jdbc:postgresql://localhost:5432/banking_gateway
+    username: ${PGUSER:banking_user}
+    password: ${PGPASSWORD:banking_pass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          time_zone: UTC
+  
+  # Redis Configuration for API Gateway
+  data:
+    redis:
+      host: ${redis.host:localhost}
+      port: ${redis.port:6379}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+      cluster:
+        nodes: 
+          - ${redis.host:localhost}:${redis.port:6379}
+        max-redirects: 3
+  
+  # Kafka Configuration for Event Driven Architecture
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap.servers:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      batch-size: 16384
+      linger-ms: 5
+      buffer-memory: 33554432
+    consumer:
+      group-id: ${kafka.consumer.group.id:loan-management}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        spring.json.trusted.packages: "*"
+  
+  # Circuit Breaker Configuration
+  cloud:
+    circuitbreaker:
+      resilience4j:
+        enabled: true
+    gateway:
+      enabled: true
+      routes:
+        - id: customer-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/v1/customers/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: customer-service
+                fallbackUri: forward:/fallback/customer
+        - id: loan-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/loans/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: loan-service
+                fallbackUri: forward:/fallback/loan
+        - id: payment-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/v1/payments/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: payment-service
+                fallbackUri: forward:/fallback/payment
+
+# Microservice-Specific Database Configurations
+microservices:
+  gateway:
+    enabled: true
+    port: 8080
+  
+  customer:
+    enabled: true
+    port: 8081
+    database:
+      url: jdbc:postgresql://localhost:5432/customer_db
+      username: ${PGUSER:banking_user}
+      password: ${PGPASSWORD:banking_pass}
+      schema: customer_db
+      pool:
+        maximum-pool-size: 15
+        minimum-idle: 3
+  
+  loan:
+    enabled: true
+    port: 8082
+    database:
+      url: jdbc:postgresql://localhost:5432/loan_db
+      username: ${PGUSER:banking_user}
+      password: ${PGPASSWORD:banking_pass}
+      schema: loan_db
+      pool:
+        maximum-pool-size: 15
+        minimum-idle: 3
+  
+  payment:
+    enabled: true
+    port: 8083
+    database:
+      url: jdbc:postgresql://localhost:5432/payment_db
+      username: ${PGUSER:banking_user}
+      password: ${PGPASSWORD:banking_pass}
+      schema: payment_db
+      pool:
+        maximum-pool-size: 15
+        minimum-idle: 3
+  
+  discovery:
+    enabled: true
+    port: 8761
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      customer-service:
+        register-health-indicator: true
+        sliding-window-size: 100
+        minimum-number-of-calls: 10
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 30s
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+      loan-service:
+        register-health-indicator: true
+        sliding-window-size: 100
+        minimum-number-of-calls: 10
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 30s
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+      payment-service:
+        register-health-indicator: true
+        sliding-window-size: 100
+        minimum-number-of-calls: 10
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 30s
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+  
+  ratelimiter:
+    instances:
+      api-gateway:
+        limit-for-period: 1000
+        limit-refresh-period: 60s
+        timeout-duration: 5s
+      auth-service:
+        limit-for-period: 10
+        limit-refresh-period: 60s
+        timeout-duration: 1s
+  
+  retry:
+    instances:
+      microservice-calls:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+  
+  bulkhead:
+    instances:
+      customer-service:
+        max-concurrent-calls: 10
+        max-wait-duration: 1s
+      loan-service:
+        max-concurrent-calls: 10
+        max-wait-duration: 1s
+      payment-service:
+        max-concurrent-calls: 10
+        max-wait-duration: 1s
+
+# Security Configuration
+security:
+  owasp:
+    compliance: true
+    rate-limiting: true
+    sql-injection-protection: true
+    xss-protection: true
+    csrf-protection: true
+    secure-headers: true
+  
+  oauth2:
+    resource-server:
+      jwt:
+        issuer-uri: https://localhost:8080/auth/realms/banking
+        jwk-set-uri: https://localhost:8080/auth/realms/banking/protocol/openid_connect/certs
+  
+  cors:
+    allowed-origins:
+      - https://localhost:*
+      - https://*.openbanking.org.uk
+      - https://*.openfinance.org
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - Authorization
+      - Content-Type
+      - X-Requested-With
+      - x-fapi-auth-date
+      - x-fapi-customer-ip-address
+      - x-fapi-interaction-id
+
+# Event Driven Architecture Configuration
+event:
+  driven:
+    enabled: true
+    topics:
+      customer-events: customer-events
+      loan-events: loan-events
+      payment-events: payment-events
+      credit-events: credit-events
+      loan-saga-events: loan-saga-events
+      payment-saga-events: payment-saga-events
+    
+    saga:
+      enabled: true
+      timeout: 300s
+      retry:
+        max-attempts: 3
+        backoff-delay: 5s
+
+# SAGA Pattern Configuration
+saga:
+  pattern:
+    enabled: true
+    orchestration:
+      loan-creation:
+        enabled: true
+        timeout: 300s
+        steps:
+          - validate-customer
+          - reserve-credit
+          - create-loan
+          - generate-installments
+        compensation:
+          - release-credit
+          - cancel-loan
+      payment-processing:
+        enabled: true
+        timeout: 180s
+        steps:
+          - validate-payment
+          - calculate-installments
+          - process-installments
+          - update-loan-status
+        compensation:
+          - reverse-payment
+          - restore-installments
+
+# Monitoring and Observability
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active}
+
+# Banking System Configuration
+banking:
+  system:
+    name: Enterprise Loan Management System
+    version: 2.0.0
+    architecture: microservices-hexagonal
+    compliance:
+      level: FAPI-1.0-Advanced
+      owasp: true
+      pci-dss: true
+  
+  business:
+    rules:
+      installments:
+        allowed: [6, 9, 12, 24]
+      interest:
+        rate:
+          min: 0.1
+          max: 0.5
+      payment:
+        advance:
+          max-months: 3
+        discount:
+          rate: 0.001
+        penalty:
+          rate: 0.001
+  
+  performance:
+    targets:
+      response-time: 40ms
+      throughput: 1000rps
+      availability: 99.9%
+    cache:
+      enabled: true
+      ttl: 300s
+      max-size: 10000
+
+# Logging Configuration
+logging:
+  level:
+    com.bank.loanmanagement: INFO
+    org.springframework.security: DEBUG
+    org.springframework.kafka: INFO
+    org.springframework.cloud.gateway: DEBUG
+    resilience4j: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+  file:
+    name: logs/enterprise-loan-management.log
+    max-size: 100MB
+    max-history: 30
+
+# Server Configuration
+server:
+  port: 5000
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+    include-binding-errors: always
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
