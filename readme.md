@@ -14,35 +14,38 @@ A comprehensive enterprise banking platform implementing Domain-Driven Design (D
 
 ## Architecture Diagrams
 
-### Core System Architecture
-
-![Banking System Architecture](docs/diagrams/svg/simple-architecture.svg)
-
-The enterprise loan management system implements a layered architecture with clear separation between client applications, security gateway, core banking services, and data persistence layers.
-
 ### Domain-Driven Design Model
 
-![Domain Model](docs/diagrams/svg/domain-model.svg)
+![Domain Model](docs/diagrams/docs/diagrams/svg/domain-model.svg)
 
 The domain model encompasses three primary bounded contexts: Customer Management, Loan Origination, and Payment Processing, with shared kernel components for common financial operations.
 
 ### Bounded Context Relationships
 
-![Bounded Contexts](docs/diagrams/svg/bounded-contexts.svg)
+![Bounded Contexts](docs/diagrams/docs/diagrams/svg/bounded-contexts.svg)
 
 Each bounded context maintains independence while coordinating through well-defined interfaces and event-driven communication patterns.
 
 ### Hexagonal Architecture Implementation
 
-![Hexagonal Architecture](docs/diagrams/svg/hexagonal-architecture.svg)
+![Hexagonal Architecture](docs/diagrams/docs/diagrams/svg/hexagonal-architecture.svg)
 
 The hexagonal architecture ensures technology independence and maintainability through ports and adapters pattern, enabling flexible infrastructure integration.
 
 ### Business Process Workflow
 
-![Banking Workflow](docs/diagrams/svg/banking-workflow.svg)
+![Banking Workflow](docs/diagrams/docs/diagrams/svg/banking-workflow.svg)
 
 The loan application workflow demonstrates end-to-end processing from customer application through credit assessment to loan approval and database persistence.
+
+
+### ER  Diagram  DAta Architecture
+
+![ER Diagram Architecture](docs/diagrams/docs/diagrams/svg/er-diagram.svg)
+
+The enterprise loan management system implements a layered architecture with clear separation between client applications, security gateway, core banking services, and data persistence layers.
+
+
 
 ## Technical Architecture
 
@@ -51,7 +54,7 @@ The loan application workflow demonstrates end-to-end processing from customer a
 - **Spring Boot 3.3.6** enterprise framework with comprehensive auto-configuration
 - **PostgreSQL 16.9** as primary ACID-compliant relational database
 - **Redis 7.2** for multi-level caching with 100% hit ratio achievement
-- **Gradle 8.11.1** for modern build management and dependency resolution
+- **Gradle** for modern build management and dependency resolution
 
 ### Security Implementation
 - **OWASP Top 10 2021** compliance with comprehensive protection mechanisms
