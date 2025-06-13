@@ -95,17 +95,17 @@ main() {
 
 # List available diagrams
 list_diagrams() {
-    echo "📋 Available PlantUML Diagrams:"
+    echo "Available PlantUML Diagrams:"
     echo "==============================="
     
     if [ -d "$DIAGRAM_DIR" ]; then
         find "$DIAGRAM_DIR" -name "*.puml" -type f | sort | while read -r puml_file; do
             filename=$(basename "$puml_file")
             title=$(head -n 5 "$puml_file" | grep -E "^@startuml" | sed 's/@startuml //' || echo "Untitled")
-            echo "📊 $filename - $title"
+            echo "$filename - $title"
         done
     else
-        echo "❌ No diagram directory found"
+        echo "No diagram directory found"
     fi
 }
 
@@ -142,7 +142,7 @@ case "${1:-compile}" in
         show_help
         ;;
     *)
-        echo "❌ Unknown command: $1"
+        echo "Unknown command: $1"
         echo ""
         show_help
         exit 1

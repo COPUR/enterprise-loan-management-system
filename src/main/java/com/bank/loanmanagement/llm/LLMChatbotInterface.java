@@ -268,10 +268,10 @@ public class LLMChatbotInterface {
             
             String responseMessage = String.format(
                 "Here's your loan calculation:\n\n" +
-                "💰 Loan Amount: $%.2f\n" +
-                "📊 Interest Rate: %.1f%% per annum\n" +
-                "📅 Loan Term: %d months\n\n" +
-                "📋 Results:\n" +
+                "Loan Amount: $%.2f\n" +
+                "Interest Rate: %.1f%% per annum\n" +
+                "Loan Term: %d months\n\n" +
+                "Results:\n" +
                 "• Monthly EMI: $%.2f\n" +
                 "• Total Amount Payable: $%.2f\n" +
                 "• Total Interest: $%.2f\n\n" +
@@ -446,11 +446,11 @@ public class LLMChatbotInterface {
     private String formatAccountInquiryResponse(Map<String, Object> profileData, ChatIntent intent) {
         return String.format(
             "Hello %s! Here's your account summary:\n\n" +
-            "📊 Credit Score: %d\n" +
-            "📧 Email: %s\n" +
-            "📅 Member Since: %s\n" +
-            "💰 Total Loan Amount: $%.2f\n" +
-            "💳 Total Payments: $%.2f\n\n" +
+            "Credit Score: %d\n" +
+            "Email: %s\n" +
+            "Member Since: %s\n" +
+            "Total Loan Amount: $%.2f\n" +
+            "Total Payments: $%.2f\n\n" +
             "Your account is in good standing. How can I assist you today?",
             profileData.get("name"),
             profileData.get("creditScore"),
@@ -467,11 +467,11 @@ public class LLMChatbotInterface {
         if (eligible) {
             return String.format(
                 "Great news! You're eligible for this loan.\n\n" +
-                "💰 Requested Amount: $%.2f\n" +
-                "✅ Approved Amount: $%.2f\n" +
-                "📊 Interest Rate: %.1f%% per annum\n" +
-                "📅 Term: %d months\n" +
-                "💳 Monthly Payment: $%.2f\n\n" +
+                "Requested Amount: $%.2f\n" +
+                "Approved Amount: $%.2f\n" +
+                "Interest Rate: %.1f%% per annum\n" +
+                "Term: %d months\n" +
+                "Monthly Payment: $%.2f\n\n" +
                 "Reason: %s\n\n" +
                 "Would you like to proceed with the application?",
                 eligibilityData.get("requestedAmount"),
@@ -484,9 +484,9 @@ public class LLMChatbotInterface {
         } else {
             return String.format(
                 "I understand you're interested in a loan. Based on our initial assessment:\n\n" +
-                "💰 Requested Amount: $%.2f\n" +
-                "📊 Current Credit Score: %d\n" +
-                "⚠️ Status: %s\n\n" +
+                "Requested Amount: $%.2f\n" +
+                "Current Credit Score: %d\n" +
+                "Status: %s\n\n" +
                 "Reason: %s\n\n" +
                 "Don't worry! I can help you explore alternatives or discuss ways to improve your eligibility.",
                 eligibilityData.get("requestedAmount"),
@@ -499,12 +499,12 @@ public class LLMChatbotInterface {
 
     private String formatPaymentResponse(Map<String, Object> paymentData) {
         return String.format(
-            "✅ Payment Processed Successfully!\n\n" +
-            "💰 Payment Amount: $%.2f\n" +
-            "🔢 Reference Number: %s\n" +
-            "📅 Payment Date: %s\n" +
-            "💳 Remaining Balance: $%.2f\n" +
-            "📋 Loan Status: %s\n\n" +
+            "Payment Processed Successfully!\n\n" +
+            "Payment Amount: $%.2f\n" +
+            "Reference Number: %s\n" +
+            "Payment Date: %s\n" +
+            "Remaining Balance: $%.2f\n" +
+            "Loan Status: %s\n\n" +
             "Thank you for your payment! Your account has been updated.",
             paymentData.get("amount"),
             paymentData.get("referenceNumber"),
