@@ -11,7 +11,7 @@ This section contains development standards, documentation management, and quali
 - [Documentation Update Summary](documentation/DOCUMENTATION_UPDATE_SUMMARY.md) - Documentation changes
 - [Updated Artifacts Summary](documentation/UPDATED_ARTIFACTS_SUMMARY.md) - Artifact management
 - [Git Setup](documentation/GIT_SETUP.md) - Version control configuration
-- [Replit Configuration](documentation/replit.md) - Development environment setup
+- [ Configuration](documentation/replit.md) - Development environment setup
 
 ## Quality Assurance
 - [Testing Documentation](quality-assurance/TESTING.md) - Testing framework
@@ -20,8 +20,6 @@ This section contains development standards, documentation management, and quali
 - [TDD Coverage Visualization](quality-assurance/tdd-coverage-visualization.puml) - Test coverage metrics
 
 ## Governance Framework
-- **TOGAF 9.2**: Enterprise architecture methodology
-- **BDAT Categorization**: Business, Data, Application, Technology structure
 - **Banking Standards**: Industry compliance requirements
 - **Formal Language**: Professional banking communication standards
 
