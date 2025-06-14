@@ -34,7 +34,7 @@ The hexagonal architecture ensures technology independence and maintainability t
 
 ### Business Process Workflow
 
-![Banking Workflow](docs/diagrams/docs/diagrams/svg/banking-workflow.svg)
+![Banking Workflow](docs/diagrams/docs/diagrams/svg/.svg)
 
 The loan application workflow demonstrates end-to-end processing from customer application through credit assessment to loan approval and database persistence.
 
