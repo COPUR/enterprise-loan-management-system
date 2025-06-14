@@ -10,7 +10,7 @@
 
 ## System Overview
 
-A comprehensive enterprise banking platform implementing Domain-Driven Design (DDD) with hexagonal architecture, featuring AI-powered risk analytics, real-time dashboard capabilities, and regulatory compliance. The system achieves 87.4% test coverage, exceeding banking industry requirements, with FAPI-grade security implementation.
+A comprehensive enterprise banking platform implementing Domain-Driven Design (DDD) with hexagonal architecture, featuring AI-powered risk analytics, real-time dashboard capabilities, and regulatory compliance. The system achieves 87.4% test coverage *Java*, exceeding banking industry requirements, with FAPI-grade security implementation.
 
 ## Architecture Diagrams
 
