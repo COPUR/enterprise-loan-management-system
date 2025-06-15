@@ -30,10 +30,7 @@ package "Security Layer" {
 package "Microservices Layer" {
     
     package "Customer Management Service" {
-        [Customer API] as CUSTOMER_API #C8E6C9 {
-            Port: 8081
-            Database: customer_db
-        }
+        [Customer API] as CUSTOMER_API #C8E6C9
         [Customer Domain] as CUSTOMER_DOMAIN #C8E6C9 {
             - Credit Management
             - Account Status
@@ -43,10 +40,7 @@ package "Microservices Layer" {
     }
     
     package "Loan Origination Service" {
-        [Loan API] as LOAN_API #FFCDD2 {
-            Port: 8082
-            Database: loan_db
-        }
+        [Loan API] as LOAN_API #FFCDD2
         [Loan Domain] as LOAN_DOMAIN #FFCDD2 {
             - Business Rules (6,9,12,24)
             - Interest Rate (0.1-0.5%)
@@ -56,10 +50,7 @@ package "Microservices Layer" {
     }
     
     package "Payment Processing Service" {
-        [Payment API] as PAYMENT_API #DCEDC8 {
-            Port: 8083
-            Database: payment_db
-        }
+        [Payment API] as PAYMENT_API #DCEDC8
         [Payment Domain] as PAYMENT_DOMAIN #DCEDC8 {
             - Payment Distribution
             - Discount/Penalty (0.001)

@@ -6,8 +6,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DIAGRAM_DIR="$SCRIPT_DIR/architecture/diagrams"
-OUTPUT_DIR="$SCRIPT_DIR/compiled-diagrams"
+DIAGRAM_DIR="$SCRIPT_DIR"
+OUTPUT_DIR="$SCRIPT_DIR/enterprise-governance/documentation/generated-diagrams"
 
 echo "🏗️ Enterprise Loan Management System - Diagram Compilation"
 echo "=================================================="

@@ -13,7 +13,7 @@ skinparam sequence {
 }
 
 title SAGA Pattern - Distributed Transaction Workflow
-subtitle Event Driven Architecture with Compensation Patterns
+!define SUBTITLE Event Driven Architecture with Compensation Patterns
 
 participant "Client" as CLIENT
 participant "API Gateway" as GATEWAY
