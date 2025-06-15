@@ -1,0 +1,209 @@
+@startuml Component Diagram
+
+!define WEB_COLOR #4A90E2
+!define APP_COLOR #7ED321
+!define DOMAIN_COLOR #BD10E0
+!define INFRA_COLOR #F5A623
+!define DATABASE_COLOR #FF6B6B
+
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+
+package "Loan Management System" {
+
+    package "Web Layer" <<Layer>> {
+
+        component [CustomerController] as CustomerCtrl WEB_COLOR
+        component [LoanController] as LoanCtrl WEB_COLOR
+        component [PaymentController] as PaymentCtrl WEB_COLOR
+
+        package "Security" {
+            component [JwtAuthenticationFilter] as JwtFilter WEB_COLOR
+            component [SecurityConfig] as SecurityConfig WEB_COLOR
+            component [SecurityService] as SecurityService WEB_COLOR
+        }
+
+        package "Exception Handling" {
+            component [GlobalExceptionHandler] as ExceptionHandler WEB_COLOR
+        }
+    }
+
+    package "Application Layer" <<Layer>> {
+
+        component [CustomerApplicationService] as CustomerApp APP_COLOR
+        component [LoanApplicationService] as LoanApp APP_COLOR
+        component [PaymentApplicationService] as PaymentApp APP_COLOR
+
+        package "SAGA Orchestration" {
+            component [LoanCreationSaga] as LoanSaga APP_COLOR
+        }
+
+        package "Event Handling" {
+            component [EventListeners] as EventListeners APP_COLOR
+        }
+    }
+
+    package "Domain Layer" <<Layer>> {
+
+        package "Customer Management" {
+            component [Customer] as CustomerAgg DOMAIN_COLOR
+            component [CreditAssessmentService] as CreditService DOMAIN_COLOR
+            component [Customer Events] as CustomerEvents DOMAIN_COLOR
+        }
+
+        package "Loan Origination" {
+            component [Loan] as LoanAgg DOMAIN_COLOR
+            component [LoanInstallment] as LoanInstallment DOMAIN_COLOR
+            component [Loan Events] as LoanEvents DOMAIN_COLOR
+        }
+
+        package "Payment Processing" {
+            component [Payment] as PaymentAgg DOMAIN_COLOR
+            component [PaymentCalculationService] as PaymentCalcService DOMAIN_COLOR
+            component [Payment Events] as PaymentEvents DOMAIN_COLOR
+        }
+
+        package "Shared Kernel" {
+            component [Money] as Money DOMAIN_COLOR
+            component [InterestRate] as InterestRate DOMAIN_COLOR
+            component [InstallmentCount] as InstallmentCount DOMAIN_COLOR
+            component [AggregateRoot] as AggregateRoot DOMAIN_COLOR
+            component [DomainEvent] as DomainEvent DOMAIN_COLOR
+        }
+    }
+
+    package "Infrastructure Layer" <<Layer>> {
+
+        package "Persistence" {
+            component [CustomerRepositoryImpl] as CustomerRepo INFRA_COLOR
+            component [LoanRepositoryImpl] as LoanRepo INFRA_COLOR
+            component [PaymentRepositoryImpl] as PaymentRepo INFRA_COLOR
+            component [JPA Entities] as JpaEntities INFRA_COLOR
+        }
+
+        package "Messaging" {
+            component [EventPublisherImpl] as EventPublisher INFRA_COLOR
+            component [KafkaConfig] as KafkaConfig INFRA_COLOR
+        }
+
+        package "Caching" {
+            component [RedisConfig] as RedisConfig INFRA_COLOR
+            component [CacheManager] as CacheManager INFRA_COLOR
+        }
+
+        package "Configuration" {
+            component [DatabaseConfig] as DatabaseConfig INFRA_COLOR
+            component [ApplicationConfig] as ApplicationConfig INFRA_COLOR
+        }
+    }
+}
+
+package "External Systems" {
+    database "PostgreSQL" as PostgreSQL DATABASE_COLOR
+    queue "Apache Kafka" as Kafka DATABASE_COLOR
+    storage "Redis Cache" as Redis DATABASE_COLOR
+}
+
+' Web Layer Dependencies
+CustomerCtrl --> CustomerApp : delegates to
+LoanCtrl --> LoanApp : delegates to
+PaymentCtrl --> PaymentApp : delegates to
+
+JwtFilter --> SecurityService : authenticates with
+SecurityConfig --> JwtFilter : configures
+ExceptionHandler --> "All Controllers" : handles exceptions from
+
+' Application Layer Dependencies
+CustomerApp --> CustomerAgg : orchestrates
+CustomerApp --> CreditService : uses
+LoanApp --> LoanAgg : orchestrates
+LoanApp --> CustomerApp : coordinates with
+PaymentApp --> PaymentAgg : orchestrates
+PaymentApp --> PaymentCalcService : uses
+PaymentApp --> LoanApp : coordinates with
+
+LoanSaga --> CustomerApp : coordinates
+LoanSaga --> LoanApp : coordinates
+EventListeners --> "All Application Services" : triggers
+
+' Domain Layer Dependencies
+CustomerAgg --> Money : uses
+CustomerAgg --> AggregateRoot : extends
+CustomerAgg --> CustomerEvents : raises
+CreditService --> CustomerAgg : operates on
+
+LoanAgg --> Money : uses
+LoanAgg --> InterestRate : uses
+LoanAgg --> InstallmentCount : uses
+LoanAgg --> AggregateRoot : extends
+LoanAgg --> LoanInstallment : contains
+LoanAgg --> LoanEvents : raises
+
+PaymentAgg --> Money : uses
+PaymentAgg --> AggregateRoot : extends
+PaymentAgg --> PaymentEvents : raises
+PaymentCalcService --> LoanInstallment : calculates on
+
+CustomerEvents --> DomainEvent : extends
+LoanEvents --> DomainEvent : extends
+PaymentEvents --> DomainEvent : extends
+
+' Infrastructure Dependencies
+CustomerApp --> CustomerRepo : uses
+LoanApp --> LoanRepo : uses
+PaymentApp --> PaymentRepo : uses
+
+CustomerRepo --> JpaEntities : maps to/from
+LoanRepo --> JpaEntities : maps to/from
+PaymentRepo --> JpaEntities : maps to/from
+
+"All Application Services" --> EventPublisher : publishes events via
+EventPublisher --> KafkaConfig : uses
+EventListeners --> KafkaConfig : configured by
+
+"All Application Services" --> CacheManager : caches via
+CacheManager --> RedisConfig : configured by
+
+' External System Connections
+JpaEntities --> PostgreSQL : persists to
+EventPublisher --> Kafka : publishes to
+EventListeners <-- Kafka : consumes from
+CacheManager --> Redis : caches in
+
+' Configuration Dependencies
+DatabaseConfig --> PostgreSQL : configures connection to
+KafkaConfig --> Kafka : configures connection to
+RedisConfig --> Redis : configures connection to
+
+interface "Port Interfaces" as Ports
+note top of Ports : Repository interfaces,\nUse case interfaces,\nEvent publisher interface
+
+CustomerApp ..> Ports : implements
+LoanApp ..> Ports : implements
+PaymentApp ..> Ports : implements
+
+CustomerRepo ..> Ports : implements
+LoanRepo ..> Ports : implements
+PaymentRepo ..> Ports : implements
+EventPublisher ..> Ports : implements
+
+note as LayerRules
+    <b>Layer Dependencies (Dependency Inversion):</b>
+
+    • <b>Web</b> → Application → Domain ← Infrastructure
+    • <b>Domain Layer</b> has no outward dependencies
+    • <b>Infrastructure</b> implements domain interfaces
+    • <b>Application</b> orchestrates domain operations
+    • <b>All layers</b> can depend on Shared Kernel
+end note
+
+note as ComponentResponsibilities
+    <b>Component Responsibilities:</b>
+
+    <color:#4A90E2>■ Web Layer:</color> HTTP handling, security, validation
+    <color:#7ED321>■ Application:</color> Use case orchestration, coordination
+    <color:#BD10E0>■ Domain:</color> Business logic, rules, events
+    <color:#F5A623>■ Infrastructure:</color> Technical implementation
+end note
+
+@enduml
