@@ -12,7 +12,7 @@ skinparam rectangle {
 }
 
 title OWASP Top 10 2021 Security Compliance Architecture
-subtitle Comprehensive Security Implementation for Banking Systems
+!define SUBTITLE Comprehensive Security Implementation for Banking Systems
 
 package "Security Gateway Layer" {
     rectangle "API Gateway Security" as GATEWAY_SEC #FFE0B2 {

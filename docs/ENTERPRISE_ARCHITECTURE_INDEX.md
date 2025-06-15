@@ -70,7 +70,6 @@ This documentation follows TOGAF Enterprise Architecture principles with BDAT (B
   - [Documentation Update Summary](enterprise-governance/documentation/DOCUMENTATION_UPDATE_SUMMARY.md)
   - [Updated Artifacts Summary](enterprise-governance/documentation/UPDATED_ARTIFACTS_SUMMARY.md)
   - [Git Setup](enterprise-governance/documentation/GIT_SETUP.md)
-  - [Replit Configuration](enterprise-governance/documentation/replit.md)
 - **Quality Assurance**: Testing frameworks and validation reports
   - [Testing Documentation](enterprise-governance/quality-assurance/TESTING.md)
   - [Regression Test Report](enterprise-governance/quality-assurance/REGRESSION_TEST_REPORT.md)

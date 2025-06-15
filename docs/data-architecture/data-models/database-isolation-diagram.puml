@@ -12,7 +12,7 @@ skinparam rectangle {
 }
 
 title Microservices Database Isolation Architecture
-subtitle Independent Database Schemas for High Availability
+!define SUBTITLE Independent Database Schemas for High Availability
 
 package "Microservice Database Isolation" {
     
