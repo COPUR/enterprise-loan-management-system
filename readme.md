@@ -51,7 +51,6 @@ The loan application workflow demonstrates end-to-end processing from customer a
 
 The loan creation sequence demonstrates the complete workflow from loan application submission through credit validation, business rule enforcement, and SAGA pattern coordination for distributed transaction consistency.
 
-![ER Diagram](docs/data-architecture/data-models/docs/enterprise-governance/documentation/generated-diagrams/Entity%20Relationship%20Diagram.svg)
 
 
 ## Event-Driven Architecture
@@ -445,11 +444,12 @@ The Enterprise Loan Management System includes comprehensive architectural docum
 
 ### Data Architecture
 ![Entity Relationship Diagram](docs/enterprise-governance/documentation/generated-diagrams/Entity%20Relationship%20Diagram.svg)
+![ER Diagram](docs/data-architecture/data-models/docs/enterprise-governance/documentation/generated-diagrams/Entity%20Relationship%20Diagram.svg)
 
 **Database Schema**: Complete relational model with proper normalization, indexing strategies, and referential integrity constraints.
 
 ![Database Isolation](docs/data-architecture/data-models/database-isolation-diagram.svg)
-
+![ER Diagram](docs/data-architecture/data-models/docs/enterprise-governance/documentation/generated-diagrams/Database%20Isolation%20Architecture.svg)
 **Microservice Isolation**: Independent database schemas ensuring service autonomy and fault isolation across all microservices.
 
 ### Security Architecture
