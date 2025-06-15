@@ -1,0 +1,228 @@
+@startuml Entity Relationship Diagram
+
+!define PRIMARY_KEY_COLOR #FFD700
+!define FOREIGN_KEY_COLOR #87CEEB
+!define REGULAR_FIELD_COLOR #F0F0F0
+
+skinparam backgroundColor #FFFFFF
+
+entity "customers" {
+    * <color:PRIMARY_KEY_COLOR>id : BIGSERIAL</color>
+    --
+    * name : VARCHAR(100)
+    * surname : VARCHAR(100)
+    * credit_limit : DECIMAL(19,2)
+    * used_credit_limit : DECIMAL(19,2)
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    * version : BIGINT
+    --
+    <b>Constraints:</b>
+    • credit_limit >= 1000.00 AND <= 1000000.00
+    • used_credit_limit >= 0.00
+    • used_credit_limit <= credit_limit
+    --
+    <b>Indexes:</b>
+    • idx_customers_name
+    • idx_customers_surname
+    • idx_customers_credit_limit
+    • idx_customers_created_at
+}
+
+entity "loans" {
+    * <color:PRIMARY_KEY_COLOR>id : VARCHAR(36)</color>
+    --
+    * <color:FOREIGN_KEY_COLOR>customer_id : BIGINT</color>
+    * loan_amount : DECIMAL(19,2)
+    * number_of_installments : INTEGER
+    * interest_rate : DECIMAL(19,3)
+    * create_date : TIMESTAMP
+    * is_paid : BOOLEAN
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    * version : BIGINT
+    --
+    <b>Constraints:</b>
+    • loan_amount > 0
+    • number_of_installments IN (6, 9, 12, 24)
+    • interest_rate >= 0.1 AND <= 0.5
+    • FK: customer_id → customers(id)
+    --
+    <b>Indexes:</b>
+    • idx_loans_customer_id
+    • idx_loans_create_date
+    • idx_loans_is_paid
+    • idx_loans_number_of_installments
+    • idx_loans_customer_paid
+}
+
+entity "loan_installments" {
+    * <color:PRIMARY_KEY_COLOR>id : VARCHAR(36)</color>
+    --
+    * <color:FOREIGN_KEY_COLOR>loan_id : VARCHAR(36)</color>
+    * amount : DECIMAL(19,2)
+    * paid_amount : DECIMAL(19,2)
+    * due_date : DATE
+    * payment_date : TIMESTAMP
+    * is_paid : BOOLEAN
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    * version : BIGINT
+    --
+    <b>Constraints:</b>
+    • amount > 0
+    • paid_amount >= 0
+    • paid_amount <= amount
+    • FK: loan_id → loans(id) CASCADE
+    • Payment consistency check
+    --
+    <b>Indexes:</b>
+    • idx_installments_loan_id
+    • idx_installments_due_date
+    • idx_installments_is_paid
+    • idx_installments_payment_date
+    • idx_installments_loan_due
+    • idx_installments_loan_paid
+}
+
+entity "payments" {
+    * <color:PRIMARY_KEY_COLOR>id : VARCHAR(36)</color>
+    --
+    * <color:FOREIGN_KEY_COLOR>loan_id : VARCHAR(36)</color>
+    * payment_amount : DECIMAL(19,2)
+    * payment_date : TIMESTAMP
+    * payment_status : VARCHAR(20)
+    * installments_paid : INTEGER
+    * total_discount : DECIMAL(19,2)
+    * total_penalty : DECIMAL(19,2)
+    * is_loan_fully_paid : BOOLEAN
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    * version : BIGINT
+    --
+    <b>Constraints:</b>
+    • payment_amount > 0
+    • installments_paid >= 0
+    • total_discount >= 0
+    • total_penalty >= 0
+    • payment_status IN ('INITIATED', 'PROCESSING', 'COMPLETED', 'FAILED')
+    • FK: loan_id → loans(id)
+    --
+    <b>Indexes:</b>
+    • idx_payments_loan_id
+    • idx_payments_date
+    • idx_payments_status
+    • idx_payments_loan_date
+}
+
+entity "payment_installments" {
+    * <color:PRIMARY_KEY_COLOR>payment_id : VARCHAR(36)</color>
+    * <color:PRIMARY_KEY_COLOR>installment_id : VARCHAR(36)</color>
+    --
+    <b>Constraints:</b>
+    • PK: (payment_id, installment_id)
+    • FK: payment_id → payments(id) CASCADE
+    • FK: installment_id → loan_installments(id) CASCADE
+    --
+    <b>Indexes:</b>
+    • idx_payment_installments_payment
+    • idx_payment_installments_installment
+}
+
+' Relationships
+customers ||--o{ loans : "has many"
+loans ||--o{ loan_installments : "contains"
+loans ||--o{ payments : "receives"
+payments }o--o{ loan_installments : "pays"
+
+' Relationship details
+customers::id ||--o{ loans::customer_id
+loans::id ||--o{ loan_installments::loan_id
+loans::id ||--o{ payments::loan_id
+payments::id }o--o{ payment_installments::payment_id
+loan_installments::id }o--o{ payment_installments::installment_id
+
+note top of customers
+    <b>Customer Table:</b>
+
+    • Stores customer information and credit limits
+    • Credit limit range: $1,000 - $1,000,000
+    • Tracks used vs available credit
+    • Optimistic locking with version field
+    • Automatic timestamp updates
+end note
+
+note top of loans
+    <b>Loan Table:</b>
+
+    • UUID primary key for distributed systems
+    • Business rules enforced at DB level
+    • Interest rates: 10% - 50% (0.1 - 0.5)
+    • Valid installment counts: 6, 9, 12, 24
+    • Cascading relationship with installments
+end note
+
+note bottom of loan_installments
+    <b>Loan Installments Table:</b>
+
+    • Individual payment obligations
+    • Due dates on 1st of each month
+    • Equal installment amounts
+    • Payment consistency constraints
+    • Automatic loan status updates via triggers
+end note
+
+note bottom of payments
+    <b>Payments Table:</b>
+
+    • Payment transaction records
+    • Status tracking for reliability
+    • Discount/penalty calculations stored
+    • Links to multiple installments paid
+end note
+
+note right of payment_installments
+    <b>Payment-Installments Junction:</b>
+
+    • Many-to-many relationship
+    • Tracks which installments
+      were paid in each payment
+    • Enables partial loan payments
+    • Supports payment history
+end note
+
+note as BusinessRules
+    <b>Key Business Rules in Database:</b>
+
+    1. <b>Credit Management:</b>
+       • used_credit_limit ≤ credit_limit
+       • Minimum credit limit: $1,000
+       • Maximum credit limit: $1,000,000
+
+    2. <b>Loan Constraints:</b>
+       • Only specific installment counts allowed
+       • Interest rate bounds enforced
+       • Positive loan amounts required
+
+    3. <b>Payment Integrity:</b>
+       • No partial installment payments
+       • Payment consistency checks
+       • Automatic loan completion detection
+
+    4. <b>Data Consistency:</b>
+       • Foreign key constraints
+       • Cascade deletes where appropriate
+       • Optimistic locking on all entities
+end note
+
+note as PerformanceConsiderations
+    <b>Performance Optimizations:</b>
+
+    • <b>Indexes:</b> Strategic indexing on frequently queried columns
+    • <b>Partitioning:</b> Consider partitioning large tables by date
+    • <b>Constraints:</b> Database-level validation for data integrity
+    • <b>Triggers:</b> Automatic status updates to reduce application logic
+    • <b>Normalization:</b> 3NF design with junction tables for M:N relationships
+end note
+
+@enduml
