@@ -22,19 +22,19 @@ The enterprise loan management system implements a layered architecture with cle
 
 ### Domain-Driven Design Model
 
-![Domain Model](docs/diagrams/svg/domain-model.svg)
+![Domain Model](docs/enterprise-governance/documentation/generated-diagrams/Domain%20Model.svg)
 
 The domain model encompasses three primary bounded contexts: Customer Management, Loan Origination, and Payment Processing, with shared kernel components for common financial operations.
 
 ### Bounded Context Relationships
 
-![Bounded Contexts](docs/diagrams/svg/bounded-contexts.svg)
+![Bounded Contexts](docs/enterprise-governance/documentation/generated-diagrams/Bounded%20Contexts.svg)
 
 Each bounded context maintains independence while coordinating through well-defined interfaces and event-driven communication patterns.
 
 ### Hexagonal Architecture Implementation
-
-![Hexagonal Architecture](docs/diagrams/svg/hexagonal-architecture.svg)
+n%20
+![Hexagonal Architecture](docs/enterprise-governance/documentation/generated-diagrams/svg/Hexagonal%20Architecture%20-%20Enterprise%20Loan%20Management%20System%20(Production).svg)
 
 The hexagonal architecture ensures technology independence and maintainability through ports and adapters pattern, enabling flexible infrastructure integration.
 
