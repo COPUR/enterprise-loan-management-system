@@ -51,6 +51,12 @@ The loan application workflow demonstrates end-to-end processing from customer a
 
 The loan creation sequence demonstrates the complete workflow from loan application submission through credit validation, business rule enforcement, and SAGA pattern coordination for distributed transaction consistency.
 
+## Event-Driven Architecture
+
+![SAGA Pattern  Loan Creation](docs/enterprise-governance/documentation/generated-diagrams/png/SAGA%20Pattern%20-%20Loan%20Creation%20Workflow.png)
+
+
+
 **Key Process Steps:**
 - Customer eligibility validation with credit score assessment
 - Business rule enforcement (amount, rate, installment validation)
