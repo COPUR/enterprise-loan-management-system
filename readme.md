@@ -16,7 +16,7 @@ A comprehensive enterprise banking platform implementing Domain-Driven Design (D
 
 ### Core System Architecture
 
-![Banking System Architecture](docs/diagrams/svg/simple-architecture.svg)
+![Banking System Architecture](docs/application-architecture/microservices/docs/enterprise-governance/documentation/generated-diagrams/Banking%20System%20Architecture.svg)
 
 The enterprise loan management system implements a layered architecture with clear separation between client applications, security gateway, core banking services, and data persistence layers.
 
