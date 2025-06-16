@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banking Transformation: Executive Presentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            overflow: hidden;
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideIn 0.6s ease-in-out;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .slide-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        .slide-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .slide-header h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            font-weight: 400;
+        }
+
+        .slide-header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .slide-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            height: 100%;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            height: 100%;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-value {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .comparison-chart {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .chart-row {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chart-label {
+            width: 250px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .chart-bar {
+            flex: 1;
+            height: 25px;
+            background: #ecf0f1;
+            border-radius: 12px;
+            position: relative;
+            margin: 0 15px;
+        }
+
+        .chart-fill {
+            height: 100%;
+            border-radius: 12px;
+            position: relative;
+            transition: width 2s ease-in-out;
+        }
+
+        .legacy-bar { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+        .modern-bar { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+
+        .chart-value {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .architecture-diagram {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .service-box {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 25px;
+            margin: 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .service-box:hover {
+            transform: scale(1.05);
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .benefit-card {
+            background: white;
+            border-left: 5px solid #3498db;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .benefit-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .benefit-list {
+            list-style: none;
+        }
+
+        .benefit-list li {
+            padding: 8px 0;
+            color: #34495e;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .benefit-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .nav-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            z-index: 1000;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        .roi-showcase {
+            text-align: center;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin: 30px 0;
+        }
+
+        .roi-value {
+            font-size: 4em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            text-align: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .timeline-item:not(:last-child):after {
+            content: '';
+            position: absolute;
+            top: 30px;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: #3498db;
+        }
+
+        .timeline-circle {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .ddd-diagram {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+        }
+
+        .domain-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .domain-circle:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .slide-header h1 { font-size: 2em; }
+            .slide-header h2 { font-size: 1.4em; }
+            .slide-content { padding: 20px; }
+            .two-column { grid-template-columns: 1fr; }
+            .three-column { grid-template-columns: 1fr; }
+            .metric-value { font-size: 2em; }
+            .navigation { bottom: 15px; right: 15px; }
+            .nav-button { padding: 10px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="slide-counter" id="slideCounter">1 / 16</div>
+
+    <div class="presentation-container" id="presentationContainer">
+        
+        <!-- Slide 1: Title Slide -->
+        <div class="slide active">
+            <div class="slide-header">
+                <h1>Banking Transformation</h1>
+                <h2>From Legacy Monoliths to AI-Powered Microservices</h2>
+                <p>Executive Presentation for Leadership, Architecture, and Business Teams</p>
+            </div>
+            <div class="slide-content">
+                <div class="roi-showcase">
+                    <h3>Strategic Transformation Outcomes</h3>
+                    <div class="roi-value">2,705% ROI</div>
+                    <p>4.2-month payback period</p>
+                </div>
+                <div class="benefits-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">27x</div>
+                        <div class="metric-label">Faster Feature Delivery</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">20x</div>
+                        <div class="metric-label">System Scalability</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">77%</div>
+                        <div class="metric-label">Cost Reduction</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">99.99%</div>
+                        <div class="metric-label">System Availability</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: Business Case -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>The Business Case</h2>
+                <p>Quantified Benefits - Performance Ratios</p>
+            </div>
+            <div class="slide-content">
+                <div class="comparison-chart">
+                    <h3>Operational Efficiency Transformation</h3>
+                    <div class="chart-row">
+                        <div class="chart-label">Time to Production</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill legacy-bar" style="width: 100%">
+                                <div class="chart-value">18 months (Legacy)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label"></div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 11%">
+                                <div class="chart-value">2-4 weeks (Modern) - 9:1 faster</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-row">
+                        <div class="chart-label">Features Per Year</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill legacy-bar" style="width: 7%">
+                                <div class="chart-value">3-5 (Legacy)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label"></div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 100%">
+                                <div class="chart-value">50-75 (Modern) - 15:1 increase</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-row">
+                        <div class="chart-label">System Availability</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill legacy-bar" style="width: 99.5%">
+                                <div class="chart-value">99.5% (Legacy)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label"></div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 99.99%">
+                                <div class="chart-value">99.99% (Modern) - 5x better</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Architecture Evolution -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Architecture Evolution Strategy</h2>
+                <p>Risk-Managed Transformation Approach</p>
+            </div>
+            <div class="slide-content">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-circle">1</div>
+                        <h4>Legacy Monolith</h4>
+                        <p>Single deployment unit<br>Technology lock-in</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-circle">2</div>
+                        <h4>Modular Monolith</h4>
+                        <p>80% risk reduction<br>Event patterns</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-circle">3</div>
+                        <h4>Microservices</h4>
+                        <p>Independent deployment<br>Unlimited scalability</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-circle">4</div>
+                        <h4>AI-Powered</h4>
+                        <p>Intelligent automation<br>Predictive operations</p>
+                    </div>
+                </div>
+
+                <div class="architecture-diagram">
+                    <h3>Target Microservices Architecture</h3>
+                    <br>
+                    <div class="service-box">Customer Management<br><small>Port: 8081 | 3-20 instances</small></div>
+                    <div class="service-box">Loan Origination<br><small>Port: 8082 | 2-15 instances</small></div>
+                    <div class="service-box">Payment Processing<br><small>Port: 8083 | 5-30 instances</small></div>
+                    <br><br>
+                    <div class="service-box">Compliance & Audit<br><small>Port: 8084 | 2-8 instances</small></div>
+                    <div class="service-box">Analytics & AI<br><small>Port: 8085 | 1-10 instances</small></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: DDD Benefits -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Domain-Driven Design Benefits</h2>
+                <p>Business-Aligned Architecture</p>
+            </div>
+            <div class="slide-content">
+                <div class="ddd-diagram">
+                    <div class="domain-circle">
+                        <div>Customer<br>Management</div>
+                    </div>
+                    <div class="domain-circle">
+                        <div>Loan<br>Origination</div>
+                    </div>
+                    <div class="domain-circle">
+                        <div>Payment<br>Processing</div>
+                    </div>
+                    <div class="domain-circle">
+                        <div>Compliance<br>& Audit</div>
+                    </div>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>Banking Use Case: Loan Application</h3>
+                        <ul class="benefit-list">
+                            <li>Traditional: 15-30 day process</li>
+                            <li>DDD Microservices: 2-5 minute approval</li>
+                            <li><span class="highlight">6,000:1 faster processing</span></li>
+                            <li>Real-time customer experience</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Customer Onboarding</h3>
+                        <ul class="benefit-list">
+                            <li>Traditional: 3-5 day manual process</li>
+                            <li>AI-Powered: 30-second automated KYC</li>
+                            <li><span class="highlight">14,400:1 faster onboarding</span></li>
+                            <li>Instant account opening</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Risk Assessment</h3>
+                        <ul class="benefit-list">
+                            <li>Traditional: Static rule-based scoring</li>
+                            <li>AI-Enhanced: Dynamic real-time analysis</li>
+                            <li><span class="highlight">40% better predictions</span></li>
+                            <li>25% reduction in default rates</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Business Language Clarity</h3>
+                        <ul class="benefit-list">
+                            <li>85% fewer requirement misunderstandings</li>
+                            <li>10x faster business rule updates</li>
+                            <li>90% reduction in service dependencies</li>
+                            <li>Clear team ownership boundaries</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Development Pace -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Development Pace Acceleration</h2>
+                <p>Modern Development Velocity</p>
+            </div>
+            <div class="slide-content">
+                <div class="three-column">
+                    <div class="metric-card">
+                        <div class="metric-value">3x</div>
+                        <div class="metric-label">Lines of Code per Day</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">15x</div>
+                        <div class="metric-label">Feature Completion Rate</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">70%</div>
+                        <div class="metric-label">Less Context Switching</div>
+                    </div>
+                </div>
+
+                <div class="comparison-chart">
+                    <h3>Development Lifecycle Transformation</h3>
+                    <div class="chart-row">
+                        <div class="chart-label">Requirements Analysis</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 8%">
+                                <div class="chart-value">12:1 faster (1-2 weeks vs 3-6 months)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Design & Architecture</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 6%">
+                                <div class="chart-value">18:1 faster (2-4 weeks vs 6-12 months)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Feature Development</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 4%">
+                                <div class="chart-value">27:1 faster delivery</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Bug Fix Deployment</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 1%">
+                                <div class="chart-value">Hours vs weeks</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>Quality Improvements</h3>
+                        <ul class="benefit-list">
+                            <li>85% fewer production issues</li>
+                            <li>95% automated test coverage</li>
+                            <li>10x faster code review cycles</li>
+                            <li>Always current documentation</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Innovation Capacity</h3>
+                        <ul class="benefit-list">
+                            <li>40% time for experimentation</li>
+                            <li>5x faster technology adoption</li>
+                            <li>20x faster proof of concepts</li>
+                            <li>Real-time market response</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Deployment Speed -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Deployment Speed & Reliability</h2>
+                <p>Zero-Downtime Deployment Excellence</p>
+            </div>
+            <div class="slide-content">
+                <div class="two-column">
+                    <div>
+                        <div class="comparison-chart">
+                            <h3>Deployment Strategy Benefits</h3>
+                            <div class="chart-row">
+                                <div class="chart-label">Deployment Risk</div>
+                                <div class="chart-bar">
+                                    <div class="chart-fill modern-bar" style="width: 1%">
+                                        <div class="chart-value">99% reduction</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-row">
+                                <div class="chart-label">Rollback Time</div>
+                                <div class="chart-bar">
+                                    <div class="chart-fill modern-bar" style="width: 0.1%">
+                                        <div class="chart-value">Instant vs 4-8 hours</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-row">
+                                <div class="chart-label">Build Time</div>
+                                <div class="chart-bar">
+                                    <div class="chart-fill modern-bar" style="width: 12%">
+                                        <div class="chart-value">8x faster</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-row">
+                                <div class="chart-label">Environment Provisioning</div>
+                                <div class="chart-bar">
+                                    <div class="chart-fill modern-bar" style="width: 2%">
+                                        <div class="chart-value">50x faster</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="benefit-card">
+                            <h3>Blue-Green Deployment</h3>
+                            <ul class="benefit-list">
+                                <li>Zero customer downtime</li>
+                                <li>Instant rollback capability</li>
+                                <li>Production environment validation</li>
+                                <li>99% risk reduction</li>
+                            </ul>
+                        </div>
+                        <div class="benefit-card">
+                            <h3>Canary Deployment</h3>
+                            <ul class="benefit-list">
+                                <li>Progressive rollout strategy</li>
+                                <li>Real-time monitoring integration</li>
+                                <li>AI-driven anomaly detection</li>
+                                <li>Automatic rollback triggers</li>
+                            </ul>
+                        </div>
+                        <div class="benefit-card">
+                            <h3>Feature Flags</h3>
+                            <ul class="benefit-list">
+                                <li>Deployment-independent releases</li>
+                                <li>A/B testing capabilities</li>
+                                <li>Instant feature rollback</li>
+                                <li>Risk-controlled rollouts</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Testability -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Testability Excellence</h2>
+                <p>Comprehensive Testing Strategy</p>
+            </div>
+            <div class="slide-content">
+                <div class="architecture-diagram">
+                    <h3>Testing Pyramid Transformation</h3>
+                    <br>
+                    <div class="service-box">Unit Testing<br><small>87% coverage | 10x faster execution</small></div>
+                    <br>
+                    <div class="service-box">Integration Testing<br><small>API contracts | TestContainers</small></div>
+                    <br>
+                    <div class="service-box">End-to-End Testing<br><small>Complete user journeys</small></div>
+                    <br>
+                    <div class="service-box">Production Testing<br><small>Chaos engineering | Synthetic monitoring</small></div>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>Test Automation Impact</h3>
+                        <ul class="benefit-list">
+                            <li><span class="highlight">50x faster</span> test execution</li>
+                            <li>100x faster feedback loops</li>
+                            <li>98% automated regression coverage</li>
+                            <li>95% deployment success rate</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Quality Assurance</h3>
+                        <ul class="benefit-list">
+                            <li>20x earlier defect detection</li>
+                            <li>Continuous performance validation</li>
+                            <li>Automated OWASP security scanning</li>
+                            <li>Instant fix verification</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Development Confidence</h3>
+                        <ul class="benefit-list">
+                            <li>95% regression detection</li>
+                            <li>Automated root cause analysis</li>
+                            <li>Continuous integration validation</li>
+                            <li>Real-time quality metrics</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Scalability -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Scalability Architecture</h2>
+                <p>Unlimited Horizontal Scaling</p>
+            </div>
+            <div class="slide-content">
+                <div class="comparison-chart">
+                    <h3>Scaling Performance Transformation</h3>
+                    <div class="chart-row">
+                        <div class="chart-label">Transaction Throughput</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill legacy-bar" style="width: 5%">
+                                <div class="chart-value">500 TPS (Legacy)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label"></div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 100%">
+                                <div class="chart-value">10,000+ TPS (Modern) - 20:1 improvement</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-row">
+                        <div class="chart-label">Concurrent Users</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill legacy-bar" style="width: 2%">
+                                <div class="chart-value">500-1,000 (Legacy)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label"></div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 100%">
+                                <div class="chart-value">50,000+ (Modern) - 100:1 improvement</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-row">
+                        <div class="chart-label">Resource Utilization</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill legacy-bar" style="width: 35%">
+                                <div class="chart-value">30-40% (Legacy)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label"></div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 85%">
+                                <div class="chart-value">80-90% (Modern) - 2.5:1 optimization</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>Intelligent Auto-Scaling</h3>
+                        <ul class="benefit-list">
+                            <li>AI-driven capacity planning</li>
+                            <li>30-60 second scaling response</li>
+                            <li>85% resource efficiency target</li>
+                            <li>Automatic cost optimization</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Elasticity Benefits</h3>
+                        <ul class="benefit-list">
+                            <li>Unlimited burst capacity</li>
+                            <li>Linear cost scaling</li>
+                            <li>Real-time optimization</li>
+                            <li>Zero infrastructure limits</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: 12-Factor App -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>12-Factor App Excellence</h2>
+                <p>Modern Application Design Principles</p>
+            </div>
+            <div class="slide-content">
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>I-III: Code & Dependencies</h3>
+                        <ul class="benefit-list">
+                            <li>Single repository, multiple deployments</li>
+                            <li>100% build reliability</li>
+                            <li>Secure configuration management</li>
+                            <li>Complete change audit trail</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>IV-VI: Services & Processes</h3>
+                        <ul class="benefit-list">
+                            <li>Database portability</li>
+                            <li>Immutable releases</li>
+                            <li>Unlimited scalability</li>
+                            <li>99.9% rollback reliability</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>VII-IX: Configuration</h3>
+                        <ul class="benefit-list">
+                            <li>Service independence</li>
+                            <li>Process-based scaling</li>
+                            <li>Fast startup/shutdown</li>
+                            <li>Zero configuration drift</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>X-XII: Operations</h3>
+                        <ul class="benefit-list">
+                            <li>100% environment parity</li>
+                            <li>Unified observability</li>
+                            <li>Operational safety</li>
+                            <li>80% reduced manual intervention</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="comparison-chart">
+                    <h3>12-Factor Business Impact</h3>
+                    <div class="chart-row">
+                        <div class="chart-label">Release Failure Rate</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 5%">
+                                <div class="chart-value">95% reduction</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Environment Setup Time</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 2%">
+                                <div class="chart-value">50x faster</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Troubleshooting Time</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 10%">
+                                <div class="chart-value">10x faster diagnosis</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: AWS Well-Architected -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>AWS Well-Architected Framework</h2>
+                <p>Six Pillars of Excellence</p>
+            </div>
+            <div class="slide-content">
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>Operational Excellence</h3>
+                        <ul class="benefit-list">
+                            <li>100% infrastructure automation</li>
+                            <li>Real-time monitoring insights</li>
+                            <li>16x faster incident resolution</li>
+                            <li>Risk-free deployments</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Security</h3>
+                        <ul class="benefit-list">
+                            <li>Zero-trust architecture</li>
+                            <li>End-to-end encryption</li>
+                            <li>Defense in depth strategy</li>
+                            <li>AI-powered threat monitoring</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Reliability</h3>
+                        <ul class="benefit-list">
+                            <li>99.99% availability target</li>
+                            <li>Automated disaster recovery</li>
+                            <li>Point-in-time data recovery</li>
+                            <li>Cross-region resilience</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Performance Efficiency</h3>
+                        <ul class="benefit-list">
+                            <li>85% resource utilization</li>
+                            <li>Proactive optimization</li>
+                            <li>Best-fit technology selection</li>
+                            <li>Elastic capacity management</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Cost Optimization</h3>
+                        <ul class="benefit-list">
+                            <li>77% infrastructure cost reduction</li>
+                            <li>Real-time cost tracking</li>
+                            <li>Predictable workload optimization</li>
+                            <li>Automated resource cleanup</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Sustainability</h3>
+                        <ul class="benefit-list">
+                            <li>Green computing practices</li>
+                            <li>68% carbon footprint reduction</li>
+                            <li>Optimal resource utilization</li>
+                            <li>Long-term sustainable thinking</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: AI Integration -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>AI & Spring AI Integration</h2>
+                <p>Intelligent Banking Capabilities</p>
+            </div>
+            <div class="slide-content">
+                <div class="two-column">
+                    <div>
+                        <div class="benefit-card">
+                            <h3>Customer Service Automation</h3>
+                            <ul class="benefit-list">
+                                <li>90% automated query resolution</li>
+                                <li><1 second vs 24-48 hour response</li>
+                                <li>40% customer satisfaction improvement</li>
+                                <li>5x agent productivity increase</li>
+                            </ul>
+                        </div>
+                        <div class="benefit-card">
+                            <h3>Risk Assessment Intelligence</h3>
+                            <ul class="benefit-list">
+                                <li>2-minute vs 2-week credit decisions</li>
+                                <li>99.8% fraud detection accuracy</li>
+                                <li>85% better default prediction</li>
+                                <li>Real-time portfolio optimization</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="benefit-card">
+                            <h3>Spring AI Framework</h3>
+                            <ul class="benefit-list">
+                                <li>Multi-provider support (OpenAI, Anthropic)</li>
+                                <li>No vendor lock-in strategy</li>
+                                <li>RAG implementation for banking data</li>
+                                <li>Function calling for operations</li>
+                            </ul>
+                        </div>
+                        <div class="benefit-card">
+                            <h3>Compliance Automation</h3>
+                            <ul class="benefit-list">
+                                <li>Real-time regulatory validation</li>
+                                <li>95% automated audit preparation</li>
+                                <li>Automatic regulatory adaptation</li>
+                                <li>Complete action audit logging</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="architecture-diagram">
+                    <h3>AI-Powered Banking Services</h3>
+                    <br>
+                    <div class="service-box">Intelligent KYC<br><small>Automated customer verification</small></div>
+                    <div class="service-box">Smart Risk Assessment<br><small>Real-time decision making</small></div>
+                    <br><br>
+                    <div class="service-box">Fraud Detection<br><small>99.8% accuracy monitoring</small></div>
+                    <div class="service-box">Compliance AI<br><small>Regulatory automation</small></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12: Event-Driven & SAGA -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Event-Driven Architecture</h2>
+                <p>SAGA Patterns & Distributed Transactions</p>
+            </div>
+            <div class="slide-content">
+                <div class="architecture-diagram">
+                    <h3>SAGA Pattern Implementation</h3>
+                    <br>
+                    <div class="service-box">Loan Application<br><small>Multi-service orchestration</small></div>
+                    <div class="service-box">Payment Processing<br><small>Complex transaction flows</small></div>
+                    <br><br>
+                    <div class="service-box">Customer Onboarding<br><small>Cross-domain operations</small></div>
+                    <div class="service-box">Compliance Workflows<br><small>Automated processes</small></div>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>Fault Tolerance</h3>
+                        <ul class="benefit-list">
+                            <li>99.9% process completion rate</li>
+                            <li>95% automatic error recovery</li>
+                            <li>Compensation pattern rollbacks</li>
+                            <li>Timeout and deadlock prevention</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Business Benefits</h3>
+                        <ul class="benefit-list">
+                            <li>Complete audit compliance tracking</li>
+                            <li>10x faster than distributed transactions</li>
+                            <li>Service independence maintained</li>
+                            <li>Clear responsibility boundaries</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Event Sourcing</h3>
+                        <ul class="benefit-list">
+                            <li>100% transaction history</li>
+                            <li>Event replay functionality</li>
+                            <li>Real-time analytics capability</li>
+                            <li>Historical pattern analysis</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>System Integration</h3>
+                        <ul class="benefit-list">
+                            <li>Loose coupling design</li>
+                            <li>Asynchronous processing</li>
+                            <li>Real-time event handling</li>
+                            <li>Independent service evolution</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 13: Implementation Timeline -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Implementation Timeline</h2>
+                <p>Risk-Managed 15-Month Transformation</p>
+            </div>
+            <div class="slide-content">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-circle">1-3</div>
+                        <h4>Foundation</h4>
+                        <p>Assessment & Planning<br><small>Low Risk</small></p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-circle">4-9</div>
+                        <h4>Core Services</h4>
+                        <p>Service Decomposition<br><small>Medium Risk</small></p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-circle">10-12</div>
+                        <h4>AI Features</h4>
+                        <p>Intelligence Layer<br><small>Low Risk</small></p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-circle">13-15</div>
+                        <h4>Production</h4>
+                        <p>Canary Migration<br><small>Minimal Risk</small></p>
+                    </div>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>Technical Metrics</h3>
+                        <ul class="benefit-list">
+                            <li>99.99% system uptime target</li>
+                            <li><100ms response time goal</li>
+                            <li>99% deployment success rate</li>
+                            <li>95% automated test coverage</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Business Metrics</h3>
+                        <ul class="benefit-list">
+                            <li>>90% customer satisfaction</li>
+                            <li>27x time-to-market improvement</li>
+                            <li>15x feature delivery increase</li>
+                            <li>77% cost efficiency gain</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Operational Metrics</h3>
+                        <ul class="benefit-list">
+                            <li>2.5x developer productivity</li>
+                            <li>16x faster incident resolution</li>
+                            <li>90x deployment frequency</li>
+                            <li>95% change failure reduction</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Compliance Metrics</h3>
+                        <ul class="benefit-list">
+                            <li>100% regulatory adherence</li>
+                            <li>90% audit finding reduction</li>
+                            <li>Zero security breach target</li>
+                            <li>80% compliance cost reduction</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 14: Competitive Advantages -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Competitive Advantages</h2>
+                <p>Market Leadership Position</p>
+            </div>
+            <div class="slide-content">
+                <div class="comparison-chart">
+                    <h3>Market Differentiation Ratios</h3>
+                    <div class="chart-row">
+                        <div class="chart-label">Innovation Velocity</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 100%">
+                                <div class="chart-value">27x faster than competitors</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">System Reliability</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 100%">
+                                <div class="chart-value">50x better uptime</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Customer Experience</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 75%">
+                                <div class="chart-value">3x satisfaction improvement</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Cost Efficiency</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 100%">
+                                <div class="chart-value">4x more efficient operations</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>Technology Leadership</h3>
+                        <ul class="benefit-list">
+                            <li>2-3 years ahead of industry</li>
+                            <li>Cloud-native maturity leader</li>
+                            <li>15x higher developer output</li>
+                            <li>40% innovation capacity</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Future Readiness</h3>
+                        <ul class="benefit-list">
+                            <li>Quantum computing preparation</li>
+                            <li>Blockchain integration ready</li>
+                            <li>Edge computing compatible</li>
+                            <li>AGI workflow ready</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Market Position</h3>
+                        <ul class="benefit-list">
+                            <li>3x faster customer acquisition</li>
+                            <li>API-first ecosystem enablement</li>
+                            <li>Automated regulatory compliance</li>
+                            <li>Technology leader brand perception</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: Decision Framework -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Executive Decision Framework</h2>
+                <p>Strategic Investment Rationale</p>
+            </div>
+            <div class="slide-content">
+                <div class="two-column">
+                    <div>
+                        <div class="comparison-chart">
+                            <h3>Cost of Inaction (3-Year Impact)</h3>
+                            <div class="chart-row">
+                                <div class="chart-label">Market Share Risk</div>
+                                <div class="chart-bar">
+                                    <div class="chart-fill legacy-bar" style="width: 25%">
+                                        <div class="chart-value">25% customer loss risk</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-row">
+                                <div class="chart-label">Innovation Speed</div>
+                                <div class="chart-bar">
+                                    <div class="chart-fill legacy-bar" style="width: 20%">
+                                        <div class="chart-value">5-10x slower than competitors</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-row">
+                                <div class="chart-label">Technology Debt</div>
+                                <div class="chart-bar">
+                                    <div class="chart-fill legacy-bar" style="width: 85%">
+                                        <div class="chart-value">15% annual increase</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="benefit-card">
+                            <h3>Success Probability</h3>
+                            <ul class="benefit-list">
+                                <li>95% technical feasibility</li>
+                                <li>90% team capability (with training)</li>
+                                <li>95% business alignment</li>
+                                <li>100% market timing opportunity</li>
+                            </ul>
+                        </div>
+                        <div class="benefit-card">
+                            <h3>Risk Assessment</h3>
+                            <ul class="benefit-list">
+                                <li>Technical: Mitigated (phased approach)</li>
+                                <li>Business: Low (parallel operation)</li>
+                                <li>Financial: Proven ROI (2,705%)</li>
+                                <li>Competitive: High (if not acted upon)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="roi-showcase">
+                    <h3>Transformation Investment Returns</h3>
+                    <div style="display: flex; justify-content: space-around; margin: 20px 0;">
+                        <div>
+                            <div class="roi-value" style="font-size: 2.5em;">2,705%</div>
+                            <p>5-Year ROI</p>
+                        </div>
+                        <div>
+                            <div class="roi-value" style="font-size: 2.5em;">4.2</div>
+                            <p>Months Payback</p>
+                        </div>
+                        <div>
+                            <div class="roi-value" style="font-size: 2.5em;">77%</div>
+                            <p>Cost Reduction</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 16: Call to Action -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>The Strategic Imperative</h2>
+                <p>Lead or Follow - The Choice is Clear</p>
+            </div>
+            <div class="slide-content">
+                <div class="roi-showcase">
+                    <h3>Market Reality Check</h3>
+                    <p style="font-size: 1.3em; margin: 20px 0;">Digital-native banks will capture 25% market share within 5 years</p>
+                    <div class="roi-value" style="font-size: 3em;">25%</div>
+                    <p>Traditional banks risk declining relevance without transformation</p>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>Immediate Actions Required</h3>
+                        <ul class="benefit-list">
+                            <li><strong>Week 1-2:</strong> Board approval & executive sponsorship</li>
+                            <li><strong>Week 3-4:</strong> Program office & team formation</li>
+                            <li><strong>Month 2:</strong> Infrastructure planning & training</li>
+                            <li><strong>Month 3:</strong> Implementation launch</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Success Guarantees</h3>
+                        <ul class="benefit-list">
+                            <li>Proven architecture patterns</li>
+                            <li>Phased risk mitigation approach</li>
+                            <li>Zero business disruption</li>
+                            <li>2-3 year competitive advantage</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Transformation Outcomes</h3>
+                        <ul class="benefit-list">
+                            <li>Best of both: Trust + Technology</li>
+                            <li>27x faster innovation capability</li>
+                            <li>Market leadership position</li>
+                            <li>Platform for next-decade growth</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 40px; padding: 30px; background: linear-gradient(135deg, #fd79a8, #e84393); color: white; border-radius: 15px;">
+                    <h3 style="font-size: 1.8em; margin-bottom: 20px;">The Future of Banking is Being Decided Today</h3>
+                    <p style="font-size: 1.2em; margin-bottom: 20px;">Organizations that act now will lead the industry for the next decade</p>
+                    <p style="font-size: 1.4em; font-weight: bold;">Ready to Transform Your Banking Technology?</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="navigation">
+        <button class="nav-button" id="prevBtn" onclick="changeSlide(-1)">← Previous</button>
+        <button class="nav-button" id="nextBtn" onclick="changeSlide(1)">Next →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        function updateSlideCounter() {
+            document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${totalSlides}`;
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            
+            updateSlideCounter();
+            updateProgressBar();
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            if (direction === 1 && currentSlide < totalSlides - 1) {
+                showSlide(currentSlide + 1);
+            } else if (direction === -1 && currentSlide > 0) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                changeSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                changeSlide(-1);
+            }
+        });
+
+        // Initialize
+        updateSlideCounter();
+        updateProgressBar();
+        document.getElementById('prevBtn').disabled = true;
+
+        // Animate chart bars when slide becomes active
+        function animateCharts() {
+            const activeSlide = document.querySelector('.slide.active');
+            const chartFills = activeSlide.querySelectorAll('.chart-fill');
+            
+            chartFills.forEach(fill => {
+                const width = fill.style.width;
+                fill.style.width = '0%';
+                setTimeout(() => {
+                    fill.style.width = width;
+                }, 100);
+            });
+        }
+
+        // Override showSlide to include chart animation
+        const originalShowSlide = showSlide;
+        showSlide = function(n) {
+            originalShowSlide(n);
+            setTimeout(animateCharts, 300);
+        };
+
+        // Initial chart animation
+        setTimeout(animateCharts, 500);
+
+        // Add click handlers for metric cards
+        document.querySelectorAll('.metric-card, .service-box, .domain-circle').forEach(card => {
+            card.addEventListener('click', function() {
+                this.style.transform = this.style.transform === 'scale(1.1)' ? 'scale(1)' : 'scale(1.1)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>
