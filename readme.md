@@ -138,7 +138,7 @@ Production reference: AWS EKS + RDS PostgreSQL + ElastiCache Redis, blue‑g
 
 ## CI/CD Pipeline
 GitHub Actions → build → security scan → staging deploy → smoke tests → GitOps production deploy.
-![CI/CD Pipeline](docs/diagrams/svg/ci-cd-pipeline.svg)
+![CI/CD Pipeline](docs/ci-cd.svg)
 
 ## Performance & Observability
 - Avg cached response: **2.5 ms** · cache hit ratio **100 %**
