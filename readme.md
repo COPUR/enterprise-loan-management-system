@@ -40,8 +40,10 @@ A comprehensive enterprise banking platform implementing **Domain‑Driven Desig
 | **Ops & Observability** | Spring Boot Actuator, Micrometer → Prometheus/Grafana, structured logging |
 
 ## Architecture
+
+  ![Banking System Architecture](docs/microservices-architecture.svg)
 <details>
-<summary>Click to view diagrams</summary>
+<summary>Click to view more diagrams</summary>
 
 ### Core System
 ![Banking System Architecture](docs/application-architecture/microservices/docs/enterprise-governance/documentation/generated-diagrams/Banking%20System%20Architecture.svg)
