@@ -1,6 +1,6 @@
 @startuml CI/CD Pipeline - Enterprise Loan Management System
 
-!define GITHUB_COLOR #24292E
+!define GITHUB_COLOR #FF7F50
 !define CI_COLOR #2088FF
 !define SECURITY_COLOR #F56565
 !define DOCKER_COLOR #2496ED
