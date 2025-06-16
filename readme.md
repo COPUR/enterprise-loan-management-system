@@ -42,20 +42,20 @@ A comprehensive enterprise banking platform implementing **Domain‑Driven Desig
 ## Architecture
 
   ![Banking System Architecture](docs/microservices-architecture.svg)
-<details>
-<summary>Click to view more diagrams</summary>
 
 ### Core System
 ![Banking System Architecture](docs/application-architecture/microservices/docs/enterprise-governance/documentation/generated-diagrams/Banking%20System%20Architecture.svg)
 
 ### Domain Model & Bounded Contexts
 ![Domain Model](docs/enterprise-governance/documentation/generated-diagrams/Domain%20Model.svg)
+
+#### Bounded Contexts
 ![Bounded Contexts](docs/enterprise-governance/documentation/generated-diagrams/Bounded%20Contexts.svg)
 
 ### Hexagonal Implementation
 ![Hexagonal Architecture](docs/enterprise-governance/documentation/generated-diagrams/svg/Hexagonal%20Architecture%20-%20Enterprise%20Loan%20Management%20System%20(Production).svg)
 
-</details>
+
 
 ## Business Rules
 | # | Rule | Formula / Limit |
