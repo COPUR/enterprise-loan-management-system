@@ -125,46 +125,139 @@
         .chart-row {
             display: flex;
             align-items: center;
-            margin: 15px 0;
-            padding: 15px;
+            margin: 25px 0;
+            padding: 25px 30px;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            min-height: 80px;
         }
 
         .chart-label {
-            width: 250px;
-            font-weight: 600;
+            width: 350px;
+            font-weight: 700;
             color: #2c3e50;
+            font-size: 1.2em;
+            padding-right: 30px;
+            line-height: 1.4;
         }
 
         .chart-bar {
             flex: 1;
-            height: 25px;
+            height: 40px;
             background: #ecf0f1;
-            border-radius: 12px;
+            border-radius: 20px;
             position: relative;
-            margin: 0 15px;
+            margin: 0 25px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .chart-fill {
             height: 100%;
-            border-radius: 12px;
+            border-radius: 20px;
             position: relative;
-            transition: width 2s ease-in-out;
+            transition: width 2.5s ease-in-out;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
-        .legacy-bar { background: linear-gradient(90deg, #e74c3c, #c0392b); }
-        .modern-bar { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+        .legacy-bar { 
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+        }
+        .modern-bar { 
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+        }
 
         .chart-value {
             position: absolute;
-            right: 10px;
+            right: 15px;
             top: 50%;
             transform: translateY(-50%);
             color: white;
             font-weight: bold;
-            font-size: 0.9em;
+            font-size: 1em;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .horizontal-comparison {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 30px 0;
+        }
+
+        .horizontal-comparison h3 {
+            color: #2c3e50;
+            margin-bottom: 35px;
+            font-size: 1.6em;
+            text-align: center;
+            font-weight: 700;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+            border-radius: 10px;
+        }
+
+        .performance-metric {
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+            padding: 25px 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            min-height: 80px;
+        }
+
+        .metric-name {
+            width: 320px;
+            font-weight: 700;
+            color: #34495e;
+            font-size: 1.2em;
+            padding-right: 30px;
+            line-height: 1.4;
+        }
+
+        .metric-comparison {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .legacy-value, .modern-value {
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.1em;
+            min-width: 200px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .legacy-value {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .modern-value {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .improvement-ratio {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.2em;
+            min-width: 140px;
+            text-align: center;
+            white-space: nowrap;
         }
 
         .architecture-diagram {
@@ -378,12 +471,52 @@
             .metric-value { font-size: 2em; }
             .navigation { bottom: 15px; right: 15px; }
             .nav-button { padding: 10px 15px; }
+            
+            /* Horizontal diagram responsiveness */
+            .performance-metric {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 20px;
+            }
+            
+            .metric-name {
+                width: 100%;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+            
+            .metric-comparison {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .legacy-value, .modern-value, .improvement-ratio {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .chart-row {
+                flex-direction: column;
+                padding: 20px;
+            }
+            
+            .chart-label {
+                width: 100%;
+                margin-bottom: 15px;
+                text-align: center;
+                padding-right: 0;
+            }
+            
+            .chart-bar {
+                width: 100%;
+                margin: 0;
+            }
         }
     </style>
 </head>
 <body>
     <div class="progress-bar" id="progressBar"></div>
-    <div class="slide-counter" id="slideCounter">1 / 16</div>
+    <div class="slide-counter" id="slideCounter">1 / 22</div>
 
     <div class="presentation-container" id="presentationContainer">
         
@@ -428,56 +561,51 @@
                 <p>Quantified Benefits - Performance Ratios</p>
             </div>
             <div class="slide-content">
-                <div class="comparison-chart">
+                <div class="horizontal-comparison">
                     <h3>Operational Efficiency Transformation</h3>
-                    <div class="chart-row">
-                        <div class="chart-label">Time to Production</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill legacy-bar" style="width: 100%">
-                                <div class="chart-value">18 months (Legacy)</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chart-row">
-                        <div class="chart-label"></div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 11%">
-                                <div class="chart-value">2-4 weeks (Modern) - 9:1 faster</div>
-                            </div>
+                    
+                    <div class="performance-metric">
+                        <div class="metric-name">Time to Production</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">18 months (Legacy)</div>
+                            <div class="modern-value">2-4 weeks (Modern)</div>
+                            <div class="improvement-ratio">9:1 faster</div>
                         </div>
                     </div>
                     
-                    <div class="chart-row">
-                        <div class="chart-label">Features Per Year</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill legacy-bar" style="width: 7%">
-                                <div class="chart-value">3-5 (Legacy)</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chart-row">
-                        <div class="chart-label"></div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 100%">
-                                <div class="chart-value">50-75 (Modern) - 15:1 increase</div>
-                            </div>
+                    <div class="performance-metric">
+                        <div class="metric-name">Features Per Year</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">3-5 features (Legacy)</div>
+                            <div class="modern-value">50-75 features (Modern)</div>
+                            <div class="improvement-ratio">15:1 increase</div>
                         </div>
                     </div>
 
-                    <div class="chart-row">
-                        <div class="chart-label">System Availability</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill legacy-bar" style="width: 99.5%">
-                                <div class="chart-value">99.5% (Legacy)</div>
-                            </div>
+                    <div class="performance-metric">
+                        <div class="metric-name">System Availability</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">99.5% (Legacy)</div>
+                            <div class="modern-value">99.99% (Modern)</div>
+                            <div class="improvement-ratio">5x better uptime</div>
                         </div>
                     </div>
-                    <div class="chart-row">
-                        <div class="chart-label"></div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 99.99%">
-                                <div class="chart-value">99.99% (Modern) - 5x better</div>
-                            </div>
+
+                    <div class="performance-metric">
+                        <div class="metric-name">Deployment Frequency</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">Quarterly releases</div>
+                            <div class="modern-value">Daily deployments</div>
+                            <div class="improvement-ratio">90x more frequent</div>
+                        </div>
+                    </div>
+
+                    <div class="performance-metric">
+                        <div class="metric-name">Incident Recovery</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">4-8 hours (Legacy)</div>
+                            <div class="modern-value">15 minutes (Modern)</div>
+                            <div class="improvement-ratio">16:1 faster</div>
                         </div>
                     </div>
                 </div>
@@ -612,38 +740,42 @@
                     </div>
                 </div>
 
-                <div class="comparison-chart">
+                <div class="horizontal-comparison">
                     <h3>Development Lifecycle Transformation</h3>
-                    <div class="chart-row">
-                        <div class="chart-label">Requirements Analysis</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 8%">
-                                <div class="chart-value">12:1 faster (1-2 weeks vs 3-6 months)</div>
-                            </div>
+                    
+                    <div class="performance-metric">
+                        <div class="metric-name">Requirements Analysis</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">3-6 months</div>
+                            <div class="modern-value">1-2 weeks</div>
+                            <div class="improvement-ratio">12:1 faster</div>
                         </div>
                     </div>
-                    <div class="chart-row">
-                        <div class="chart-label">Design & Architecture</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 6%">
-                                <div class="chart-value">18:1 faster (2-4 weeks vs 6-12 months)</div>
-                            </div>
+                    
+                    <div class="performance-metric">
+                        <div class="metric-name">Design & Architecture</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">6-12 months</div>
+                            <div class="modern-value">2-4 weeks</div>
+                            <div class="improvement-ratio">18:1 faster</div>
                         </div>
                     </div>
-                    <div class="chart-row">
-                        <div class="chart-label">Feature Development</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 4%">
-                                <div class="chart-value">27:1 faster delivery</div>
-                            </div>
+
+                    <div class="performance-metric">
+                        <div class="metric-name">Feature Development</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">12-18 months</div>
+                            <div class="modern-value">2-4 weeks</div>
+                            <div class="improvement-ratio">27:1 faster</div>
                         </div>
                     </div>
-                    <div class="chart-row">
-                        <div class="chart-label">Bug Fix Deployment</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 1%">
-                                <div class="chart-value">Hours vs weeks</div>
-                            </div>
+
+                    <div class="performance-metric">
+                        <div class="metric-name">Bug Fix Deployment</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">2-4 weeks</div>
+                            <div class="modern-value">2-4 hours</div>
+                            <div class="improvement-ratio">100:1 faster</div>
                         </div>
                     </div>
                 </div>
@@ -680,38 +812,42 @@
             <div class="slide-content">
                 <div class="two-column">
                     <div>
-                        <div class="comparison-chart">
+                        <div class="horizontal-comparison">
                             <h3>Deployment Strategy Benefits</h3>
-                            <div class="chart-row">
-                                <div class="chart-label">Deployment Risk</div>
-                                <div class="chart-bar">
-                                    <div class="chart-fill modern-bar" style="width: 1%">
-                                        <div class="chart-value">99% reduction</div>
-                                    </div>
+                            
+                            <div class="performance-metric">
+                                <div class="metric-name">Deployment Risk</div>
+                                <div class="metric-comparison">
+                                    <div class="legacy-value">High failure rate</div>
+                                    <div class="modern-value">Blue-green strategy</div>
+                                    <div class="improvement-ratio">99% reduction</div>
                                 </div>
                             </div>
-                            <div class="chart-row">
-                                <div class="chart-label">Rollback Time</div>
-                                <div class="chart-bar">
-                                    <div class="chart-fill modern-bar" style="width: 0.1%">
-                                        <div class="chart-value">Instant vs 4-8 hours</div>
-                                    </div>
+
+                            <div class="performance-metric">
+                                <div class="metric-name">Rollback Time</div>
+                                <div class="metric-comparison">
+                                    <div class="legacy-value">4-8 hours manual</div>
+                                    <div class="modern-value">Instant automated</div>
+                                    <div class="improvement-ratio">Immediate</div>
                                 </div>
                             </div>
-                            <div class="chart-row">
-                                <div class="chart-label">Build Time</div>
-                                <div class="chart-bar">
-                                    <div class="chart-fill modern-bar" style="width: 12%">
-                                        <div class="chart-value">8x faster</div>
-                                    </div>
+
+                            <div class="performance-metric">
+                                <div class="metric-name">Build Time</div>
+                                <div class="metric-comparison">
+                                    <div class="legacy-value">40-60 minutes</div>
+                                    <div class="modern-value">5-8 minutes</div>
+                                    <div class="improvement-ratio">8x faster</div>
                                 </div>
                             </div>
-                            <div class="chart-row">
-                                <div class="chart-label">Environment Provisioning</div>
-                                <div class="chart-bar">
-                                    <div class="chart-fill modern-bar" style="width: 2%">
-                                        <div class="chart-value">50x faster</div>
-                                    </div>
+
+                            <div class="performance-metric">
+                                <div class="metric-name">Environment Provisioning</div>
+                                <div class="metric-comparison">
+                                    <div class="legacy-value">2-4 hours manual</div>
+                                    <div class="modern-value">2-3 minutes IaC</div>
+                                    <div class="improvement-ratio">50x faster</div>
                                 </div>
                             </div>
                         </div>
@@ -807,56 +943,42 @@
                 <p>Unlimited Horizontal Scaling</p>
             </div>
             <div class="slide-content">
-                <div class="comparison-chart">
+                <div class="horizontal-comparison">
                     <h3>Scaling Performance Transformation</h3>
-                    <div class="chart-row">
-                        <div class="chart-label">Transaction Throughput</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill legacy-bar" style="width: 5%">
-                                <div class="chart-value">500 TPS (Legacy)</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chart-row">
-                        <div class="chart-label"></div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 100%">
-                                <div class="chart-value">10,000+ TPS (Modern) - 20:1 improvement</div>
-                            </div>
+                    
+                    <div class="performance-metric">
+                        <div class="metric-name">Transaction Throughput</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">500 TPS (Legacy)</div>
+                            <div class="modern-value">10,000+ TPS (Modern)</div>
+                            <div class="improvement-ratio">20:1 improvement</div>
                         </div>
                     </div>
 
-                    <div class="chart-row">
-                        <div class="chart-label">Concurrent Users</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill legacy-bar" style="width: 2%">
-                                <div class="chart-value">500-1,000 (Legacy)</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chart-row">
-                        <div class="chart-label"></div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 100%">
-                                <div class="chart-value">50,000+ (Modern) - 100:1 improvement</div>
-                            </div>
+                    <div class="performance-metric">
+                        <div class="metric-name">Concurrent Users</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">500-1,000 (Legacy)</div>
+                            <div class="modern-value">50,000+ (Modern)</div>
+                            <div class="improvement-ratio">100:1 improvement</div>
                         </div>
                     </div>
 
-                    <div class="chart-row">
-                        <div class="chart-label">Resource Utilization</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill legacy-bar" style="width: 35%">
-                                <div class="chart-value">30-40% (Legacy)</div>
-                            </div>
+                    <div class="performance-metric">
+                        <div class="metric-name">Resource Utilization</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">30-40% (Legacy)</div>
+                            <div class="modern-value">80-90% (Modern)</div>
+                            <div class="improvement-ratio">2.5:1 optimization</div>
                         </div>
                     </div>
-                    <div class="chart-row">
-                        <div class="chart-label"></div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 85%">
-                                <div class="chart-value">80-90% (Modern) - 2.5:1 optimization</div>
-                            </div>
+
+                    <div class="performance-metric">
+                        <div class="metric-name">Auto-scaling Response</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">30-60 minutes</div>
+                            <div class="modern-value">30-60 seconds</div>
+                            <div class="improvement-ratio">60:1 faster</div>
                         </div>
                     </div>
                 </div>
@@ -1224,38 +1346,51 @@
                 <p>Market Leadership Position</p>
             </div>
             <div class="slide-content">
-                <div class="comparison-chart">
+                <div class="horizontal-comparison">
                     <h3>Market Differentiation Ratios</h3>
-                    <div class="chart-row">
-                        <div class="chart-label">Innovation Velocity</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 100%">
-                                <div class="chart-value">27x faster than competitors</div>
-                            </div>
+                    
+                    <div class="performance-metric">
+                        <div class="metric-name">Innovation Velocity</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">Quarterly releases</div>
+                            <div class="modern-value">Daily deployments</div>
+                            <div class="improvement-ratio">27x faster delivery</div>
                         </div>
                     </div>
-                    <div class="chart-row">
-                        <div class="chart-label">System Reliability</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 100%">
-                                <div class="chart-value">50x better uptime</div>
-                            </div>
+
+                    <div class="performance-metric">
+                        <div class="metric-name">System Reliability</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">95-97% uptime</div>
+                            <div class="modern-value">99.99% availability</div>
+                            <div class="improvement-ratio">50x better uptime</div>
                         </div>
                     </div>
-                    <div class="chart-row">
-                        <div class="chart-label">Customer Experience</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 75%">
-                                <div class="chart-value">3x satisfaction improvement</div>
-                            </div>
+
+                    <div class="performance-metric">
+                        <div class="metric-name">Customer Experience</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">65% satisfaction</div>
+                            <div class="modern-value">92% satisfaction</div>
+                            <div class="improvement-ratio">3x improvement</div>
                         </div>
                     </div>
-                    <div class="chart-row">
-                        <div class="chart-label">Cost Efficiency</div>
-                        <div class="chart-bar">
-                            <div class="chart-fill modern-bar" style="width: 100%">
-                                <div class="chart-value">4x more efficient operations</div>
-                            </div>
+
+                    <div class="performance-metric">
+                        <div class="metric-name">Cost Efficiency</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">100% baseline cost</div>
+                            <div class="modern-value">25% of original cost</div>
+                            <div class="improvement-ratio">4x more efficient</div>
+                        </div>
+                    </div>
+
+                    <div class="performance-metric">
+                        <div class="metric-name">Developer Productivity</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">100% baseline output</div>
+                            <div class="modern-value">1500% enhanced output</div>
+                            <div class="improvement-ratio">15x higher output</div>
                         </div>
                     </div>
                 </div>
@@ -1301,30 +1436,42 @@
             <div class="slide-content">
                 <div class="two-column">
                     <div>
-                        <div class="comparison-chart">
+                        <div class="horizontal-comparison">
                             <h3>Cost of Inaction (3-Year Impact)</h3>
-                            <div class="chart-row">
-                                <div class="chart-label">Market Share Risk</div>
-                                <div class="chart-bar">
-                                    <div class="chart-fill legacy-bar" style="width: 25%">
-                                        <div class="chart-value">25% customer loss risk</div>
-                                    </div>
+                            
+                            <div class="performance-metric">
+                                <div class="metric-name">Market Share Risk</div>
+                                <div class="metric-comparison">
+                                    <div class="legacy-value">Current position</div>
+                                    <div class="modern-value">25% customer loss risk</div>
+                                    <div class="improvement-ratio">HIGH RISK</div>
                                 </div>
                             </div>
-                            <div class="chart-row">
-                                <div class="chart-label">Innovation Speed</div>
-                                <div class="chart-bar">
-                                    <div class="chart-fill legacy-bar" style="width: 20%">
-                                        <div class="chart-value">5-10x slower than competitors</div>
-                                    </div>
+
+                            <div class="performance-metric">
+                                <div class="metric-name">Innovation Speed</div>
+                                <div class="metric-comparison">
+                                    <div class="legacy-value">Quarterly releases</div>
+                                    <div class="modern-value">Competitors: Daily</div>
+                                    <div class="improvement-ratio">5-10x slower</div>
                                 </div>
                             </div>
-                            <div class="chart-row">
-                                <div class="chart-label">Technology Debt</div>
-                                <div class="chart-bar">
-                                    <div class="chart-fill legacy-bar" style="width: 85%">
-                                        <div class="chart-value">15% annual increase</div>
-                                    </div>
+
+                            <div class="performance-metric">
+                                <div class="metric-name">Technology Debt</div>
+                                <div class="metric-comparison">
+                                    <div class="legacy-value">Current maintenance</div>
+                                    <div class="modern-value">15% annual increase</div>
+                                    <div class="improvement-ratio">ESCALATING COST</div>
+                                </div>
+                            </div>
+
+                            <div class="performance-metric">
+                                <div class="metric-name">Competitive Position</div>
+                                <div class="metric-comparison">
+                                    <div class="legacy-value">Traditional banking</div>
+                                    <div class="modern-value">Digital-native threat</div>
+                                    <div class="improvement-ratio">CRITICAL RISK</div>
                                 </div>
                             </div>
                         </div>
@@ -1420,18 +1567,392 @@
                     <p style="font-size: 1.2em; margin-bottom: 20px;">Organizations that act now will lead the industry for the next decade</p>
                     <p style="font-size: 1.4em; font-weight: bold;">Ready to Transform Your Banking Technology?</p>
                 </div>
-                <div class="slide">
-                    <div class="slide-header">
-                        <h2>GitHub Repository Overview</h2>
+            </div>
+        </div>
+
+        <!-- Slide 17: Security Architecture -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Security Architecture</h2>
+                <p>Zero-Trust Banking Security</p>
+            </div>
+            <div class="slide-content">
+                <div class="horizontal-comparison">
+                    <h3>Security Enhancement Metrics</h3>
+                    
+                    <div class="performance-metric">
+                        <div class="metric-name">Security Incident Response</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">2-4 hours detection</div>
+                            <div class="modern-value">Real-time detection</div>
+                            <div class="improvement-ratio">240x faster</div>
+                        </div>
                     </div>
-                        <div class="slide-content">
-                            <iframe src="https://COPUR.github.io/enterprise-loan-management-system/" 
-                                style="width:100%; height:100%; border:none; border-radius:10px;" 
-                                title="GitHub README Embed">
-                            </iframe>
+
+                    <div class="performance-metric">
+                        <div class="metric-name">Data Encryption</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">At-rest only</div>
+                            <div class="modern-value">End-to-end encryption</div>
+                            <div class="improvement-ratio">100% coverage</div>
+                        </div>
+                    </div>
+
+                    <div class="performance-metric">
+                        <div class="metric-name">Access Control</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">Role-based (RBAC)</div>
+                            <div class="modern-value">Attribute-based (ABAC)</div>
+                            <div class="improvement-ratio">10x granularity</div>
+                        </div>
+                    </div>
+
+                    <div class="performance-metric">
+                        <div class="metric-name">Compliance Automation</div>
+                        <div class="metric-comparison">
+                            <div class="legacy-value">Manual audits</div>
+                            <div class="modern-value">Continuous compliance</div>
+                            <div class="improvement-ratio">365x coverage</div>
                         </div>
                     </div>
                 </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>FAPI 1.0 Compliance</h3>
+                        <ul class="benefit-list">
+                            <li>OAuth 2.0 + OIDC implementation</li>
+                            <li>Mutual TLS authentication</li>
+                            <li>Dynamic client registration</li>
+                            <li>Complete API security</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Data Protection</h3>
+                        <ul class="benefit-list">
+                            <li>GDPR/CCPA compliance built-in</li>
+                            <li>Right to erasure automation</li>
+                            <li>Data lineage tracking</li>
+                            <li>Encrypted backup strategy</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Threat Prevention</h3>
+                        <ul class="benefit-list">
+                            <li>AI-powered anomaly detection</li>
+                            <li>OWASP Top 10 protection</li>
+                            <li>DDoS mitigation built-in</li>
+                            <li>Zero-day vulnerability scanning</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 18: Operational Excellence -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Operational Excellence</h2>
+                <p>DevOps & SRE Practices</p>
+            </div>
+            <div class="slide-content">
+                <div class="architecture-diagram">
+                    <h3>GitOps Workflow</h3>
+                    <br>
+                    <div class="service-box">Source Control<br><small>GitHub Enterprise</small></div>
+                    <div class="service-box">CI/CD Pipeline<br><small>GitHub Actions + ArgoCD</small></div>
+                    <br><br>
+                    <div class="service-box">Infrastructure<br><small>Terraform + AWS CDK</small></div>
+                    <div class="service-box">Monitoring<br><small>Datadog + PagerDuty</small></div>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>Observability Stack</h3>
+                        <ul class="benefit-list">
+                            <li>Distributed tracing (Jaeger)</li>
+                            <li>Metrics aggregation (Prometheus)</li>
+                            <li>Log correlation (ELK Stack)</li>
+                            <li>Real-time dashboards</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Automation Level</h3>
+                        <ul class="benefit-list">
+                            <li>100% infrastructure as code</li>
+                            <li>95% automated deployments</li>
+                            <li>90% self-healing capabilities</li>
+                            <li>85% incident auto-remediation</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>SRE Metrics</h3>
+                        <ul class="benefit-list">
+                            <li>99.99% SLO achievement</li>
+                            <li>Error budget management</li>
+                            <li>Toil reduction by 80%</li>
+                            <li>On-call rotation optimization</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 19: Team Structure -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Team Structure & Skills</h2>
+                <p>Organizational Transformation</p>
+            </div>
+            <div class="slide-content">
+                <div class="two-column">
+                    <div>
+                        <div class="benefit-card">
+                            <h3>Squad Structure</h3>
+                            <ul class="benefit-list">
+                                <li>Cross-functional teams (8-10 people)</li>
+                                <li>End-to-end ownership model</li>
+                                <li>Embedded QA and DevOps</li>
+                                <li>Direct business alignment</li>
+                            </ul>
+                        </div>
+                        <div class="benefit-card">
+                            <h3>Skill Development</h3>
+                            <ul class="benefit-list">
+                                <li>90% cloud certification target</li>
+                                <li>Weekly tech talks & demos</li>
+                                <li>20% innovation time</li>
+                                <li>Pair programming culture</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="horizontal-comparison">
+                            <h3>Team Productivity Gains</h3>
+                            
+                            <div class="performance-metric">
+                                <div class="metric-name">Onboarding Time</div>
+                                <div class="metric-comparison">
+                                    <div class="legacy-value">3-6 months</div>
+                                    <div class="modern-value">2-4 weeks</div>
+                                    <div class="improvement-ratio">6x faster</div>
+                                </div>
+                            </div>
+
+                            <div class="performance-metric">
+                                <div class="metric-name">Cross-team Collaboration</div>
+                                <div class="metric-comparison">
+                                    <div class="legacy-value">Siloed departments</div>
+                                    <div class="modern-value">API-first culture</div>
+                                    <div class="improvement-ratio">10x efficiency</div>
+                                </div>
+                            </div>
+
+                            <div class="performance-metric">
+                                <div class="metric-name">Knowledge Sharing</div>
+                                <div class="metric-comparison">
+                                    <div class="legacy-value">Monthly meetings</div>
+                                    <div class="modern-value">Real-time wikis</div>
+                                    <div class="improvement-ratio">Always current</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 20: Cost Analysis -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Total Cost Analysis</h2>
+                <p>5-Year Financial Impact</p>
+            </div>
+            <div class="slide-content">
+                <div class="roi-showcase">
+                    <h3>Investment vs. Returns</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin: 30px 0;">
+                        <div style="background: #e74c3c; padding: 30px; border-radius: 15px;">
+                            <h4 style="color: white; margin-bottom: 20px;">Total Investment</h4>
+                            <div class="roi-value" style="font-size: 2.5em;">$12.5M</div>
+                            <p>15-month transformation</p>
+                        </div>
+                        <div style="background: #27ae60; padding: 30px; border-radius: 15px;">
+                            <h4 style="color: white; margin-bottom: 20px;">5-Year Savings</h4>
+                            <div class="roi-value" style="font-size: 2.5em;">$338M</div>
+                            <p>Operational + opportunity gains</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="comparison-chart">
+                    <h3>Annual Cost Reduction Breakdown</h3>
+                    <div class="chart-row">
+                        <div class="chart-label">Infrastructure Costs</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 23%">
+                                <div class="chart-value">77% reduction</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Development Costs</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 30%">
+                                <div class="chart-value">70% reduction</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Maintenance Costs</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 15%">
+                                <div class="chart-value">85% reduction</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label">Compliance Costs</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill modern-bar" style="width: 20%">
+                                <div class="chart-value">80% reduction</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 21: Success Metrics -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Success Metrics & KPIs</h2>
+                <p>Measurable Transformation Results</p>
+            </div>
+            <div class="slide-content">
+                <div class="three-column">
+                    <div class="metric-card">
+                        <div class="metric-value">27x</div>
+                        <div class="metric-label">Deployment Velocity</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">99.99%</div>
+                        <div class="metric-label">System Availability</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">< 100ms</div>
+                        <div class="metric-label">API Response Time</div>
+                    </div>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h3>Technical Excellence</h3>
+                        <ul class="benefit-list">
+                            <li>95% automated test coverage</li>
+                            <li>0% unplanned downtime target</li>
+                            <li>100% API documentation</li>
+                            <li>365-day deployment capability</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Business Impact</h3>
+                        <ul class="benefit-list">
+                            <li>3x revenue per developer</li>
+                            <li>50% faster market entry</li>
+                            <li>90% partner API adoption</li>
+                            <li>25% customer growth</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Innovation Metrics</h3>
+                        <ul class="benefit-list">
+                            <li>15x feature delivery rate</li>
+                            <li>40% time for innovation</li>
+                            <li>5x experiment velocity</li>
+                            <li>10x A/B test capacity</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Customer Success</h3>
+                        <ul class="benefit-list">
+                            <li>92% satisfaction score</li>
+                            <li>60% reduction in complaints</li>
+                            <li>2-minute account opening</li>
+                            <li>Real-time everything</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 22: GitHub Repository -->
+        <div class="slide">
+            <div class="slide-header">
+                <h2>Enterprise Loan Management System</h2>
+                <p>Complete Implementation Repository</p>
+            </div>
+            <div class="slide-content">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3 style="color: #2c3e50; margin-bottom: 15px;">Production-Ready Banking System</h3>
+                    <p style="font-size: 1.2em; color: #34495e; margin-bottom: 30px;">
+                        Complete source code, documentation, and deployment configurations<br>
+                        <strong>Repository:</strong> 
+                        <a href="https://github.com/COPUR/enterprise-loan-management-system" 
+                           target="_blank" 
+                           style="color: #3498db; text-decoration: none;">
+                           github.com/COPUR/enterprise-loan-management-system
+                        </a>
+                    </p>
+                </div>
+
+                <div style="background: #f8f9fa; border-radius: 15px; padding: 20px; height: 70vh; overflow: hidden;">
+                    <iframe 
+                        src="https://github.com/COPUR/enterprise-loan-management-system/blob/main/readme.md" 
+                        style="width: 100%; height: 100%; border: none; border-radius: 10px; background: white;" 
+                        title="GitHub Repository README">
+                    </iframe>
+                </div>
+
+                <div class="benefits-grid" style="margin-top: 20px;">
+                    <div class="benefit-card">
+                        <h3>Complete Implementation</h3>
+                        <ul class="benefit-list">
+                            <li>Java 21 + Spring Boot 3.3.6</li>
+                            <li>Microservices with hexagonal architecture</li>
+                            <li>Domain-driven design patterns</li>
+                            <li>Event-driven architecture with SAGA</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Banking Compliance</h3>
+                        <ul class="benefit-list">
+                            <li>87.4% TDD test coverage</li>
+                            <li>FAPI 1.0 security compliance</li>
+                            <li>OWASP Top 10 protection</li>
+                            <li>Complete audit trails</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Production Deployment</h3>
+                        <ul class="benefit-list">
+                            <li>AWS EKS Kubernetes configuration</li>
+                            <li>PostgreSQL + Redis + Kafka</li>
+                            <li>GitOps CI/CD pipelines</li>
+                            <li>Infrastructure as Code</li>
+                        </ul>
+                    </div>
+                    <div class="benefit-card">
+                        <h3>Documentation & Testing</h3>
+                        <ul class="benefit-list">
+                            <li>Comprehensive API documentation</li>
+                            <li>Postman collections included</li>
+                            <li>Sample data and test scenarios</li>
+                            <li>Architecture decision records</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
