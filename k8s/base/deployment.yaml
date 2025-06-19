@@ -1,0 +1,271 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enterprise-banking-app
+  labels:
+    app: enterprise-banking
+    component: loan-management
+    tier: application
+    version: v1.0.0
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    kubernetes.io/description: "Enterprise Loan Management System with Hexagonal Architecture"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: enterprise-banking
+      component: loan-management
+  template:
+    metadata:
+      labels:
+        app: enterprise-banking
+        component: loan-management
+        tier: application
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/actuator/prometheus"
+        checksum/config: "${CONFIG_CHECKSUM}"
+    spec:
+      # Security Context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      
+      # Service Account
+      serviceAccountName: enterprise-banking-sa
+      
+      # Container Specification
+      containers:
+      - name: banking-app
+        image: enterprise-banking/loan-management:1.0.0
+        imagePullPolicy: IfNotPresent
+        
+        # Security Context
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
+        
+        # Ports
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: management
+          containerPort: 8081
+          protocol: TCP
+        
+        # Environment Variables
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "kubernetes,production"
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: CLUSTER_NAME
+          value: "enterprise-banking"
+        
+        # Database Configuration
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: url
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: username
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: password
+        
+        # Redis Configuration
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: host
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: port
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-credentials
+              key: password
+              optional: true
+        
+        # Kafka Configuration
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: kafka-config
+              key: bootstrap-servers
+        
+        # Application Configuration
+        - name: LOG_LEVEL_APP
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: log-level
+        - name: ACTUATOR_ENDPOINTS
+          value: "health,readiness,liveness,info,metrics,prometheus"
+        
+        # JVM Configuration
+        - name: JAVA_OPTS
+          value: >-
+            -server
+            -XX:+UseG1GC
+            -XX:MaxGCPauseMillis=100
+            -XX:G1HeapRegionSize=16m
+            -XX:+UseContainerSupport
+            -XX:MaxRAMPercentage=70.0
+            -XX:+ExitOnOutOfMemoryError
+            -XX:+HeapDumpOnOutOfMemoryError
+            -XX:HeapDumpPath=/app/logs/heapdump.hprof
+            -Djava.security.egd=file:/dev/./urandom
+            -Dmanagement.endpoints.web.exposure.include=health,readiness,liveness,info,metrics,prometheus
+        
+        # Resource Limits and Requests
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+            ephemeral-storage: "1Gi"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+            ephemeral-storage: "2Gi"
+        
+        # Volume Mounts
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        - name: tmp
+          mountPath: /app/tmp
+        
+        # Probes
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: management
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: management
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+          successThreshold: 1
+        
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: management
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 30
+          successThreshold: 1
+      
+      # Volumes
+      volumes:
+      - name: logs
+        emptyDir:
+          sizeLimit: "1Gi"
+      - name: config
+        configMap:
+          name: app-config
+          defaultMode: 0644
+      - name: tmp
+        emptyDir:
+          sizeLimit: "500Mi"
+      
+      # Node Selection and Affinity
+      nodeSelector:
+        node-type: application
+      
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - enterprise-banking
+              topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/worker
+                operator: Exists
+      
+      # Tolerations
+      tolerations:
+      - key: "banking-workload"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      
+      # Termination Grace Period
+      terminationGracePeriodSeconds: 60
+      
+      # DNS Configuration
+      dnsPolicy: ClusterFirst
+      dnsConfig:
+        options:
+        - name: ndots
+          value: "2"
+        - name: edns0
+      
+      # Image Pull Secrets
+      imagePullSecrets:
+      - name: registry-credentials

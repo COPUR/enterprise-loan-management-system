@@ -1,67 +1,49 @@
 #!/bin/bash
-# Enterprise Loan Management System - Health Check Script
-# 12-Factor App compliant health monitoring
 
-# Configuration with environment variable support
-TIMEOUT=${HEALTH_CHECK_TIMEOUT:-3}
-SERVER_PORT=${SERVER_PORT:-8080}
-HEALTH_URL="http://localhost:${SERVER_PORT}/actuator/health"
-READINESS_URL="http://localhost:${SERVER_PORT}/actuator/health/readiness"
+# Enterprise Banking System - Health Check Script
+# Comprehensive health verification for container orchestration
 
-# Banking-specific health check with comprehensive validation
-check_banking_health() {
-    # Primary health check
-    if ! curl -f -s --max-time $TIMEOUT "$HEALTH_URL" > /dev/null 2>&1; then
-        echo "❌ Banking system health check failed - service not responding"
-        return 1
-    fi
+set -euo pipefail
+
+# Configuration
+HEALTH_ENDPOINT="${HEALTH_ENDPOINT:-http://localhost:8080/actuator/health}"
+TIMEOUT="${HEALTH_CHECK_TIMEOUT:-10}"
+MAX_RETRIES="${HEALTH_CHECK_RETRIES:-3}"
+
+# Health check function
+check_health() {
+    local attempt=1
     
-    # Get detailed health status
-    HEALTH_RESPONSE=$(curl -f -s --max-time $TIMEOUT "$HEALTH_URL" 2>/dev/null)
-    HEALTH_STATUS=$(echo "$HEALTH_RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-    
-    if [ "$HEALTH_STATUS" != "UP" ]; then
-        echo "❌ Banking system unhealthy - status: $HEALTH_STATUS"
-        return 1
-    fi
-    
-    # Check readiness (if endpoint exists)
-    if curl -f -s --max-time $TIMEOUT "$READINESS_URL" > /dev/null 2>&1; then
-        READINESS_RESPONSE=$(curl -f -s --max-time $TIMEOUT "$READINESS_URL" 2>/dev/null)
-        READINESS_STATUS=$(echo "$READINESS_RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-        
-        if [ "$READINESS_STATUS" != "UP" ]; then
-            echo "⚠️  Banking system healthy but not ready - readiness: $READINESS_STATUS"
-            return 1
+    while [[ $attempt -le $MAX_RETRIES ]]; do
+        # Check if the health endpoint responds
+        if curl -f -s --max-time "$TIMEOUT" "$HEALTH_ENDPOINT" > /dev/null 2>&1; then
+            # Get detailed health status
+            local health_response
+            health_response=$(curl -s --max-time "$TIMEOUT" "$HEALTH_ENDPOINT" 2>/dev/null || echo '{"status":"UNKNOWN"}')
+            
+            # Parse status from JSON response
+            local status
+            status=$(echo "$health_response" | grep -o '"status":"[^"]*"' | cut -d'"' -f4 2>/dev/null || echo "UNKNOWN")
+            
+            if [[ "$status" == "UP" ]]; then
+                echo "Health check PASSED (status: $status)"
+                exit 0
+            else
+                echo "Health check FAILED (status: $status, attempt: $attempt/$MAX_RETRIES)"
+            fi
+        else
+            echo "Health endpoint unreachable (attempt: $attempt/$MAX_RETRIES)"
         fi
-    fi
+        
+        if [[ $attempt -lt $MAX_RETRIES ]]; then
+            sleep 2
+        fi
+        ((attempt++))
+    done
     
-    # Banking compliance check - verify critical endpoints are responding
-    INFO_URL="http://localhost:${SERVER_PORT}/actuator/info"
-    if curl -f -s --max-time $TIMEOUT "$INFO_URL" > /dev/null 2>&1; then
-        echo "✅ Banking system healthy and ready (compliance verified)"
-        return 0
-    else
-        echo "⚠️  Banking system healthy but compliance endpoint unavailable"
-        return 0  # Don't fail on info endpoint - it's not critical
-    fi
+    echo "Health check FAILED after $MAX_RETRIES attempts"
+    exit 1
 }
 
-# Execute health check with retry logic
-MAX_RETRIES=2
-RETRY_COUNT=0
-
-while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    if check_banking_health; then
-        exit 0
-    fi
-    
-    RETRY_COUNT=$((RETRY_COUNT + 1))
-    if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-        echo "Retrying health check ($RETRY_COUNT/$MAX_RETRIES)..."
-        sleep 1
-    fi
-done
-
-echo "❌ Banking system health check failed after $MAX_RETRIES attempts"
-exit 1
+# Execute health check
+check_health

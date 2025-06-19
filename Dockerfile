@@ -1,8 +1,10 @@
-# Multi-stage Dockerfile for Enterprise Loan Management System
+# Multi-stage Docker build for Enterprise Banking System
+# Optimized for production deployment with security hardening and testing
 # Following 12-Factor App methodology and banking security standards
-# Optimized for Java 21 with Spring Boot 3.3.6
 
-# Build stage - Using OpenJDK 21 with Gradle 8.11.1
+# ============================================================================
+# Stage 1: Build Environment
+# ============================================================================
 FROM gradle:8.11.1-jdk21-alpine AS builder
 
 # Metadata for enterprise tracking and compliance
@@ -32,6 +34,9 @@ COPY src/ src/
 RUN gradle clean bootJar buildInfo --no-daemon -x test \
     && cp build/libs/enterprise-loan-management-system.jar app.jar \
     && ls -la build/
+
+# Extract layers for better Docker caching
+RUN java -Djarmode=layertools -jar app.jar extract
 
 # Runtime stage - Minimal JRE for production
 FROM eclipse-temurin:21-jre-alpine AS runtime
@@ -133,7 +138,169 @@ ENV MAX_CONCURRENT_REQUESTS=100
 VOLUME ["/app/logs", "/app/tmp"]
 
 # Start the application using dumb-init for proper signal handling
-ENTRYPOINT ["/usr/bin/dumb-init", "--", "java", "-jar", "app.jar"]
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+
+# ============================================================================
+# Stage 2: Testing Environment (for CI/CD and E2E testing)
+# ============================================================================
+FROM builder AS testing
+
+# Install testing tools and database clients
+RUN apk add --no-cache \
+    postgresql-client \
+    redis \
+    curl \
+    jq \
+    netcat-openbsd
+
+# Set test environment variables
+ENV SPRING_PROFILES_ACTIVE=test,testcontainers
+ENV JAVA_OPTS="-XX:+UseG1GC -Xmx4g -XX:+UseStringDeduplication"
+ENV TESTCONTAINERS_REUSE_ENABLE=true
+ENV TESTCONTAINERS_RYUK_DISABLED=false
+
+# Copy test resources and configurations
+COPY src/test/ src/test/
+COPY docker/test-entrypoint.sh /app/test-entrypoint.sh
+RUN chmod +x /app/test-entrypoint.sh
+
+# Health check for testing environment
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Testing entry point
+ENTRYPOINT ["/app/test-entrypoint.sh"]
+CMD ["./gradlew", "test", "integrationTest", "complianceTest", "--no-daemon", "--continue"]
+
+# ============================================================================
+# Stage 3: Development Environment (for local development)
+# ============================================================================
+FROM builder AS development
+
+# Install development tools
+RUN apk add --no-cache \
+    postgresql-client \
+    redis \
+    kafkacat \
+    curl \
+    vim \
+    git
+
+# Set development environment variables
+ENV SPRING_PROFILES_ACTIVE=development,local
+ENV JAVA_OPTS="-XX:+UseG1GC -Xmx2g -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+ENV GRADLE_OPTS="-Xmx2g -XX:+UseG1GC"
+
+# Expose debug port
+EXPOSE 5005 8080 8081
+
+# Development health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Development entry point with hot reload
+CMD ["./gradlew", "bootRun", "--no-daemon"]
+
+# ============================================================================
+# Stage 4: End-to-End Testing with Docker Compose
+# ============================================================================
+FROM testing AS e2e-testing
+
+# Install additional E2E testing tools
+RUN apk add --no-cache \
+    docker-cli \
+    docker-compose \
+    bash
+
+# Copy Docker Compose configurations for E2E testing
+COPY docker/docker-compose.test.yml /app/
+COPY docker/docker-compose.e2e.yml /app/
+COPY docker/wait-for-services.sh /app/
+RUN chmod +x /app/wait-for-services.sh
+
+# Set E2E testing environment
+ENV E2E_TEST_MODE=true
+ENV DATABASE_URL=jdbc:postgresql://postgres-test:5432/banking_test
+ENV REDIS_HOST=redis-test
+ENV KAFKA_BOOTSTRAP_SERVERS=kafka-test:9092
+
+# E2E test entry point
+CMD ["/app/wait-for-services.sh", "&&", "./gradlew", "fullTestSuite", "--no-daemon"]
+
+# ============================================================================
+# Stage 5: Kubernetes-Ready Production (final optimized stage)
+# ============================================================================
+FROM eclipse-temurin:21-jre-alpine AS kubernetes
+
+# Install Kubernetes-specific tools and dependencies
+RUN apk update && apk add --no-cache \
+    curl \
+    ca-certificates \
+    tzdata \
+    dumb-init \
+    jq \
+    && update-ca-certificates
+
+# Create application user with specific UID for Kubernetes
+RUN addgroup -g 1001 -S banking && \
+    adduser -u 1001 -S -G banking -h /app -s /bin/false banking
+
+WORKDIR /app
+
+# Create directories with correct permissions
+RUN mkdir -p /app/logs /app/config /app/tmp \
+    && chown -R banking:banking /app
+
+# Copy layered JAR from builder for optimal caching
+COPY --from=builder --chown=banking:banking /app/dependencies/ ./
+COPY --from=builder --chown=banking:banking /app/spring-boot-loader/ ./
+COPY --from=builder --chown=banking:banking /app/snapshot-dependencies/ ./
+COPY --from=builder --chown=banking:banking /app/application/ ./
+
+# Copy Kubernetes-specific scripts
+COPY --chown=banking:banking docker/k8s-entrypoint.sh /app/entrypoint.sh
+COPY --chown=banking:banking docker/k8s-healthcheck.sh /app/healthcheck.sh
+COPY --chown=banking:banking docker/k8s-readiness.sh /app/readiness.sh
+RUN chmod +x /app/entrypoint.sh /app/healthcheck.sh /app/readiness.sh
+
+# Switch to non-root user
+USER banking
+
+# Kubernetes-optimized JVM settings
+ENV JAVA_OPTS="\
+    -server \
+    -XX:+UseG1GC \
+    -XX:MaxGCPauseMillis=100 \
+    -XX:G1HeapRegionSize=16m \
+    -XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=70.0 \
+    -XX:+ExitOnOutOfMemoryError \
+    -XX:+HeapDumpOnOutOfMemoryError \
+    -XX:HeapDumpPath=/app/logs/heapdump.hprof \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Dspring.profiles.active=kubernetes \
+    -Dmanagement.endpoints.web.exposure.include=health,readiness,liveness,info,metrics,prometheus"
+
+# Kubernetes-specific environment variables
+ENV KUBERNETES_NAMESPACE="banking-system"
+ENV POD_NAME=""
+ENV NODE_NAME=""
+ENV CLUSTER_NAME="enterprise-banking"
+
+# Expose ports for Kubernetes
+EXPOSE 8080 8081
+
+# Kubernetes health checks
+HEALTHCHECK --interval=10s --timeout=3s --start-period=45s --retries=3 \
+    CMD /app/healthcheck.sh
+
+# Volume mounts for Kubernetes
+VOLUME ["/app/logs", "/app/config"]
+
+# Kubernetes entry point with proper signal handling
+ENTRYPOINT ["/usr/bin/dumb-init", "--", "/app/entrypoint.sh"]
+CMD ["java", "-jar", "/app/BOOT-INF/lib/*:/app/BOOT-INF/classes", "com.bank.loanmanagement.LoanManagementApplication"]
 
 # Multi-architecture support labels
 ARG BUILDPLATFORM
