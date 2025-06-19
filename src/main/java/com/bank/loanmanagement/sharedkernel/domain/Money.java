@@ -103,6 +103,10 @@ public final class Money {
         return this.amount.compareTo(BigDecimal.ZERO) > 0;
     }
     
+    public boolean isZeroOrNegative() {
+        return this.amount.compareTo(BigDecimal.ZERO) <= 0;
+    }
+    
     private void validateSameCurrency(Money other) {
         if (!this.currency.equals(other.currency)) {
             throw new IllegalArgumentException(
