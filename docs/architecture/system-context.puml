@@ -1,0 +1,79 @@
+@startuml Enterprise Loan Management System - System Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Enterprise Loan Management System - System Context Diagram
+
+' Main System
+System(loan_system, "Enterprise Loan Management System", "Hexagonal architecture-based banking system with AI integration for customer management, loan origination, and payment processing")
+
+' People
+Person(customer, "Bank Customer", "Individual or business customer applying for loans and managing payments")
+Person(loan_officer, "Loan Officer", "Bank employee who reviews and processes loan applications")
+Person(admin, "System Administrator", "IT personnel managing the system configuration and monitoring")
+Person(compliance_officer, "Compliance Officer", "Ensures regulatory compliance and audit trails")
+
+' External Systems - Core Banking
+System_Ext(core_banking, "Core Banking System", "Legacy banking system containing customer accounts and transaction history")
+System_Ext(credit_bureau, "Credit Bureau", "External credit scoring and history verification service")
+System_Ext(payment_gateway, "Payment Gateway", "External payment processing system")
+System_Ext(fraud_detection, "Fraud Detection System", "Real-time fraud monitoring and prevention")
+
+' External Systems - AI & Analytics
+System_Ext(openai, "OpenAI API", "AI/ML services for natural language processing and banking assistance")
+System_Ext(analytics_platform, "Analytics Platform", "Business intelligence and reporting system")
+
+' External Systems - Compliance & Regulatory
+System_Ext(regulatory_reporting, "Regulatory Reporting", "Government and regulatory body reporting systems")
+System_Ext(audit_system, "Audit System", "Internal and external audit trail management")
+System_Ext(kyc_system, "KYC/AML System", "Know Your Customer and Anti-Money Laundering verification")
+
+' External Systems - Infrastructure
+System_Ext(notification_service, "Notification Service", "Email, SMS, and push notification delivery")
+System_Ext(document_management, "Document Management", "Digital document storage and retrieval system")
+System_Ext(identity_provider, "Identity Provider", "Single Sign-On and identity management")
+
+' External Systems - Monitoring & Operations
+System_Ext(monitoring_system, "Monitoring System", "Application performance monitoring and alerting")
+System_Ext(backup_system, "Backup System", "Data backup and disaster recovery")
+
+' Customer Interactions
+Rel(customer, loan_system, "Applies for loans, makes payments, views account status", "HTTPS/Mobile App")
+Rel(loan_system, customer, "Sends notifications, loan decisions, payment reminders", "Email/SMS/Push")
+
+' Staff Interactions
+Rel(loan_officer, loan_system, "Reviews applications, makes decisions, manages workflows", "HTTPS/Web Portal")
+Rel(admin, loan_system, "Configures system, monitors performance, manages users", "HTTPS/Admin Portal")
+Rel(compliance_officer, loan_system, "Reviews compliance reports, audit trails", "HTTPS/Compliance Portal")
+
+' Core Banking Integration
+Rel(loan_system, core_banking, "Retrieves account data, posts transactions", "SOAP/REST API")
+Rel(loan_system, credit_bureau, "Retrieves credit scores and history", "HTTPS/API")
+Rel(loan_system, payment_gateway, "Processes payments and transfers", "HTTPS/API")
+Rel(loan_system, fraud_detection, "Validates transactions for fraud", "REST API")
+
+' AI & Analytics Integration
+Rel(loan_system, openai, "Natural language processing, AI assistance", "HTTPS/REST API")
+Rel(loan_system, analytics_platform, "Sends business metrics and KPIs", "REST API/ETL")
+
+' Compliance & Regulatory Integration
+Rel(loan_system, regulatory_reporting, "Submits regulatory reports", "SFTP/API")
+Rel(loan_system, audit_system, "Logs audit events and trails", "REST API")
+Rel(loan_system, kyc_system, "Validates customer identity", "REST API")
+
+' Infrastructure Integration
+Rel(loan_system, notification_service, "Sends customer notifications", "REST API")
+Rel(loan_system, document_management, "Stores loan documents", "REST API")
+Rel(loan_system, identity_provider, "Authenticates users", "SAML/OAuth2")
+
+' Operations Integration
+Rel(loan_system, monitoring_system, "Exports metrics and logs", "Prometheus/HTTP")
+Rel(loan_system, backup_system, "Scheduled data backups", "Database Replication")
+
+' External Dependencies
+Rel(core_banking, loan_system, "Real-time balance updates", "WebHook/Event")
+Rel(fraud_detection, loan_system, "Fraud alerts and blocks", "WebHook/Event")
+Rel(notification_service, customer, "Delivers notifications", "Email/SMS/Push")
+
+@enduml

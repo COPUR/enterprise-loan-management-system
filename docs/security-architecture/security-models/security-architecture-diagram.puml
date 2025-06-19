@@ -15,21 +15,11 @@ title OWASP Top 10 2021 Security Compliance Architecture
 !define SUBTITLE Comprehensive Security Implementation for Banking Systems
 
 package "Security Gateway Layer" {
-    rectangle "API Gateway Security" as GATEWAY_SEC #FFE0B2 {
-        **Rate Limiting & DDoS Protection**
-        - Redis-backed rate limiting
-        - Per-IP request throttling
-        - Geographic IP filtering
-        - Request size validation
-    }
+    rectangle "API Gateway Security" as GATEWAY_SEC #FFE0B2
+    note right of GATEWAY_SEC : Rate Limiting & DDoS Protection\n- Redis-backed rate limiting\n- Per-IP request throttling\n- Geographic IP filtering\n- Request size validation
     
-    rectangle "Authentication & Authorization" as AUTH #E1F5FE {
-        **OAuth2 JWT with PKCE**
-        - Bearer token validation
-        - Role-based access control
-        - Session management
-        - Multi-factor authentication
-    }
+    rectangle "OAuth2.1 Identity & Access Management" as AUTH #E1F5FE
+    note right of AUTH : Keycloak OAuth2.1 Server\n- Authorization Code Flow with PKCE\n- JWT token validation (RS256)\n- LDAP identity federation\n- Role-based access control (RBAC)\n- Banking compliance features\n- Event-driven audit logging\n\nMulti-layered Authorization:\n- Keycloak realm roles\n- LDAP group membership\n- Party data management roles\n- Temporal access controls
 }
 
 package "OWASP Top 10 Protection Filters" {
@@ -178,6 +168,57 @@ package "Advanced Security Controls" {
     }
 }
 
+package "OAuth2.1 Identity Architecture" {
+    
+    rectangle "Keycloak Authorization Server" as KEYCLOAK #E3F2FD {
+        **OAuth2.1 Server Features**
+        - Banking realm configuration
+        - Client credentials management
+        - Token lifecycle management
+        - User federation with LDAP
+        - Fine-grained authorization
+        
+        **Security Features:**
+        - Brute force protection
+        - Account lockout policies
+        - Password complexity rules
+        - Session management
+        - Audit event logging
+    }
+    
+    rectangle "LDAP Identity Provider" as LDAP #F0F4C3 {
+        **Enterprise Directory**
+        - User identity storage
+        - Group membership management
+        - Authentication provider
+        - Department/role mapping
+        - Security credentials
+        
+        **Banking Organization:**
+        - Loan Officers group
+        - Compliance Officers group
+        - Customer Service group
+        - Administrative groups
+        - Role-based security groups
+    }
+    
+    rectangle "Party Data Management" as PARTY_DATA #FCE4EC {
+        **Authoritative Role Source**
+        - Business role definitions
+        - Temporal role assignments
+        - Authority level management
+        - Monetary limit controls
+        - Geographic scope restrictions
+        
+        **Compliance Features:**
+        - Role review cycles
+        - Access certification
+        - Segregation of duties
+        - Audit trail maintenance
+        - Regulatory reporting
+    }
+}
+
 package "Banking-Specific Security" {
     
     rectangle "FAPI Compliance" as FAPI #E3F2FD {
@@ -186,12 +227,14 @@ package "Banking-Specific Security" {
         - Request object signing (JWS)
         - MTLS client authentication
         - PKCE code challenge
+        - Keycloak FAPI integration
         
         **OpenBanking Standards:**
         - Customer IP tracking
         - Interaction ID correlation
         - Timestamp validation
         - Geographic restrictions
+        - OAuth2.1 compliance
     }
     
     rectangle "PCI DSS Compliance" as PCI #F9FBE7 {
@@ -268,9 +311,17 @@ package "Implementation Layer" {
     }
 }
 
+' OAuth2.1 Identity Flow Connections
+LDAP --> KEYCLOAK : Identity Federation
+KEYCLOAK --> PARTY_DATA : Role Authorization
+PARTY_DATA --> A01 : Business Authorization
+AUTH --> KEYCLOAK : OAuth2.1 Integration
+
 ' Security Flow Connections
 GATEWAY_SEC --> A01 : Authorization Check
 AUTH --> A07 : Authentication Validation
+KEYCLOAK --> A07 : OAuth2.1 Authentication
+LDAP --> A07 : Identity Verification
 
 A01 --> A02 : Encrypted Communication
 A02 --> A03 : Secure Data Handling
@@ -283,13 +334,17 @@ A07 --> A08 : Data Integrity Check
 A08 --> A09 : Security Event Logging
 A09 --> A10 : Monitoring & Response
 
+' Banking Security Integration
+FAPI --> KEYCLOAK : OAuth2.1 FAPI Extension
 FAPI --> A02 : Enhanced Encryption
 PCI --> A08 : Transaction Integrity
 AUDIT --> A09 : Compliance Logging
+PARTY_DATA --> AUDIT : Role Audit Trail
 
 REDIS_SEC --> GATEWAY_SEC : Security Cache
 DB_SEC --> A02 : Data Encryption
 MS_SEC --> A04 : Secure Architecture
+PARTY_DATA --> DB_SEC : Role Data Security
 
 note top of GATEWAY_SEC
 **Rate Limiting Configuration:**

@@ -1,0 +1,50 @@
+spring:
+  
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''
+    
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        
+  h2:
+    console:
+      enabled: true
+      
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ''
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          
+server:
+  port: 0
+  
+logging:
+  level:
+    com.bank.loanmanagement: INFO
+    org.springframework.web: INFO
+    org.springframework.boot: INFO
+    
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always

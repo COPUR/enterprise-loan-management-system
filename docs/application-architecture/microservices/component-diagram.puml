@@ -17,10 +17,12 @@ package "Loan Management System" {
         component [LoanController] as LoanCtrl WEB_COLOR
         component [PaymentController] as PaymentCtrl WEB_COLOR
         
-        package "Security" {
+        package "OAuth2.1 Security" {
+            component [OAuth2ResourceServerConfig] as OAuth2Config WEB_COLOR
             component [JwtAuthenticationFilter] as JwtFilter WEB_COLOR
             component [SecurityConfig] as SecurityConfig WEB_COLOR
-            component [SecurityService] as SecurityService WEB_COLOR
+            component [KeycloakIntegrationService] as KeycloakService WEB_COLOR
+            component [PartyRoleAuthorizationService] as PartyAuthService WEB_COLOR
         }
         
         package "Exception Handling" {
@@ -63,6 +65,14 @@ package "Loan Management System" {
             component [Payment Events] as PaymentEvents DOMAIN_COLOR
         }
         
+        package "Party Data Management" {
+            component [Party] as PartyAgg DOMAIN_COLOR
+            component [PartyRole] as PartyRole DOMAIN_COLOR
+            component [PartyGroup] as PartyGroup DOMAIN_COLOR
+            component [PartyRoleService] as PartyRoleService DOMAIN_COLOR
+            component [Party Events] as PartyEvents DOMAIN_COLOR
+        }
+        
         package "Shared Kernel" {
             component [Money] as Money DOMAIN_COLOR
             component [InterestRate] as InterestRate DOMAIN_COLOR
@@ -78,6 +88,7 @@ package "Loan Management System" {
             component [CustomerRepositoryImpl] as CustomerRepo INFRA_COLOR
             component [LoanRepositoryImpl] as LoanRepo INFRA_COLOR
             component [PaymentRepositoryImpl] as PaymentRepo INFRA_COLOR
+            component [PartyRepositoryImpl] as PartyRepo INFRA_COLOR
             component [JPA Entities] as JpaEntities INFRA_COLOR
         }
         
@@ -104,12 +115,22 @@ package "External Systems" {
     storage "Redis Cache" as Redis DATABASE_COLOR
 }
 
+package "OAuth2.1 Identity Systems" {
+    component "Keycloak OAuth2.1 Server" as Keycloak #E3F2FD
+    component "LDAP Identity Provider" as LDAP #F0F4C3
+    component "Banking Realm" as BankingRealm #FCE4EC
+}
+
 ' Web Layer Dependencies
 CustomerCtrl --> CustomerApp : delegates to
 LoanCtrl --> LoanApp : delegates to
 PaymentCtrl --> PaymentApp : delegates to
 
-JwtFilter --> SecurityService : authenticates with
+OAuth2Config --> Keycloak : validates JWT tokens with
+JwtFilter --> KeycloakService : authenticates with
+KeycloakService --> PartyAuthService : authorizes roles with
+PartyAuthService --> PartyRoleService : resolves business roles with
+SecurityConfig --> OAuth2Config : configures
 SecurityConfig --> JwtFilter : configures
 ExceptionHandler --> "All Controllers" : handles exceptions from
 
@@ -147,15 +168,27 @@ PaymentCalcService --> LoanInstallment : calculates on
 CustomerEvents --> DomainEvent : extends
 LoanEvents --> DomainEvent : extends
 PaymentEvents --> DomainEvent : extends
+PartyEvents --> DomainEvent : extends
+
+' Party Data Management Dependencies
+PartyAgg --> AggregateRoot : extends
+PartyAgg --> PartyRole : contains
+PartyAgg --> PartyGroup : contains
+PartyAgg --> PartyEvents : raises
+PartyRoleService --> PartyAgg : operates on
+PartyRole --> Money : uses (monetary limits)
+PartyRole --> AggregateRoot : extends
 
 ' Infrastructure Dependencies
 CustomerApp --> CustomerRepo : uses
 LoanApp --> LoanRepo : uses
 PaymentApp --> PaymentRepo : uses
+PartyAuthService --> PartyRepo : uses
 
 CustomerRepo --> JpaEntities : maps to/from
 LoanRepo --> JpaEntities : maps to/from
 PaymentRepo --> JpaEntities : maps to/from
+PartyRepo --> JpaEntities : maps to/from
 
 "All Application Services" --> EventPublisher : publishes events via
 EventPublisher --> KafkaConfig : uses
@@ -169,6 +202,12 @@ JpaEntities --> PostgreSQL : persists to
 EventPublisher --> Kafka : publishes to
 EventListeners <-- Kafka : consumes from
 CacheManager --> Redis : caches in
+
+' OAuth2.1 External Connections
+LDAP --> BankingRealm : provides identity to
+BankingRealm --> Keycloak : configured in
+KeycloakService <--> Keycloak : authenticates via
+PartyRepo --> PostgreSQL : stores party data in
 
 ' Configuration Dependencies
 DatabaseConfig --> PostgreSQL : configures connection to

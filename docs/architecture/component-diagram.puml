@@ -1,0 +1,101 @@
+@startuml Enterprise Loan Management System - Component Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Enterprise Loan Management System - Component Diagram
+
+Container_Boundary(api, "Enterprise Loan Management System") {
+    
+    ' Presentation Layer Components
+    Component(web_controller, "Web Controllers", "Spring Boot", "REST API endpoints for loan management operations")
+    Component(graphql_resolver, "GraphQL Resolvers", "GraphQL Java", "GraphQL API for flexible data queries")
+    Component(websocket_handler, "WebSocket Handler", "Spring WebSocket", "Real-time notifications and updates")
+    Component(ai_controller, "AI Assistant Controller", "Spring Boot + OpenAI", "Natural language processing endpoints")
+    
+    ' Application Layer Components  
+    Component(customer_app_service, "Customer Management Service", "Application Service", "Customer business logic orchestration")
+    Component(loan_app_service, "Loan Origination Service", "Application Service", "Loan processing business logic")
+    Component(payment_app_service, "Payment Processing Service", "Application Service", "Payment processing orchestration")
+    Component(ai_app_service, "AI Assistant Service", "Application Service", "AI-powered banking assistance")
+    Component(nlp_app_service, "NLP Application Service", "Application Service", "Natural language processing")
+    
+    ' Domain Layer Components
+    Component(customer_domain, "Customer Domain", "Domain Model", "Customer aggregate and business rules")
+    Component(loan_domain, "Loan Domain", "Domain Model", "Loan aggregate and business rules")
+    Component(payment_domain, "Payment Domain", "Domain Model", "Payment aggregate and business rules")
+    Component(shared_kernel, "Shared Kernel", "Domain Model", "Common domain concepts and value objects")
+    
+    ' Infrastructure Layer Components
+    Component(jpa_adapter, "JPA Repository Adapter", "Spring Data JPA", "Database persistence implementation")
+    Component(redis_adapter, "Redis Cache Adapter", "Spring Data Redis", "Caching implementation")
+    Component(kafka_adapter, "Kafka Event Adapter", "Spring Kafka", "Event streaming implementation")
+    Component(springai_adapter, "Spring AI Adapter", "Spring AI", "AI/ML integration adapter")
+    Component(mcp_adapter, "MCP Banking Adapter", "MCP Protocol", "Model Context Protocol for banking domain")
+    Component(security_adapter, "Security Adapter", "Spring Security", "Authentication and authorization")
+    Component(fapi_adapter, "FAPI Compliance Adapter", "Custom", "Financial API security compliance")
+    
+    ' External System Interfaces
+    Component(openai_integration, "OpenAI Integration", "HTTP Client", "External AI service integration")
+    Component(db_integration, "Database Integration", "PostgreSQL Driver", "Database connectivity")
+    Component(cache_integration, "Cache Integration", "Redis Client", "Cache connectivity")
+    Component(monitoring_integration, "Monitoring Integration", "Micrometer", "Metrics and observability")
+}
+
+' External Systems
+System_Ext(openai_api, "OpenAI API", "External AI service")
+SystemDb_Ext(postgresql, "PostgreSQL Database", "Primary data store")
+SystemDb_Ext(redis, "Redis Cache", "Caching layer")
+System_Ext(kafka, "Apache Kafka", "Event streaming platform")
+System_Ext(prometheus, "Prometheus", "Metrics collection")
+
+' Component Relationships
+Rel(web_controller, customer_app_service, "Uses", "HTTP/JSON")
+Rel(web_controller, loan_app_service, "Uses", "HTTP/JSON")
+Rel(web_controller, payment_app_service, "Uses", "HTTP/JSON")
+Rel(ai_controller, ai_app_service, "Uses", "HTTP/JSON")
+Rel(ai_controller, nlp_app_service, "Uses", "HTTP/JSON")
+
+Rel(graphql_resolver, customer_app_service, "Uses", "GraphQL")
+Rel(graphql_resolver, loan_app_service, "Uses", "GraphQL")
+Rel(graphql_resolver, payment_app_service, "Uses", "GraphQL")
+
+Rel(customer_app_service, customer_domain, "Uses", "Domain API")
+Rel(loan_app_service, loan_domain, "Uses", "Domain API")
+Rel(payment_app_service, payment_domain, "Uses", "Domain API")
+Rel(ai_app_service, springai_adapter, "Uses", "Spring AI API")
+Rel(nlp_app_service, mcp_adapter, "Uses", "MCP Protocol")
+
+Rel(customer_domain, shared_kernel, "Uses", "Domain Events")
+Rel(loan_domain, shared_kernel, "Uses", "Domain Events")
+Rel(payment_domain, shared_kernel, "Uses", "Domain Events")
+
+Rel(customer_app_service, jpa_adapter, "Uses", "Repository Interface")
+Rel(loan_app_service, jpa_adapter, "Uses", "Repository Interface")
+Rel(payment_app_service, jpa_adapter, "Uses", "Repository Interface")
+
+Rel(customer_app_service, redis_adapter, "Uses", "Cache Interface")
+Rel(loan_app_service, redis_adapter, "Uses", "Cache Interface")
+Rel(payment_app_service, redis_adapter, "Uses", "Cache Interface")
+
+Rel(customer_app_service, kafka_adapter, "Uses", "Event Publishing")
+Rel(loan_app_service, kafka_adapter, "Uses", "Event Publishing")
+Rel(payment_app_service, kafka_adapter, "Uses", "Event Publishing")
+
+Rel(web_controller, security_adapter, "Protected by", "JWT/FAPI")
+Rel(ai_controller, security_adapter, "Protected by", "JWT/FAPI")
+Rel(web_controller, fapi_adapter, "Validated by", "FAPI Compliance")
+
+' External System Connections
+Rel(openai_integration, openai_api, "Calls", "HTTPS/REST")
+Rel(db_integration, postgresql, "Connects to", "JDBC")
+Rel(cache_integration, redis, "Connects to", "Redis Protocol")
+Rel(kafka_adapter, kafka, "Publishes/Subscribes", "Kafka Protocol")
+Rel(monitoring_integration, prometheus, "Exports metrics", "HTTP")
+
+Rel(springai_adapter, openai_integration, "Uses", "HTTP Client")
+Rel(mcp_adapter, openai_integration, "Uses", "HTTP Client")
+Rel(jpa_adapter, db_integration, "Uses", "JDBC")
+Rel(redis_adapter, cache_integration, "Uses", "Redis Client")
+
+@enduml

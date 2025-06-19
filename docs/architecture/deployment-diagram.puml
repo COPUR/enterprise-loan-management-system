@@ -1,0 +1,165 @@
+@startuml Enterprise Loan Management System - Deployment Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Enterprise Loan Management System - Deployment Architecture
+
+' Cloud Infrastructure
+Deployment_Node(aws_cloud, "AWS Cloud", "Amazon Web Services") {
+    
+    ' Load Balancer Layer
+    Deployment_Node(alb, "Application Load Balancer", "AWS ALB") {
+        Container(load_balancer, "Load Balancer", "AWS ALB", "Routes traffic to application instances")
+    }
+    
+    ' Application Layer
+    Deployment_Node(eks_cluster, "EKS Cluster", "Kubernetes") {
+        
+        Deployment_Node(app_namespace, "Application Namespace", "Kubernetes Namespace") {
+            
+            ' Application Pods
+            Deployment_Node(app_pod_1, "App Pod 1", "Kubernetes Pod") {
+                Container(app_1, "Loan Management App", "Spring Boot", "Main application instance")
+                Container(ai_sidecar_1, "AI Sidecar", "Spring AI", "AI processing companion")
+            }
+            
+            Deployment_Node(app_pod_2, "App Pod 2", "Kubernetes Pod") {
+                Container(app_2, "Loan Management App", "Spring Boot", "Main application instance")
+                Container(ai_sidecar_2, "AI Sidecar", "Spring AI", "AI processing companion")
+            }
+            
+            Deployment_Node(app_pod_3, "App Pod 3", "Kubernetes Pod") {
+                Container(app_3, "Loan Management App", "Spring Boot", "Main application instance")
+                Container(ai_sidecar_3, "AI Sidecar", "Spring AI", "AI processing companion")
+            }
+        }
+        
+        ' Monitoring Namespace
+        Deployment_Node(monitoring_namespace, "Monitoring Namespace", "Kubernetes Namespace") {
+            
+            Deployment_Node(prometheus_pod, "Prometheus Pod", "Kubernetes Pod") {
+                Container(prometheus, "Prometheus", "Monitoring", "Metrics collection and alerting")
+            }
+            
+            Deployment_Node(grafana_pod, "Grafana Pod", "Kubernetes Pod") {
+                Container(grafana, "Grafana", "Visualization", "Metrics visualization and dashboards")
+            }
+        }
+        
+        ' Ingress Controller
+        Deployment_Node(ingress_controller, "Ingress Controller", "NGINX") {
+            Container(nginx_ingress, "NGINX Ingress", "Load Balancer", "Internal traffic routing")
+        }
+    }
+    
+    ' Database Layer
+    Deployment_Node(rds, "RDS Multi-AZ", "AWS RDS") {
+        ContainerDb(postgres_primary, "PostgreSQL Primary", "PostgreSQL 15", "Main database")
+        ContainerDb(postgres_replica, "PostgreSQL Replica", "PostgreSQL 15", "Read replica")
+    }
+    
+    ' Cache Layer
+    Deployment_Node(elasticache, "ElastiCache Cluster", "AWS ElastiCache") {
+        ContainerDb(redis_primary, "Redis Primary", "Redis 7", "Primary cache node")
+        ContainerDb(redis_replica_1, "Redis Replica 1", "Redis 7", "Cache replica")
+        ContainerDb(redis_replica_2, "Redis Replica 2", "Redis 7", "Cache replica")
+    }
+    
+    ' Message Queue
+    Deployment_Node(msk, "MSK Cluster", "AWS MSK") {
+        Container(kafka_broker_1, "Kafka Broker 1", "Apache Kafka", "Message streaming")
+        Container(kafka_broker_2, "Kafka Broker 2", "Apache Kafka", "Message streaming")
+        Container(kafka_broker_3, "Kafka Broker 3", "Apache Kafka", "Message streaming")
+    }
+    
+    ' Object Storage
+    Deployment_Node(s3, "S3 Buckets", "AWS S3") {
+        Container(s3_documents, "Documents Bucket", "S3", "Loan documents and files")
+        Container(s3_backups, "Backups Bucket", "S3", "Database and application backups")
+        Container(s3_logs, "Logs Bucket", "S3", "Application logs archive")
+    }
+}
+
+' External Services
+Deployment_Node(openai_cloud, "OpenAI Infrastructure", "External Cloud") {
+    Container(openai_api, "OpenAI API", "GPT-4", "AI/ML services")
+}
+
+Deployment_Node(third_party, "Third Party Services", "External") {
+    Container(credit_bureau_api, "Credit Bureau API", "External Service", "Credit scoring")
+    Container(payment_gateway_api, "Payment Gateway", "External Service", "Payment processing")
+}
+
+' Development Environment
+Deployment_Node(dev_env, "Development Environment", "Local/Cloud") {
+    Deployment_Node(dev_docker, "Docker Compose", "Local Development") {
+        Container(dev_app, "Dev Application", "Spring Boot", "Development instance")
+        ContainerDb(dev_postgres, "Dev PostgreSQL", "PostgreSQL", "Development database")
+        ContainerDb(dev_redis, "Dev Redis", "Redis", "Development cache")
+    }
+}
+
+' SIT Environment
+Deployment_Node(sit_env, "SIT Environment", "AWS ECS") {
+    Deployment_Node(sit_cluster, "ECS Cluster", "AWS ECS") {
+        Container(sit_app, "SIT Application", "Spring Boot", "Integration testing")
+        ContainerDb(sit_postgres, "SIT PostgreSQL", "RDS", "Testing database")
+        ContainerDb(sit_redis, "SIT Redis", "ElastiCache", "Testing cache")
+    }
+}
+
+' UAT Environment
+Deployment_Node(uat_env, "UAT Environment", "AWS EKS") {
+    Deployment_Node(uat_cluster, "EKS Cluster", "Kubernetes") {
+        Container(uat_app, "UAT Application", "Spring Boot", "User acceptance testing")
+        ContainerDb(uat_postgres, "UAT PostgreSQL", "RDS", "UAT database")
+        ContainerDb(uat_redis, "UAT Redis", "ElastiCache", "UAT cache")
+    }
+}
+
+' Network Relationships
+Rel(load_balancer, nginx_ingress, "Routes traffic", "HTTPS")
+Rel(nginx_ingress, app_1, "Load balances", "HTTP")
+Rel(nginx_ingress, app_2, "Load balances", "HTTP")
+Rel(nginx_ingress, app_3, "Load balances", "HTTP")
+
+' Application to Database
+Rel(app_1, postgres_primary, "Reads/Writes", "JDBC/TLS")
+Rel(app_2, postgres_primary, "Reads/Writes", "JDBC/TLS")
+Rel(app_3, postgres_primary, "Reads/Writes", "JDBC/TLS")
+Rel(app_1, postgres_replica, "Reads", "JDBC/TLS")
+Rel(app_2, postgres_replica, "Reads", "JDBC/TLS")
+Rel(app_3, postgres_replica, "Reads", "JDBC/TLS")
+
+' Application to Cache
+Rel(app_1, redis_primary, "Cache operations", "Redis Protocol")
+Rel(app_2, redis_primary, "Cache operations", "Redis Protocol")
+Rel(app_3, redis_primary, "Cache operations", "Redis Protocol")
+
+' Application to Message Queue
+Rel(app_1, kafka_broker_1, "Publishes/Consumes", "Kafka Protocol")
+Rel(app_2, kafka_broker_2, "Publishes/Consumes", "Kafka Protocol")
+Rel(app_3, kafka_broker_3, "Publishes/Consumes", "Kafka Protocol")
+
+' AI Integration
+Rel(ai_sidecar_1, openai_api, "AI requests", "HTTPS")
+Rel(ai_sidecar_2, openai_api, "AI requests", "HTTPS")
+Rel(ai_sidecar_3, openai_api, "AI requests", "HTTPS")
+
+' External Services
+Rel(app_1, credit_bureau_api, "Credit checks", "HTTPS")
+Rel(app_2, payment_gateway_api, "Payments", "HTTPS")
+
+' Monitoring
+Rel(app_1, prometheus, "Metrics", "HTTP")
+Rel(app_2, prometheus, "Metrics", "HTTP")
+Rel(app_3, prometheus, "Metrics", "HTTP")
+Rel(prometheus, grafana, "Data source", "HTTP")
+
+' Storage
+Rel(app_1, s3_documents, "File storage", "HTTPS")
+Rel(app_2, s3_documents, "File storage", "HTTPS")
+Rel(app_3, s3_documents, "File storage", "HTTPS")
+
+@enduml

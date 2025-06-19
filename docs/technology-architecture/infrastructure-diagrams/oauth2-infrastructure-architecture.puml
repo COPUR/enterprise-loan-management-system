@@ -1,0 +1,365 @@
+@startuml OAuth2.1 Infrastructure Architecture - Banking System
+!theme plain
+
+skinparam backgroundColor #FAFAFA
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #333333
+}
+skinparam rectangle {
+    BackgroundColor #E8F4FD
+    BorderColor #2196F3
+}
+skinparam database {
+    BackgroundColor #FF6B6B
+    BorderColor #E53935
+}
+skinparam cloud {
+    BackgroundColor #E8F5E8
+    BorderColor #4CAF50
+}
+
+title OAuth2.1 Infrastructure Architecture\nEnterprise Banking System with Keycloak, LDAP & Party Data Management
+
+package "Client Tier" as CLIENT_TIER {
+    rectangle "Web Banking Application" as WEB_APP #FFE0B2
+    rectangle "Mobile Banking App" as MOBILE_APP #FFE0B2  
+    rectangle "Third-Party Financial Apps" as THIRD_PARTY #FFE0B2
+    rectangle "Internal Admin Tools" as ADMIN_TOOLS #FFE0B2
+}
+
+package "Load Balancer & Gateway Tier" as LB_TIER {
+    rectangle "NGINX Load Balancer" as LB #E1F5FE {
+        **Features:**
+        - SSL Termination (TLS 1.3)
+        - Rate Limiting
+        - Health Check Routing
+        - Geographic Failover
+        - DDoS Protection
+    }
+    
+    rectangle "API Gateway" as GATEWAY #E1F5FE {
+        **OAuth2.1 Integration:**
+        - Token validation with Keycloak
+        - FAPI compliance headers
+        - Circuit breaker patterns
+        - Request/response logging
+        - Performance metrics
+    }
+}
+
+package "OAuth2.1 Identity & Access Management" as IAM_TIER {
+    rectangle "Keycloak OAuth2.1 Server" as KEYCLOAK #E3F2FD {
+        **Banking Realm Configuration:**
+        - Client: banking-app
+        - Flow: Authorization Code + PKCE
+        - Session Management
+        - Brute Force Protection
+        - Event Logging
+        - User Federation with LDAP
+        
+        **Banking Compliance:**
+        - FAPI 1.0 Advanced
+        - JWT with RS256 signing
+        - Token lifecycle management
+        - Multi-factor authentication
+        - Audit event streaming
+    }
+    
+    rectangle "LDAP Identity Provider" as LDAP #F0F4C3 {
+        **Enterprise Directory:**
+        - OpenLDAP 1.5.0
+        - Banking organization structure
+        - TLS encryption
+        - Read-only service account
+        - Group membership management
+        
+        **User Repository:**
+        - Banking employees
+        - Department mapping
+        - Role assignments
+        - Security credentials
+        - Access policies
+    }
+    
+    rectangle "LDAP Admin UI" as LDAP_ADMIN #F0F4C3 {
+        **Management Interface:**
+        - phpLDAPadmin
+        - User management
+        - Group administration
+        - Security monitoring
+        - Backup/restore
+    }
+}
+
+package "Application Services Tier" as APP_TIER {
+    rectangle "Banking Application" as BANKING_APP #E8F4FD {
+        **OAuth2.1 Resource Server:**
+        - JWT token validation
+        - Role-based authorization
+        - Party data integration
+        - Business rule enforcement
+        - Compliance validation
+        
+        **Security Features:**
+        - OWASP Top 10 protection
+        - Method-level security
+        - Data encryption at rest
+        - Audit logging
+        - Performance monitoring
+    }
+    
+    rectangle "Party Data Management Service" as PARTY_SERVICE #FCE4EC {
+        **Authoritative Role Source:**
+        - Business role definitions
+        - Temporal access control
+        - Authority level management
+        - Monetary limit enforcement
+        - Compliance tracking
+        
+        **Role Sources:**
+        - Database (authoritative)
+        - LDAP integration
+        - Keycloak synchronization
+        - External system imports
+        - Automated provisioning
+    }
+}
+
+package "Data Persistence Tier" as DATA_TIER {
+    database "PostgreSQL Primary" as PG_PRIMARY #FF6B6B {
+        **Banking Schema:**
+        - customers
+        - loans
+        - payments
+        - loan_installments
+        
+        **Party Management Schema:**
+        - parties
+        - party_roles
+        - party_groups
+        - role_audit_log
+        
+        **Keycloak Schema:**
+        - keycloak tables
+        - user_entity
+        - realm_entity
+        - client_entity
+        - event_entity
+    }
+    
+    database "PostgreSQL Replica" as PG_REPLICA #FF6B6B {
+        **Read-Only Replica:**
+        - Reporting queries
+        - Analytics workloads
+        - Backup source
+        - Disaster recovery
+    }
+    
+    database "LDAP Data Store" as LDAP_DATA #F0F4C3 {
+        **Directory Structure:**
+        - dc=banking,dc=local
+        - ou=people,ou=groups
+        - ou=roles,ou=departments
+        - Security credentials
+        - Access control lists
+    }
+}
+
+package "Cache & Session Tier" as CACHE_TIER {
+    rectangle "Redis Cluster" as REDIS #FFE0E0 {
+        **Caching Strategy:**
+        - JWT token validation cache
+        - Session state storage
+        - Rate limiting counters
+        - Circuit breaker state
+        - Party role cache
+        
+        **Performance:**
+        - Sub-millisecond response
+        - High availability cluster
+        - Automatic failover
+        - Memory optimization
+        - TTL management
+    }
+}
+
+package "Message Streaming Tier" as STREAM_TIER {
+    rectangle "Apache Kafka Cluster" as KAFKA #E0E0E0 {
+        **Event Topics:**
+        - authentication-events
+        - authorization-events
+        - party-role-events
+        - banking-audit-events
+        - compliance-events
+        
+        **Integration:**
+        - Keycloak event publishing
+        - Banking domain events
+        - Audit trail streaming
+        - Real-time monitoring
+        - Compliance reporting
+    }
+    
+    rectangle "Zookeeper Ensemble" as ZK #E0E0E0 {
+        **Cluster Coordination:**
+        - Kafka cluster management
+        - Leader election
+        - Configuration management
+        - Service discovery
+        - Health monitoring
+    }
+}
+
+package "Monitoring & Observability Tier" as MONITOR_TIER {
+    rectangle "Prometheus" as PROMETHEUS #E8E8FF {
+        **Metrics Collection:**
+        - OAuth2.1 authentication metrics
+        - Authorization success/failure rates
+        - Token validation performance
+        - Party role resolution time
+        - Banking transaction metrics
+        
+        **Alerting:**
+        - Failed authentication spikes
+        - Authorization errors
+        - System performance degradation
+        - Compliance violations
+        - Security incidents
+    }
+    
+    rectangle "Grafana" as GRAFANA #E8E8FF {
+        **Banking Dashboards:**
+        - OAuth2.1 authentication flows
+        - User access patterns
+        - Role utilization metrics
+        - Compliance status
+        - System performance
+        
+        **Compliance Reporting:**
+        - Access review status
+        - Role assignment audit
+        - Failed login analysis
+        - Security event correlation
+        - Regulatory reports
+    }
+    
+    rectangle "ELK Stack" as ELK #E8E8FF {
+        **Log Management:**
+        - Keycloak authentication logs
+        - Banking application logs
+        - LDAP access logs
+        - Audit trail aggregation
+        - Security event correlation
+        
+        **Search & Analytics:**
+        - Real-time log search
+        - Pattern detection
+        - Anomaly identification
+        - Forensic investigation
+        - Compliance reporting
+    }
+}
+
+' Client Connections
+WEB_APP --> LB : HTTPS/443
+MOBILE_APP --> LB : HTTPS/443
+THIRD_PARTY --> LB : HTTPS/443 (FAPI)
+ADMIN_TOOLS --> LB : HTTPS/443
+
+' Load Balancer to Gateway
+LB --> GATEWAY : HTTP/8080 (Internal)
+
+' OAuth2.1 Authentication Flow
+GATEWAY --> KEYCLOAK : OAuth2.1 Token Validation
+GATEWAY --> BANKING_APP : Authorized Requests
+GATEWAY --> PARTY_SERVICE : Role Resolution
+
+' Identity Federation
+KEYCLOAK --> LDAP : LDAP Authentication
+KEYCLOAK --> PARTY_SERVICE : Role Synchronization
+LDAP_ADMIN --> LDAP : Management Interface
+
+' Application to Services
+BANKING_APP --> PARTY_SERVICE : Role Authorization
+BANKING_APP --> PG_PRIMARY : Banking Data
+PARTY_SERVICE --> PG_PRIMARY : Party Data
+
+' Database Replication
+PG_PRIMARY --> PG_REPLICA : Streaming Replication
+
+' Caching Layer
+GATEWAY --> REDIS : Token Cache
+BANKING_APP --> REDIS : Session Cache
+PARTY_SERVICE --> REDIS : Role Cache
+KEYCLOAK --> REDIS : Session Store
+
+' Event Streaming
+KEYCLOAK --> KAFKA : Authentication Events
+BANKING_APP --> KAFKA : Business Events
+PARTY_SERVICE --> KAFKA : Role Events
+KAFKA --> ZK : Cluster Coordination
+
+' Monitoring Integration
+KEYCLOAK --> PROMETHEUS : OAuth2.1 Metrics
+GATEWAY --> PROMETHEUS : API Metrics
+BANKING_APP --> PROMETHEUS : Application Metrics
+PARTY_SERVICE --> PROMETHEUS : Role Metrics
+PROMETHEUS --> GRAFANA : Visualization
+
+' Log Aggregation
+KEYCLOAK --> ELK : Authentication Logs
+LDAP --> ELK : Access Logs
+BANKING_APP --> ELK : Application Logs
+PARTY_SERVICE --> ELK : Role Audit Logs
+
+' Health Monitoring
+PROMETHEUS --> KEYCLOAK : Health Checks
+PROMETHEUS --> LDAP : Health Checks
+PROMETHEUS --> BANKING_APP : Health Checks
+PROMETHEUS --> PARTY_SERVICE : Health Checks
+PROMETHEUS --> PG_PRIMARY : Health Checks
+PROMETHEUS --> REDIS : Health Checks
+PROMETHEUS --> KAFKA : Health Checks
+
+note top of KEYCLOAK
+    **OAuth2.1 Configuration:**
+    - Realm: banking-realm
+    - Client ID: banking-app
+    - Grant Type: authorization_code
+    - PKCE: enabled
+    - Token Signature: RS256
+    - Session Timeout: 30min
+    - Refresh Token: 24h
+    - Access Token: 5min
+end note
+
+note bottom of PARTY_SERVICE
+    **Role Resolution Logic:**
+    1. Check database roles (authoritative)
+    2. Validate temporal constraints
+    3. Verify compliance status
+    4. Apply monetary limits
+    5. Enforce business unit scope
+    6. Log access decisions
+end note
+
+note right of PROMETHEUS
+    **Key Metrics:**
+    - Authentication success rate: >99.9%
+    - Token validation time: <50ms
+    - Role resolution time: <100ms
+    - Failed login rate: <0.1%
+    - System availability: >99.95%
+end note
+
+note left of REDIS
+    **Cache Configuration:**
+    - JWT validation: 300s TTL
+    - Session data: 1800s TTL
+    - Role cache: 3600s TTL
+    - Rate limits: 60s TTL
+    - Circuit breaker: Persistent
+end note
+
+@enduml
