@@ -460,6 +460,511 @@ curl https://keycloak.banking.local/health
 curl https://api.banking.enterprise.com/actuator/health/db
 ```
 
+## 🤖 AI-Powered Banking Assistant
+
+### Spring AI Integration with OpenAI
+
+The Enterprise Banking System features an intelligent AI assistant powered by **Spring AI** and **OpenAI GPT-4** for enhanced customer support and banking operations.
+
+#### AI Assistant Features
+
+```java
+// AI Banking Assistant Service
+@Service
+public class BankingAIAssistantService {
+    
+    private final ChatClient chatClient;
+    private final VectorStore vectorStore;
+    
+    @Autowired
+    public BankingAIAssistantService(ChatClient.Builder chatClientBuilder, 
+                                   VectorStore vectorStore) {
+        this.chatClient = chatClientBuilder.build();
+        this.vectorStore = vectorStore;
+    }
+    
+    public BankingResponse processCustomerQuery(String query, CustomerId customerId) {
+        return chatClient.prompt()
+            .system("""
+                You are an expert banking assistant for Enterprise Banking System.
+                Use hexagonal architecture principles in your responses.
+                Provide accurate financial information and loan guidance.
+                Always prioritize security and compliance in recommendations.
+                """)
+            .user(query)
+            .call()
+            .entity(BankingResponse.class);
+    }
+}
+```
+
+#### Intelligent Banking Capabilities
+
+- **🏦 Loan Application Guidance** - AI-powered loan recommendation engine
+- **💰 Financial Planning** - Personalized financial advice and planning
+- **📊 Portfolio Analysis** - Investment and risk assessment
+- **🔒 Security Assistance** - Fraud detection and security guidance
+- **📱 Customer Support** - 24/7 intelligent customer service
+- **📈 Market Insights** - Real-time financial market analysis
+
+### MCP (Model Context Protocol) Integration
+
+#### Advanced LLM Connectivity
+
+```yaml
+# AI Configuration
+spring:
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4-turbo
+          temperature: 0.3
+          max-tokens: 2000
+      embedding:
+        options:
+          model: text-embedding-3-large
+    vectorstore:
+      pgvector:
+        database-name: banking_vector_db
+        dimensions: 1536
+```
+
+#### Banking-Specific AI Features
+
+```java
+// Banking Domain-Specific AI Assistant
+@RestController
+@RequestMapping("/api/v1/ai-assistant")
+public class BankingAIController {
+    
+    @PostMapping("/loan-guidance")
+    public ResponseEntity<LoanGuidanceResponse> getLoanGuidance(
+            @RequestBody LoanGuidanceRequest request,
+            Authentication authentication) {
+        
+        CustomerId customerId = extractCustomerId(authentication);
+        
+        // AI-powered loan recommendation
+        LoanGuidanceResponse guidance = aiAssistantService.provideLoanGuidance(
+            request.getFinancialProfile(),
+            request.getLoanPurpose(),
+            request.getDesiredAmount(),
+            customerId
+        );
+        
+        return ResponseEntity.ok(guidance);
+    }
+    
+    @PostMapping("/financial-planning")
+    public ResponseEntity<FinancialPlanResponse> getFinancialPlan(
+            @RequestBody FinancialPlanRequest request,
+            Authentication authentication) {
+        
+        // Generate AI-powered financial plan
+        FinancialPlanResponse plan = aiAssistantService.generateFinancialPlan(
+            request.getIncomeProfile(),
+            request.getExpenses(),
+            request.getGoals()
+        );
+        
+        return ResponseEntity.ok(plan);
+    }
+    
+    @PostMapping("/chat")
+    public ResponseEntity<ChatResponse> chat(
+            @RequestBody ChatRequest request,
+            Authentication authentication) {
+        
+        // Contextual banking chat with RAG
+        ChatResponse response = aiAssistantService.processChat(
+            request.getMessage(),
+            request.getConversationHistory(),
+            extractCustomerId(authentication)
+        );
+        
+        return ResponseEntity.ok(response);
+    }
+}
+```
+
+### AI-Enhanced API Catalog
+
+#### Intelligent Banking APIs
+
+| Endpoint | Method | Description | AI Enhancement |
+|----------|--------|-------------|----------------|
+| `/api/v1/ai-assistant/loan-guidance` | POST | AI-powered loan recommendations | GPT-4 analysis with customer data |
+| `/api/v1/ai-assistant/financial-planning` | POST | Personalized financial planning | ML-driven portfolio optimization |
+| `/api/v1/ai-assistant/chat` | POST | Conversational banking assistant | RAG with banking knowledge base |
+| `/api/v1/ai-assistant/risk-assessment` | POST | AI risk evaluation | Advanced ML risk modeling |
+| `/api/v1/ai-assistant/fraud-detection` | POST | Intelligent fraud analysis | Real-time anomaly detection |
+| `/api/v1/ai-assistant/market-insights` | GET | AI market analysis | Live market data with AI insights |
+
+#### RAG (Retrieval-Augmented Generation) Integration
+
+```java
+// Banking Knowledge RAG Service
+@Service
+public class BankingRAGService {
+    
+    private final VectorStore vectorStore;
+    private final DocumentReader documentReader;
+    
+    public List<Document> retrieveBankingContext(String query) {
+        // Semantic search through banking documentation
+        return vectorStore.similaritySearch(
+            SearchRequest.query(query)
+                .withTopK(5)
+                .withSimilarityThreshold(0.8)
+        );
+    }
+    
+    public String generateContextualResponse(String userQuery, CustomerId customerId) {
+        // Retrieve relevant banking documents
+        List<Document> context = retrieveBankingContext(userQuery);
+        
+        // Generate contextual prompt
+        String systemPrompt = buildBankingSystemPrompt(context, customerId);
+        
+        return chatClient.prompt()
+            .system(systemPrompt)
+            .user(userQuery)
+            .call()
+            .content();
+    }
+}
+```
+
+### Banking Chatbot Frontend Integration
+
+#### React AI Chat Component
+
+```typescript
+// AI Banking Chat Component
+import { useState } from 'react';
+import { useBankingAI } from '../hooks/useBankingAI';
+
+export const BankingAIChatbot: React.FC = () => {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const { sendMessage } = useBankingAI();
+
+  const handleSendMessage = async (message: string) => {
+    setIsTyping(true);
+    
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      content: message,
+      sender: 'user',
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    
+    try {
+      const response = await sendMessage({
+        message,
+        conversationHistory: messages,
+        context: 'banking-assistant'
+      });
+      
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        content: response.content,
+        sender: 'assistant',
+        timestamp: new Date(),
+        suggestions: response.suggestions
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('AI chat error:', error);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  return (
+    <div className="banking-ai-chat">
+      <div className="chat-header">
+        <h3>🏦 Banking AI Assistant</h3>
+        <span className="ai-status">Powered by GPT-4</span>
+      </div>
+      
+      <div className="chat-messages">
+        {messages.map(message => (
+          <ChatMessage key={message.id} message={message} />
+        ))}
+        {isTyping && <TypingIndicator />}
+      </div>
+      
+      <ChatInput onSendMessage={handleSendMessage} />
+    </div>
+  );
+};
+```
+
+### AI Configuration
+
+#### Environment Variables
+
+```bash
+# OpenAI Configuration
+OPENAI_API_KEY=sk-your-openai-api-key
+OPENAI_MODEL=gpt-4-turbo
+OPENAI_TEMPERATURE=0.3
+OPENAI_MAX_TOKENS=2000
+
+# Vector Database
+VECTOR_DB_URL=postgresql://localhost:5432/banking_vector_db
+VECTOR_DB_DIMENSIONS=1536
+
+# AI Features
+AI_ASSISTANT_ENABLED=true
+RAG_ENABLED=true
+FINANCIAL_INSIGHTS_ENABLED=true
+FRAUD_DETECTION_AI=true
+```
+
+#### Docker Compose AI Services
+
+```yaml
+services:
+  banking-app:
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AI_ASSISTANT_ENABLED=true
+      - RAG_ENABLED=true
+    
+  vector-db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: banking_vector_db
+      POSTGRES_USER: vector_user
+      POSTGRES_PASSWORD: vector_password
+    volumes:
+      - vector_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+volumes:
+  vector_data:
+```
+
+### AI-Powered Features in Banking Operations
+
+#### 1. Intelligent Loan Processing
+
+```java
+// AI-Enhanced Loan Processing
+@Service
+public class AILoanProcessingService {
+    
+    public LoanDecisionResponse processLoanApplication(LoanApplication application) {
+        // AI risk assessment
+        RiskAssessment risk = aiRiskService.assessLoanRisk(application);
+        
+        // AI-powered credit scoring
+        CreditScore aiCreditScore = aiCreditService.calculateAIScore(application);
+        
+        // Generate AI recommendation
+        LoanRecommendation recommendation = aiRecommendationService
+            .generateLoanRecommendation(application, risk, aiCreditScore);
+            
+        return LoanDecisionResponse.builder()
+            .decision(recommendation.getDecision())
+            .confidence(recommendation.getConfidence())
+            .explanation(recommendation.getExplanation())
+            .suggestedTerms(recommendation.getSuggestedTerms())
+            .build();
+    }
+}
+```
+
+#### 2. Fraud Detection AI
+
+```java
+// Real-time AI Fraud Detection
+@Component
+public class AIFraudDetectionService {
+    
+    @EventListener
+    public void analyzeTransaction(TransactionCreatedEvent event) {
+        Transaction transaction = event.getTransaction();
+        
+        // AI anomaly detection
+        FraudProbability fraudScore = aiModelService.analyzeFraudProbability(
+            transaction,
+            customerHistoryService.getTransactionHistory(transaction.getCustomerId())
+        );
+        
+        if (fraudScore.isHighRisk()) {
+            eventPublisher.publishEvent(new SuspiciousFraudTransactionDetectedEvent(
+                transaction.getId(),
+                fraudScore.getScore(),
+                fraudScore.getReasons()
+            ));
+        }
+    }
+}
+```
+
+#### 3. Personalized Financial Insights
+
+```java
+// AI Financial Insights Engine
+@Service
+public class AIFinancialInsightsService {
+    
+    public List<FinancialInsight> generatePersonalizedInsights(CustomerId customerId) {
+        CustomerFinancialProfile profile = customerService.getFinancialProfile(customerId);
+        
+        return aiInsightsEngine.generateInsights(
+            profile,
+            marketDataService.getCurrentMarketConditions(),
+            customerPreferenceService.getPreferences(customerId)
+        );
+    }
+}
+```
+
+## Technical Documentation
+
+### API Reference Documentation
+
+#### Comprehensive API Catalog
+
+The Enterprise Banking System provides a comprehensive RESTful API catalog with full OpenAPI 3.0 specification:
+
+- **📖 Interactive API Documentation**: [Swagger UI](https://api.banking.enterprise.com/swagger-ui.html)
+- **📋 OpenAPI Specification**: [openapi.yml](docs/api/openapi.yml)
+- **🔗 Postman Collection**: [Banking APIs](docs/api/postman/banking-apis.json)
+
+#### Core Banking API Modules
+
+##### 1. Customer Management APIs
+```bash
+# Customer Profile Management
+GET    /api/v1/customers/{id}                    # Get customer profile
+PUT    /api/v1/customers/{id}                    # Update customer profile
+POST   /api/v1/customers/{id}/credit-assessment  # AI credit assessment
+GET    /api/v1/customers/{id}/financial-insights # AI financial insights
+```
+
+##### 2. Loan Management APIs (Hexagonal Architecture)
+```bash
+# Pure Domain-Driven Loan Operations
+POST   /api/v1/loans                             # Create loan (factory method)
+GET    /api/v1/loans/{id}                        # Get loan details
+POST   /api/v1/loans/{id}/approve                # Approve loan (domain event)
+POST   /api/v1/loans/{id}/disburse               # Disburse loan (domain event)
+POST   /api/v1/loans/{id}/payments               # Make payment (domain event)
+GET    /api/v1/loans/{id}/installments           # Get amortization schedule
+POST   /api/v1/loans/{id}/restructure            # Restructure loan terms
+```
+
+##### 3. AI Assistant APIs
+```bash
+# Intelligent Banking Assistant
+POST   /api/v1/ai-assistant/chat                 # Conversational AI chat
+POST   /api/v1/ai-assistant/loan-guidance        # AI loan recommendations
+POST   /api/v1/ai-assistant/financial-planning   # AI financial planning
+POST   /api/v1/ai-assistant/risk-assessment      # AI risk evaluation
+GET    /api/v1/ai-assistant/market-insights      # AI market analysis
+```
+
+##### 4. Payment Processing APIs
+```bash
+# Payment Operations with AI Fraud Detection
+POST   /api/v1/payments                          # Process payment
+GET    /api/v1/payments/{id}                     # Get payment details
+POST   /api/v1/payments/{id}/verify              # AI fraud verification
+GET    /api/v1/payments/fraud-analysis          # AI fraud analytics
+```
+
+#### API Authentication & Security
+
+```bash
+# OAuth2.1 with PKCE Authentication Flow
+POST   /oauth2/token                             # Get access token
+GET    /oauth2/userinfo                          # Get user information
+POST   /oauth2/revoke                            # Revoke token
+GET    /oauth2/jwks                              # Public keys for JWT verification
+
+# AI Assistant Authentication
+POST   /api/v1/ai-assistant/authenticate         # AI service authentication
+GET    /api/v1/ai-assistant/capabilities         # Available AI capabilities
+```
+
+#### API Usage Examples
+
+##### Loan Creation with AI Guidance
+```bash
+# Step 1: Get AI loan recommendations
+curl -X POST "https://api.banking.enterprise.com/api/v1/ai-assistant/loan-guidance" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": "CUST-123456",
+    "desiredAmount": 50000,
+    "purpose": "home-improvement",
+    "financialProfile": {
+      "monthlyIncome": 8000,
+      "monthlyExpenses": 3500,
+      "creditScore": 750
+    }
+  }'
+
+# Step 2: Create loan using domain factory method
+curl -X POST "https://api.banking.enterprise.com/api/v1/loans" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": "CUST-123456",
+    "principalAmount": {
+      "amount": 45000,
+      "currency": "USD"
+    },
+    "interestRate": 0.045,
+    "termInMonths": 60,
+    "loanType": "PERSONAL",
+    "purpose": "home-improvement"
+  }'
+```
+
+##### AI-Powered Chat Interaction
+```bash
+curl -X POST "https://api.banking.enterprise.com/api/v1/ai-assistant/chat" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "What are the best loan options for my financial situation?",
+    "conversationHistory": [],
+    "context": {
+      "customerId": "CUST-123456",
+      "sessionId": "sess-789012"
+    }
+  }'
+```
+
+### Architecture Documentation
+
+#### Hexagonal Architecture Implementation Guide
+
+- **🏗️ [Application Architecture Guide](docs/application-architecture/Application-Architecture-Guide.md)** - Complete hexagonal architecture implementation
+- **🎯 [Domain-Driven Design](docs/business-architecture/domain-models/)** - Pure domain models and events
+- **🔒 [Security Architecture](docs/security-architecture/)** - OAuth2.1 and FAPI compliance
+- **☁️ [Cloud Architecture](docs/technology-architecture/)** - AWS EKS deployment guide
+
+#### AI Integration Architecture
+
+- **🤖 [AI Integration Guide](docs/ai-integration/AI-Integration-Guide.md)** - Spring AI and OpenAI setup
+- **🧠 [RAG Implementation](docs/ai-integration/RAG-Implementation.md)** - Banking knowledge base integration
+- **📊 [Vector Database](docs/ai-integration/Vector-Database-Setup.md)** - PGVector configuration
+- **🔍 [AI Model Management](docs/ai-integration/AI-Model-Management.md)** - Model versioning and deployment
+
 ## Troubleshooting
 
 ### Common Issues
@@ -476,6 +981,10 @@ curl https://api.banking.enterprise.com/actuator/health/db
 | Application won't start | Check logs for missing environment variables or dependency issues |
 | PlantUML diagram generation | Ensure PlantUML is installed: `brew install plantuml` |
 | Git artifacts in commits | Use comprehensive .gitignore to exclude build artifacts |
+| **AI Assistant not responding** | **Verify OPENAI_API_KEY and network connectivity** |
+| **Vector database connection failed** | **Check PGVector extension and database configuration** |
+| **RAG queries returning empty results** | **Verify document indexing and embedding model** |
+| **AI model timeout** | **Increase timeout settings and check OpenAI API limits** |
 
 ### Deployment Validation
 
