@@ -32,25 +32,74 @@ configurations {
 repositories {
     mavenCentral()
     gradlePluginPortal()
+    maven {
+        url 'https://repo.spring.io/milestone'
+        name 'Spring Milestones'
+    }
+    maven {
+        url 'https://repo.spring.io/snapshot'
+        name 'Spring Snapshots'
+    }
 }
 
 ext {
+    // Core Framework Versions
     springBootVersion = '3.3.6'
     springCloudVersion = '2023.0.3'
-    micrometerVersion = '1.13.6'
-    testcontainersVersion = '1.20.3'
-    wiremockVersion = '3.9.1'
-    jjwtVersion = '0.12.6'
-    mapstructVersion = '1.6.2'
-    lombokVersion = '1.18.34'
+    springSecurityVersion = '6.3.4'
+    springDataVersion = '3.3.5'
+    
+    // Database and Persistence
     postgresqlVersion = '42.7.4'
     h2Version = '2.3.232'
-    springdocVersion = '2.6.0'
+    hibernateVersion = '6.5.3.Final'
+    flywayVersion = '10.19.0'
+    
+    // Caching and Messaging
     jedisVersion = '5.2.0'
-    logbackVersion = '1.5.12'
+    lettuceVersion = '6.4.0.RELEASE'
+    kafkaVersion = '3.8.0'
+    
+    // Security and Authentication
+    jjwtVersion = '0.12.6'
+    bcryptVersion = '0.10.2'
+    
+    // Monitoring and Resilience
+    micrometerVersion = '1.13.6'
+    prometheusVersion = '1.13.6'
+    resilience4jVersion = '2.2.0'
+    
+    // GraphQL
+    graphqlJavaVersion = '22.3'
+    graphqlJavaExtendedScalarsVersion = '22.0'
+    graphqlJavaExtendedValidationVersion = '22.0'
+    
+    // Utilities and Development
+    mapstructVersion = '1.6.2'
+    lombokVersion = '1.18.34'
     jacksonVersion = '2.18.1'
-    hibernateValidatorVersion = '8.0.1.Final'
     aspectjVersion = '1.9.22.1'
+    commonsLangVersion = '3.17.0'
+    commonsCollectionsVersion = '4.5.0-M2'
+    commonsIoVersion = '2.17.0'
+    
+    // Validation and API Documentation
+    hibernateValidatorVersion = '8.0.1.Final'
+    springdocVersion = '2.6.0'
+    
+    // HTTP Clients
+    httpclientVersion = '5.4.1'
+    
+    // Logging
+    logbackVersion = '1.5.12'
+    logstashLogbackVersion = '8.0'
+    
+    // Testing
+    testcontainersVersion = '1.20.3'
+    wiremockVersion = '3.9.1'
+    assertjVersion = '3.26.3'
+    awaitilityVersion = '4.2.2'
+    jsonPathVersion = '2.9.0'
 }
 
 dependencyManagement {
@@ -109,15 +158,15 @@ dependencies {
     implementation 'org.springframework.security:spring-security-oauth2-resource-server'
     implementation 'org.springframework.security:spring-security-oauth2-client'
     
-    // SAGA Pattern and Event Sourcing
-    implementation 'org.axonframework:axon-spring-boot-starter:4.9.4'
-    implementation 'org.axonframework:axon-kafka:4.9.4'
-    implementation 'org.axonframework:axon-micrometer:4.9.4'
+    // SAGA Pattern and Event Sourcing - Commented out for initial dev setup
+    // implementation 'org.axonframework:axon-spring-boot-starter:4.9.4'
+    // implementation 'org.axonframework:axon-kafka:4.9.4'
+    // implementation 'org.axonframework:axon-micrometer:4.9.4'
     
-    // Event Streaming with Kafka
+    // Event Streaming with Kafka - Basic kafka without confluent dependencies
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.apache.kafka:kafka-streams'
-    implementation 'io.confluent:kafka-avro-serializer:7.6.0'
+    // implementation 'io.confluent:kafka-avro-serializer:7.6.0'
     
     // Observability & Monitoring (Latest versions)
     implementation 'io.micrometer:micrometer-registry-prometheus'
@@ -146,18 +195,18 @@ dependencies {
     // API Documentation (Latest version)
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
     
-    // GraphQL Extended Features
-    implementation 'com.graphql-java:graphql-java-extended-scalars:21.0'
-    implementation 'com.graphql-java:graphql-java-extended-validation:21.0'
-    implementation 'com.graphql-java-dataloader:java-dataloader:3.2.0'
+    // GraphQL Extended Features - Basic GraphQL without dataloader for now
+    implementation "com.graphql-java:graphql-java-extended-scalars:${graphqlJavaExtendedScalarsVersion}"
+    implementation "com.graphql-java:graphql-java-extended-validation:${graphqlJavaExtendedValidationVersion}"
+    // implementation 'com.graphql-java-dataloader:java-dataloader:3.2.0'
     
     // Apache Commons for utilities
-    implementation 'org.apache.commons:commons-lang3:3.17.0'
-    implementation 'org.apache.commons:commons-collections4:4.5.0-M2'
-    implementation 'commons-io:commons-io:2.17.0'
+    implementation "org.apache.commons:commons-lang3:${commonsLangVersion}"
+    implementation "org.apache.commons:commons-collections4:${commonsCollectionsVersion}"
+    implementation "commons-io:commons-io:${commonsIoVersion}"
     
     // HTTP Client
-    implementation 'org.apache.httpcomponents.client5:httpclient5:5.4.1'
+    implementation "org.apache.httpcomponents.client5:httpclient5:${httpclientVersion}"
     
     // Testing (Latest versions)
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -173,13 +222,17 @@ dependencies {
     testImplementation "org.wiremock:wiremock-standalone:${wiremockVersion}"
     
     // AssertJ for fluent assertions
-    testImplementation 'org.assertj:assertj-core:3.26.3'
+    testImplementation "org.assertj:assertj-core:${assertjVersion}"
     
     // Awaitility for async testing
-    testImplementation 'org.awaitility:awaitility:4.2.2'
+    testImplementation "org.awaitility:awaitility:${awaitilityVersion}"
     
     // JsonPath for JSON testing
-    testImplementation 'com.jayway.jsonpath:json-path:2.9.0'
+    testImplementation "com.jayway.jsonpath:json-path:${jsonPathVersion}"
+    
+    // Spring AI with OpenAI Integration and MCP Support (using latest stable version)
+    implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M3'
+    implementation 'org.springframework.ai:spring-ai-core:1.0.0-M3'
 }
 
 // JaCoCo configuration for code coverage

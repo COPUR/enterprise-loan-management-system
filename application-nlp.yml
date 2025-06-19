@@ -1,0 +1,44 @@
+# Spring Boot Configuration for NLP Services
+spring:
+  application:
+    name: enterprise-loan-management-nlp
+  profiles:
+    active: dev,ai,nlp
+  
+  # SpringAI Configuration
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      base-url: https://api.openai.com
+      chat:
+        options:
+          model: gpt-4
+          temperature: 0.3
+          max-tokens: 1500
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+
+# Logging Configuration
+logging:
+  level:
+    com.bank.loanmanagement: DEBUG
+    org.springframework.ai: DEBUG
+    root: INFO
+
+# Banking Business Rules
+banking:
+  loan:
+    min-amount: 1000
+    max-amount: 500000
+    valid-terms: [6, 9, 12, 24, 36, 48, 60]
+    interest-rate:
+      min: 0.001
+      max: 0.005
+  
+  nlp:
+    enabled: true
+    confidence-threshold: 0.8
+    max-prompt-length: 2000
+    default-processing-timeout: 30s

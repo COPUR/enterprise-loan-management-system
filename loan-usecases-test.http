@@ -1,0 +1,382 @@
+# Loan Use Cases Test Suite
+# Enterprise Loan Management System - Comprehensive Loan Use Cases
+# Environment: Development/SIT/UAT
+# Base URL: http://localhost:8080
+
+### 1. Loan Application Use Cases
+
+### 1.1 New Loan Application - Personal Loan
+POST http://localhost:8080/api/loans/apply
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "loanType": "PERSONAL",
+  "amount": 50000.00,
+  "termMonths": 36,
+  "purpose": "Home renovation",
+  "monthlyIncome": 8000.00,
+  "employmentStatus": "EMPLOYED",
+  "requestedInterestRate": 8.5
+}
+
+### 1.2 Business Loan Application
+POST http://localhost:8080/api/loans/apply
+Content-Type: application/json
+
+{
+  "customerId": 2,
+  "loanType": "BUSINESS",
+  "amount": 200000.00,
+  "termMonths": 60,
+  "purpose": "Equipment purchase",
+  "businessRevenue": 500000.00,
+  "businessType": "MANUFACTURING",
+  "collateralValue": 150000.00
+}
+
+### 1.3 Mortgage Application
+POST http://localhost:8080/api/loans/apply
+Content-Type: application/json
+
+{
+  "customerId": 3,
+  "loanType": "MORTGAGE",
+  "amount": 400000.00,
+  "termMonths": 360,
+  "purpose": "Home purchase",
+  "propertyValue": 500000.00,
+  "downPayment": 100000.00,
+  "propertyType": "RESIDENTIAL"
+}
+
+### 2. Loan Assessment and Underwriting
+
+### 2.1 Credit Score Assessment
+GET http://localhost:8080/api/loans/assessment/credit-score/1
+Accept: application/json
+
+### 2.2 Risk Assessment for Loan Application
+POST http://localhost:8080/api/loans/assessment/risk
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "loanAmount": 50000.00,
+  "loanType": "PERSONAL",
+  "termMonths": 36,
+  "debtToIncomeRatio": 0.35,
+  "creditScore": 720
+}
+
+### 2.3 Automated Underwriting Decision
+POST http://localhost:8080/api/loans/underwriting/automated
+Content-Type: application/json
+
+{
+  "applicationId": "APP2024001",
+  "customerId": 1,
+  "requestedAmount": 50000.00,
+  "assessmentData": {
+    "creditScore": 720,
+    "monthlyIncome": 8000.00,
+    "existingDebt": 2800.00,
+    "employmentYears": 5
+  }
+}
+
+### 3. Loan Approval Workflow
+
+### 3.1 Submit for Manual Review
+PUT http://localhost:8080/api/loans/LOAN2024001/submit-review
+Content-Type: application/json
+
+{
+  "reviewType": "MANUAL",
+  "priority": "STANDARD",
+  "assignedUnderwriter": "UW001",
+  "notes": "Requires additional income verification"
+}
+
+### 3.2 Approve Loan
+PUT http://localhost:8080/api/loans/LOAN2024001/approve
+Content-Type: application/json
+
+{
+  "approvedAmount": 45000.00,
+  "approvedRate": 9.2,
+  "approvedTerm": 36,
+  "conditions": [
+    "Income verification required",
+    "Property insurance required"
+  ],
+  "approvedBy": "UW001"
+}
+
+### 3.3 Reject Loan Application
+PUT http://localhost:8080/api/loans/LOAN2024002/reject
+Content-Type: application/json
+
+{
+  "rejectionReasons": [
+    "Insufficient credit score",
+    "High debt-to-income ratio"
+  ],
+  "rejectedBy": "UW002",
+  "appealProcess": "Customer may reapply after 6 months"
+}
+
+### 4. Loan Disbursement
+
+### 4.1 Initiate Loan Disbursement
+POST http://localhost:8080/api/loans/LOAN2024001/disburse
+Content-Type: application/json
+
+{
+  "disbursementMethod": "BANK_TRANSFER",
+  "accountNumber": "1234567890",
+  "routingNumber": "021000021",
+  "disbursementAmount": 45000.00,
+  "authorizationCode": "AUTH123456"
+}
+
+### 4.2 Partial Disbursement
+POST http://localhost:8080/api/loans/LOAN2024003/disburse-partial
+Content-Type: application/json
+
+{
+  "disbursementAmount": 100000.00,
+  "totalLoanAmount": 200000.00,
+  "disbursementReason": "First construction phase",
+  "remainingDisbursements": 1
+}
+
+### 5. Loan Servicing and Management
+
+### 5.1 Generate Payment Schedule
+GET http://localhost:8080/api/loans/LOAN2024001/payment-schedule
+Accept: application/json
+
+### 5.2 Calculate Early Payoff Amount
+GET http://localhost:8080/api/loans/LOAN2024001/payoff-amount?effectiveDate=2024-12-31
+Accept: application/json
+
+### 5.3 Modify Loan Terms
+PUT http://localhost:8080/api/loans/LOAN2024001/modify
+Content-Type: application/json
+
+{
+  "modificationType": "RATE_REDUCTION",
+  "newInterestRate": 8.0,
+  "reason": "Customer loyalty program",
+  "effectiveDate": "2024-07-01",
+  "approvedBy": "LM001"
+}
+
+### 6. Payment Processing Use Cases
+
+### 6.1 Regular Monthly Payment
+POST http://localhost:8080/api/loans/LOAN2024001/payments
+Content-Type: application/json
+
+{
+  "paymentAmount": 1456.32,
+  "paymentDate": "2024-06-15",
+  "paymentMethod": "AUTO_DEBIT",
+  "accountNumber": "1234567890",
+  "confirmationRequired": false
+}
+
+### 6.2 Extra Principal Payment
+POST http://localhost:8080/api/loans/LOAN2024001/payments/extra-principal
+Content-Type: application/json
+
+{
+  "extraAmount": 2000.00,
+  "paymentDate": "2024-06-20",
+  "paymentMethod": "ONLINE",
+  "applyToPrincipal": true
+}
+
+### 6.3 Late Payment Processing
+POST http://localhost:8080/api/loans/LOAN2024001/payments/late
+Content-Type: application/json
+
+{
+  "paymentAmount": 1456.32,
+  "paymentDate": "2024-06-25",
+  "lateFee": 25.00,
+  "gracePeriodExpired": true,
+  "paymentMethod": "PHONE"
+}
+
+### 7. Delinquency Management
+
+### 7.1 Mark Account as Delinquent
+PUT http://localhost:8080/api/loans/LOAN2024001/delinquency
+Content-Type: application/json
+
+{
+  "delinquencyStatus": "30_DAYS_PAST_DUE",
+  "missedPayments": 1,
+  "totalPastDue": 1456.32,
+  "actionTaken": "COURTESY_CALL"
+}
+
+### 7.2 Create Payment Arrangement
+POST http://localhost:8080/api/loans/LOAN2024001/payment-arrangement
+Content-Type: application/json
+
+{
+  "arrangementType": "MODIFIED_PAYMENT_PLAN",
+  "reducedPayment": 800.00,
+  "durationMonths": 6,
+  "catchUpPayment": 2000.00,
+  "agreementDate": "2024-06-30"
+}
+
+### 7.3 Initiate Collection Process
+POST http://localhost:8080/api/loans/LOAN2024001/collections
+Content-Type: application/json
+
+{
+  "collectionStage": "EARLY_STAGE",
+  "assignedCollector": "COL001",
+  "collectionStrategy": "PHONE_OUTREACH",
+  "priorityLevel": "MEDIUM"
+}
+
+### 8. Loan Restructuring
+
+### 8.1 Loan Modification Request
+POST http://localhost:8080/api/loans/LOAN2024001/modification-request
+Content-Type: application/json
+
+{
+  "modificationType": "PAYMENT_REDUCTION",
+  "requestedNewPayment": 1200.00,
+  "hardshipReason": "Job loss",
+  "documentationProvided": ["income_statement", "unemployment_letter"],
+  "requestDate": "2024-06-30"
+}
+
+### 8.2 Loan Refinancing
+POST http://localhost:8080/api/loans/LOAN2024001/refinance
+Content-Type: application/json
+
+{
+  "newLoanAmount": 42000.00,
+  "newInterestRate": 7.5,
+  "newTermMonths": 48,
+  "cashOut": 0.00,
+  "refinanceReason": "RATE_IMPROVEMENT"
+}
+
+### 9. Compliance and Reporting
+
+### 9.1 Generate Loan Performance Report
+GET http://localhost:8080/api/loans/reports/performance?startDate=2024-01-01&endDate=2024-06-30
+Accept: application/json
+
+### 9.2 Regulatory Compliance Check
+GET http://localhost:8080/api/loans/LOAN2024001/compliance-check
+Accept: application/json
+
+### 9.3 Fair Lending Analysis
+POST http://localhost:8080/api/loans/fair-lending-analysis
+Content-Type: application/json
+
+{
+  "analysisType": "DISPARATE_IMPACT",
+  "timeframeDays": 365,
+  "protectedClasses": ["race", "gender", "age"],
+  "loanTypes": ["PERSONAL", "MORTGAGE"]
+}
+
+### 10. Loan Closure and Payoff
+
+### 10.1 Full Loan Payoff
+POST http://localhost:8080/api/loans/LOAN2024001/payoff
+Content-Type: application/json
+
+{
+  "payoffAmount": 38542.15,
+  "payoffDate": "2024-06-30",
+  "paymentMethod": "WIRE_TRANSFER",
+  "releaseCollateral": true,
+  "finalStatementRequired": true
+}
+
+### 10.2 Generate Payoff Letter
+GET http://localhost:8080/api/loans/LOAN2024001/payoff-letter?requestDate=2024-06-30
+Accept: application/pdf
+
+### 10.3 Close Loan Account
+PUT http://localhost:8080/api/loans/LOAN2024001/close
+Content-Type: application/json
+
+{
+  "closureReason": "PAID_IN_FULL",
+  "finalPaymentDate": "2024-06-30",
+  "satisfactionDocuments": ["lien_release", "title_transfer"],
+  "closedBy": "LM001"
+}
+
+### 11. Advanced Loan Features
+
+### 11.1 Interest Rate Lock
+POST http://localhost:8080/api/loans/rate-lock
+Content-Type: application/json
+
+{
+  "customerId": 4,
+  "loanType": "MORTGAGE",
+  "lockedRate": 6.75,
+  "lockPeriodDays": 60,
+  "loanAmount": 350000.00,
+  "lockFee": 500.00
+}
+
+### 11.2 Loan Assumption Transfer
+POST http://localhost:8080/api/loans/LOAN2024001/assumption
+Content-Type: application/json
+
+{
+  "newBorrowerId": 5,
+  "assumptionFee": 1000.00,
+  "creditApprovalRequired": true,
+  "assumptionDate": "2024-07-15",
+  "originalBorrowerRelease": false
+}
+
+### 12. Loan Portfolio Management
+
+### 12.1 Portfolio Risk Analysis
+GET http://localhost:8080/api/loans/portfolio/risk-analysis?segmentBy=loanType
+Accept: application/json
+
+### 12.2 Loan Pricing Optimization
+POST http://localhost:8080/api/loans/pricing/optimize
+Content-Type: application/json
+
+{
+  "loanType": "PERSONAL",
+  "marketConditions": {
+    "competitorRates": [8.5, 9.0, 8.75],
+    "economicIndicators": {
+      "primeRate": 7.5,
+      "unemploymentRate": 3.8
+    }
+  },
+  "targetMargin": 3.5
+}
+
+### Expected Outcomes:
+# - Successful loan applications with proper validation
+# - Accurate risk assessment and underwriting decisions
+# - Proper workflow management through approval process
+# - Secure disbursement and payment processing
+# - Effective delinquency and collection management
+# - Compliant reporting and regulatory adherence
+# - Proper loan closure and account management
+# - Advanced feature functionality validation
