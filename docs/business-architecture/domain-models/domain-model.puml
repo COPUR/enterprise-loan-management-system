@@ -105,62 +105,159 @@ package "Customer Management" {
     }
 }
 
-package "Loan Origination" {
+package "Loan Management" {
     class Loan<<Aggregate Root>> AGGREGATE_ROOT_COLOR {
-        -loanId: LoanId
+        -id: LoanId
         -customerId: CustomerId
-        -loanAmount: Money
-        -numberOfInstallments: InstallmentCount
-        -interestRate: InterestRate
-        -createDate: LocalDateTime
-        -isPaid: boolean
+        -principalAmount: Money
+        -outstandingBalance: Money
+        -interestRate: BigDecimal
+        -termInMonths: Integer
+        -loanType: LoanType
+        -status: LoanStatus
+        -purpose: String
+        -applicationDate: LocalDate
+        -approvalDate: LocalDate
+        -disbursementDate: LocalDate
+        -approvedBy: String
+        -rejectionReason: String
         -installments: List<LoanInstallment>
-        +getTotalAmount(): Money
-        +getRemainingAmount(): Money
-        +getUnpaidInstallments(): List<LoanInstallment>
+        +create(id, customerId, amount, rate, term, type, purpose): Loan
+        +approve(approvedBy: String)
+        +reject(reason: String, rejectedBy: String)
+        +disburse(disbursementDate: LocalDate)
+        +makePayment(amount: Money, paymentDate: LocalDate)
+        +markAsDefaulted(reason: String)
+        +restructure(newRate: BigDecimal, newTerm: Integer, reason: String)
+        +generateAmortizationSchedule()
+        +calculateMonthlyPayment(): Money
+        +getTotalInterest(): Money
+        +getNextPaymentDue(): LocalDate
+        +isOverdue(): boolean
+        +getDaysOverdue(): Integer
         +isFullyPaid(): boolean
-        +markAsPaid()
     }
     
     class LoanInstallment<<Entity>> ENTITY_COLOR {
-        -installmentId: InstallmentId
-        -loan: Loan
-        -amount: Money
-        -paidAmount: Money
+        -loanId: LoanId
+        -installmentNumber: Integer
         -dueDate: LocalDate
-        -paymentDate: LocalDateTime
-        -isPaid: boolean
-        +processPayment(amount: Money, date: LocalDateTime)
+        -principalAmount: Money
+        -interestAmount: Money
+        -totalAmount: Money
+        -paidAmount: Money
+        -paymentDate: LocalDate
+        -status: InstallmentStatus
+        +create(loanId, number, dueDate, principal, interest, total): LoanInstallment
+        +processPayment(amount: Money, paymentDate: LocalDate)
         +calculateEarlyPaymentDiscount(paymentDate: LocalDate): Money
         +calculateLatePaymentPenalty(paymentDate: LocalDate): Money
         +isOverdue(): boolean
+        +isPartiallyPaid(): boolean
+        +isPaid(): boolean
+        +getRemainingAmount(): Money
     }
     
     class LoanId<<Value Object>> VALUE_OBJECT_COLOR {
         -value: String
         +of(value: String): LoanId
         +generate(): LoanId
+        +getValue(): String
     }
     
-    class InstallmentId<<Value Object>> VALUE_OBJECT_COLOR {
-        -value: String
-        +of(value: String): InstallmentId
-        +generate(): InstallmentId
+    class LoanType<<Value Object>> VALUE_OBJECT_COLOR {
+        -type: String
+        +PERSONAL: LoanType
+        +MORTGAGE: LoanType
+        +AUTO: LoanType
+        +BUSINESS: LoanType
+        +EDUCATIONAL: LoanType
+        +of(type: String): LoanType
     }
     
-    class LoanCreated<<Event>> {
-        -loanId: LoanId
-        -customerId: CustomerId
-        -totalAmount: Money
-        -numberOfInstallments: InstallmentCount
+    class LoanStatus<<Value Object>> VALUE_OBJECT_COLOR {
+        -status: String
+        +PENDING: LoanStatus
+        +APPROVED: LoanStatus
+        +REJECTED: LoanStatus
+        +ACTIVE: LoanStatus
+        +PAID_OFF: LoanStatus
+        +DEFAULTED: LoanStatus
+        +CANCELLED: LoanStatus
+        +of(status: String): LoanStatus
     }
     
-    class LoanApplicationSubmitted<<Event>> {
-        -customerId: CustomerId
-        -loanAmount: Money
-        -interestRate: InterestRate
-        -numberOfInstallments: InstallmentCount
-        -applicationId: String
+    class InstallmentStatus<<Value Object>> VALUE_OBJECT_COLOR {
+        -status: String
+        +PENDING: InstallmentStatus
+        +PAID: InstallmentStatus
+        +PARTIALLY_PAID: InstallmentStatus
+        +OVERDUE: InstallmentStatus
+        +of(status: String): InstallmentStatus
+    }
+    
+    class LoanApplicationSubmittedEvent<<Event>> {
+        -loanId: String
+        -customerId: String
+        -requestedAmount: Money
+        -loanType: LoanType
+        -purpose: String
+        -timestamp: LocalDateTime
+    }
+    
+    class LoanApprovedEvent<<Event>> {
+        -loanId: String
+        -customerId: String
+        -approvedAmount: Money
+        -approvedBy: String
+        -timestamp: LocalDateTime
+    }
+    
+    class LoanRejectedEvent<<Event>> {
+        -loanId: String
+        -customerId: String
+        -rejectionReason: String
+        -rejectedBy: String
+        -timestamp: LocalDateTime
+    }
+    
+    class LoanDisbursedEvent<<Event>> {
+        -loanId: String
+        -customerId: String
+        -disbursedAmount: Money
+        -disbursementDate: LocalDate
+        -timestamp: LocalDateTime
+    }
+    
+    class LoanPaymentMadeEvent<<Event>> {
+        -loanId: String
+        -customerId: String
+        -paymentAmount: Money
+        -paymentDate: LocalDate
+        -timestamp: LocalDateTime
+    }
+    
+    class LoanPaidOffEvent<<Event>> {
+        -loanId: String
+        -customerId: String
+        -timestamp: LocalDateTime
+    }
+    
+    class LoanDefaultedEvent<<Event>> {
+        -loanId: String
+        -customerId: String
+        -outstandingAmount: Money
+        -defaultReason: String
+        -timestamp: LocalDateTime
+    }
+    
+    class LoanRestructuredEvent<<Event>> {
+        -loanId: String
+        -customerId: String
+        -newInterestRate: BigDecimal
+        -newTermInMonths: Integer
+        -restructureReason: String
+        -timestamp: LocalDateTime
     }
 }
 
@@ -406,12 +503,13 @@ Customer *-- Money
 Loan *-- LoanId
 Loan *-- CustomerId
 Loan *-- Money
-Loan *-- InstallmentCount
-Loan *-- InterestRate
+Loan *-- LoanType
+Loan *-- LoanStatus
 Loan *-- LoanInstallment
 
-LoanInstallment *-- InstallmentId
+LoanInstallment *-- LoanId
 LoanInstallment *-- Money
+LoanInstallment *-- InstallmentStatus
 
 Payment *-- PaymentId
 Payment *-- LoanId
@@ -437,13 +535,21 @@ InstallmentCount ..|> ValueObject
 CustomerId ..|> ValueObject
 CreditLimit ..|> ValueObject
 LoanId ..|> ValueObject
-InstallmentId ..|> ValueObject
+LoanType ..|> ValueObject
+LoanStatus ..|> ValueObject
+InstallmentStatus ..|> ValueObject
 PaymentId ..|> ValueObject
 
 CreditReserved --|> DomainEvent
 CreditReleased --|> DomainEvent
-LoanCreated --|> DomainEvent
-LoanApplicationSubmitted --|> DomainEvent
+LoanApplicationSubmittedEvent --|> DomainEvent
+LoanApprovedEvent --|> DomainEvent
+LoanRejectedEvent --|> DomainEvent
+LoanDisbursedEvent --|> DomainEvent
+LoanPaymentMadeEvent --|> DomainEvent
+LoanPaidOffEvent --|> DomainEvent
+LoanDefaultedEvent --|> DomainEvent
+LoanRestructuredEvent --|> DomainEvent
 PaymentProcessed --|> DomainEvent
 LoanFullyPaid --|> DomainEvent
 PartyRoleAssigned --|> DomainEvent
@@ -452,7 +558,14 @@ PartyAccessReviewRequired --|> DomainEvent
 
 Customer ..> CreditReserved : raises
 Customer ..> CreditReleased : raises
-Loan ..> LoanCreated : raises
+Loan ..> LoanApplicationSubmittedEvent : raises
+Loan ..> LoanApprovedEvent : raises
+Loan ..> LoanRejectedEvent : raises
+Loan ..> LoanDisbursedEvent : raises
+Loan ..> LoanPaymentMadeEvent : raises
+Loan ..> LoanPaidOffEvent : raises
+Loan ..> LoanDefaultedEvent : raises
+Loan ..> LoanRestructuredEvent : raises
 Payment ..> PaymentProcessed : raises
 Party ..> PartyRoleAssigned : raises
 Party ..> PartyRoleRevoked : raises
