@@ -232,4 +232,11 @@ public class PartyGroup {
         this.assignmentReason = reason;
         this.lastReviewedAt = LocalDateTime.now();
     }
+    
+    /**
+     * Alias for isCurrentlyActive() to match the usage in Party.java
+     */
+    public boolean isActive() {
+        return isCurrentlyActive();
+    }
 }

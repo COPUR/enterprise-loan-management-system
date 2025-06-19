@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
  * Simple Regression Test for Enterprise Loan Management System
  * Tests basic Spring Boot application startup and context loading
  */
-@SpringBootTest(classes = TestApplication.class, webEnvironment = WebEnvironment.NONE)
+@SpringBootTest(classes = LoanManagementApplication.class, webEnvironment = WebEnvironment.NONE)
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class SimpleRegressionTest {

@@ -66,7 +66,7 @@ package "FAPI 1.0 Advanced Security Framework" {
 package "External Security Systems" {
     component [Certificate Authority\n(CA)] as CertificateAuthority MTLS_COLOR
     component [Hardware Security Module (HSM)] as HSM SECURITY_COLOR
-    component [SIEM System\n(Security Monitoring)" as SIEM SECURITY_COLOR
+    component [SIEM System\n(Security Monitoring)] as SIEM SECURITY_COLOR
 }
 
 ' Client to Gateway Flow

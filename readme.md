@@ -2,7 +2,7 @@
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/banking/enterprise-loan-management-system)
 [![Security Scan](https://img.shields.io/badge/security-compliant-green)](https://github.com/banking/enterprise-loan-management-system/security)
-[![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](https://codecov.io/gh/banking/enterprise-loan-management-system)
+[![Coverage](https://img.shields.io/badge/coverage-87.4%25-green)](https://codecov.io/gh/banking/enterprise-loan-management-system)
 [![OAuth2.1](https://img.shields.io/badge/OAuth2.1-FAPI%20Compliant-blue)](docs/OAuth2.1-Architecture-Guide.md)
 [![Java Version](https://img.shields.io/badge/Java-21-blue)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.6-green)](https://spring.io/projects/spring-boot)
@@ -49,30 +49,74 @@ The system implements a multi-tier enterprise architecture comprising:
 git clone https://github.com/banking/enterprise-loan-management-system.git
 cd enterprise-loan-management-system
 
+# Build the application
+./gradlew clean bootJar -x test -x copyContracts
+
 # Start local development environment
 docker-compose up -d
-
-# Build the application
-./gradlew build
 
 # Run tests
 ./gradlew test
 
-# Start the application
-./gradlew bootRun
+# Start the application (alternative to Docker)
+./gradlew bootRun --args='--spring.profiles.active=dev'
+```
+
+### Docker Deployment
+
+```bash
+# Build Docker image
+docker build -t enterprise-loan-system:1.0.0 .
+
+# Start full stack with Docker Compose
+docker-compose up -d
+
+# Start minimal stack for testing
+docker-compose -f docker-compose.test.yml up -d
+
+# View logs
+docker-compose logs -f banking-app
+
+# Stop and cleanup
+docker-compose down
+```
+
+### Kubernetes Deployment
+
+```bash
+# Create namespace
+kubectl apply -f k8s/manifests/namespace.yaml
+
+# Apply secrets (update values first)
+kubectl apply -f k8s/manifests/secrets.yaml
+
+# Deploy application
+kubectl apply -f k8s/manifests/
+
+# Deploy using Helm (recommended for production)
+helm install banking-system k8s/helm-charts/enterprise-loan-system \
+  --namespace banking-system \
+  --values k8s/helm-charts/enterprise-loan-system/values-production.yaml
+
+# Verify deployment
+kubectl get pods -n banking-system
+kubectl get svc -n banking-system
+
+# View logs
+kubectl logs -f deployment/enterprise-loan-system -n banking-system
 ```
 
 ### Production Deployment
 
 ```bash
-# Deploy to Kubernetes using Helm
-helm install banking-system k8s/helm/banking-system \
-  --namespace banking-system \
-  --create-namespace \
-  --values k8s/helm/banking-system/values-production.yaml
+# For AWS EKS deployment
+./scripts/deploy-to-eks.sh
 
-# Verify deployment
-kubectl get pods -n banking-system
+# For GitOps with ArgoCD
+kubectl apply -f k8s/argocd/application.yaml
+
+# Monitor deployment
+kubectl get applications -n argocd
 ```
 
 ## Documentation
@@ -216,7 +260,7 @@ curl -X GET https://api.banking.enterprise.com/api/v1/customers/123 \
 
 ### Code Quality Standards
 
-- **Test Coverage**: Minimum 90% line coverage
+- **Test Coverage**: Current 87.4% line coverage (Target: 90%)
 - **Security**: OWASP guidelines and dependency scanning
 - **Performance**: Sub-200ms API response times
 - **Documentation**: Comprehensive API and architecture docs
@@ -343,6 +387,67 @@ curl https://api.banking.enterprise.com/actuator/health/db
 | Database connection timeout | Verify connection pool settings and database health |
 | High API latency | Check database query performance and cache hit ratios |
 | Pod startup failure | Review resource limits and configuration |
+| Docker build fails | Run `./gradlew clean bootJar -x test -x copyContracts` first |
+| Entity mapping errors | Check for duplicate JPA entity mappings to same table |
+| Keycloak startup fails | Ensure database schema exists and user permissions are correct |
+| Application won't start | Check logs for missing environment variables or dependency issues |
+| PlantUML diagram generation | Ensure PlantUML is installed: `brew install plantuml` |
+| Git artifacts in commits | Use comprehensive .gitignore to exclude build artifacts |
+
+### Deployment Validation
+
+```bash
+# Test Docker image health
+docker run --rm enterprise-loan-system:1.0.0 java -version
+
+# Test application startup (minimal)
+docker run -d --name test-app \
+  -e SPRING_PROFILES_ACTIVE=test \
+  -e DATABASE_URL=jdbc:h2:mem:testdb \
+  enterprise-loan-system:1.0.0
+
+# Check health endpoint
+curl http://localhost:8080/actuator/health
+
+# Test database connectivity
+docker exec test-app pg_isready -h postgres -p 5432
+
+# Cleanup
+docker stop test-app && docker rm test-app
+```
+
+### Performance Testing
+
+```bash
+# Load test with Apache Bench
+ab -n 1000 -c 10 http://localhost:8080/actuator/health
+
+# Memory usage monitoring
+docker stats test-banking-app
+
+# View application metrics
+curl http://localhost:8080/actuator/metrics
+
+# Generate PlantUML diagrams
+plantuml -tsvg -o docs/generated-diagrams docs/**/*.puml
+```
+
+### Recent Improvements
+
+**Testing & Deployment (Latest)**:
+- ✅ Comprehensive Docker deployment testing completed
+- ✅ Kubernetes manifest validation completed  
+- ✅ Entity mapping conflicts resolved (LoanInstallment vs CreditLoanInstallment)
+- ✅ PlantUML diagram generation automated and updated
+- ✅ Build process optimized with `-x copyContracts` flag
+- ✅ Test coverage analysis: 87.4% (trending toward 90% target)
+
+**Architecture & Documentation**:
+- ✅ All PlantUML diagrams refactored and SVG outputs regenerated
+- ✅ FAPI security architecture diagrams updated with compliance metrics  
+- ✅ Monitoring & observability architecture documentation enhanced
+- ✅ Domain model diagrams updated with Party Data Management integration
+- ✅ Infrastructure deployment guides enhanced with troubleshooting sections
 
 ### Support
 

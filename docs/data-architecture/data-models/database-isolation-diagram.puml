@@ -17,77 +17,77 @@ title Microservices Database Isolation Architecture
 package "Microservice Database Isolation" {
     
     database "Customer Database" as CUSTOMER_DB #E8F5E8 {
-        **Schema: customer_db**
-        **Port: 5432**
-        **Pool: 15 max, 3 min**
+        Schema: customer_db
+        Port: 5432
+        Pool: 15 max, 3 min
         
-        --Tables--
+        Tables:
         • customers
         • credit_reservations
         • account_status_history
         • audit_logs
         
-        --Isolation Level--
+        Isolation Level:
         READ_COMMITTED
         
-        --Backup Strategy--
+        Backup Strategy:
         Point-in-time recovery
         Daily automated backups
     }
     
     database "Loan Database" as LOAN_DB #FFE8E8 {
-        **Schema: loan_db**
-        **Port: 5432**
-        **Pool: 15 max, 3 min**
+        Schema: loan_db
+        Port: 5432
+        Pool: 15 max, 3 min
         
-        --Tables--
+        Tables:
         • loans
         • loan_installments
         • loan_applications
         • business_rules_cache
         
-        --Isolation Level--
+        Isolation Level:
         READ_COMMITTED
         
-        --Backup Strategy--
+        Backup Strategy:
         Transactional consistency
         Hourly incremental backups
     }
     
     database "Payment Database" as PAYMENT_DB #E8F8E8 {
-        **Schema: payment_db**
-        **Port: 5432**
-        **Pool: 15 max, 3 min**
+        Schema: payment_db**
+        Port: 5432**
+        Pool: 15 max, 3 min**
         
-        --Tables--
+        Tables:
         • payments
         • payment_installments
         • payment_history
         • discount_penalty_log
         
-        --Isolation Level--
+        Isolation Level:
         READ_COMMITTED
         
-        --Backup Strategy--
+        Backup Strategy:
         Financial compliance
         Real-time replication
     }
     
     database "Gateway Database" as GATEWAY_DB #F0F0F0 {
-        **Schema: banking_gateway**
-        **Port: 5432**
-        **Pool: 20 max, 5 min**
+        Schema: banking_gateway**
+        Port: 5432**
+        Pool: 20 max, 5 min**
         
-        --Tables--
+        Tables:
         • saga_states
         • audit_events
         • session_data
         • api_rate_limits
         
-        --Isolation Level--
+        Isolation Level:
         SERIALIZABLE
         
-        --Backup Strategy--
+        Backup Strategy:
         SAGA state preservation
         Continuous archival
     }
@@ -96,7 +96,7 @@ package "Microservice Database Isolation" {
 package "Service-Database Mapping" {
     
     rectangle "Customer Service" as CUSTOMER_SVC #C8E6C9 {
-        **Port: 8081**
+        Port: 8081**
         **Endpoints:**
         • POST /customers
         • GET /customers/{id}
@@ -110,7 +110,7 @@ package "Service-Database Mapping" {
     }
     
     rectangle "Loan Service" as LOAN_SVC #FFCDD2 {
-        **Port: 8082**
+        Port: 8082**
         **Endpoints:**
         • POST /loans
         • GET /loans/{id}
@@ -124,7 +124,7 @@ package "Service-Database Mapping" {
     }
     
     rectangle "Payment Service" as PAYMENT_SVC #DCEDC8 {
-        **Port: 8083**
+        Port: 8083**
         **Endpoints:**
         • POST /payments/{loanId}
         • GET /payments/{paymentId}
@@ -138,7 +138,7 @@ package "Service-Database Mapping" {
     }
     
     rectangle "API Gateway" as GATEWAY_SVC #E1F5FE {
-        **Port: 8080**
+        Port: 8080**
         **Endpoints:**
         • Circuit breaker status
         • Rate limiting metrics
