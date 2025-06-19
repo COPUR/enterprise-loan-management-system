@@ -1,0 +1,109 @@
+# Spring AI Configuration for Enterprise Loan Management System
+# AI and MCP Integration Settings
+
+spring:
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        enabled: true
+        options:
+          model: ${OPENAI_MODEL:gpt-4}
+          temperature: ${OPENAI_TEMPERATURE:0.3}
+          max-tokens: ${OPENAI_MAX_TOKENS:1000}
+          top-p: ${OPENAI_TOP_P:1.0}
+          frequency-penalty: ${OPENAI_FREQUENCY_PENALTY:0.0}
+          presence-penalty: ${OPENAI_PRESENCE_PENALTY:0.0}
+
+# AI Service Configuration
+ai:
+  assistant:
+    enabled: ${AI_ASSISTANT_ENABLED:true}
+    timeout: ${AI_TIMEOUT:30000}
+    retry:
+      max-attempts: ${AI_RETRY_MAX_ATTEMPTS:3}
+      delay: ${AI_RETRY_DELAY:1000}
+    
+    # Model Configuration for Different Use Cases
+    models:
+      loan-analysis:
+        model: ${AI_LOAN_MODEL:gpt-4}
+        temperature: 0.2
+        max-tokens: 1500
+        system-prompt: "You are a senior banking AI assistant specialized in loan analysis..."
+      
+      risk-assessment:
+        model: ${AI_RISK_MODEL:gpt-4}
+        temperature: 0.1
+        max-tokens: 1200
+        system-prompt: "You are a banking risk assessment AI specialized in credit risk analysis..."
+      
+      customer-service:
+        model: ${AI_CUSTOMER_MODEL:gpt-4}
+        temperature: 0.4
+        max-tokens: 800
+        system-prompt: "You are a banking product specialist AI focused on customer service..."
+    
+    # Business Rules Integration
+    business-rules:
+      compliance-checking: ${AI_COMPLIANCE_ENABLED:true}
+      regulatory-validation: ${AI_REGULATORY_ENABLED:true}
+      portfolio-risk-assessment: ${AI_PORTFOLIO_RISK_ENABLED:true}
+      fraud-monitoring: ${AI_FRAUD_MONITORING_ENABLED:true}
+    
+    # Performance and Monitoring
+    monitoring:
+      metrics-enabled: ${AI_METRICS_ENABLED:true}
+      logging-level: ${AI_LOGGING_LEVEL:INFO}
+      health-check-interval: ${AI_HEALTH_CHECK_INTERVAL:300000}
+      performance-tracking: ${AI_PERFORMANCE_TRACKING:true}
+
+# MCP (Model Context Protocol) Configuration
+mcp:
+  enabled: ${MCP_ENABLED:true}
+  server:
+    port: ${MCP_SERVER_PORT:8081}
+    host: ${MCP_SERVER_HOST:localhost}
+  
+  banking:
+    context:
+      loan-policies: ${MCP_LOAN_POLICIES:true}
+      risk-parameters: ${MCP_RISK_PARAMETERS:true}
+      regulatory-rules: ${MCP_REGULATORY_RULES:true}
+      market-conditions: ${MCP_MARKET_CONDITIONS:true}
+
+# Security and Compliance for AI
+security:
+  ai:
+    audit-logging: ${AI_AUDIT_LOGGING:true}
+    data-encryption: ${AI_DATA_ENCRYPTION:true}
+    access-control: ${AI_ACCESS_CONTROL:true}
+    compliance:
+      fapi: ${AI_FAPI_COMPLIANCE:true}
+      gdpr: ${AI_GDPR_COMPLIANCE:true}
+      pci: ${AI_PCI_COMPLIANCE:true}
+
+# Caching for AI Responses
+cache:
+  ai:
+    enabled: ${AI_CACHE_ENABLED:true}
+    ttl: ${AI_CACHE_TTL:300}
+    max-size: ${AI_CACHE_MAX_SIZE:1000}
+    
+# Rate Limiting for AI Services
+rate-limiting:
+  ai:
+    enabled: ${AI_RATE_LIMITING_ENABLED:true}
+    requests-per-minute: ${AI_RATE_LIMIT_RPM:100}
+    burst-capacity: ${AI_BURST_CAPACITY:20}
+
+# Logging Configuration for AI Operations
+logging:
+  level:
+    com.bank.loanmanagement.infrastructure.adapter.SpringAIAssistantAdapter: ${AI_ADAPTER_LOG_LEVEL:INFO}
+    com.bank.loanmanagement.application.service.AIAssistantApplicationService: ${AI_SERVICE_LOG_LEVEL:INFO}
+    org.springframework.ai: ${SPRING_AI_LOG_LEVEL:INFO}
+  
+  pattern:
+    ai: "[AI] %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

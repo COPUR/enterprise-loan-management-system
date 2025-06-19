@@ -1,0 +1,471 @@
+# Comprehensive Loan Use Cases with AI Integration Test Suite
+# Enterprise Loan Management System - Hexagonal Architecture with Spring AI
+# Environment: Development/SIT/UAT
+# Base URL: http://localhost:8080
+
+### 1. AI Service Health and Configuration Tests
+
+### 1.1 AI Service Health Check
+GET http://localhost:8080/api/ai/health
+Accept: application/json
+
+### 1.2 AI Configuration and Capabilities
+GET http://localhost:8080/api/ai/config
+Accept: application/json
+
+### 1.3 AI Insights Dashboard
+GET http://localhost:8080/api/ai/insights/dashboard
+Accept: application/json
+
+### 2. AI-Powered Loan Application Analysis
+
+### 2.1 Personal Loan Application Analysis with AI
+POST http://localhost:8080/api/ai/analyze/loan-application
+Content-Type: application/json
+
+{
+  "applicationId": "APP2024001",
+  "customerId": 1,
+  "loanType": "PERSONAL",
+  "loanAmount": 50000.00,
+  "termMonths": 36,
+  "purpose": "Home renovation",
+  "customerProfile": {
+    "creditScore": 720,
+    "monthlyIncome": 8000.00,
+    "employmentStatus": "EMPLOYED",
+    "employmentYears": 5,
+    "debtToIncomeRatio": 0.35,
+    "existingDebt": 2800.00
+  },
+  "requestedInterestRate": 8.5,
+  "collateralOffered": false
+}
+
+### 2.2 Business Loan Application Analysis with AI
+POST http://localhost:8080/api/ai/analyze/loan-application
+Content-Type: application/json
+
+{
+  "applicationId": "APP2024002", 
+  "customerId": 4,
+  "loanType": "BUSINESS",
+  "loanAmount": 200000.00,
+  "termMonths": 60,
+  "purpose": "Equipment purchase",
+  "customerProfile": {
+    "creditScore": 700,
+    "businessRevenue": 500000.00,
+    "businessType": "MANUFACTURING",
+    "yearsInBusiness": 8,
+    "industryRisk": "MEDIUM"
+  },
+  "collateralValue": 150000.00,
+  "requestedInterestRate": 7.2
+}
+
+### 2.3 Mortgage Application Analysis with AI
+POST http://localhost:8080/api/ai/analyze/loan-application
+Content-Type: application/json
+
+{
+  "applicationId": "APP2024003",
+  "customerId": 6,
+  "loanType": "MORTGAGE",
+  "loanAmount": 400000.00,
+  "termMonths": 360,
+  "purpose": "Home purchase",
+  "customerProfile": {
+    "creditScore": 760,
+    "monthlyIncome": 9166.67,
+    "employmentStatus": "EMPLOYED",
+    "employmentYears": 8,
+    "debtToIncomeRatio": 0.32
+  },
+  "propertyValue": 500000.00,
+  "downPayment": 100000.00,
+  "propertyType": "RESIDENTIAL"
+}
+
+### 3. AI-Powered Credit Risk Assessment
+
+### 3.1 Comprehensive Credit Risk Assessment
+POST http://localhost:8080/api/ai/assess/credit-risk
+Content-Type: application/json
+
+{
+  "customerData": {
+    "customerId": 1,
+    "creditScore": 720,
+    "monthlyIncome": 8000.00,
+    "employmentStatus": "EMPLOYED",
+    "employmentYears": 5,
+    "existingDebt": 2800.00,
+    "paymentHistory": "EXCELLENT",
+    "accountAge": "5_YEARS",
+    "creditUtilization": 0.28
+  },
+  "loanData": {
+    "loanType": "PERSONAL",
+    "requestedAmount": 50000.00,
+    "termMonths": 36,
+    "purpose": "HOME_RENOVATION",
+    "loanToValueRatio": 0.8
+  }
+}
+
+### 3.2 High-Risk Customer Assessment
+POST http://localhost:8080/api/ai/assess/credit-risk
+Content-Type: application/json
+
+{
+  "customerData": {
+    "customerId": 8,
+    "creditScore": 620,
+    "monthlyIncome": 3750.00,
+    "employmentStatus": "PART_TIME",
+    "employmentYears": 1,
+    "existingDebt": 2100.00,
+    "paymentHistory": "FAIR",
+    "accountAge": "6_MONTHS",
+    "creditUtilization": 0.68
+  },
+  "loanData": {
+    "loanType": "PERSONAL",
+    "requestedAmount": 25000.00,
+    "termMonths": 36,
+    "purpose": "DEBT_CONSOLIDATION",
+    "loanToValueRatio": 1.0
+  }
+}
+
+### 4. AI-Powered Loan Recommendations
+
+### 4.1 Personalized Loan Recommendations for Prime Customer
+POST http://localhost:8080/api/ai/recommend/loans
+Content-Type: application/json
+
+{
+  "customerId": 2,
+  "customerSegment": "PRIME",
+  "creditScore": 750,
+  "monthlyIncome": 7916.67,
+  "employmentStatus": "EMPLOYED",
+  "existingLoans": 1,
+  "totalExistingDebt": 15000.00,
+  "financialGoals": ["HOME_PURCHASE", "INVESTMENT"],
+  "riskTolerance": "MODERATE",
+  "preferredLoanTypes": ["MORTGAGE", "PERSONAL"],
+  "relationshipLength": "3_YEARS"
+}
+
+### 4.2 Recommendations for Business Customer
+POST http://localhost:8080/api/ai/recommend/loans
+Content-Type: application/json
+
+{
+  "customerId": 5,
+  "customerSegment": "BUSINESS",
+  "creditScore": 740,
+  "businessRevenue": 500000.00,
+  "businessType": "MANUFACTURING",
+  "yearsInBusiness": 10,
+  "seasonalityFactor": "LOW",
+  "expansionPlans": true,
+  "equipmentFinancingNeeds": 200000.00,
+  "workingCapitalNeeds": 50000.00
+}
+
+### 5. AI-Powered Financial Health Analysis
+
+### 5.1 Comprehensive Financial Health Assessment
+POST http://localhost:8080/api/ai/analyze/financial-health
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "monthlyIncome": 8000.00,
+  "monthlyExpenses": 5500.00,
+  "totalDebt": 45000.00,
+  "totalAssets": 125000.00,
+  "savingsAccount": 15000.00,
+  "investmentAccounts": 35000.00,
+  "monthlyDebtPayments": 1200.00,
+  "creditUtilization": 0.28,
+  "paymentHistory": {
+    "onTimePayments": 98,
+    "latePayments": 2,
+    "missedPayments": 0
+  },
+  "emergencyFund": 12000.00
+}
+
+### 6. AI-Powered Fraud Detection
+
+### 6.1 Transaction Fraud Analysis
+POST http://localhost:8080/api/ai/detect/fraud
+Content-Type: application/json
+
+{
+  "transactionId": "TXN2024001",
+  "customerId": 3,
+  "transactionAmount": 5000.00,
+  "transactionType": "LOAN_APPLICATION",
+  "timestamp": "2024-06-19T14:30:00Z",
+  "deviceInfo": {
+    "ipAddress": "192.168.1.100",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "deviceFingerprint": "abc123def456"
+  },
+  "locationInfo": {
+    "country": "US",
+    "state": "NY",
+    "city": "New York"
+  },
+  "customerBehavior": {
+    "averageTransactionAmount": 1500.00,
+    "transactionFrequency": "MONTHLY",
+    "usualTransactionTimes": ["09:00", "17:00"],
+    "typicalLocations": ["NY", "NJ"]
+  }
+}
+
+### 6.2 Suspicious Pattern Detection
+POST http://localhost:8080/api/ai/detect/fraud
+Content-Type: application/json
+
+{
+  "transactionId": "TXN2024002",
+  "customerId": 9,
+  "transactionAmount": 15000.00,
+  "transactionType": "LOAN_APPLICATION",
+  "timestamp": "2024-06-19T02:15:00Z",
+  "deviceInfo": {
+    "ipAddress": "203.45.67.89",
+    "userAgent": "Unknown",
+    "deviceFingerprint": "suspicious123"
+  },
+  "locationInfo": {
+    "country": "XX",
+    "state": "Unknown",
+    "city": "Unknown"
+  },
+  "anomalyIndicators": [
+    "UNUSUAL_TIME",
+    "DIFFERENT_LOCATION",
+    "HIGH_AMOUNT",
+    "NEW_DEVICE"
+  ]
+}
+
+### 7. AI-Powered Collection Strategy
+
+### 7.1 Early Stage Delinquency Strategy
+POST http://localhost:8080/api/ai/strategy/collection
+Content-Type: application/json
+
+{
+  "loanId": "LOAN2024004",
+  "customerId": 3,
+  "delinquencyStage": "30_DAYS_PAST_DUE",
+  "amountPastDue": 1567.89,
+  "totalLoanBalance": 52341.23,
+  "paymentHistory": {
+    "totalPayments": 12,
+    "latePayments": 3,
+    "missedPayments": 1
+  },
+  "customerProfile": {
+    "contactPreference": "PHONE",
+    "bestContactTime": "EVENING",
+    "languagePreference": "ENGLISH",
+    "previousCollectionResponse": "COOPERATIVE"
+  },
+  "financialHardship": {
+    "reported": true,
+    "reason": "REDUCED_HOURS",
+    "temporary": true
+  }
+}
+
+### 7.2 Advanced Delinquency Collection Strategy
+POST http://localhost:8080/api/ai/strategy/collection
+Content-Type: application/json
+
+{
+  "loanId": "LOAN2024005",
+  "customerId": 8,
+  "delinquencyStage": "90_DAYS_PAST_DUE",
+  "amountPastDue": 4234.56,
+  "totalLoanBalance": 16890.45,
+  "paymentHistory": {
+    "totalPayments": 9,
+    "latePayments": 6,
+    "missedPayments": 3
+  },
+  "customerProfile": {
+    "contactPreference": "EMAIL",
+    "bestContactTime": "MORNING",
+    "languagePreference": "SPANISH",
+    "previousCollectionResponse": "DIFFICULT"
+  },
+  "collectionAttempts": 15,
+  "legalActionRisk": "HIGH"
+}
+
+### 8. Batch AI Processing
+
+### 8.1 Multiple Loan Analysis Batch
+POST http://localhost:8080/api/ai/analyze/batch
+Content-Type: application/json
+
+{
+  "operations": [
+    {
+      "type": "loan_analysis",
+      "id": "batch_001",
+      "data": {
+        "applicationId": "APP2024004",
+        "customerId": 4,
+        "loanType": "BUSINESS",
+        "loanAmount": 100000.00,
+        "termMonths": 48,
+        "customerProfile": {
+          "creditScore": 690,
+          "businessRevenue": 300000.00
+        }
+      }
+    },
+    {
+      "type": "risk_assessment",
+      "id": "batch_002", 
+      "data": {
+        "customerData": {
+          "customerId": 5,
+          "creditScore": 740,
+          "monthlyIncome": 16666.67
+        },
+        "loanData": {
+          "loanType": "BUSINESS",
+          "requestedAmount": 250000.00,
+          "termMonths": 60
+        }
+      }
+    },
+    {
+      "type": "recommendations",
+      "id": "batch_003",
+      "data": {
+        "customerId": 6,
+        "creditScore": 760,
+        "monthlyIncome": 9166.67,
+        "customerSegment": "PRIME"
+      }
+    }
+  ]
+}
+
+### 9. Traditional Loan Use Cases (Non-AI)
+
+### 9.1 Get All Customers
+GET http://localhost:8080/api/customers
+Accept: application/json
+
+### 9.2 Get All Loans
+GET http://localhost:8080/api/loans
+Accept: application/json
+
+### 9.3 Get Specific Loan Details
+GET http://localhost:8080/api/loans/LOAN2024001
+Accept: application/json
+
+### 9.4 Get Loan Installments
+GET http://localhost:8080/api/loans/LOAN2024001/installments
+Accept: application/json
+
+### 9.5 Get Payments for Loan
+GET http://localhost:8080/api/loans/LOAN2024001/payments
+Accept: application/json
+
+### 10. Integration Tests - AI + Traditional Services
+
+### 10.1 Customer Profile + AI Recommendations Flow
+# Step 1: Get customer details
+GET http://localhost:8080/api/customers/1
+
+### 10.2 AI Analysis + Loan Creation Flow
+# Step 2: Get AI recommendation and then create loan application
+POST http://localhost:8080/api/ai/recommend/loans
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "creditScore": 720,
+  "monthlyIncome": 8000.00,
+  "customerSegment": "STANDARD"
+}
+
+### 10.3 Health Check Integration
+# System health including AI services
+GET http://localhost:8080/health
+Accept: application/json
+
+### 11. Advanced AI Use Cases
+
+### 11.1 Market Conditions Analysis Request
+POST http://localhost:8080/api/ai/analyze/loan-application
+Content-Type: application/json
+
+{
+  "applicationId": "APP2024005",
+  "customerId": 7,
+  "loanType": "MORTGAGE",
+  "loanAmount": 350000.00,
+  "termMonths": 360,
+  "marketConditions": {
+    "currentPrimeRate": 7.5,
+    "unemploymentRate": 3.8,
+    "housingMarketTrend": "STABLE",
+    "inflationRate": 2.1
+  },
+  "competitorAnalysis": {
+    "averageMarketRate": 6.8,
+    "marketPosition": "COMPETITIVE"
+  }
+}
+
+### 11.2 Portfolio Risk Analysis
+POST http://localhost:8080/api/ai/assess/credit-risk
+Content-Type: application/json
+
+{
+  "customerData": {
+    "customerId": 10,
+    "creditScore": 800,
+    "monthlyIncome": 20833.33,
+    "customerSegment": "PREMIUM"
+  },
+  "loanData": {
+    "loanType": "PERSONAL",
+    "requestedAmount": 100000.00,
+    "termMonths": 60
+  },
+  "portfolioContext": {
+    "existingExposure": 2500000.00,
+    "customerSegmentConcentration": 0.15,
+    "industryConcentration": 0.25
+  }
+}
+
+### Expected Results Summary:
+# - AI service health checks should return operational status
+# - Loan analysis should provide AI-powered insights and recommendations
+# - Risk assessments should include probability scores and risk categories
+# - Recommendations should be personalized based on customer profiles
+# - Fraud detection should identify suspicious patterns and risk levels
+# - Collection strategies should be tailored to delinquency stage and customer profile
+# - Batch processing should handle multiple operations efficiently
+# - Integration with existing loan services should work seamlessly
+# - All responses should include confidence scores and model information
+# - Response times should be under 2 seconds for individual requests
+# - Batch operations should complete within 10 seconds for typical loads

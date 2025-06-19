@@ -10,7 +10,7 @@ import com.sun.net.httpserver.*;
 
 public class SimpleDbApplication {
     
-    private static final int PORT = 5000;
+    private static final int PORT = Integer.parseInt(System.getenv().getOrDefault("SERVER_PORT", "8080"));
     private static HttpServer server;
     
     public static void main(String[] args) throws IOException {

@@ -1,0 +1,77 @@
+### MCP (Model Context Protocol) Integration Test Suite
+### Testing Enhanced Banking NLP with Domain Context
+
+### 1. Test MCP-Enhanced Prompt to Loan Conversion
+POST http://localhost:8080/api/ai/nlp/convert-prompt-to-loan
+Content-Type: application/json
+
+{
+  "prompt": "I need a business loan of $150,000 to expand my restaurant. I have been in business for 3 years, monthly revenue of $45,000, and my credit score is around 750. I would like a 5-year term if possible."
+}
+
+### 2. Test MCP-Enhanced Intent Analysis with Banking Context
+POST http://localhost:8080/api/ai/nlp/analyze-intent
+Content-Type: application/json
+
+{
+  "userInput": "I'm looking for financing options for my tech startup. We need about $500k for equipment and inventory. What kind of requirements do you have for business loans?"
+}
+
+### 3. Test MCP-Enhanced End-to-End Request Processing
+POST http://localhost:8080/api/ai/nlp/process-request
+Content-Type: application/json
+
+{
+  "userInput": "Hi, I need help with a personal loan for home improvements. Planning to renovate kitchen and bathrooms, budget around $75,000. I make $8,500 monthly, been employed for 6 years, credit score is 720. What are my options and how long would it take?"
+}
+
+### 4. Test MCP Complex Business Scenario
+POST http://localhost:8080/api/ai/nlp/convert-prompt-to-loan
+Content-Type: application/json
+
+{
+  "prompt": "My manufacturing company needs working capital financing. We have $2.5M annual revenue, established 8 years ago, need $300,000 for new equipment and inventory. Our debt-to-income ratio is about 35%, strong cash flow, good relationship with suppliers. Looking for competitive rates and flexible terms."
+}
+
+### 5. Test MCP Emergency Loan Scenario
+POST http://localhost:8080/api/ai/nlp/analyze-intent
+Content-Type: application/json
+
+{
+  "userInput": "URGENT: Need emergency loan ASAP. Family medical situation, need $25,000 immediately. I have good credit, stable job for 4 years, monthly income $6,200. Can you help me get this processed today?"
+}
+
+### 6. Test MCP Banking Context with Compliance
+POST http://localhost:8080/api/ai/nlp/process-request
+Content-Type: application/json
+
+{
+  "userInput": "I want to apply for a mortgage refinancing. Current loan balance is $450,000, house value $650,000, want to access equity for investment property. Income $12,000/month, credit score 780, minimal other debts."
+}
+
+### 7. Test MCP with Complex Financial Parameters
+POST http://localhost:8080/api/ai/nlp/convert-prompt-to-loan
+Content-Type: application/json
+
+{
+  "prompt": "Small business owner here, been operating a consulting firm for 12 years. Looking for an SBA loan, need $750,000 for office expansion and hiring 15 new employees. Annual revenue $3.2M, profit margin 18%, excellent credit history, existing business banking relationship."
+}
+
+### 8. Test MCP AI Health Check
+GET http://localhost:8080/api/ai/health
+
+### 9. Test MCP Banking Rules Integration
+POST http://localhost:8080/api/ai/nlp/analyze-intent
+Content-Type: application/json
+
+{
+  "userInput": "I work freelance as a graphic designer, irregular income between $3,000-$8,000 per month depending on projects. Need $40,000 for studio equipment and marketing. Credit score is 680. What loan products would work for someone with variable income?"
+}
+
+### 10. Test MCP Risk Assessment Context
+POST http://localhost:8080/api/ai/nlp/process-request
+Content-Type: application/json
+
+{
+  "userInput": "Retired couple, fixed income $4,500/month from pensions and social security. Want to take out $80,000 loan against home equity (house worth $520,000, mortgage paid off) for helping kids with down payment. Ages 67 and 65, excellent credit scores."
+}

@@ -1,0 +1,82 @@
+# Docker Hardened Image (DHI) for UAT Environment
+# Enterprise Loan Management System - User Acceptance Testing
+# Using Standalone Application Approach
+
+FROM openjdk:21-jdk-slim AS uat-banking-app
+
+# Security: Create non-root user
+RUN groupadd --gid 10001 banking && \
+    useradd --uid 10001 --gid banking --shell /bin/bash --create-home banking
+
+# Install minimal required packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        wget \
+        ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/* /var/tmp/*
+
+# Security Labels and Metadata
+LABEL maintainer="Enterprise Banking Security Team" \
+      version="1.0.0-uat-standalone" \
+      environment="uat" \
+      security.scan="required" \
+      security.level="hardened" \
+      compliance.fapi="enabled" \
+      compliance.banking="enabled" \
+      description="Docker Hardened Image for Enterprise Loan Management System UAT - Standalone"
+
+# Set working directory
+WORKDIR /app
+
+# Copy standalone application source
+COPY --chown=banking:banking src/main/java/com/bank/loanmanagement/SimpleDbApplication.java ./
+COPY --chown=banking:banking src/main/resources/application-uat.yml ./config/
+
+# Security: Set secure environment variables for UAT
+ENV JAVA_OPTS="-server \
+    -XX:+UseG1GC \
+    -XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=75.0 \
+    -XX:+ExitOnOutOfMemoryError \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Djava.awt.headless=true \
+    -Dfile.encoding=UTF-8 \
+    -Duser.timezone=UTC \
+    -Djdk.tls.rejectClientInitiatedRenegotiation=true \
+    -Djdk.tls.ephemeralDHKeySize=2048 \
+    --enable-preview \
+    --add-opens java.base/java.lang=ALL-UNNAMED"
+
+# UAT Environment Configuration
+ENV SPRING_PROFILES_ACTIVE=uat \
+    SERVER_PORT=8080 \
+    DATABASE_URL="jdbc:postgresql://uat-database:5432/banking_uat?sslmode=prefer" \
+    REDIS_HOST=uat-redis \
+    REDIS_PORT=6379 \
+    LOGGING_LEVEL_COM_BANK_LOANMANAGEMENT=INFO \
+    LOGGING_LEVEL_SECURITY=WARN \
+    FAPI_COMPLIANCE_ENABLED=true \
+    BANKING_COMPLIANCE_STRICT=true \
+    RATE_LIMIT_RPM=60 \
+    CACHE_TTL_CUSTOMERS=30 \
+    CACHE_TTL_LOANS=15 \
+    CACHE_TTL_PAYMENTS=5
+
+# Security: Health check with timeout
+HEALTHCHECK --interval=30s \
+    --timeout=10s \
+    --start-period=60s \
+    --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Security: Expose only necessary port
+EXPOSE 8080
+
+# Switch to non-root user
+USER banking:banking
+
+# Entry point - run standalone application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS SimpleDbApplication.java"]
