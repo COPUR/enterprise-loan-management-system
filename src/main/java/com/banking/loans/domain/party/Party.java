@@ -1,235 +1,212 @@
 package com.banking.loans.domain.party;
 
-import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Objects;
 
 /**
- * Party Domain Entity - Banking DDD Aggregate Root
+ * Party Domain Aggregate Root - Clean DDD Implementation
  * Represents any party (person, organization) in the banking system
- * Following Domain-Driven Design principles for banking domain
+ * Pure domain model without infrastructure dependencies
  */
-@Entity
-@Table(name = "parties", indexes = {
-    @Index(name = "idx_party_external_id", columnList = "externalId"),
-    @Index(name = "idx_party_type_status", columnList = "partyType, status"),
-    @Index(name = "idx_party_compliance_level", columnList = "complianceLevel")
-})
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@EqualsAndHashCode(of = "id")
 public class Party {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    /**
-     * External identifier for integration with Keycloak/LDAP
-     * Maps to Keycloak user ID or LDAP DN
-     */
-    @Column(unique = true, nullable = false)
     private String externalId;
-
-    /**
-     * Party identification - username, email, or unique identifier
-     */
-    @Column(unique = true, nullable = false)
     private String identifier;
-
-    /**
-     * Display name for the party
-     */
-    @Column(nullable = false)
     private String displayName;
-
-    /**
-     * Email address for the party
-     */
-    @Column(nullable = false)
     private String email;
-
-    /**
-     * Type of party - INDIVIDUAL, ORGANIZATION, SERVICE_ACCOUNT
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private PartyType partyType;
-
-    /**
-     * Current status of the party - ACTIVE, INACTIVE, SUSPENDED, LOCKED
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private PartyStatus status;
-
-    /**
-     * Banking compliance level - BASIC, ENHANCED, PREMIUM
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private ComplianceLevel complianceLevel;
-
-    /**
-     * Department or organizational unit
-     */
-    private String department;
-
-    /**
-     * Job title or role description
-     */
-    private String title;
-
-    /**
-     * Employee number or unique business identifier
-     */
-    private String employeeNumber;
-
-    /**
-     * Phone number for contact
-     */
-    private String phoneNumber;
-
-    /**
-     * Roles assigned to this party from the party data management system
-     * These roles are authoritative and override any external role assignments
-     */
-    @OneToMany(mappedBy = "party", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @Builder.Default
-    private Set<PartyRole> partyRoles = new HashSet<>();
-
-    /**
-     * Groups this party belongs to
-     */
-    @OneToMany(mappedBy = "party", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @Builder.Default
-    private Set<PartyGroup> partyGroups = new HashSet<>();
-
-    /**
-     * Audit fields for compliance tracking
-     */
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    private Set<PartyRole> partyRoles;
+    private Set<PartyGroup> partyGroups;
     private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-    @Column(nullable = false)
     private String createdBy;
-
-    @Column(nullable = false)
     private String updatedBy;
-
-    /**
-     * Version for optimistic locking
-     */
-    @Version
     private Long version;
 
-    /**
-     * Compliance and audit fields
-     */
-    private LocalDateTime lastLoginAt;
-    private LocalDateTime passwordChangedAt;
-    private LocalDateTime lastAccessReviewAt;
-    private Boolean requiresAccessReview;
-    private String complianceNotes;
+    // Private constructor for domain creation
+    private Party(
+        String externalId,
+        String identifier,
+        String displayName,
+        String email,
+        PartyType partyType,
+        String createdBy
+    ) {
+        this.externalId = Objects.requireNonNull(externalId, "External ID cannot be null");
+        this.identifier = Objects.requireNonNull(identifier, "Identifier cannot be null");
+        this.displayName = Objects.requireNonNull(displayName, "Display name cannot be null");
+        this.email = Objects.requireNonNull(email, "Email cannot be null");
+        this.partyType = Objects.requireNonNull(partyType, "Party type cannot be null");
+        this.createdBy = Objects.requireNonNull(createdBy, "Created by cannot be null");
+        this.status = PartyStatus.ACTIVE;
+        this.complianceLevel = ComplianceLevel.STANDARD;
+        this.partyRoles = new HashSet<>();
+        this.partyGroups = new HashSet<>();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 
-    /**
-     * Add a role to this party
-     */
+    // Factory method for creating new parties
+    public static Party create(
+        String externalId,
+        String identifier,
+        String displayName,
+        String email,
+        PartyType partyType,
+        String createdBy
+    ) {
+        return new Party(externalId, identifier, displayName, email, partyType, createdBy);
+    }
+
+    // Business logic: Activate party
+    public void activate() {
+        this.status = PartyStatus.ACTIVE;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Business logic: Deactivate party
+    public void deactivate(String reason) {
+        this.status = PartyStatus.INACTIVE;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Business logic: Suspend party
+    public void suspend(String reason) {
+        this.status = PartyStatus.SUSPENDED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Business logic: Add role to party
     public void addRole(PartyRole role) {
-        partyRoles.add(role);
-        role.setParty(this);
+        Objects.requireNonNull(role, "Role cannot be null");
+        this.partyRoles.add(role);
+        this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * Remove a role from this party
-     */
+    // Business logic: Remove role from party
     public void removeRole(PartyRole role) {
-        partyRoles.remove(role);
-        role.setParty(null);
+        Objects.requireNonNull(role, "Role cannot be null");
+        this.partyRoles.remove(role);
+        this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * Add this party to a group
-     */
+    // Business logic: Add party to group
     public void addToGroup(PartyGroup group) {
-        partyGroups.add(group);
-        group.setParty(this);
+        Objects.requireNonNull(group, "Group cannot be null");
+        this.partyGroups.add(group);
+        this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * Remove this party from a group
-     */
+    // Business logic: Remove party from group
     public void removeFromGroup(PartyGroup group) {
-        partyGroups.remove(group);
-        group.setParty(null);
+        Objects.requireNonNull(group, "Group cannot be null");
+        this.partyGroups.remove(group);
+        this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * Check if party has a specific role
-     */
+    // Business logic: Check if party has specific role
     public boolean hasRole(String roleName) {
         return partyRoles.stream()
-                .anyMatch(partyRole -> partyRole.getRoleName().equals(roleName) && partyRole.isActive());
+            .anyMatch(role -> role.getRoleName().equals(roleName) && role.isActive());
     }
 
-    /**
-     * Check if party is in a specific group
-     */
+    // Business logic: Check if party is in specific group
     public boolean isInGroup(String groupName) {
         return partyGroups.stream()
-                .anyMatch(partyGroup -> partyGroup.getGroupName().equals(groupName) && partyGroup.isActive());
+            .anyMatch(group -> group.getGroupName().equals(groupName) && group.isActive());
     }
 
-    /**
-     * Check if party is active and can access the system
-     */
+    // Business logic: Get active roles
+    public Set<PartyRole> getActiveRoles() {
+        return partyRoles.stream()
+            .filter(PartyRole::isActive)
+            .collect(java.util.stream.Collectors.toSet());
+    }
+
+    // Business logic: Get active groups
+    public Set<PartyGroup> getActiveGroups() {
+        return partyGroups.stream()
+            .filter(PartyGroup::isActive)
+            .collect(java.util.stream.Collectors.toSet());
+    }
+
+    // Business logic: Update compliance level
+    public void updateComplianceLevel(ComplianceLevel newLevel, String updatedBy) {
+        this.complianceLevel = Objects.requireNonNull(newLevel, "Compliance level cannot be null");
+        this.updatedBy = Objects.requireNonNull(updatedBy, "Updated by cannot be null");
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Business logic: Check if party is active
     public boolean isActive() {
         return status == PartyStatus.ACTIVE;
     }
 
-    /**
-     * Update last login timestamp for audit tracking
-     */
-    public void recordLogin() {
-        this.lastLoginAt = LocalDateTime.now();
+    // Business logic: Check if party is compliant
+    public boolean isCompliant() {
+        return complianceLevel == ComplianceLevel.HIGH || complianceLevel == ComplianceLevel.STANDARD;
     }
 
-    /**
-     * Mark that password was changed for compliance tracking
-     */
-    public void recordPasswordChange() {
-        this.passwordChangedAt = LocalDateTime.now();
+    // Getters
+    public Long getId() { return id; }
+    public String getExternalId() { return externalId; }
+    public String getIdentifier() { return identifier; }
+    public String getDisplayName() { return displayName; }
+    public String getEmail() { return email; }
+    public PartyType getPartyType() { return partyType; }
+    public PartyStatus getStatus() { return status; }
+    public ComplianceLevel getComplianceLevel() { return complianceLevel; }
+    public Set<PartyRole> getPartyRoles() { return new HashSet<>(partyRoles); }
+    public Set<PartyGroup> getPartyGroups() { return new HashSet<>(partyGroups); }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public String getCreatedBy() { return createdBy; }
+    public String getUpdatedBy() { return updatedBy; }
+    public Long getVersion() { return version; }
+
+    // Public setters for reconstruction from persistence
+    public void setId(Long id) { this.id = id; }
+    public void setExternalId(String externalId) { this.externalId = externalId; }
+    public void setIdentifier(String identifier) { this.identifier = identifier; this.updatedAt = LocalDateTime.now(); }
+    public void setDisplayName(String displayName) { this.displayName = displayName; this.updatedAt = LocalDateTime.now(); }
+    public void setEmail(String email) { this.email = email; this.updatedAt = LocalDateTime.now(); }
+    public void setPartyType(PartyType partyType) { this.partyType = partyType; }
+    public void setStatus(PartyStatus status) { this.status = status; }
+    public void setComplianceLevel(ComplianceLevel complianceLevel) { this.complianceLevel = complianceLevel; }
+    public void setPartyRoles(Set<PartyRole> partyRoles) { this.partyRoles = new HashSet<>(partyRoles); }
+    public void setPartyGroups(Set<PartyGroup> partyGroups) { this.partyGroups = new HashSet<>(partyGroups); }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+    public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public void setVersion(Long version) { this.version = version; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Party party = (Party) o;
+        return Objects.equals(id, party.id);
     }
 
-    /**
-     * Mark that access review was completed for compliance
-     */
-    public void recordAccessReview() {
-        this.lastAccessReviewAt = LocalDateTime.now();
-        this.requiresAccessReview = false;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
-    /**
-     * Mark that access review is required
-     */
-    public void requireAccessReview(String reason) {
-        this.requiresAccessReview = true;
-        this.complianceNotes = reason;
+    @Override
+    public String toString() {
+        return "Party{" +
+                "id=" + id +
+                ", identifier='" + identifier + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", partyType=" + partyType +
+                ", status=" + status +
+                '}';
     }
 }
