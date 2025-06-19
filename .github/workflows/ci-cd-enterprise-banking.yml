@@ -1,4 +1,4 @@
-name: 🏦 Enterprise Banking CI/CD Pipeline
+name: 🏦 Enterprise Banking CI/CD Pipeline - Hexagonal Architecture
 
 on:
   push:
@@ -97,7 +97,7 @@ jobs:
     name: 🧪 Unit & Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: architecture-validation
+    needs: hexagonal-architecture-validation
     
     services:
       postgres:
@@ -207,7 +207,7 @@ jobs:
     name: 🔒 Security & Compliance
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: architecture-validation
+    needs: hexagonal-architecture-validation
     
     steps:
     - name: 📥 Checkout Code
