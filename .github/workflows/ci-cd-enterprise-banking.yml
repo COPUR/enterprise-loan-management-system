@@ -1,0 +1,684 @@
+name: 🏦 Enterprise Banking CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, 'feature/*', 'release/*', 'hotfix/*' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      force_deploy:
+        description: 'Force deployment (skip some checks)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  JAVA_VERSION: '21'
+  GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2'
+  DOCKER_REGISTRY: 'harbor.banking.enterprise.com'
+  HELM_VERSION: '3.13.0'
+  KUBECTL_VERSION: '1.28.0'
+  SONAR_PROJECT_KEY: 'enterprise-banking-loan-management'
+
+jobs:
+  # ==========================================
+  # ARCHITECTURE & CODE QUALITY VALIDATION
+  # ==========================================
+  architecture-validation:
+    name: 🏗️ Architecture & Code Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for SonarQube
+        
+    - name: ☕ Setup Java 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        
+    - name: 📦 Cache Gradle Dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: 🏗️ Architecture Tests (ArchUnit)
+      run: |
+        ./gradlew test --tests "*ArchitectureTest" \
+          -Dtest.architecture.strict=true \
+          --no-daemon
+        
+    - name: 📊 Code Quality Analysis (SonarQube)
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: |
+        ./gradlew sonarqube \
+          -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }} \
+          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+          -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
+          --no-daemon
+          
+    - name: 🔍 SpotBugs Security Analysis
+      run: |
+        ./gradlew spotbugsMain spotbugsTest \
+          -Dspotbugs.effort=max \
+          -Dspotbugs.reportLevel=low \
+          --no-daemon
+          
+    - name: 📋 Code Style Check (Checkstyle)
+      run: |
+        ./gradlew checkstyleMain checkstyleTest \
+          --no-daemon
+
+  # ==========================================
+  # COMPREHENSIVE TESTING SUITE
+  # ==========================================
+  unit-testing:
+    name: 🧪 Unit & Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: architecture-validation
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: banking_test
+          POSTGRES_USER: banking_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: ☕ Setup Java 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        
+    - name: 📦 Cache Gradle Dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: 🧪 Run Unit Tests
+      env:
+        SPRING_PROFILES_ACTIVE: test
+        DATABASE_URL: jdbc:postgresql://localhost:5432/banking_test
+        DATABASE_USERNAME: banking_user
+        DATABASE_PASSWORD: test_password
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+      run: |
+        ./gradlew test \
+          -Dspring.profiles.active=test \
+          -Dtest.database.url=jdbc:postgresql://localhost:5432/banking_test \
+          --no-daemon
+          
+    - name: 🔗 Run Integration Tests
+      env:
+        SPRING_PROFILES_ACTIVE: test,integration
+        DATABASE_URL: jdbc:postgresql://localhost:5432/banking_test
+        DATABASE_USERNAME: banking_user
+        DATABASE_PASSWORD: test_password
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+      run: |
+        ./gradlew integrationTest \
+          -Dspring.profiles.active=test,integration \
+          --no-daemon
+          
+    - name: 📊 Generate Test Coverage Report
+      run: |
+        ./gradlew jacocoTestReport \
+          --no-daemon
+          
+    - name: 📈 Coverage Quality Gate
+      run: |
+        ./gradlew jacocoTestCoverageVerification \
+          -Djacoco.minimum.coverage=0.874 \
+          --no-daemon
+          
+    - name: 📤 Upload Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          build/reports/tests/
+          build/reports/jacoco/
+          build/test-results/
+          
+    - name: 📊 Publish Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: 'Test Results'
+        path: 'build/test-results/**/*.xml'
+        reporter: java-junit
+
+  # ==========================================
+  # SECURITY & COMPLIANCE VALIDATION
+  # ==========================================
+  security-compliance:
+    name: 🔒 Security & Compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: architecture-validation
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: ☕ Setup Java 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        
+    - name: 🔍 OWASP Dependency Check
+      run: |
+        ./gradlew dependencyCheckAnalyze \
+          -Ddependency.check.format=ALL \
+          -Ddependency.check.failBuildOnCVSS=7 \
+          --no-daemon
+          
+    - name: 🔐 Secret Scanning
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified
+        
+    - name: 🏦 Banking Compliance Check
+      run: |
+        # Check for PCI DSS compliance violations
+        ! grep -r "4[0-9]{12,19}" src/ || (echo "Credit card patterns found" && exit 1)
+        
+        # Check for hardcoded secrets
+        ! grep -r -i "password\s*=" src/ --include="*.java" || (echo "Hardcoded passwords found" && exit 1)
+        
+        # Check for proper audit logging
+        grep -r "@Audited\|@AuditLogging" src/ --include="*.java" | wc -l | awk '{if($1<5) {print "Insufficient audit logging"; exit 1}}'
+        
+    - name: 🛡️ FAPI Security Validation
+      run: |
+        ./gradlew test --tests "*FAPISecurityTest*" \
+          -Dtest.fapi.strict=true \
+          --no-daemon
+          
+    - name: 📤 Upload Security Reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          build/reports/dependency-check-report.*
+          build/reports/spotbugs/
+
+  # ==========================================
+  # CONTAINERIZATION & BUILD
+  # ==========================================
+  docker-build:
+    name: 🐳 Docker Build & Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [unit-testing, security-compliance]
+    
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: ☕ Setup Java 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        
+    - name: 📦 Cache Gradle Dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: 🏗️ Build Application JAR
+      run: |
+        ./gradlew clean bootJar \
+          -x test \
+          -x copyContracts \
+          --no-daemon
+          
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 🏷️ Extract Metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.DOCKER_REGISTRY }}/banking/enterprise-loan-system
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+          
+    - name: 🔑 Login to Docker Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.DOCKER_REGISTRY }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        
+    - name: 🔨 Build and Push Docker Image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        platforms: linux/amd64,linux/arm64
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          JAVA_VERSION=${{ env.JAVA_VERSION }}
+          APP_VERSION=${{ github.sha }}
+          BUILD_DATE=${{ github.event.head_commit.timestamp }}
+          
+    - name: 🔍 Container Security Scan (Trivy)
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ steps.meta.outputs.tags }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+        
+    - name: 📤 Upload Container Scan Results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # ==========================================
+  # KUBERNETES VALIDATION
+  # ==========================================
+  kubernetes-validation:
+    name: ☸️ Kubernetes Deployment Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: docker-build
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: ⚙️ Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: ${{ env.KUBECTL_VERSION }}
+        
+    - name: ⚙️ Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: ${{ env.HELM_VERSION }}
+        
+    - name: 🔍 Validate Kubernetes Manifests
+      run: |
+        # Validate YAML syntax
+        kubectl apply --dry-run=client -f k8s/manifests/
+        
+        # Validate against server (if available)
+        kubectl apply --dry-run=server -f k8s/manifests/ || echo "Server validation skipped"
+        
+    - name: 🎯 Helm Chart Validation
+      run: |
+        # Lint Helm charts
+        helm lint k8s/helm-charts/enterprise-loan-system/
+        
+        # Template validation
+        helm template enterprise-loan-system k8s/helm-charts/enterprise-loan-system/ \
+          --values k8s/helm-charts/enterprise-loan-system/values.yaml \
+          --dry-run
+          
+    - name: 🔒 Kubernetes Security Policy Check
+      run: |
+        # Check for security context
+        grep -r "securityContext" k8s/manifests/ || (echo "Missing security context" && exit 1)
+        
+        # Check for resource limits
+        grep -r "resources:" k8s/manifests/ || (echo "Missing resource limits" && exit 1)
+        
+        # Check for non-root user
+        grep -r "runAsNonRoot: true" k8s/manifests/ || (echo "Missing non-root configuration" && exit 1)
+
+  # ==========================================
+  # END-TO-END TESTING
+  # ==========================================
+  e2e-testing:
+    name: 🎯 End-to-End Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [docker-build, kubernetes-validation]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Setup Docker Compose
+      run: |
+        # Start full application stack
+        docker-compose -f docker-compose.yml up -d
+        
+        # Wait for services to be ready
+        timeout 300 bash -c 'until curl -f http://localhost:8080/actuator/health; do sleep 5; done'
+        
+    - name: 🎯 Run E2E Tests
+      run: |
+        # Run comprehensive E2E test suite
+        ./gradlew e2eTest \
+          -Dtest.base.url=http://localhost:8080 \
+          -Dtest.timeout=300 \
+          --no-daemon
+          
+    - name: 🧪 API Contract Testing
+      run: |
+        # Validate OpenAPI specification compliance
+        npx @apidevtools/swagger-parser validate docs/api/openapi.yml
+        
+        # Run contract tests
+        ./gradlew contractTest \
+          --no-daemon
+          
+    - name: 📊 Performance Smoke Tests
+      run: |
+        # Basic performance validation
+        ./gradlew performanceTest \
+          -Dtest.performance.duration=60s \
+          -Dtest.performance.users=10 \
+          --no-daemon
+          
+    - name: 🧹 Cleanup
+      if: always()
+      run: |
+        docker-compose down -v
+        docker system prune -f
+
+  # ==========================================
+  # DEPLOYMENT TO STAGING
+  # ==========================================
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [e2e-testing]
+    if: github.ref == 'refs/heads/develop' || github.event.inputs.environment == 'staging'
+    environment: staging
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: ⚙️ Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        
+    - name: ⚙️ Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: ${{ env.KUBECTL_VERSION }}
+        
+    - name: ⚙️ Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: ${{ env.HELM_VERSION }}
+        
+    - name: 🔑 Update kubeconfig
+      run: |
+        aws eks update-kubeconfig \
+          --region ${{ secrets.AWS_REGION }} \
+          --name ${{ secrets.EKS_CLUSTER_NAME_STAGING }}
+          
+    - name: 🚀 Deploy to Staging
+      run: |
+        helm upgrade --install enterprise-banking \
+          k8s/helm-charts/enterprise-loan-system/ \
+          --namespace banking-staging \
+          --create-namespace \
+          --values k8s/helm-charts/enterprise-loan-system/values-staging.yaml \
+          --set image.tag=${{ needs.docker-build.outputs.image-tag }} \
+          --set deployment.environment=staging \
+          --timeout 10m \
+          --wait
+          
+    - name: ✅ Verify Deployment
+      run: |
+        # Check deployment status
+        kubectl rollout status deployment/enterprise-loan-system -n banking-staging --timeout=300s
+        
+        # Run health checks
+        kubectl get pods -n banking-staging
+        kubectl wait --for=condition=ready pod -l app=enterprise-loan-system -n banking-staging --timeout=300s
+        
+    - name: 🧪 Staging Smoke Tests
+      run: |
+        # Get service URL
+        STAGING_URL=$(kubectl get service enterprise-loan-system -n banking-staging -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+        
+        # Basic health check
+        curl -f "http://${STAGING_URL}/actuator/health" || exit 1
+        
+        # API availability check
+        curl -f "http://${STAGING_URL}/api/v1/health" || exit 1
+
+  # ==========================================
+  # PRODUCTION DEPLOYMENT
+  # ==========================================
+  deploy-production:
+    name: 🌟 Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [deploy-staging]
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'production'
+    environment: production
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: ⚙️ Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        
+    - name: ⚙️ Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: ${{ env.KUBECTL_VERSION }}
+        
+    - name: ⚙️ Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: ${{ env.HELM_VERSION }}
+        
+    - name: 🔑 Update kubeconfig
+      run: |
+        aws eks update-kubeconfig \
+          --region ${{ secrets.AWS_REGION }} \
+          --name ${{ secrets.EKS_CLUSTER_NAME_PRODUCTION }}
+          
+    - name: 💾 Backup Current Deployment
+      run: |
+        # Create backup of current deployment
+        kubectl get deployment enterprise-loan-system -n banking-production -o yaml > deployment-backup-$(date +%Y%m%d-%H%M%S).yaml
+        
+    - name: 🌟 Deploy to Production
+      run: |
+        helm upgrade --install enterprise-banking \
+          k8s/helm-charts/enterprise-loan-system/ \
+          --namespace banking-production \
+          --create-namespace \
+          --values k8s/helm-charts/enterprise-loan-system/values-production.yaml \
+          --set image.tag=${{ needs.docker-build.outputs.image-tag }} \
+          --set deployment.environment=production \
+          --timeout 15m \
+          --wait \
+          --atomic  # Automatic rollback on failure
+          
+    - name: ✅ Verify Production Deployment
+      run: |
+        # Check deployment status
+        kubectl rollout status deployment/enterprise-loan-system -n banking-production --timeout=600s
+        
+        # Comprehensive health checks
+        kubectl get pods -n banking-production
+        kubectl wait --for=condition=ready pod -l app=enterprise-loan-system -n banking-production --timeout=600s
+        
+        # Check all replicas are running
+        READY_REPLICAS=$(kubectl get deployment enterprise-loan-system -n banking-production -o jsonpath='{.status.readyReplicas}')
+        DESIRED_REPLICAS=$(kubectl get deployment enterprise-loan-system -n banking-production -o jsonpath='{.spec.replicas}')
+        
+        if [ "$READY_REPLICAS" != "$DESIRED_REPLICAS" ]; then
+          echo "Deployment verification failed: $READY_REPLICAS/$DESIRED_REPLICAS replicas ready"
+          exit 1
+        fi
+        
+    - name: 🧪 Production Smoke Tests
+      run: |
+        # Get production URL
+        PROD_URL=$(kubectl get service enterprise-loan-system -n banking-production -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+        
+        # Comprehensive health checks
+        curl -f "https://${PROD_URL}/actuator/health" || exit 1
+        curl -f "https://${PROD_URL}/api/v1/health" || exit 1
+        
+        # Security validation
+        curl -f "https://${PROD_URL}/oauth2/health" || exit 1
+        
+        # Performance validation
+        RESPONSE_TIME=$(curl -o /dev/null -s -w '%{time_total}' "https://${PROD_URL}/api/v1/health")
+        if (( $(echo "$RESPONSE_TIME > 0.200" | bc -l) )); then
+          echo "Performance check failed: Response time ${RESPONSE_TIME}s > 200ms"
+          exit 1
+        fi
+        
+    - name: 📊 Update Deployment Metrics
+      run: |
+        # Send deployment metrics to monitoring
+        curl -X POST "${{ secrets.MONITORING_WEBHOOK_URL }}" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"deployment\": \"enterprise-banking\",
+            \"environment\": \"production\",
+            \"version\": \"${{ github.sha }}\",
+            \"status\": \"success\",
+            \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+          }"
+
+  # ==========================================
+  # NOTIFICATION & REPORTING
+  # ==========================================
+  notification:
+    name: 📢 Notification & Reporting
+    runs-on: ubuntu-latest
+    needs: [deploy-production, deploy-staging]
+    if: always()
+    
+    steps:
+    - name: 📊 Generate Deployment Report
+      run: |
+        echo "## 🏦 Enterprise Banking Deployment Report" > deployment-report.md
+        echo "**Pipeline ID:** ${{ github.run_id }}" >> deployment-report.md
+        echo "**Commit:** ${{ github.sha }}" >> deployment-report.md
+        echo "**Branch:** ${{ github.ref_name }}" >> deployment-report.md
+        echo "**Triggered by:** ${{ github.actor }}" >> deployment-report.md
+        echo "**Status:** ${{ job.status }}" >> deployment-report.md
+        echo "**Timestamp:** $(date -u)" >> deployment-report.md
+        
+    - name: 💬 Slack Notification
+      uses: 8398a7/action-slack@v3
+      if: always()
+      with:
+        status: ${{ job.status }}
+        channel: '#banking-deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        
+    - name: 📧 Email Notification (Failures Only)
+      if: failure()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: ${{ secrets.SMTP_SERVER }}
+        server_port: 587
+        username: ${{ secrets.SMTP_USERNAME }}
+        password: ${{ secrets.SMTP_PASSWORD }}
+        subject: "🚨 Banking System Deployment Failed"
+        to: ${{ secrets.ALERT_EMAIL_LIST }}
+        from: "CI/CD Pipeline <noreply@banking.enterprise.com>"
+        body: |
+          Deployment failed for Enterprise Banking System.
+          
+          Pipeline: ${{ github.run_id }}
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref_name }}
+          Actor: ${{ github.actor }}
+          
+          Please check the pipeline logs for details.
