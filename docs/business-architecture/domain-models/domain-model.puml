@@ -215,12 +215,189 @@ package "Payment Processing" {
     }
 }
 
+package "Party Data Management" {
+    class Party<<Aggregate Root>> AGGREGATE_ROOT_COLOR {
+        -id: Long
+        -externalId: String
+        -identifier: String
+        -displayName: String
+        -email: String
+        -partyType: PartyType
+        -status: PartyStatus
+        -complianceLevel: ComplianceLevel
+        -department: String
+        -title: String
+        -employeeNumber: String
+        -phoneNumber: String
+        -partyRoles: Set<PartyRole>
+        -partyGroups: Set<PartyGroup>
+        +addRole(role: PartyRole)
+        +removeRole(role: PartyRole)
+        +addToGroup(group: PartyGroup)
+        +removeFromGroup(group: PartyGroup)
+        +hasRole(roleName: String): boolean
+        +isInGroup(groupName: String): boolean
+        +isActive(): boolean
+        +recordLogin()
+        +recordPasswordChange()
+        +recordAccessReview()
+        +requireAccessReview(reason: String)
+    }
+    
+    class PartyRole<<Entity>> ENTITY_COLOR {
+        -id: Long
+        -party: Party
+        -roleName: String
+        -roleDescription: String
+        -roleSource: RoleSource
+        -active: Boolean
+        -effectiveFrom: LocalDateTime
+        -effectiveTo: LocalDateTime
+        -authorityLevel: Integer
+        -businessUnit: String
+        -geographicScope: String
+        -monetaryLimit: Long
+        -assignedBy: String
+        -assignmentReason: String
+        -approvalReference: String
+        +isCurrentlyActive(): boolean
+        +isExpired(): boolean
+        +isNotYetEffective(): boolean
+        +activate()
+        +deactivate(reason: String)
+        +extendValidity(newEffectiveTo: LocalDateTime, reason: String)
+        +markForReview(reason: String)
+        +completeReview(reviewedBy: String, nextReviewDue: LocalDateTime)
+        +requiresReview(): boolean
+        +hasAuthorityFor(amount: Long): boolean
+    }
+    
+    class PartyGroup<<Entity>> ENTITY_COLOR {
+        -id: Long
+        -party: Party
+        -groupName: String
+        -groupDescription: String
+        -groupType: GroupType
+        -groupSource: RoleSource
+        -active: Boolean
+        -effectiveFrom: LocalDateTime
+        -effectiveTo: LocalDateTime
+        -groupRole: GroupRole
+        -priority: Integer
+        -businessUnit: String
+        -geographicScope: String
+        +isCurrentlyActive(): boolean
+        +isExpired(): boolean
+        +activate()
+        +deactivate(reason: String)
+        +isLeader(): boolean
+        +isAdministrator(): boolean
+        +promoteToLeader(promotedBy: String, reason: String)
+        +promoteToAdministrator(promotedBy: String, reason: String)
+        +demoteToMember(demotedBy: String, reason: String)
+    }
+    
+    enum PartyType {
+        INDIVIDUAL
+        ORGANIZATION
+        SERVICE_ACCOUNT
+        SYSTEM_USER
+        API_CLIENT
+    }
+    
+    enum PartyStatus {
+        ACTIVE
+        INACTIVE
+        SUSPENDED
+        LOCKED
+        PENDING
+        CLOSED
+    }
+    
+    enum ComplianceLevel {
+        BASIC
+        ENHANCED
+        PREMIUM
+        INSTITUTIONAL
+        REGULATORY
+    }
+    
+    enum RoleSource {
+        DATABASE
+        LDAP
+        KEYCLOAK
+        EXTERNAL
+        AUTOMATED
+        LEGACY_IMPORT
+    }
+    
+    enum GroupType {
+        DEPARTMENT
+        TEAM
+        FUNCTIONAL
+        SECURITY
+        PROJECT
+        GEOGRAPHIC
+        COMPLIANCE
+        AUDIT
+        BUSINESS_LINE
+        RISK_MANAGEMENT
+    }
+    
+    enum GroupRole {
+        MEMBER
+        LEADER
+        ADMINISTRATOR
+        DEPUTY
+        SENIOR_MEMBER
+        OBSERVER
+        GUEST
+    }
+    
+    class PartyRoleService<<Domain Service>> DOMAIN_SERVICE_COLOR {
+        +assignRole(party: Party, roleName: String, authorityLevel: Integer): PartyRole
+        +revokeRole(party: Party, roleName: String)
+        +validateRoleAssignment(party: Party, roleName: String): boolean
+        +getEffectiveRoles(party: Party): List<PartyRole>
+        +checkAuthorization(party: Party, resource: String, operation: String): boolean
+        +getMonetaryAuthority(party: Party): Money
+        +requiresAccessReview(party: Party): boolean
+    }
+    
+    class PartyRoleAssigned<<Event>> {
+        -partyId: Long
+        -roleName: String
+        -authorityLevel: Integer
+        -monetaryLimit: Long
+        -assignedBy: String
+        -effectiveFrom: LocalDateTime
+    }
+    
+    class PartyRoleRevoked<<Event>> {
+        -partyId: Long
+        -roleName: String
+        -revokedBy: String
+        -revocationReason: String
+        -revokedAt: LocalDateTime
+    }
+    
+    class PartyAccessReviewRequired<<Event>> {
+        -partyId: Long
+        -reviewReason: String
+        -requiredBy: LocalDateTime
+        -reviewType: String
+    }
+}
+
 ' Relationships
 AggregateRoot --|> Entity
 Customer --|> AggregateRoot
 Loan --|> AggregateRoot
 Payment --|> AggregateRoot
+Party --|> AggregateRoot
 LoanInstallment --|> Entity
+PartyRole --|> Entity
+PartyGroup --|> Entity
 
 Customer *-- CustomerId
 Customer *-- CreditLimit
@@ -241,6 +418,19 @@ Payment *-- LoanId
 Payment *-- Money
 Payment *-- PaymentStatus
 
+Party *-- PartyType
+Party *-- PartyStatus
+Party *-- ComplianceLevel
+Party *-- PartyRole
+Party *-- PartyGroup
+
+PartyRole *-- RoleSource
+PartyRole *-- Money
+
+PartyGroup *-- GroupType
+PartyGroup *-- GroupRole
+PartyGroup *-- RoleSource
+
 Money ..|> ValueObject
 InterestRate ..|> ValueObject
 InstallmentCount ..|> ValueObject
@@ -256,14 +446,23 @@ LoanCreated --|> DomainEvent
 LoanApplicationSubmitted --|> DomainEvent
 PaymentProcessed --|> DomainEvent
 LoanFullyPaid --|> DomainEvent
+PartyRoleAssigned --|> DomainEvent
+PartyRoleRevoked --|> DomainEvent
+PartyAccessReviewRequired --|> DomainEvent
 
 Customer ..> CreditReserved : raises
 Customer ..> CreditReleased : raises
 Loan ..> LoanCreated : raises
 Payment ..> PaymentProcessed : raises
+Party ..> PartyRoleAssigned : raises
+Party ..> PartyRoleRevoked : raises
+Party ..> PartyAccessReviewRequired : raises
 
 CreditAssessmentService ..> Customer : uses
 CreditAssessmentService ..> CreditRiskLevel : returns
 PaymentCalculationService ..> LoanInstallment : uses
+PartyRoleService ..> Party : uses
+PartyRoleService ..> PartyRole : manages
+PartyRoleService ..> Money : calculates authority with
 
 @enduml

@@ -1,0 +1,134 @@
+@startuml Enterprise Loan Management System - Hexagonal Architecture
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Enterprise Loan Management System - Hexagonal Architecture
+
+Container_Boundary(hexagon, "Hexagonal Architecture") {
+    
+    ' Domain Core (Center of Hexagon)
+    Container_Boundary(domain_core, "Domain Core") {
+        Container(customer_aggregate, "Customer Aggregate", "Domain Model", "Customer business rules and invariants")
+        Container(loan_aggregate, "Loan Aggregate", "Domain Model", "Loan business rules and invariants")
+        Container(payment_aggregate, "Payment Aggregate", "Domain Model", "Payment business rules and invariants")
+        Container(ai_domain, "AI Domain Services", "Domain Model", "AI-assisted banking business logic")
+        Container(shared_kernel, "Shared Kernel", "Domain Model", "Common domain concepts, events, and value objects")
+    }
+    
+    ' Application Layer (Ports)
+    Container_Boundary(application_ports, "Application Layer - Use Cases & Ports") {
+        Container(customer_port_in, "Customer Management Port", "Input Port", "Customer use cases and commands")
+        Container(loan_port_in, "Loan Origination Port", "Input Port", "Loan processing use cases")
+        Container(payment_port_in, "Payment Processing Port", "Input Port", "Payment use cases")
+        Container(ai_port_in, "AI Assistant Port", "Input Port", "AI-powered banking assistance")
+        Container(nlp_port_in, "NLP Processing Port", "Input Port", "Natural language processing")
+        
+        Container(customer_port_out, "Customer Repository Port", "Output Port", "Customer persistence interface")
+        Container(loan_port_out, "Loan Repository Port", "Output Port", "Loan persistence interface")
+        Container(payment_port_out, "Payment Repository Port", "Output Port", "Payment persistence interface")
+        Container(event_port_out, "Event Publishing Port", "Output Port", "Domain event publishing")
+        Container(cache_port_out, "Cache Port", "Output Port", "Caching interface")
+        Container(ai_port_out, "AI Service Port", "Output Port", "External AI service interface")
+    }
+}
+
+' Left Side Adapters (Driving/Primary)
+Container_Boundary(primary_adapters, "Primary Adapters (Driving)") {
+    Container(rest_adapter, "REST API Adapter", "Spring Boot", "HTTP REST endpoints")
+    Container(graphql_adapter, "GraphQL Adapter", "GraphQL Java", "GraphQL API endpoints")
+    Container(websocket_adapter, "WebSocket Adapter", "Spring WebSocket", "Real-time communication")
+    Container(cli_adapter, "CLI Adapter", "Command Line", "Command line interface")
+    Container(web_ui_adapter, "Web UI Adapter", "React/Angular", "Web user interface")
+}
+
+' Right Side Adapters (Driven/Secondary)
+Container_Boundary(secondary_adapters, "Secondary Adapters (Driven)") {
+    Container(jpa_adapter, "JPA Adapter", "Spring Data JPA", "Database persistence")
+    Container(redis_adapter, "Redis Adapter", "Spring Data Redis", "Caching implementation")
+    Container(kafka_adapter, "Kafka Adapter", "Spring Kafka", "Event streaming")
+    Container(springai_adapter, "Spring AI Adapter", "Spring AI Framework", "AI/ML integration")
+    Container(mcp_adapter, "MCP Adapter", "Model Context Protocol", "Banking domain AI context")
+    Container(openai_adapter, "OpenAI Adapter", "HTTP Client", "External AI service")
+    Container(email_adapter, "Email Adapter", "SMTP", "Email notifications")
+    Container(sms_adapter, "SMS Adapter", "Twilio/AWS SNS", "SMS notifications")
+}
+
+' Bottom Adapters (Infrastructure)
+Container_Boundary(infrastructure_adapters, "Infrastructure Adapters") {
+    Container(security_adapter, "Security Adapter", "Spring Security", "Authentication & Authorization")
+    Container(fapi_adapter, "FAPI Compliance Adapter", "Custom Security", "Financial API compliance")
+    Container(monitoring_adapter, "Monitoring Adapter", "Micrometer/Prometheus", "Observability")
+    Container(config_adapter, "Configuration Adapter", "Spring Cloud Config", "Configuration management")
+}
+
+' External Systems
+System_Ext(postgresql, "PostgreSQL", "Primary database")
+System_Ext(redis_cache, "Redis", "Cache and session store")
+System_Ext(kafka_system, "Apache Kafka", "Event streaming platform")
+System_Ext(openai_api, "OpenAI API", "AI/ML services")
+System_Ext(prometheus, "Prometheus", "Metrics collection")
+System_Ext(email_service, "Email Service", "SMTP server")
+System_Ext(sms_service, "SMS Service", "SMS gateway")
+
+' Primary Adapter Relationships
+Rel(rest_adapter, customer_port_in, "Drives", "HTTP/JSON")
+Rel(rest_adapter, loan_port_in, "Drives", "HTTP/JSON")
+Rel(rest_adapter, payment_port_in, "Drives", "HTTP/JSON")
+Rel(rest_adapter, ai_port_in, "Drives", "HTTP/JSON")
+
+Rel(graphql_adapter, customer_port_in, "Drives", "GraphQL")
+Rel(graphql_adapter, loan_port_in, "Drives", "GraphQL")
+Rel(graphql_adapter, payment_port_in, "Drives", "GraphQL")
+
+Rel(websocket_adapter, customer_port_in, "Drives", "WebSocket")
+Rel(websocket_adapter, loan_port_in, "Drives", "WebSocket")
+Rel(websocket_adapter, payment_port_in, "Drives", "WebSocket")
+
+' Domain Core Relationships
+Rel(customer_port_in, customer_aggregate, "Uses", "Domain API")
+Rel(loan_port_in, loan_aggregate, "Uses", "Domain API")
+Rel(payment_port_in, payment_aggregate, "Uses", "Domain API")
+Rel(ai_port_in, ai_domain, "Uses", "Domain API")
+Rel(nlp_port_in, ai_domain, "Uses", "Domain API")
+
+Rel(customer_aggregate, shared_kernel, "Uses", "Domain Events")
+Rel(loan_aggregate, shared_kernel, "Uses", "Domain Events")
+Rel(payment_aggregate, shared_kernel, "Uses", "Domain Events")
+Rel(ai_domain, shared_kernel, "Uses", "Domain Events")
+
+' Secondary Adapter Relationships
+Rel(customer_port_out, jpa_adapter, "Implemented by", "Repository Pattern")
+Rel(loan_port_out, jpa_adapter, "Implemented by", "Repository Pattern")
+Rel(payment_port_out, jpa_adapter, "Implemented by", "Repository Pattern")
+
+Rel(cache_port_out, redis_adapter, "Implemented by", "Cache Pattern")
+Rel(event_port_out, kafka_adapter, "Implemented by", "Event Publishing")
+Rel(ai_port_out, springai_adapter, "Implemented by", "AI Service Pattern")
+Rel(ai_port_out, mcp_adapter, "Implemented by", "MCP Protocol")
+
+' External System Connections
+Rel(jpa_adapter, postgresql, "Persists to", "JDBC")
+Rel(redis_adapter, redis_cache, "Caches in", "Redis Protocol")
+Rel(kafka_adapter, kafka_system, "Publishes to", "Kafka Protocol")
+Rel(springai_adapter, openai_api, "Calls", "HTTPS/REST")
+Rel(mcp_adapter, openai_api, "Calls", "HTTPS/REST")
+Rel(openai_adapter, openai_api, "Calls", "HTTPS/REST")
+Rel(monitoring_adapter, prometheus, "Exports to", "HTTP")
+Rel(email_adapter, email_service, "Sends via", "SMTP")
+Rel(sms_adapter, sms_service, "Sends via", "REST API")
+
+' Port to Port Relationships
+Rel(customer_port_in, customer_port_out, "Uses", "Repository Interface")
+Rel(loan_port_in, loan_port_out, "Uses", "Repository Interface")
+Rel(payment_port_in, payment_port_out, "Uses", "Repository Interface")
+Rel(customer_port_in, event_port_out, "Uses", "Event Publishing")
+Rel(loan_port_in, event_port_out, "Uses", "Event Publishing")
+Rel(payment_port_in, event_port_out, "Uses", "Event Publishing")
+Rel(customer_port_in, cache_port_out, "Uses", "Cache Interface")
+Rel(loan_port_in, cache_port_out, "Uses", "Cache Interface")
+Rel(payment_port_in, cache_port_out, "Uses", "Cache Interface")
+Rel(ai_port_in, ai_port_out, "Uses", "AI Service Interface")
+Rel(nlp_port_in, ai_port_out, "Uses", "AI Service Interface")
+
+@enduml

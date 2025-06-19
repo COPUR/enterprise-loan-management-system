@@ -1,0 +1,64 @@
+@startuml OAuth2.1 Architecture Overview
+!theme plain
+
+title OAuth2.1 Authentication & Authorization Architecture\nEnterprise Banking System
+
+package "Client Applications" {
+    [Web Banking App] as WEB
+    [Mobile App] as MOBILE
+    [Third Party Apps] as THIRD_PARTY
+}
+
+package "OAuth2.1 Identity Layer" {
+    [Keycloak OAuth2.1 Server] as KEYCLOAK
+    [LDAP Identity Provider] as LDAP
+    [Party Data Management] as PARTY_DB
+}
+
+package "Banking Application" {
+    [API Gateway] as GATEWAY
+    [Banking Services] as BANKING
+    [Authorization Service] as AUTH_SERVICE
+}
+
+package "Data Layer" {
+    database PostgreSQL as DB
+    component "Redis Cache" as REDIS
+}
+
+' Authentication Flow
+WEB --> GATEWAY : 1. Access Request
+GATEWAY --> KEYCLOAK : 2. OAuth2.1 Redirect
+KEYCLOAK --> LDAP : 3. Identity Verification
+LDAP --> KEYCLOAK : 4. User Authenticated
+KEYCLOAK --> PARTY_DB : 5. Role Resolution
+PARTY_DB --> KEYCLOAK : 6. Business Roles
+KEYCLOAK --> GATEWAY : 7. JWT Token
+GATEWAY --> AUTH_SERVICE : 8. Token Validation
+AUTH_SERVICE --> BANKING : 9. Authorized Request
+BANKING --> DB : 10. Business Logic
+BANKING --> GATEWAY : 11. Response
+GATEWAY --> WEB : 12. Secure Response
+
+' Caching
+AUTH_SERVICE --> REDIS : Token Cache
+PARTY_DB --> REDIS : Role Cache
+
+note right of KEYCLOAK
+  OAuth2.1 Features:
+  - PKCE Flow
+  - Banking Realm
+  - JWT Tokens (RS256)
+  - Session Management
+  - Audit Logging
+end note
+
+note right of PARTY_DB
+  Authoritative Roles:
+  - Temporal Access Control
+  - Monetary Limits
+  - Business Unit Scope
+  - Compliance Tracking
+end note
+
+@enduml

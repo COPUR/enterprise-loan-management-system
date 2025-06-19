@@ -1,54 +1,57 @@
 server:
-  port: 5000
+  port: ${SERVER_PORT:8080}
   servlet:
-    context-path: /
+    context-path: ${CONTEXT_PATH:}
 
 spring:
   application:
-    name: enterprise-loan-management-system
+    name: ${APPLICATION_NAME:enterprise-loan-management-system}
   
   datasource:
-    url: ${DATABASE_URL}
-    username: ${PGUSER}
-    password: ${PGPASSWORD}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/banking}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:20}
+      minimum-idle: ${DB_POOL_MIN_IDLE:5}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${DB_IDLE_TIMEOUT:600000}
+      max-lifetime: ${DB_MAX_LIFETIME:1800000}
+      leak-detection-threshold: ${DB_LEAK_DETECTION:60000}
   
   jpa:
     hibernate:
-      ddl-auto: validate
-    show-sql: false
+      ddl-auto: ${HIBERNATE_DDL_AUTO:validate}
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
-        dialect: ${DATABASE_DIALECT:org.hibernate.dialect.H2Dialect}
-        format_sql: true
-        use_sql_comments: true
+        dialect: ${DATABASE_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
+        format_sql: ${HIBERNATE_FORMAT_SQL:true}
+        use_sql_comments: ${HIBERNATE_USE_SQL_COMMENTS:true}
         jdbc:
-          batch_size: 20
-        order_inserts: true
-        order_updates: true
+          batch_size: ${HIBERNATE_BATCH_SIZE:20}
+        order_inserts: ${HIBERNATE_ORDER_INSERTS:true}
+        order_updates: ${HIBERNATE_ORDER_UPDATES:true}
   
   flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-    validate-on-migrate: true
+    enabled: ${FLYWAY_ENABLED:true}
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+    validate-on-migrate: ${FLYWAY_VALIDATE_ON_MIGRATE:true}
   
-  redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
-    password: ${REDIS_PASSWORD:}
-    timeout: 2000ms
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:5000}
+      lettuce:
+        pool:
+          max-active: ${REDIS_POOL_MAX_ACTIVE:8}
+          max-idle: ${REDIS_POOL_MAX_IDLE:8}
+          min-idle: ${REDIS_POOL_MIN_IDLE:0}
   
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}

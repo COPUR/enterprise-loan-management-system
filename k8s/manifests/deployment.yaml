@@ -5,14 +5,21 @@ metadata:
   namespace: banking-system
   labels:
     app: enterprise-loan-system
-    version: v1.0.0
+    version: "1.0.0"
+    environment: production
+    compliance: banking
+    tier: application
+  annotations:
+    description: "Enterprise Loan Management System - Banking Microservice"
+    deployment.kubernetes.io/revision: "1"
+    compliance.banking/audit: "required"
 spec:
   replicas: 3
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 0
+      maxUnavailable: 0  # Zero downtime deployment for banking operations
   selector:
     matchLabels:
       app: enterprise-loan-system
@@ -20,94 +27,213 @@ spec:
     metadata:
       labels:
         app: enterprise-loan-system
-        version: v1.0.0
+        version: "1.0.0"
+        environment: production
+        compliance: banking
+        tier: application
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: "5000"
-        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/api/actuator/prometheus"
+        compliance.banking/data-classification: "restricted"
+        compliance.banking/audit-logging: "enabled"
     spec:
       serviceAccountName: banking-app-sa
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000
+        runAsUser: 1000  # banking user from Dockerfile
+        runAsGroup: 1000 # banking group from Dockerfile
         fsGroup: 2000
+        seccompProfile:
+          type: RuntimeDefault
+        supplementalGroups: [2000]
       containers:
       - name: banking-app
-        image: enterprise-loan-system:latest
-        imagePullPolicy: Always
+        image: enterprise-loan-system:1.0.0
+        imagePullPolicy: IfNotPresent  # Use IfNotPresent for production stability
         ports:
-        - containerPort: 5000
+        - containerPort: 8080
           name: http
           protocol: TCP
         env:
+        # 12-Factor App: Configuration via Environment Variables
         - name: SPRING_PROFILES_ACTIVE
-          value: "kubernetes,production"
+          value: "production,kubernetes"
+        - name: SERVER_PORT
+          value: "8080"
+        
+        # Database Configuration (12-Factor: Backing Services)
         - name: DATABASE_URL
-          value: "jdbc:postgresql://$(POSTGRES_SERVICE_HOST):$(POSTGRES_SERVICE_PORT)/banking_system"
+          value: "jdbc:postgresql://banking-postgres:5432/banking_system"
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: banking-app-secrets
+              key: DATABASE_USERNAME
         - name: DATABASE_PASSWORD
           valueFrom:
             secretKeyRef:
               name: banking-app-secrets
               key: DATABASE_PASSWORD
+        
+        # Cache Configuration (12-Factor: Backing Services)
         - name: REDIS_HOST
-          value: "$(REDIS_SERVICE_HOST)"
+          value: "banking-redis"
         - name: REDIS_PORT
-          value: "$(REDIS_SERVICE_PORT)"
+          value: "6379"
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
               name: banking-app-secrets
               key: REDIS_PASSWORD
+        
+        # Security Configuration
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
               name: banking-app-secrets
               key: JWT_SECRET
+        - name: OAUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: banking-app-secrets
+              key: OAUTH_CLIENT_SECRET
+        
+        # Banking Compliance Configuration
+        - name: FAPI_ENABLED
+          value: "true"
+        - name: PCI_ENABLED
+          value: "true"
+        - name: AUDIT_ENABLED
+          value: "true"
+        - name: KYC_REQUIRED
+          value: "true"
+        - name: BANKING_COMPLIANCE_STRICT
+          value: "true"
+        
+        # External Services (12-Factor: Backing Services)
+        - name: EUREKA_URL
+          value: "http://eureka-service:8761/eureka"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka-service:9092"
+        
+        # Performance and Limits
+        - name: LOAN_MAX_AMOUNT
+          value: "5000000"
+        - name: TRANSACTION_DAILY_LIMIT
+          value: "50000"
+        - name: MAX_CONCURRENT_REQUESTS
+          value: "100"
+        
+        # Monitoring Configuration
+        - name: ACTUATOR_ENDPOINTS
+          value: "health,info,metrics,prometheus"
+        - name: PROMETHEUS_ENABLED
+          value: "true"
+        
+        # Application Metadata
+        - name: APP_NAME
+          value: "Enterprise Loan Management System"
+        - name: APP_VERSION
+          value: "1.0.0"
+        
+        # JVM Configuration optimized for containers and banking workloads
         - name: JAVA_OPTS
-          value: "-Xmx2g -Xms1g -XX:+UseG1GC -XX:+UseContainerSupport"
+          value: >-
+            -server
+            -XX:+UseG1GC
+            -XX:MaxGCPauseMillis=200
+            -XX:G1HeapRegionSize=16m
+            -XX:+UseContainerSupport
+            -XX:MaxRAMPercentage=75.0
+            -XX:InitialRAMPercentage=50.0
+            -XX:+ExitOnOutOfMemoryError
+            -XX:+HeapDumpOnOutOfMemoryError
+            -XX:HeapDumpPath=/app/logs/heapdump.hprof
+            -Djava.security.egd=file:/dev/./urandom
+            -Dspring.profiles.active=production,kubernetes
+            -Dfile.encoding=UTF-8
+            -Duser.timezone=UTC
+        
         volumeMounts:
         - name: app-config
           mountPath: /app/config
           readOnly: true
         - name: logs
           mountPath: /app/logs
+        - name: tmp
+          mountPath: /app/tmp
+        
         resources:
           requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
             memory: "2Gi"
             cpu: "1000m"
+            ephemeral-storage: "1Gi"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+            ephemeral-storage: "2Gi"
+        
+        # Enhanced health checks for banking compliance
         livenessProbe:
           httpGet:
-            path: /actuator/health/liveness
+            path: /api/actuator/health/liveness
             port: http
-          initialDelaySeconds: 60
+            scheme: HTTP
+          initialDelaySeconds: 90
           periodSeconds: 30
-          timeoutSeconds: 5
+          timeoutSeconds: 10
           failureThreshold: 3
+          successThreshold: 1
+        
         readinessProbe:
           httpGet:
-            path: /actuator/health/readiness
+            path: /api/actuator/health/readiness
             port: http
+            scheme: HTTP
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
+          successThreshold: 1
+        
         startupProbe:
           httpGet:
-            path: /actuator/health
+            path: /api/actuator/health
             port: http
-          initialDelaySeconds: 30
+            scheme: HTTP
+          initialDelaySeconds: 60
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 30
+          successThreshold: 1
+        
+        # Security context for the container
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false  # Required for logs and tmp directories
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - NET_BIND_SERVICE
+      
       volumes:
       - name: app-config
         configMap:
           name: banking-app-config
+          defaultMode: 0444
       - name: logs
-        emptyDir: {}
+        emptyDir:
+          sizeLimit: 10Gi
+      - name: tmp
+        emptyDir:
+          sizeLimit: 1Gi
+      
+      # Pod scheduling preferences for high availability
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -120,6 +246,20 @@ spec:
                   values:
                   - enterprise-loan-system
               topologyKey: kubernetes.io/hostname
+          - weight: 50
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - enterprise-loan-system
+              topologyKey: topology.kubernetes.io/zone
+      
+      # DNS configuration for service discovery
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 60  # Allow time for graceful shutdown
 ---
 apiVersion: v1
 kind: ServiceAccount

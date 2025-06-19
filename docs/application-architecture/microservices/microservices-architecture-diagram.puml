@@ -20,11 +20,16 @@ package "API Gateway Layer" {
     note right of GATEWAY : Circuit Breaker Patterns\nRate Limiting (Redis)\nToken Management\nOWASP Top 10 Security\nFAPI Compliance\nLoad Balancing
 }
 
-package "Security Layer" {
+package "OAuth2.1 Identity & Security Layer" {
+    component [Keycloak OAuth2.1 Server] as KEYCLOAK #E3F2FD
+    component [LDAP Identity Provider] as LDAP #F0F4C3
     component [OWASP Security Filters] as SECURITY #F3E5F5
-    component [OAuth2 JWT Service] as AUTH #F3E5F5
-    note right of SECURITY : SQL Injection Protection\nXSS Prevention\nCSRF Protection\nSecurity Headers\nAuthentication\nAuthorization
-    note right of AUTH : Token Validation\nSession Management\nRole-based Access\nFAPI Authentication
+    component [Party Role Authorization] as PARTY_AUTH #FCE4EC
+    
+    note right of KEYCLOAK : Banking Realm\nJWT Token Management\nRole-based Access Control\nOAuth2.1 PKCE Flow\nAudit Event Logging\nSession Management
+    note right of LDAP : Enterprise Directory\nUser Authentication\nGroup Membership\nDepartment Mapping\nSecurity Credentials
+    note right of SECURITY : SQL Injection Protection\nXSS Prevention\nCSRF Protection\nSecurity Headers\nFAPI Compliance
+    note right of PARTY_AUTH : Authoritative Role Source\nTemporal Access Control\nMonetary Limits\nBusiness Unit Scoping\nCompliance Validation
 }
 
 package "Microservices Layer" {
@@ -57,6 +62,18 @@ package "Microservices Layer" {
             - Multi-installment Support
         }
         [Payment Repository] as PAYMENT_REPO #DCEDC8
+    }
+    
+    package "Party Data Management Service" {
+        [Party API] as PARTY_API #E1BEE7
+        [Party Domain] as PARTY_DOMAIN #E1BEE7 {
+            - Role Management
+            - Group Membership
+            - Temporal Access Control
+            - Authority Levels
+            - Compliance Tracking
+        }
+        [Party Repository] as PARTY_REPO #E1BEE7
     }
 }
 
@@ -113,6 +130,14 @@ package "Data Layer" {
         - audit_logs
         - session_data
     }
+    
+    database "Party DB" as PARTY_DB #F0E8F0 {
+        Schema: party_management
+        - parties
+        - party_roles
+        - party_groups
+        - role_audit_log
+    }
 }
 
 package "Cache Layer" {
@@ -135,15 +160,22 @@ WEB --> GATEWAY : HTTPS/REST
 MOBILE --> GATEWAY : HTTPS/REST
 THIRD_PARTY --> GATEWAY : FAPI/OpenBanking
 
-' Gateway to Security
+' OAuth2.1 Identity Flow
+LDAP --> KEYCLOAK : Identity Federation
+KEYCLOAK --> PARTY_AUTH : Role Authorization
+PARTY_AUTH --> PARTY_API : Role Resolution
+
+' Gateway to Security  
+GATEWAY --> KEYCLOAK : OAuth2.1 Token Validation
 GATEWAY --> SECURITY : Security Validation
-GATEWAY --> AUTH : Token Validation
+GATEWAY --> PARTY_AUTH : Business Authorization
 GATEWAY --> REDIS : Cache/Rate Limit
 
 ' Security to Services
 SECURITY --> CUSTOMER_API : Authorized Requests
 SECURITY --> LOAN_API : Authorized Requests
 SECURITY --> PAYMENT_API : Authorized Requests
+SECURITY --> PARTY_API : Authorized Requests
 
 ' Service Internal Architecture
 CUSTOMER_API --> CUSTOMER_DOMAIN
@@ -158,12 +190,17 @@ PAYMENT_API --> PAYMENT_DOMAIN
 PAYMENT_DOMAIN --> PAYMENT_REPO
 PAYMENT_REPO --> PAYMENT_DB
 
+PARTY_API --> PARTY_DOMAIN
+PARTY_DOMAIN --> PARTY_REPO
+PARTY_REPO --> PARTY_DB
+
 ' SAGA Orchestration
 LOAN_SAGA --> KAFKA : Publish Events
 PAYMENT_SAGA --> KAFKA : Publish Events
 KAFKA --> CUSTOMER_API : Event Consumption
 KAFKA --> LOAN_API : Event Consumption
 KAFKA --> PAYMENT_API : Event Consumption
+KAFKA --> PARTY_API : Event Consumption
 
 ' SAGA State Management
 LOAN_SAGA --> GATEWAY_DB : State Persistence
@@ -173,6 +210,8 @@ PAYMENT_SAGA --> GATEWAY_DB : State Persistence
 CUSTOMER_API --> PROMETHEUS : Metrics
 LOAN_API --> PROMETHEUS : Metrics
 PAYMENT_API --> PROMETHEUS : Metrics
+PARTY_API --> PROMETHEUS : Metrics
+KEYCLOAK --> PROMETHEUS : OAuth2.1 Metrics
 GATEWAY --> PROMETHEUS : Metrics
 PROMETHEUS --> GRAFANA : Visualization
 
@@ -180,6 +219,9 @@ PROMETHEUS --> GRAFANA : Visualization
 HEALTH --> CUSTOMER_API
 HEALTH --> LOAN_API
 HEALTH --> PAYMENT_API
+HEALTH --> PARTY_API
+HEALTH --> KEYCLOAK
+HEALTH --> LDAP
 HEALTH --> REDIS
 HEALTH --> KAFKA
 
