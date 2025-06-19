@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
  * Tests core banking functionality without HTTP dependencies
  * Following 12-Factor App and DDD principles
  */
-@SpringBootTest(classes = TestApplication.class, webEnvironment = WebEnvironment.NONE)
+@SpringBootTest(classes = LoanManagementApplication.class, webEnvironment = WebEnvironment.NONE)
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class BankingRegressionTest {

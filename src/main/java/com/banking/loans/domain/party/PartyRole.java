@@ -236,4 +236,11 @@ public class PartyRole {
     public boolean hasAuthorityFor(Long amount) {
         return monetaryLimit == null || (amount != null && amount <= monetaryLimit);
     }
+    
+    /**
+     * Alias for isCurrentlyActive() to match the usage in Party.java
+     */
+    public boolean isActive() {
+        return isCurrentlyActive();
+    }
 }
