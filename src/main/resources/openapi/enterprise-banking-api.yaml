@@ -1,0 +1,593 @@
+openapi: 3.0.3
+info:
+  title: Enterprise Banking Loan Management API
+  description: |
+    ## Enterprise Banking System API Documentation
+    
+    A comprehensive loan management system with AI-powered features built using:
+    - **Hexagonal Architecture** - Clean separation of concerns
+    - **Domain-Driven Design** - Rich domain models and use cases
+    - **Spring AI** - OpenAI GPT-4 integration for intelligent recommendations
+    - **Event-Driven Architecture** - Asynchronous processing capabilities
+    - **FAPI Compliance** - Financial-grade API security standards
+    
+    ### Key Features
+    - 🤖 **AI-Powered Loan Recommendations** - Personalized loan offers using machine learning
+    - 👥 **Customer Management** - Complete customer lifecycle management
+    - 💳 **Credit Management** - Real-time credit evaluation and monitoring
+    - 🔒 **Risk Assessment** - Advanced risk scoring with traditional and AI models
+    - 📊 **Real-time Analytics** - Financial insights and dashboards
+    - 🛡️ **Fraud Detection** - AI-powered fraud prevention
+    
+    ### Architecture
+    - **Domain Layer**: Core business logic and domain entities
+    - **Application Layer**: Use cases and business orchestration
+    - **Infrastructure Layer**: External integrations and adapters
+    
+    ### Authentication
+    All endpoints require Bearer Token authentication following OAuth 2.0 standards.
+    
+    ### Rate Limiting
+    - Standard endpoints: 1000 requests/hour
+    - AI endpoints: 100 requests/hour
+    - Bulk operations: 50 requests/hour
+    
+  version: 2.1.0
+  contact:
+    name: Banking API Team
+    email: api-support@enterprisebank.com
+    url: https://dev.enterprisebank.com/api-docs
+  license:
+    name: Enterprise License
+    url: https://enterprisebank.com/license
+
+servers:
+  - url: https://api.enterprisebank.com
+    description: Production Server
+  - url: https://staging-api.enterprisebank.com
+    description: Staging Server
+  - url: http://localhost:8080
+    description: Development Server
+
+security:
+  - bearerAuth: []
+  - oauth2: []
+
+paths:
+  /api/v1/loans/recommendations:
+    post:
+      tags:
+        - AI Loan Recommendations
+      summary: Generate AI-powered loan recommendations
+      description: |
+        Generates personalized loan recommendations using advanced AI analysis.
+        
+        This endpoint analyzes the customer's comprehensive financial profile using:
+        - Traditional risk assessment metrics (DTI, credit score, employment history)
+        - AI-powered behavioral analysis using OpenAI GPT-4
+        - Real-time market conditions and competitive rates
+        - Regulatory compliance validation
+        
+        The AI engine considers multiple factors to provide optimal loan terms:
+        - Customer creditworthiness and stability
+        - Market conditions and competitor analysis
+        - Regulatory requirements and compliance
+        - Risk-adjusted pricing models
+      operationId: generateLoanRecommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanRecommendationRequest'
+            examples:
+              homeImprovement:
+                summary: Home improvement loan request
+                value:
+                  customerId: "CUST-12345"
+                  desiredAmount: 25000.00
+                  currency: "USD"
+                  loanPurpose: "HOME_IMPROVEMENT"
+                  financialProfile:
+                    monthlyIncome: 6500.00
+                    monthlyExpenses: 3200.00
+                    existingDebt: 850.00
+                    creditScore: 785
+                    employmentStatus: "FULL_TIME"
+                    employmentDurationMonths: 48
+                  preferences:
+                    preferredTermMonths: 60
+                    maxAcceptableRatePercentage: 8.5
+                    maxMonthlyPayment: 500.00
+                    preferFixedRate: true
+                    desiredFeatures: ["Early Payment Option", "Rate Protection"]
+      responses:
+        '200':
+          description: Loan recommendations generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanRecommendationResponse'
+              examples:
+                successfulRecommendation:
+                  summary: Example of successful loan recommendations
+                  value:
+                    customerId: "CUST-12345"
+                    recommendations:
+                      - id: "OFFER-ABC123"
+                        loanType: "PERSONAL"
+                        amount: 25000.00
+                        currency: "USD"
+                        interestRatePercentage: 7.25
+                        termMonths: 60
+                        monthlyPayment: 495.87
+                        riskLevel: "MEDIUM"
+                        reasoning: "Recommended personal loan with competitive 7.25% rate for 5 year term based on your excellent credit score and stable employment"
+                        confidenceScore: 0.92
+                        features: ["Competitive Rate", "Fast Approval", "Early Payment Option"]
+                    riskAssessment:
+                      riskLevel: "MEDIUM"
+                      riskScore: 35
+                      defaultProbability: 0.08
+                      riskFactors: ["DTI ratio above optimal range"]
+                      mitigatingFactors: ["Excellent credit score: 785", "Stable employment history"]
+                      confidenceLevel: 0.89
+                    analysisVersion: "v2.1"
+                    generatedAt: "2024-12-20T10:30:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/loans/recommendations/{customerId}/latest:
+    get:
+      tags:
+        - AI Loan Recommendations
+      summary: Retrieve latest loan recommendations for customer
+      description: |
+        Retrieves the most recent loan recommendations generated for a specific customer.
+        
+        This endpoint allows customers and advisors to:
+        - Review previously generated recommendations
+        - Track recommendation history
+        - Compare different recommendation sessions
+        - Access saved recommendation details for decision-making
+        
+        **Note**: This endpoint returns the latest recommendations generated within the last 30 days.
+        For older recommendations, use the recommendation history endpoint.
+      operationId: getLatestLoanRecommendations
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          description: Unique customer identifier
+          schema:
+            type: string
+            pattern: '^CUST-[A-Z0-9]+$'
+            example: "CUST-12345"
+      responses:
+        '200':
+          description: Latest recommendations retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanRecommendationResponse'
+        '204':
+          description: No recent recommendations found for this customer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer Token Authentication
+    oauth2:
+      type: oauth2
+      description: OAuth 2.0 Authentication
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.enterprisebank.com/oauth/authorize
+          tokenUrl: https://auth.enterprisebank.com/oauth/token
+          scopes:
+            read:loans: Read loan information
+            write:loans: Create and modify loans
+            read:customers: Read customer information
+            write:customers: Create and modify customers
+
+  schemas:
+    LoanRecommendationRequest:
+      type: object
+      required:
+        - customerId
+        - desiredAmount
+        - currency
+        - loanPurpose
+        - financialProfile
+      properties:
+        customerId:
+          type: string
+          pattern: '^CUST-[A-Z0-9]+$'
+          description: Unique customer identifier
+          example: "CUST-12345"
+        desiredAmount:
+          type: number
+          format: decimal
+          minimum: 1000
+          maximum: 500000
+          description: Desired loan amount
+          example: 25000.00
+        currency:
+          type: string
+          enum: ["USD", "EUR", "GBP"]
+          description: Currency code (ISO 4217)
+          example: "USD"
+        loanPurpose:
+          type: string
+          enum: ["HOME_IMPROVEMENT", "DEBT_CONSOLIDATION", "AUTO_PURCHASE", "PERSONAL", "BUSINESS", "EDUCATION"]
+          description: Purpose of the loan
+          example: "HOME_IMPROVEMENT"
+        financialProfile:
+          $ref: '#/components/schemas/FinancialProfile'
+        preferences:
+          $ref: '#/components/schemas/LoanPreferences'
+
+    FinancialProfile:
+      type: object
+      required:
+        - monthlyIncome
+        - monthlyExpenses
+        - existingDebt
+        - creditScore
+        - employmentStatus
+        - employmentDurationMonths
+      properties:
+        monthlyIncome:
+          type: number
+          format: decimal
+          minimum: 1000
+          description: Monthly gross income
+          example: 6500.00
+        monthlyExpenses:
+          type: number
+          format: decimal
+          description: Monthly total expenses including housing, utilities, and other fixed costs
+          example: 3200.00
+        existingDebt:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Total existing debt obligations (monthly payments)
+          example: 850.00
+        creditScore:
+          type: integer
+          minimum: 300
+          maximum: 850
+          description: Credit score (FICO scale)
+          example: 785
+        employmentStatus:
+          type: string
+          enum: ["FULL_TIME", "PART_TIME", "SELF_EMPLOYED", "CONTRACT", "RETIRED", "UNEMPLOYED", "STUDENT"]
+          description: Employment status
+          example: "FULL_TIME"
+        employmentDurationMonths:
+          type: integer
+          minimum: 0
+          description: Employment duration in months
+          example: 48
+
+    LoanPreferences:
+      type: object
+      properties:
+        preferredTermMonths:
+          type: integer
+          minimum: 12
+          maximum: 360
+          description: Preferred loan term in months
+          example: 60
+        maxAcceptableRatePercentage:
+          type: number
+          format: double
+          minimum: 1.0
+          maximum: 25.0
+          description: Maximum acceptable interest rate percentage
+          example: 8.5
+        maxMonthlyPayment:
+          type: number
+          format: decimal
+          minimum: 50
+          description: Maximum acceptable monthly payment
+          example: 500.00
+        preferFixedRate:
+          type: boolean
+          description: Preference for fixed vs variable rate
+          example: true
+        desiredFeatures:
+          type: array
+          items:
+            type: string
+            enum: ["Early Payment Option", "Rate Protection", "Payment Protection", "Automatic Payment Discount", "Skip Payment Option"]
+          description: Desired loan features
+          example: ["Early Payment Option", "Rate Protection"]
+
+    LoanRecommendationResponse:
+      type: object
+      required:
+        - customerId
+        - recommendations
+        - riskAssessment
+        - analysisVersion
+        - generatedAt
+      properties:
+        customerId:
+          type: string
+          description: Customer identifier
+          example: "CUST-12345"
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoanOffer'
+          description: List of personalized loan recommendations sorted by confidence score
+        riskAssessment:
+          $ref: '#/components/schemas/RiskAssessment'
+        analysisVersion:
+          type: string
+          description: AI analysis engine version
+          example: "v2.1"
+        generatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when recommendations were generated
+          example: "2024-12-20T10:30:00Z"
+
+    LoanOffer:
+      type: object
+      required:
+        - id
+        - loanType
+        - amount
+        - currency
+        - interestRatePercentage
+        - termMonths
+        - monthlyPayment
+        - riskLevel
+        - reasoning
+        - confidenceScore
+        - features
+      properties:
+        id:
+          type: string
+          description: Unique loan offer identifier
+          example: "OFFER-ABC123"
+        loanType:
+          type: string
+          enum: ["PERSONAL", "SECURED", "AUTO", "MORTGAGE", "BUSINESS"]
+          description: Type of loan
+          example: "PERSONAL"
+        amount:
+          type: number
+          format: decimal
+          description: Loan amount
+          example: 25000.00
+        currency:
+          type: string
+          description: Currency code
+          example: "USD"
+        interestRatePercentage:
+          type: number
+          format: decimal
+          description: Annual interest rate percentage
+          example: 7.25
+        termMonths:
+          type: integer
+          description: Loan term in months
+          example: 60
+        monthlyPayment:
+          type: number
+          format: decimal
+          description: Monthly payment amount
+          example: 495.87
+        riskLevel:
+          type: string
+          enum: ["LOW", "MEDIUM", "HIGH"]
+          description: Risk level assessment
+          example: "MEDIUM"
+        reasoning:
+          type: string
+          description: AI-generated reasoning for this recommendation
+          example: "Recommended personal loan with competitive 7.25% rate for 5 year term based on your excellent credit score and stable employment"
+        confidenceScore:
+          type: number
+          format: double
+          minimum: 0.0
+          maximum: 1.0
+          description: AI confidence score (0.0-1.0)
+          example: 0.92
+        features:
+          type: array
+          items:
+            type: string
+          description: Loan features and benefits
+          example: ["Competitive Rate", "Fast Approval", "Early Payment Option"]
+
+    RiskAssessment:
+      type: object
+      required:
+        - riskLevel
+        - riskScore
+        - defaultProbability
+        - riskFactors
+        - mitigatingFactors
+        - confidenceLevel
+      properties:
+        riskLevel:
+          type: string
+          enum: ["LOW", "MEDIUM", "HIGH"]
+          description: Overall risk level
+          example: "MEDIUM"
+        riskScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Numerical risk score (0-100, higher = riskier)
+          example: 35
+        defaultProbability:
+          type: number
+          format: double
+          minimum: 0.0
+          maximum: 1.0
+          description: Estimated default probability (0.0-1.0)
+          example: 0.08
+        riskFactors:
+          type: array
+          items:
+            type: string
+          description: Identified risk factors
+          example: ["DTI ratio above optimal range"]
+        mitigatingFactors:
+          type: array
+          items:
+            type: string
+          description: Factors that reduce risk
+          example: ["Excellent credit score: 785", "Stable employment history"]
+        confidenceLevel:
+          type: number
+          format: double
+          minimum: 0.0
+          maximum: 1.0
+          description: Assessment confidence level (0.0-1.0)
+          example: 0.89
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - timestamp
+      properties:
+        error:
+          type: string
+          description: Error code identifying the type of error
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Invalid request parameters"
+        details:
+          type: array
+          items:
+            type: string
+          description: Additional error details or validation failures
+          example: ["Credit score must be between 300 and 850"]
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the error occurred
+          example: "2024-12-20T10:30:00Z"
+        path:
+          type: string
+          description: API path where the error occurred
+          example: "/api/v1/loans/recommendations"
+        traceId:
+          type: string
+          description: Trace ID for debugging and support
+          example: "abc123def456"
+
+  responses:
+    BadRequest:
+      description: Invalid request - validation errors or insufficient data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            validationError:
+              summary: Validation error example
+              value:
+                error: "VALIDATION_ERROR"
+                message: "Customer does not meet basic lending criteria"
+                details: ["Credit score below minimum threshold", "Insufficient employment history"]
+                timestamp: "2024-12-20T10:30:00Z"
+                path: "/api/v1/loans/recommendations"
+                traceId: "abc123def456"
+
+    Unauthorized:
+      description: Unauthorized - invalid or missing authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unauthorized:
+              summary: Authentication failure
+              value:
+                error: "UNAUTHORIZED"
+                message: "Invalid or missing authentication token"
+                timestamp: "2024-12-20T10:30:00Z"
+
+    Forbidden:
+      description: Forbidden - insufficient permissions to access customer data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Customer not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    TooManyRequests:
+      description: Too many requests - rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            rateLimitExceeded:
+              summary: Rate limit exceeded
+              value:
+                error: "RATE_LIMIT_EXCEEDED"
+                message: "API rate limit exceeded. Please try again later."
+                timestamp: "2024-12-20T10:30:00Z"
+
+    InternalServerError:
+      description: Internal server error - AI service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            internalError:
+              summary: Internal server error
+              value:
+                error: "INTERNAL_ERROR"
+                message: "An unexpected error occurred. Please contact support."
+                timestamp: "2024-12-20T10:30:00Z"
+                traceId: "xyz789uvw012"
+
+tags:
+  - name: AI Loan Recommendations
+    description: AI-powered loan recommendation engine providing personalized loan offers based on comprehensive financial analysis
+  - name: Customer Management
+    description: Complete customer lifecycle management including registration, updates, and status management
+  - name: Credit Management
+    description: Real-time credit evaluation, monitoring, and management operations
+  - name: Risk Assessment
+    description: Advanced risk scoring combining traditional financial metrics with AI-powered analysis
+  - name: Analytics
+    description: Financial insights, reporting, and dashboard APIs
+  - name: Fraud Detection
+    description: AI-powered fraud prevention and detection capabilities

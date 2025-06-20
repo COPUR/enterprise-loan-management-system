@@ -1,0 +1,75 @@
+// Development-specific Gradle tasks
+
+task runDev(type: org.springframework.boot.gradle.tasks.run.BootRun) {
+    group = 'development'
+    description = 'Run application in development mode'
+    
+    environment 'SPRING_PROFILES_ACTIVE', 'local,development,h2'
+    environment 'ENABLE_HOT_RELOAD', 'true'
+    environment 'ENABLE_DEBUG_MODE', 'true'
+    
+    jvmArgs = [
+        '-Xmx2g',
+        '-XX:+UseG1GC',
+        '-XX:+UseStringDeduplication',
+        '-Dspring.devtools.restart.enabled=true',
+        '-Dspring.devtools.livereload.enabled=true',
+        '-Djava.security.egd=file:/dev/./urandom'
+    ]
+    
+    if (project.hasProperty('debug')) {
+        jvmArgs += ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005']
+    }
+}
+
+task runDebug(type: org.springframework.boot.gradle.tasks.run.BootRun) {
+    group = 'development'
+    description = 'Run application in debug mode'
+    
+    environment 'SPRING_PROFILES_ACTIVE', 'local,development,h2'
+    
+    jvmArgs = [
+        '-Xmx2g',
+        '-XX:+UseG1GC',
+        '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005',
+        '-Dspring.devtools.restart.enabled=true',
+        '-Dspring.devtools.livereload.enabled=true'
+    ]
+}
+
+task testDev(type: Test) {
+    group = 'development'
+    description = 'Run tests with development profile'
+    
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+    
+    environment 'SPRING_PROFILES_ACTIVE', 'test,h2'
+    
+    systemProperty 'spring.test.context.cache.maxSize', '3'
+    systemProperty 'junit.jupiter.execution.parallel.enabled', 'true'
+    systemProperty 'junit.jupiter.execution.parallel.mode.default', 'concurrent'
+}
+
+task loadTestData(type: JavaExec) {
+    group = 'development'
+    description = 'Load test data into development database'
+    
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.bank.loanmanagement.DevDataLoader'
+    
+    environment 'SPRING_PROFILES_ACTIVE', 'local,development,h2'
+}
+
+task cleanDev(type: Delete) {
+    group = 'development'
+    description = 'Clean development files and databases'
+    
+    delete 'logs/dev'
+    delete 'data/dev'
+    delete fileTree(dir: '.', include: '*.db')
+    delete fileTree(dir: '.', include: '*.log')
+}

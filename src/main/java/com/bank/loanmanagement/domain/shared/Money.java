@@ -80,7 +80,7 @@ public class Money {
     }
     
     public static Money of(BigDecimal amount, String currency) {
-        return new Money(amount, currency);
+        return new Money(amount.setScale(2, RoundingMode.HALF_UP), currency);
     }
     
     @Override

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 public class PaymentProcessingService {
@@ -38,7 +39,7 @@ public class PaymentProcessingService {
             Money paymentAmount = convertToSharedkernelMoney(payment.getAmount());
             
             // Process the payment against the loan
-            loan.makePayment(paymentAmount, payment.getPaymentDate());
+            loan.makePayment(paymentAmount, payment.getPaymentDate().toLocalDate());
             
             // Mark payment as processed
             payment.process("SYSTEM");
@@ -113,7 +114,7 @@ public class PaymentProcessingService {
             return false;
         }
         
-        if (payment.getPaymentDate() == null || payment.getPaymentDate().isAfter(LocalDate.now())) {
+        if (payment.getPaymentDate() == null || payment.getPaymentDate().isAfter(LocalDateTime.now())) {
             return false;
         }
         
