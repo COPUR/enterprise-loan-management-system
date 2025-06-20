@@ -124,4 +124,50 @@ public class Payment extends AggregateRoot<PaymentId> {
     public PaymentId getId() {
         return id;
     }
+    
+    // Factory method for creating new payments
+    public static Payment createNew(LoanId loanId, CustomerId customerId, Money amount, PaymentMethod paymentMethod, 
+                                   String paymentReference, String description) {
+        return Payment.builder()
+                .id(PaymentId.generate())
+                .loanId(loanId)
+                .customerId(customerId)
+                .amount(amount)
+                .paymentMethod(paymentMethod)
+                .paymentReference(paymentReference)
+                .description(description)
+                .status(PaymentStatus.PENDING)
+                .paymentDate(LocalDate.now())
+                .build();
+    }
+    
+    // Getters for GraphQL compatibility
+    public Money getPaymentAmount() {
+        return amount;
+    }
+    
+    public LocalDateTime getPaymentDate() {
+        return paymentDate.atStartOfDay();
+    }
+    
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+    
+    public String getPaymentReference() {
+        return paymentReference;
+    }
+    
+    public PaymentStatus getStatus() {
+        return status;
+    }
+    
+    public Money getProcessingFee() {
+        // Simple processing fee calculation - 1% of payment amount
+        return Money.of(amount.getAmount().multiply(java.math.BigDecimal.valueOf(0.01)), amount.getCurrency());
+    }
+    
+    public Money getTotalAmount() {
+        return Money.of(amount.getAmount().add(getProcessingFee().getAmount()), amount.getCurrency());
+    }
 }

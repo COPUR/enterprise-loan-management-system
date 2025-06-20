@@ -15,6 +15,22 @@ spring:
           top-p: ${OPENAI_TOP_P:1.0}
           frequency-penalty: ${OPENAI_FREQUENCY_PENALTY:0.0}
           presence-penalty: ${OPENAI_PRESENCE_PENALTY:0.0}
+    
+    # Vector Database Configuration for RAG
+    vectorstore:
+      chroma:
+        enabled: ${CHROMA_ENABLED:true}
+        host: ${CHROMA_HOST:localhost}
+        port: ${CHROMA_PORT:8000}
+        collection-name: ${CHROMA_COLLECTION:banking_knowledge}
+        distance-function: ${CHROMA_DISTANCE:COSINE}
+        
+    # Embedding Configuration
+    embedding:
+      enabled: ${EMBEDDING_ENABLED:true}
+      model: ${EMBEDDING_MODEL:text-embedding-ada-002}
+      max-tokens: ${EMBEDDING_MAX_TOKENS:8191}
+      dimensions: ${EMBEDDING_DIMENSIONS:1536}
 
 # AI Service Configuration
 ai:
