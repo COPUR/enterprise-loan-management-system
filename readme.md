@@ -185,7 +185,7 @@ The system implements OAuth2.1 Authorization Code Flow with PKCE for enhanced se
 
 ### Security Features
 
-![Security Architecture](docs/generated-diagrams/OWASP%20Top%2010%20Security%20Architecture.svg)
+![Security Architecture](docs/security-architecture/security-models/generated-diagrams/FAPI%20Security%20Architecture.svg)
 
 - **OWASP Top 10 Protection**: Complete mitigation of web application risks
 - **Zero Trust Architecture**: Continuous verification and monitoring
