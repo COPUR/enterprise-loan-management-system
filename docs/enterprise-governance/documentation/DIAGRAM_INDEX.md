@@ -205,7 +205,7 @@ This index provides quick access to all architectural diagrams with their purpos
 
 ---
 
-## 🔄 Diagram Compilation Instructions
+##  Diagram Compilation Instructions
 
 ### PlantUML to SVG Generation
 ```bash

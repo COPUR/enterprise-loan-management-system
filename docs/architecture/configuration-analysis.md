@@ -175,14 +175,14 @@ This document provides a comprehensive analysis of the extracted library depende
 ## Environment-Specific Configuration Files
 
 ### Removed Files
-- ❌ `application-preprod.yml` - Removed as requested
-- ❌ `application-prod.yml` - Removed as requested
+-  `application-preprod.yml` - Removed as requested
+-  `application-prod.yml` - Removed as requested
 
 ### Maintained Files
-- ✅ `application.yml` - Base configuration with environment variables
-- ✅ `application-dev.yml` - Development environment settings
-- ✅ `application-sit.yml` - System Integration Test environment
-- ✅ `application-uat.yml` - User Acceptance Test environment
+-  `application.yml` - Base configuration with environment variables
+-  `application-dev.yml` - Development environment settings
+-  `application-sit.yml` - System Integration Test environment
+-  `application-uat.yml` - User Acceptance Test environment
 
 ### Environment-Specific Differences
 

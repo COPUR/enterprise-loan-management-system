@@ -73,7 +73,7 @@ k8s/helm-charts/enterprise-loan-system/
 
 ---
 
-## 🔄 GitOps CI/CD Pipeline
+##  GitOps CI/CD Pipeline
 
 ### GitHub Actions Workflow
 ```

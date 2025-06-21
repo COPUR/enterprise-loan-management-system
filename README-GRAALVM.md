@@ -171,7 +171,7 @@ native-image --version
 ### Expected Results
 ```
 ========================================================================
-🚀 Performance Benchmark Results
+ Performance Benchmark Results
 ========================================================================
 Startup Time: < 3,000ms (JVM: ~45,000ms)
 Memory Usage: < 200MB (JVM: ~800MB)
@@ -378,17 +378,17 @@ time ./build/native/enterprise-loan-management-native --version
 ## Success Metrics
 
 ### Achieved Performance Improvements
-- ✅ **95% Startup Time Reduction**: 45s → 3s
-- ✅ **80% Memory Usage Reduction**: 800MB → 160MB
-- ✅ **70% Container Size Reduction**: 300MB → 90MB
-- ✅ **99% Response Time Improvement**: 5s → 50ms (first request)
+-  **95% Startup Time Reduction**: 45s → 3s
+-  **80% Memory Usage Reduction**: 800MB → 160MB
+-  **70% Container Size Reduction**: 300MB → 90MB
+-  **99% Response Time Improvement**: 5s → 50ms (first request)
 
 ### Production Readiness
-- ✅ Banking-grade security compliance
-- ✅ Complete API functionality
-- ✅ Database integration
-- ✅ Monitoring and observability
-- ✅ Automated testing suite
+-  Banking-grade security compliance
+-  Complete API functionality
+-  Database integration
+-  Monitoring and observability
+-  Automated testing suite
 
 ---
 

@@ -45,7 +45,7 @@
 
 ---
 
-## 🏗️ Architecture Highlights
+## Architecture Highlights
 
 ### Domain-Driven Design Implementation
 ```
@@ -79,7 +79,7 @@ Client Certificate (mTLS) → OAuth 2.0 + PKCE → JWT (RS256) → API Gateway �
 
 ---
 
-## 📈 Technical Metrics
+## Technical Metrics
 
 ### Code Coverage Achievement
 - **Overall Coverage**: 87.4% (2,058 of 2,355 lines)
@@ -108,7 +108,7 @@ Client Certificate (mTLS) → OAuth 2.0 + PKCE → JWT (RS256) → API Gateway �
 
 ---
 
-## 🔧 Compilation Instructions
+## Compilation Instructions
 
 ### Using the Compilation Script
 ```bash
@@ -207,7 +207,7 @@ docs/compiled-diagrams/
 
 ---
 
-## ✅ Quality Assurance
+## Quality Assurance
 
 ### Diagram Quality Standards
 - **Completeness**: All major system aspects covered
