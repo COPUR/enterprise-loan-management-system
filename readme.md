@@ -35,7 +35,7 @@ A comprehensive enterprise-grade banking system built on **pure hexagonal archit
 
 ## Architecture Overview ⭐ **Clean Hexagonal Architecture**
 
-![System Architecture](docs/generated-diagrams/OAuth2.1%20Architecture%20Overview.svg)
+![System Architecture](docs/architecture/generated-diagrams/OAuth2.1%20Architecture%20Overview.svg)
 
 The system implements **pure hexagonal architecture** with complete separation of concerns:
 
@@ -147,12 +147,15 @@ kubectl get applications -n argocd
 
 ### Architecture Documentation
 
-| Document | Description |
-|----------|-------------|
-| [OAuth2.1 Architecture Guide](docs/OAuth2.1-Architecture-Guide.md) | Complete OAuth2.1 implementation with Keycloak |
-| [Security Architecture](docs/security-architecture/Security-Architecture-Overview.md) | OWASP Top 10 compliance and banking security |
-| [Application Architecture](docs/application-architecture/Application-Architecture-Guide.md) | Microservices and DDD implementation |
-| [Infrastructure Architecture](docs/infrastructure-architecture/Infrastructure-Architecture-Guide.md) | Kubernetes deployment and operations |
+#### 📋 **Comprehensive Architecture Catalogue**
+
+| Document | Description | Level |
+|----------|-------------|-------|
+| **[🏗️ Architecture Catalogue](docs/ARCHITECTURE_CATALOGUE.md)** | **Complete architecture catalogue from holistic to implementation** | **Strategic** |
+| [OAuth2.1 Architecture Guide](docs/OAuth2.1-Architecture-Guide.md) | Complete OAuth2.1 implementation with Keycloak | Security |
+| [Security Architecture](docs/security-architecture/Security-Architecture-Overview.md) | OWASP Top 10 compliance and banking security | Security |
+| [Application Architecture](docs/application-architecture/Application-Architecture-Guide.md) | Microservices and DDD implementation | Application |
+| [Infrastructure Architecture](docs/infrastructure-architecture/Infrastructure-Architecture-Guide.md) | Kubernetes deployment and operations | Infrastructure |
 
 ### API & Operations
 
@@ -163,7 +166,7 @@ kubectl get applications -n argocd
 
 ### Domain Models
 
-![Domain Model](docs/generated-diagrams/Domain%20Model.svg)
+![Domain Model](docs/business-architecture/domain-models/generated-diagrams/Domain%20Model.svg)
 
 ## Security & Compliance
 
@@ -185,7 +188,7 @@ The system implements OAuth2.1 Authorization Code Flow with PKCE for enhanced se
 
 ### Security Features
 
-![Security Architecture](docs/generated-diagrams/OWASP%20Top%2010%20Security%20Architecture.svg)
+![Security Architecture](docs/security-architecture/security-models/generated-diagrams/OWASP%20Top%2010%20Security%20Architecture.svg)
 
 - **OWASP Top 10 Protection**: Complete mitigation of web application risks
 - **Zero Trust Architecture**: Continuous verification and monitoring
@@ -261,6 +264,15 @@ enterprise-loan-management-system/
 - **Flexibility**: Easy to change persistence or presentation layers
 - **Maintainability**: Clear separation of business logic
 - **Domain Events**: Loose coupling between bounded contexts
+
+### 📋 **Comprehensive Architecture Documentation**
+
+For a complete view of the system architecture from strategic business context to detailed implementation, see our **[🏗️ Architecture Catalogue](docs/ARCHITECTURE_CATALOGUE.md)**. This catalogue provides:
+
+- **Level 1: Strategic & Business Architecture** - Enterprise context, business processes, domain models
+- **Level 2: Solution Architecture** - Application, integration, and security architecture
+- **Level 3: Technology & Implementation** - Infrastructure, data architecture, AI integration
+- **Level 4: Operational & Governance** - Monitoring, quality assurance, compliance
 
 ## API Overview
 
@@ -445,7 +457,7 @@ spec:
 
 ### Dashboards
 
-![Monitoring Dashboard](docs/generated-diagrams/Monitoring%20&%20Observability%20-%20Enterprise%20Loan%20Management%20System.svg)
+![Monitoring Dashboard](docs/technology-architecture/monitoring/generated-diagrams/Monitoring%20&%20Observability%20-%20Enterprise%20Loan%20Management%20System.svg)
 
 ### Health Checks
 
@@ -838,9 +850,9 @@ public class AIFinancialInsightsService {
 
 The Enterprise Banking System provides a comprehensive RESTful API catalog with full OpenAPI 3.0 specification:
 
-- **📖 Interactive API Documentation**: [Swagger UI](https://api.banking.enterprise.com/swagger-ui.html)
+- **📖 Interactive API Documentation**: Available via Swagger UI at `/swagger-ui.html`
 - **📋 OpenAPI Specification**: [openapi.yml](docs/api/openapi.yml)
-- **🔗 Postman Collection**: [Banking APIs](docs/api/postman/banking-apis.json)
+- **🔗 Architecture Catalogue**: [Complete API Architecture](docs/ARCHITECTURE_CATALOGUE.md#4-application-architecture)
 
 #### Core Banking API Modules
 
@@ -953,17 +965,17 @@ curl -X POST "https://api.banking.enterprise.com/api/v1/ai-assistant/chat" \
 
 #### Hexagonal Architecture Implementation Guide
 
-- **🏗️ [Application Architecture Guide](docs/application-architecture/Application-Architecture-Guide.md)** - Complete hexagonal architecture implementation
+- **🏗️ [Complete Architecture Catalogue](docs/ARCHITECTURE_CATALOGUE.md)** - **Comprehensive architecture from strategic to implementation level**
 - **🎯 [Domain-Driven Design](docs/business-architecture/domain-models/)** - Pure domain models and events
 - **🔒 [Security Architecture](docs/security-architecture/)** - OAuth2.1 and FAPI compliance
 - **☁️ [Cloud Architecture](docs/technology-architecture/)** - AWS EKS deployment guide
 
 #### AI Integration Architecture
 
-- **🤖 [AI Integration Guide](docs/ai-integration/AI-Integration-Guide.md)** - Spring AI and OpenAI setup
-- **🧠 [RAG Implementation](docs/ai-integration/RAG-Implementation.md)** - Banking knowledge base integration
-- **📊 [Vector Database](docs/ai-integration/Vector-Database-Setup.md)** - PGVector configuration
-- **🔍 [AI Model Management](docs/ai-integration/AI-Model-Management.md)** - Model versioning and deployment
+- **🤖 [AI Integration Overview](docs/ARCHITECTURE_CATALOGUE.md#71-ai-integration-architecture)** - Spring AI and OpenAI architecture
+- **🧠 [Technology Architecture](docs/ARCHITECTURE_CATALOGUE.md#7-technology-architecture)** - Complete AI framework integration
+- **📊 [Application Architecture](docs/ARCHITECTURE_CATALOGUE.md#4-application-architecture)** - AI-enhanced banking services
+- **🔍 [Complete Architecture Catalogue](docs/ARCHITECTURE_CATALOGUE.md)** - Full AI architecture documentation
 
 ## Troubleshooting
 
