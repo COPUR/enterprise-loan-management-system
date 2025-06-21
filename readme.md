@@ -14,7 +14,7 @@ A comprehensive enterprise-grade banking system built on **pure hexagonal archit
 
 ### **Architectural Transformation Achieved**
 - **6 Major Domain Contexts** completely cleaned and refactored to hexagonal architecture
-- **424 lines of pure domain logic** in Loan aggregate with zero JPA contamination
+- **Pure domain logic** in Loan aggregate with zero JPA contamination
 - **8 comprehensive domain events** for complete business process tracking
 - **Factory method patterns** for controlled domain object creation
 - **Value object immutability** and defensive programming throughout
@@ -35,7 +35,7 @@ A comprehensive enterprise-grade banking system built on **pure hexagonal archit
 
 ## Architecture Overview ⭐ **Clean Hexagonal Architecture**
 
-![System Architecture](docs/architecture/generated-diagrams/OAuth2.1%20Architecture%20Overview.svg)
+![System Architecture](docs/generated-diagrams/Hexagonal%20Architecture%20-%20Enterprise%20Loan%20Management%20System%20(Production).svg)
 
 The system implements **pure hexagonal architecture** with complete separation of concerns:
 
@@ -188,7 +188,7 @@ The system implements OAuth2.1 Authorization Code Flow with PKCE for enhanced se
 
 ### Security Features
 
-![Security Architecture](docs/security-architecture/security-models/generated-diagrams/OWASP%20Top%2010%20Security%20Architecture.svg)
+![Security Architecture](docs/security-architecture/security-models/generated-diagrams/FAPI%20Security%20Architecture.svg)
 
 - **OWASP Top 10 Protection**: Complete mitigation of web application risks
 - **Zero Trust Architecture**: Continuous verification and monitoring
@@ -342,7 +342,7 @@ curl -X GET https://api.banking.enterprise.com/api/v1/customers/123 \
 // Example: Pure Domain Model - Hexagonal Architecture
 // Source: com/bank/loanmanagement/domain/loan/Loan.java
 public class Loan extends AggregateRoot<LoanId> {
-    
+
     private LoanId id;
     private CustomerId customerId;
     private Money principalAmount;
@@ -350,7 +350,7 @@ public class Loan extends AggregateRoot<LoanId> {
     private BigDecimal interestRate;
     private LoanStatus status;
     private List<LoanInstallment> installments;
-    
+
     // Factory method for domain object creation
     public static Loan create(
         LoanId id,
@@ -362,37 +362,37 @@ public class Loan extends AggregateRoot<LoanId> {
         String purpose
     ) {
         validateLoanCreationRules(principalAmount, interestRate, termInMonths);
-        
-        Loan loan = new Loan(id, customerId, principalAmount, 
+
+        Loan loan = new Loan(id, customerId, principalAmount,
                            interestRate, termInMonths, loanType, purpose);
-        
+
         // Emit domain event
         loan.addDomainEvent(new LoanApplicationSubmittedEvent(
-            id.getValue(), customerId.getValue(), principalAmount, 
+            id.getValue(), customerId.getValue(), principalAmount,
             loanType, purpose, LocalDateTime.now()
         ));
-        
+
         return loan;
     }
-    
+
     // Pure business logic - no infrastructure dependencies
     public void approve(String approvedBy) {
         if (this.status != LoanStatus.PENDING) {
             throw new LoanBusinessException("Only pending loans can be approved");
         }
-        
+
         this.status = LoanStatus.APPROVED;
         this.approvalDate = LocalDate.now();
         this.approvedBy = approvedBy;
-        
+
         generateAmortizationSchedule();
-        
+
         addDomainEvent(new LoanApprovedEvent(
             this.id.getValue(), this.customerId.getValue(),
             this.principalAmount, this.approvedBy, LocalDateTime.now()
         ));
     }
-    
+
     // More business methods: makePayment(), markAsDefaulted(), restructure()...
 }
 ```
@@ -484,17 +484,17 @@ The Enterprise Banking System features an intelligent AI assistant powered by **
 // AI Banking Assistant Service
 @Service
 public class BankingAIAssistantService {
-    
+
     private final ChatClient chatClient;
     private final VectorStore vectorStore;
-    
+
     @Autowired
-    public BankingAIAssistantService(ChatClient.Builder chatClientBuilder, 
+    public BankingAIAssistantService(ChatClient.Builder chatClientBuilder,
                                    VectorStore vectorStore) {
         this.chatClient = chatClientBuilder.build();
         this.vectorStore = vectorStore;
     }
-    
+
     public BankingResponse processCustomerQuery(String query, CustomerId customerId) {
         return chatClient.prompt()
             .system("""
@@ -550,14 +550,14 @@ spring:
 @RestController
 @RequestMapping("/api/v1/ai-assistant")
 public class BankingAIController {
-    
+
     @PostMapping("/loan-guidance")
     public ResponseEntity<LoanGuidanceResponse> getLoanGuidance(
             @RequestBody LoanGuidanceRequest request,
             Authentication authentication) {
-        
+
         CustomerId customerId = extractCustomerId(authentication);
-        
+
         // AI-powered loan recommendation
         LoanGuidanceResponse guidance = aiAssistantService.provideLoanGuidance(
             request.getFinancialProfile(),
@@ -565,37 +565,37 @@ public class BankingAIController {
             request.getDesiredAmount(),
             customerId
         );
-        
+
         return ResponseEntity.ok(guidance);
     }
-    
+
     @PostMapping("/financial-planning")
     public ResponseEntity<FinancialPlanResponse> getFinancialPlan(
             @RequestBody FinancialPlanRequest request,
             Authentication authentication) {
-        
+
         // Generate AI-powered financial plan
         FinancialPlanResponse plan = aiAssistantService.generateFinancialPlan(
             request.getIncomeProfile(),
             request.getExpenses(),
             request.getGoals()
         );
-        
+
         return ResponseEntity.ok(plan);
     }
-    
+
     @PostMapping("/chat")
     public ResponseEntity<ChatResponse> chat(
             @RequestBody ChatRequest request,
             Authentication authentication) {
-        
+
         // Contextual banking chat with RAG
         ChatResponse response = aiAssistantService.processChat(
             request.getMessage(),
             request.getConversationHistory(),
             extractCustomerId(authentication)
         );
-        
+
         return ResponseEntity.ok(response);
     }
 }
@@ -620,10 +620,10 @@ public class BankingAIController {
 // Banking Knowledge RAG Service
 @Service
 public class BankingRAGService {
-    
+
     private final VectorStore vectorStore;
     private final DocumentReader documentReader;
-    
+
     public List<Document> retrieveBankingContext(String query) {
         // Semantic search through banking documentation
         return vectorStore.similaritySearch(
@@ -632,14 +632,14 @@ public class BankingRAGService {
                 .withSimilarityThreshold(0.8)
         );
     }
-    
+
     public String generateContextualResponse(String userQuery, CustomerId customerId) {
         // Retrieve relevant banking documents
         List<Document> context = retrieveBankingContext(userQuery);
-        
+
         // Generate contextual prompt
         String systemPrompt = buildBankingSystemPrompt(context, customerId);
-        
+
         return chatClient.prompt()
             .system(systemPrompt)
             .user(userQuery)
@@ -665,23 +665,23 @@ export const BankingAIChatbot: React.FC = () => {
 
   const handleSendMessage = async (message: string) => {
     setIsTyping(true);
-    
+
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       content: message,
       sender: 'user',
       timestamp: new Date()
     };
-    
+
     setMessages(prev => [...prev, userMessage]);
-    
+
     try {
       const response = await sendMessage({
         message,
         conversationHistory: messages,
         context: 'banking-assistant'
       });
-      
+
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         content: response.content,
@@ -689,7 +689,7 @@ export const BankingAIChatbot: React.FC = () => {
         timestamp: new Date(),
         suggestions: response.suggestions
       };
-      
+
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('AI chat error:', error);
@@ -704,14 +704,14 @@ export const BankingAIChatbot: React.FC = () => {
         <h3>🏦 Banking AI Assistant</h3>
         <span className="ai-status">Powered by GPT-4</span>
       </div>
-      
+
       <div className="chat-messages">
         {messages.map(message => (
           <ChatMessage key={message.id} message={message} />
         ))}
         {isTyping && <TypingIndicator />}
       </div>
-      
+
       <ChatInput onSendMessage={handleSendMessage} />
     </div>
   );
@@ -749,7 +749,7 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - AI_ASSISTANT_ENABLED=true
       - RAG_ENABLED=true
-    
+
   vector-db:
     image: pgvector/pgvector:pg16
     environment:
@@ -773,18 +773,18 @@ volumes:
 // AI-Enhanced Loan Processing
 @Service
 public class AILoanProcessingService {
-    
+
     public LoanDecisionResponse processLoanApplication(LoanApplication application) {
         // AI risk assessment
         RiskAssessment risk = aiRiskService.assessLoanRisk(application);
-        
+
         // AI-powered credit scoring
         CreditScore aiCreditScore = aiCreditService.calculateAIScore(application);
-        
+
         // Generate AI recommendation
         LoanRecommendation recommendation = aiRecommendationService
             .generateLoanRecommendation(application, risk, aiCreditScore);
-            
+
         return LoanDecisionResponse.builder()
             .decision(recommendation.getDecision())
             .confidence(recommendation.getConfidence())
@@ -801,17 +801,17 @@ public class AILoanProcessingService {
 // Real-time AI Fraud Detection
 @Component
 public class AIFraudDetectionService {
-    
+
     @EventListener
     public void analyzeTransaction(TransactionCreatedEvent event) {
         Transaction transaction = event.getTransaction();
-        
+
         // AI anomaly detection
         FraudProbability fraudScore = aiModelService.analyzeFraudProbability(
             transaction,
             customerHistoryService.getTransactionHistory(transaction.getCustomerId())
         );
-        
+
         if (fraudScore.isHighRisk()) {
             eventPublisher.publishEvent(new SuspiciousFraudTransactionDetectedEvent(
                 transaction.getId(),
@@ -829,10 +829,10 @@ public class AIFraudDetectionService {
 // AI Financial Insights Engine
 @Service
 public class AIFinancialInsightsService {
-    
+
     public List<FinancialInsight> generatePersonalizedInsights(CustomerId customerId) {
         CustomerFinancialProfile profile = customerService.getFinancialProfile(customerId);
-        
+
         return aiInsightsEngine.generateInsights(
             profile,
             marketDataService.getCurrentMarketConditions(),
@@ -1207,7 +1207,7 @@ fi
 ```json
 {
   "test_id": "load-test-20241220-143021",
-  "test_environment": "staging", 
+  "test_environment": "staging",
   "total_duration_seconds": 300,
   "overall_metrics": {
     "total_requests": 15000,
