@@ -1,38 +1,38 @@
-# 🔶 Hexagonal Architecture Guardrails & Clean Code Standards
+# Hexagonal Architecture Guardrails and Clean Code Standards
 
 ## Executive Summary
 
-This document establishes **mandatory** architectural guardrails for the Enterprise Banking System. These standards ensure consistent hexagonal architecture implementation, DDD compliance, and clean code practices across all microservices.
+This document establishes mandatory architectural guardrails for the Enterprise Banking System. These standards ensure consistent hexagonal architecture implementation, DDD compliance, and clean code practices across all microservices.
 
-**⚠️ CRITICAL**: All code MUST comply with these standards before being merged to main branch.
+CRITICAL: All code must comply with these standards before being merged to main branch.
 
 ---
 
-## 🏗️ **Hexagonal Architecture Principles**
+## Hexagonal Architecture Principles
 
-### **Core Principles**
-1. **Domain Independence**: Business logic is completely isolated from infrastructure
-2. **Port & Adapter Pattern**: All external dependencies accessed through interfaces
-3. **Dependency Inversion**: High-level modules don't depend on low-level modules
-4. **Testability**: Business logic can be tested without infrastructure
+### Core Principles
+1. Domain Independence: Business logic is completely isolated from infrastructure
+2. Port and Adapter Pattern: All external dependencies accessed through interfaces
+3. Dependency Inversion: High-level modules do not depend on low-level modules
+4. Testability: Business logic can be tested without infrastructure
 
-### **Architecture Layers**
+### Architecture Layers
 
 ```
-🔶 Hexagonal Architecture Structure
+Hexagonal Architecture Structure
 ┌─────────────────────────────────────────────────────────────┐
-│                    🌐 External World                        │
+│                        External World                        │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
 │  │     Web     │  │  Database   │  │  External   │        │
 │  │   Adapter   │  │   Adapter   │  │   APIs      │        │
 │  └─────────────┘  └─────────────┘  └─────────────┘        │
 │         │                 │                 │              │
 │  ┌─────────────────────────────────────────────────────────┐ │
-│  │             🔌 Infrastructure Layer                     │ │
+│  │                 Infrastructure Layer                     │ │
 │  │  ┌─────────────────────────────────────────────────────┐│ │
-│  │  │           📱 Application Layer                      ││ │
+│  │  │               Application Layer                      ││ │
 │  │  │  ┌─────────────────────────────────────────────────┐││ │
-│  │  │  │              💎 Domain Layer                    │││ │
+│  │  │  │                  Domain Layer                    │││ │
 │  │  │  │  ┌─────────────┐  ┌─────────────┐             │││ │
 │  │  │  │  │  Aggregates │  │   Value     │             │││ │
 │  │  │  │  │ & Entities  │  │  Objects    │             │││ │
@@ -49,12 +49,12 @@ This document establishes **mandatory** architectural guardrails for the Enterpr
 
 ---
 
-## 📋 **Mandatory Package Structure**
+## Mandatory Package Structure
 
-### **Standard Package Layout**
+### Standard Package Layout
 ```
 com.bank.loanmanagement.{bounded-context}/
-├── 💎 domain/
+├── domain/
 │   ├── model/                 # Aggregates, Entities, Value Objects
 │   │   ├── {Aggregate}.java   # Pure business logic
 │   │   ├── {ValueObject}.java # Immutable value objects
@@ -70,7 +70,7 @@ com.bank.loanmanagement.{bounded-context}/
 │       └── out/               # Output Ports
 │           ├── {Repository}.java        # Repository interfaces
 │           └── {ExternalService}.java   # External service interfaces
-├── 📱 application/
+├── application/
 │   ├── service/               # Application Services (Use Case Implementations)
 │   │   └── {UseCaseImpl}.java # Use case implementations
 │   ├── dto/                   # Data Transfer Objects
@@ -78,7 +78,7 @@ com.bank.loanmanagement.{bounded-context}/
 │   │   └── {Response}.java    # Response DTOs
 │   └── mapper/                # Domain ↔ DTO Mapping
 │       └── {Mapper}.java      # Mapping logic
-└── 🔌 infrastructure/
+└── infrastructure/
     └── adapter/               # Infrastructure Adapters
         ├── in/                # Inbound Adapters
         │   └── web/           # Web Controllers
@@ -97,12 +97,12 @@ com.bank.loanmanagement.{bounded-context}/
 
 ---
 
-## 🚫 **Forbidden Practices**
+## Forbidden Practices
 
-### **❌ Domain Layer Violations**
+### Domain Layer Violations
 
 ```java
-// ❌ WRONG: JPA annotations in domain
+// INCORRECT: JPA annotations in domain
 @Entity
 @Table(name = "customers")
 public class Customer {
@@ -111,20 +111,20 @@ public class Customer {
     private Long id;
 }
 
-// ❌ WRONG: Spring annotations in domain
+// INCORRECT: Spring annotations in domain
 @Service
 public class CustomerService {
     @Autowired
     private CustomerRepository repository;
 }
 
-// ❌ WRONG: Primitive obsession
+// INCORRECT: Primitive obsession
 public class Loan {
     private BigDecimal amount;  // Should be Money value object
     private String customerId;  // Should be CustomerId value object
 }
 
-// ❌ WRONG: Infrastructure leakage
+// INCORRECT: Infrastructure leakage
 public class Customer {
     public void save() {
         // Database logic in domain
@@ -133,10 +133,10 @@ public class Customer {
 }
 ```
 
-### **❌ Application Layer Violations**
+### Application Layer Violations
 
 ```java
-// ❌ WRONG: Business logic in application service
+// INCORRECT: Business logic in application service
 @Service
 public class LoanApplicationService {
     public void approveLoan(Long loanId) {
@@ -148,7 +148,7 @@ public class LoanApplicationService {
     }
 }
 
-// ❌ WRONG: Direct infrastructure dependency
+// INCORRECT: Direct infrastructure dependency
 @Service
 public class CustomerService {
     @Autowired
@@ -158,12 +158,12 @@ public class CustomerService {
 
 ---
 
-## ✅ **Correct Implementation Patterns**
+## Correct Implementation Patterns
 
-### **✅ Clean Domain Model**
+### Clean Domain Model
 
 ```java
-// ✅ CORRECT: Pure domain aggregate
+// CORRECT: Pure domain aggregate
 public class Customer extends AggregateRoot<CustomerId> {
     private CustomerId customerId;
     private PersonalName name;
@@ -171,7 +171,7 @@ public class Customer extends AggregateRoot<CustomerId> {
     private CreditLimit creditLimit;
     private Money usedCredit;
     
-    // ✅ Business logic in domain
+    // Business logic in domain
     public void reserveCredit(Money amount) {
         if (!hasAvailableCredit(amount)) {
             throw new InsufficientCreditException(customerId, amount);
@@ -187,7 +187,7 @@ public class Customer extends AggregateRoot<CustomerId> {
     }
 }
 
-// ✅ CORRECT: Value object
+// CORRECT: Value object
 public final class Money {
     private final BigDecimal amount;
     private final Currency currency;
@@ -218,17 +218,17 @@ public final class Money {
 }
 ```
 
-### **✅ Clean Use Case Implementation**
+### Clean Use Case Implementation
 
 ```java
-// ✅ CORRECT: Use case interface (Domain Port In)
+// CORRECT: Use case interface (Domain Port In)
 public interface CustomerManagementUseCase {
     Customer createCustomer(CreateCustomerCommand command);
     void reserveCredit(ReserveCreditCommand command);
     Customer findCustomer(CustomerId customerId);
 }
 
-// ✅ CORRECT: Command object
+// CORRECT: Command object
 public record CreateCustomerCommand(
     String firstName,
     String lastName,
@@ -246,7 +246,7 @@ public record CreateCustomerCommand(
     }
 }
 
-// ✅ CORRECT: Application service implementation
+// CORRECT: Application service implementation
 @UseCase
 @Transactional
 public class CustomerManagementService implements CustomerManagementUseCase {
@@ -285,10 +285,10 @@ public class CustomerManagementService implements CustomerManagementUseCase {
 }
 ```
 
-### **✅ Clean Repository Pattern**
+### Clean Repository Pattern
 
 ```java
-// ✅ CORRECT: Domain repository interface (Port Out)
+// CORRECT: Domain repository interface (Port Out)
 public interface CustomerRepository {
     Customer save(Customer customer);
     Optional<Customer> findById(CustomerId customerId);
@@ -296,7 +296,7 @@ public interface CustomerRepository {
     boolean existsByEmail(EmailAddress email);
 }
 
-// ✅ CORRECT: Infrastructure repository adapter
+// CORRECT: Infrastructure repository adapter
 @Repository
 public class CustomerRepositoryAdapter implements CustomerRepository {
     
@@ -325,7 +325,7 @@ public class CustomerRepositoryAdapter implements CustomerRepository {
     }
 }
 
-// ✅ CORRECT: JPA entity (separate from domain)
+// CORRECT: JPA entity (separate from domain)
 @Entity
 @Table(name = "customers")
 public class CustomerJpaEntity {
@@ -354,11 +354,11 @@ public class CustomerJpaEntity {
 
 ---
 
-## 🧪 **Testing Standards**
+## Testing Standards
 
 ### **Domain Testing**
 ```java
-// ✅ CORRECT: Pure domain unit test
+// CORRECT: Pure domain unit test
 @DisplayName("Customer Credit Management")
 class CustomerTest {
     
@@ -404,7 +404,7 @@ class CustomerTest {
 
 ### **Integration Testing**
 ```java
-// ✅ CORRECT: Repository adapter integration test
+// CORRECT: Repository adapter integration test
 @DataJpaTest
 @TestPropertySource(properties = {
     "spring.jpa.hibernate.ddl-auto=create-drop",
@@ -451,11 +451,11 @@ class CustomerRepositoryAdapterTest {
 
 ---
 
-## 🔒 **Security & Compliance Guidelines**
+## Security and Compliance Guidelines
 
-### **Data Protection**
+### Data Protection
 ```java
-// ✅ CORRECT: Sensitive data handling
+// CORRECT: Sensitive data handling
 @Entity
 @Table(name = "customers")
 public class CustomerJpaEntity {
@@ -473,7 +473,7 @@ public class CustomerJpaEntity {
     private String emailEncrypted;
 }
 
-// ✅ CORRECT: Audit logging
+// CORRECT: Audit logging
 @AuditLogging
 public class CustomerManagementService implements CustomerManagementUseCase {
     
@@ -491,9 +491,9 @@ public class CustomerManagementService implements CustomerManagementUseCase {
 }
 ```
 
-### **Input Validation**
+### Input Validation
 ```java
-// ✅ CORRECT: Domain-driven validation
+// CORRECT: Domain-driven validation
 public record CreateCustomerCommand(
     @NotBlank(message = "First name is required")
     @Size(max = 50, message = "First name must not exceed 50 characters")
@@ -523,11 +523,11 @@ public record CreateCustomerCommand(
 
 ---
 
-## 📊 **Performance Guidelines**
+## Performance Guidelines
 
-### **Database Optimization**
+### Database Optimization
 ```java
-// ✅ CORRECT: Optimized JPA entity
+// CORRECT: Optimized JPA entity
 @Entity
 @Table(
     name = "customers",
@@ -562,9 +562,9 @@ public class CustomerJpaEntity {
 }
 ```
 
-### **Caching Strategy**
+### Caching Strategy
 ```java
-// ✅ CORRECT: Repository with caching
+// CORRECT: Repository with caching
 @Repository
 public class CustomerRepositoryAdapter implements CustomerRepository {
     
@@ -590,11 +590,11 @@ public class CustomerRepositoryAdapter implements CustomerRepository {
 
 ---
 
-## 🚀 **Deployment & Monitoring**
+## Deployment and Monitoring
 
-### **Health Checks**
+### Health Checks
 ```java
-// ✅ CORRECT: Custom health indicator
+// CORRECT: Custom health indicator
 @Component
 public class CustomerServiceHealthIndicator implements HealthIndicator {
     
@@ -623,9 +623,9 @@ public class CustomerServiceHealthIndicator implements HealthIndicator {
 }
 ```
 
-### **Metrics & Monitoring**
+### Metrics and Monitoring
 ```java
-// ✅ CORRECT: Business metrics
+// CORRECT: Business metrics
 @UseCase
 @Transactional
 public class CustomerManagementService implements CustomerManagementUseCase {
@@ -666,9 +666,9 @@ public class CustomerManagementService implements CustomerManagementUseCase {
 
 ---
 
-## 📋 **Code Review Checklist**
+## Code Review Checklist
 
-### **✅ Architecture Compliance**
+### Architecture Compliance
 - [ ] Domain layer free of infrastructure dependencies
 - [ ] Proper port/adapter pattern implementation  
 - [ ] Use case interfaces in domain/port/in
@@ -676,21 +676,21 @@ public class CustomerManagementService implements CustomerManagementUseCase {
 - [ ] Value objects used instead of primitives
 - [ ] Domain events for cross-aggregate communication
 
-### **✅ Clean Code Standards**
+### Clean Code Standards
 - [ ] Meaningful names for classes, methods, variables
 - [ ] Methods do one thing and are < 20 lines
 - [ ] No code duplication (DRY principle)
 - [ ] Proper error handling with domain exceptions
 - [ ] No infrastructure leakage in domain layer
 
-### **✅ Testing Coverage**
+### Testing Coverage
 - [ ] Unit tests for all domain logic (>95% coverage)
 - [ ] Integration tests for adapters
 - [ ] Architecture tests with ArchUnit
 - [ ] Contract tests for external interfaces
 - [ ] Performance tests for critical paths
 
-### **✅ Security & Compliance**
+### Security and Compliance
 - [ ] No hardcoded secrets or credentials
 - [ ] Proper input validation and sanitization
 - [ ] Sensitive data encryption at rest
@@ -699,45 +699,45 @@ public class CustomerManagementService implements CustomerManagementUseCase {
 
 ---
 
-## 🎯 **Enforcement Mechanisms**
+## Enforcement Mechanisms
 
-### **1. Automated Architecture Tests**
+### 1. Automated Architecture Tests
 - ArchUnit tests run in CI/CD pipeline
 - Fail build if architecture rules violated
 - Custom rules for banking domain compliance
 
-### **2. Static Code Analysis**
+### 2. Static Code Analysis
 - SonarQube quality gates
 - SpotBugs security analysis  
 - Checkstyle code formatting
 - OWASP dependency checks
 
-### **3. Code Review Process**
+### 3. Code Review Process
 - Mandatory architecture review
 - Two approvals required for main branch
 - Architecture committee review for major changes
 
-### **4. IDE Integration**
+### 4. IDE Integration
 - Architecture plugins for IntelliJ/Eclipse
 - Real-time violation detection
 - Code templates for proper patterns
 
 ---
 
-## 📞 **Support & Training**
+## Support and Training
 
-### **Resources**
-- **Architecture Documentation**: `/docs/architecture/`
-- **Code Examples**: `/examples/hexagonal-patterns/`
-- **Training Materials**: Internal architecture wiki
-- **Community**: #architecture-guild Slack channel
+### Resources
+- Architecture Documentation: `/docs/architecture/`
+- Code Examples: `/examples/hexagonal-patterns/`
+- Training Materials: Internal architecture wiki
+- Community: #architecture-guild Slack channel
 
-### **Contacts**
-- **Architecture Questions**: @architecture-team
-- **Code Review Help**: @senior-developers  
-- **Training Requests**: @tech-leads
-- **Tool Issues**: @platform-engineering
+### Contacts
+- Architecture Questions: @architecture-team
+- Code Review Help: @senior-developers  
+- Training Requests: @tech-leads
+- Tool Issues: @platform-engineering
 
 ---
 
-**⚠️ Remember**: These guardrails exist to ensure maintainable, testable, and scalable enterprise banking software. Compliance is not optional—it's essential for system integrity and regulatory compliance.
+Remember: These guardrails exist to ensure maintainable, testable, and scalable enterprise banking software. Compliance is not optional - it is essential for system integrity and regulatory compliance.
