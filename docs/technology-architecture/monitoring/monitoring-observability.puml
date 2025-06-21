@@ -7,6 +7,7 @@
 !define CLOUDWATCH_COLOR #FF9900
 !define ALERT_COLOR #DC3545
 !define METRICS_COLOR #28A745
+!define TESTING_COLOR #E74C3C
 
 skinparam backgroundColor #FFFFFF
 skinparam defaultFontName Arial
@@ -227,18 +228,85 @@ HealthEndpoints --> LivenessProbes : Kubernetes Health
 HealthEndpoints --> ReadinessProbes : Service Readiness
 HealthEndpoints --> DeepHealthChecks : Comprehensive Health
 
+' Load Testing Integration
+package "Load Testing & Performance Monitoring" <<Testing Integration>> #FFF5F5 {
+    
+    package "Load Testing Framework" <<Performance Testing>> #FFE8E8 {
+        component [Load Testing Metrics\n(e2e-comprehensive-load-test.sh)] as LoadTestingMetrics TESTING_COLOR
+        component [Chaos Engineering Metrics\n(Fault Injection Results)] as ChaosMetrics TESTING_COLOR
+        component [Performance Benchmarks\n(Response Time, Throughput)] as PerformanceBenchmarks TESTING_COLOR
+        component [Quality Gate Validation\n(CI/CD Integration)] as QualityGateMetrics TESTING_COLOR
+    }
+    
+    package "Advanced Observability" <<Enhanced Monitoring>> #F0F0FF {
+        component [OpenTelemetry Collector\n(OTLP Protocol, PCI-DSS)] as OtelCollector JAEGER_COLOR
+        component [Fluent Bit\n(Log Processing Pipeline)] as FluentBit ELK_COLOR
+        component [SIEM Integration\n(Security Monitoring)] as SIEMIntegration ALERT_COLOR
+        component [Data Residency Controls\n(US/EU/APAC Compliance)] as DataResidency METRICS_COLOR
+    }
+}
+
+' Enhanced Security Monitoring
+package "Security & Compliance Monitoring" <<SIEM & Audit>> #FFF8E8 {
+    
+    package "SIEM Components" <<Security Monitoring>> #FFEECC {
+        component [Security Event Correlation\n(Threat Detection)] as SecurityEventCorrelation ALERT_COLOR
+        component [Fraud Detection Analytics\n(ML-based Monitoring)] as FraudDetection ALERT_COLOR
+        component [Compliance Reporting\n(PCI-DSS, SOX, GDPR)] as ComplianceReporting ALERT_COLOR
+        component [Audit Trail Management\n(Immutable Log Storage)] as AuditTrailManagement ALERT_COLOR
+    }
+    
+    package "Real-time Security Alerts" <<Threat Response>> #FFF4D6 {
+        component [Anomaly Detection\n(Behavioral Analysis)] as AnomalyDetection ALERT_COLOR
+        component [Incident Response\n(Automated Workflows)] as IncidentResponse ALERT_COLOR
+        component [Risk Scoring\n(Dynamic Threat Assessment)] as RiskScoring ALERT_COLOR
+        component [Security Dashboards\n(SOC Operations)] as SecurityDashboards ALERT_COLOR
+    }
+}
+
+' Performance Testing Integration
+LoadTestingMetrics --> PrometheusServer : Test Metrics
+ChaosMetrics --> PrometheusServer : Chaos Results
+PerformanceBenchmarks --> PerformanceMetrics : Benchmark Data
+QualityGateMetrics --> AlertManager : Quality Alerts
+
+' Advanced Observability Integration
+OtelCollector --> PrometheusServer : OTLP Metrics
+OtelCollector --> JaegerCollector : OTLP Traces
+OtelCollector --> Elasticsearch : OTLP Logs
+FluentBit --> Elasticsearch : Processed Logs
+SIEMIntegration --> SecurityEventCorrelation : Security Events
+DataResidency --> OtelCollector : Compliance Controls
+
+' SIEM Integration
+SecurityEventCorrelation --> SecurityDashboards : Security Analytics
+FraudDetection --> AnomalyDetection : ML Insights
+ComplianceReporting --> AuditTrailManagement : Compliance Data
+IncidentResponse --> NotificationChannels : Security Alerts
+
+' Enhanced monitoring flows
+SecurityLogs --> SIEMIntegration : Security Events
+AuditLogs --> AuditTrailManagement : Audit Events
+PerformanceLogs --> LoadTestingMetrics : Performance Data
+
 ' Monitoring Annotations
-note top of PrometheusServer : Prometheus Configuration\n• Scrape Interval: 15s\n• Retention: 15 days\n• Storage: 100GB SSD\n• High Availability: 3 replicas
+note top of PrometheusServer : Prometheus Configuration\n• Scrape Interval: 15s\n• Retention: 15 days\n• Storage: 100GB SSD\n• High Availability: 3 replicas\n• Load Test Metrics: Integrated
 
-note top of CacheMetrics : Cache Performance Monitoring\n• Hit Ratio: 100% (Target: >80%)\n• Response Time: 2.5ms\n• Memory Usage: 6.1GB\n• Operations: 7 total
+note top of CacheMetrics : Cache Performance Monitoring\n• Hit Ratio: 100% (Target: >80%)\n• Response Time: 2.5ms\n• Memory Usage: 6.1GB\n• Operations: 7 total\n• Load Test Validation: Active
 
-note top of AlertManager : Alert Thresholds\n• API Response Time > 200ms\n• Cache Hit Ratio < 80%\n• Error Rate > 0.1%\n• System Availability < 99.9%
+note top of AlertManager : Alert Thresholds\n• API Response Time > 200ms\n• Cache Hit Ratio < 80%\n• Error Rate > 0.1%\n• System Availability < 99.9%\n• Load Test Failures: Critical
 
-note bottom of BusinessMetrics : Banking Business Metrics\n• Loan Applications: Real-time\n• Payment Processing: Success Rate\n• Customer Onboarding: Duration\n• Regulatory Compliance: Score
+note top of LoadTestingMetrics : Load Testing Integration\n• Comprehensive API testing\n• Chaos engineering scenarios\n• Performance benchmarking\n• CI/CD quality gates\n• Real-time monitoring
 
-note bottom of JaegerUI : Distributed Tracing Features\n• Request Flow Visualization\n• Performance Bottlenecks\n• Service Dependencies\n• Error Root Cause Analysis
+note top of OtelCollector : OpenTelemetry Collector\n• OTLP protocol support\n• PCI-DSS compliance\n• Multi-region data routing\n• Sensitive data masking\n• Audit trail generation
+
+note bottom of BusinessMetrics : Banking Business Metrics\n• Loan Applications: Real-time\n• Payment Processing: Success Rate\n• Customer Onboarding: Duration\n• Regulatory Compliance: Score\n• Performance Testing: Integrated
+
+note bottom of JaegerUI : Distributed Tracing Features\n• Request Flow Visualization\n• Performance Bottlenecks\n• Service Dependencies\n• Error Root Cause Analysis\n• Load Test Trace Analysis
+
+note bottom of SIEMIntegration : SIEM & Security Monitoring\n• Real-time threat detection\n• ML-based fraud detection\n• Compliance automation\n• Incident response workflows\n• Audit trail management
 
 ' Performance Benchmarks
-note right of APIResponseTime : SLA Targets vs Actual\n• API Response: <200ms (40ms actual)\n• Cache Hit Ratio: >80% (100% actual)\n• System Uptime: 99.9% (99.95% actual)\n• TDD Coverage: >75% (87.4% actual)
+note right of APIResponseTime : SLA Targets vs Actual\n• API Response: <200ms (40ms actual)\n• Cache Hit Ratio: >80% (100% actual)\n• System Uptime: 99.9% (99.95% actual)\n• TDD Coverage: >75% (87.4% actual)\n• Load Test Success: >95% (99.5% actual)
 
 @enduml

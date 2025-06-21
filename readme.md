@@ -1044,9 +1044,188 @@ plantuml -tsvg -o docs/generated-diagrams docs/**/*.puml
 - ✅ **Architecture Documentation** updated with hexagonal patterns
 - ✅ **Test Coverage**: 87.4% (targeting 90% with clean architecture)
 
+---
+
+## 🚀 Comprehensive Load Testing & Performance Validation
+
+The Enterprise Banking System includes a sophisticated load testing framework designed for enterprise-grade performance validation, chaos engineering, and scalability testing.
+
+### 🎯 Load Testing Features
+
+- **🔧 API Load Testing**: RESTful endpoint stress testing with authentication
+- **🗄️ Database Stress Testing**: Concurrent operations and connection pool validation  
+- **⚡ Chaos Engineering**: Network latency, CPU load, memory pressure simulation
+- **📈 Scalability Testing**: Progressive user load and bottleneck identification
+- **📊 Comprehensive Reporting**: JSON summaries, JUnit XML, real-time metrics
+
+### 📋 Quick Load Testing Guide
+
+#### Prerequisites & Installation
+```bash
+# Install required tools
+sudo apt-get install -y curl jq bc wrk stress redis-tools postgresql-client
+
+# Make scripts executable
+chmod +x scripts/e2e-comprehensive-load-test.sh
+chmod +x scripts/mock-server.py
+```
+
+#### Basic Usage
+```bash
+# Start mock server for testing
+python3 scripts/mock-server.py 8080 &
+
+# Run comprehensive load test
+export BASE_URL="http://localhost:8080"
+export CONCURRENT_USERS=50
+export TEST_DURATION=300
+export RESPONSE_TIME_THRESHOLD=2000
+export SUCCESS_RATE_THRESHOLD=95
+./scripts/e2e-comprehensive-load-test.sh local
+```
+
+#### CI/CD Integration
+The load testing framework is fully integrated into GitHub Actions CI/CD pipeline:
+
+```yaml
+comprehensive-load-testing:
+  name: 🚀 Comprehensive Load & Chaos Testing
+  runs-on: ubuntu-latest
+  timeout-minutes: 45
+  steps:
+  - name: 🚀 Run Comprehensive Load Tests
+    env:
+      BASE_URL: http://localhost:8080
+      CONCURRENT_USERS: 50
+      TEST_DURATION: 300
+      SUCCESS_RATE_THRESHOLD: 95
+    run: ./scripts/e2e-comprehensive-load-test.sh ci
+```
+
+### 📊 Test Results & Reporting
+
+#### Output Structure
+```
+test-results/
+├── reports/
+│   ├── test-summary-{timestamp}.json      # Comprehensive summary
+│   ├── ci-summary.json                    # CI-friendly format
+│   └── junit-test-results.xml             # JUnit XML for CI systems
+├── load-tests/
+│   ├── api-load-test-results.json         # API performance metrics
+│   ├── database-stress-results.log        # Database performance logs
+│   ├── chaos-results.json                 # Chaos engineering results
+│   ├── scalability-results.json           # Scalability test data
+│   └── failures-{timestamp}.log           # Detailed failure analysis
+```
+
+#### Performance Metrics
+| Metric | Target | Alert Level |
+|--------|--------|-------------|
+| Response Time | < 200ms | > 500ms |
+| Error Rate | < 1% | > 5% |
+| Throughput | > 100 RPS | < 50 RPS |
+| Success Rate | > 95% | < 90% |
+
+### 🔧 Advanced Configuration
+
+#### Environment Variables
+```bash
+# Test execution parameters
+BASE_URL="http://localhost:8080"           # Target application URL
+CONCURRENT_USERS=50                        # Number of concurrent users
+TEST_DURATION=300                          # Test duration in seconds
+CHAOS_DURATION=120                         # Chaos test duration
+RESPONSE_TIME_THRESHOLD=2000              # Max response time (ms)
+SUCCESS_RATE_THRESHOLD=95                 # Min success rate (%)
+
+# Authentication & Infrastructure  
+JWT_TOKEN=""                              # JWT authentication token
+REDIS_HOST="localhost"                    # Redis server host
+DATABASE_URL="jdbc:postgresql://..."      # Database connection
+```
+
+#### Test Scenarios
+```bash
+# Development environment testing
+export CONCURRENT_USERS=10 && export TEST_DURATION=60
+./scripts/e2e-comprehensive-load-test.sh dev
+
+# Staging environment validation
+export CONCURRENT_USERS=50 && export TEST_DURATION=300  
+./scripts/e2e-comprehensive-load-test.sh staging
+
+# Production monitoring (read-only)
+export CONCURRENT_USERS=100 && export TEST_DURATION=600
+./scripts/e2e-comprehensive-load-test.sh prod
+```
+
+### 🧪 Chaos Engineering Scenarios
+
+#### Network Latency Simulation
+- Simulates network delays using traffic control
+- Tests API resilience under network stress
+- Validates timeout handling and circuit breakers
+
+#### Resource Stress Testing
+- **CPU Load**: Multi-core stress testing with performance monitoring
+- **Memory Pressure**: Memory allocation stress with garbage collection analysis
+- **Random Failures**: Service disruption simulation with recovery time measurement
+
+#### Database Stress Testing
+- Concurrent connection testing
+- Transaction throughput validation
+- Connection pool optimization
+- Query performance under load
+
+### 📈 Performance Analysis & Quality Gates
+
+#### Automated Quality Gates
+```bash
+# Performance quality gate validation
+if (( $(echo "$SUCCESS_RATE < 95" | bc -l) )); then
+  echo "❌ Performance quality gate failed"
+  exit 1
+else
+  echo "✅ Performance quality gate passed"
+fi
+```
+
+#### Test Results Summary
+```json
+{
+  "test_id": "load-test-20241220-143021",
+  "test_environment": "staging", 
+  "total_duration_seconds": 300,
+  "overall_metrics": {
+    "total_requests": 15000,
+    "total_errors": 75,
+    "overall_success_rate_percent": "99.5",
+    "test_passed": true
+  },
+  "test_results": {
+    "api_load_tests": {...},
+    "database_stress_test": {...},
+    "chaos_engineering": {...},
+    "scalability_tests": {...}
+  }
+}
+```
+
+### 🔗 Load Testing Documentation
+
+- **📘 [Complete Load Testing Manual](docs/LOAD_TESTING_MANUAL.md)** - Comprehensive testing guide
+- **⚙️ [Configuration Reference](docs/LOAD_TESTING_MANUAL.md#configuration-reference)** - All environment variables
+- **🔧 [CI/CD Integration](docs/LOAD_TESTING_MANUAL.md#cicd-integration)** - Pipeline setup guide
+- **📊 [Results Analysis](docs/LOAD_TESTING_MANUAL.md#results-analysis)** - Performance metrics analysis
+- **🛠️ [Troubleshooting](docs/LOAD_TESTING_MANUAL.md#troubleshooting)** - Common issues and solutions
+
+---
+
 ### Support
 
 - **Documentation**: [Technical Documentation](docs/)
+- **Load Testing**: [Load Testing Manual](docs/LOAD_TESTING_MANUAL.md)
 - **API Reference**: [API Documentation](docs/API-Documentation.md)
 - **Runbooks**: [Operations Guide](docs/deployment-operations/Deployment-Operations-Guide.md)
 - **Security**: [Security Architecture](docs/security-architecture/Security-Architecture-Overview.md)

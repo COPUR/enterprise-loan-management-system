@@ -1,0 +1,287 @@
+# OpenTelemetry Collector Configuration for PCI-DSS Compliant Loan Management System
+# Industry Standard OTLP Configuration with Enhanced Security
+
+receivers:
+  # OTLP receivers for traces, metrics, and logs
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+        tls:
+          cert_file: /etc/ssl/certs/otel-collector.crt
+          key_file: /etc/ssl/private/otel-collector.key
+          client_ca_file: /etc/ssl/certs/ca.crt
+      http:
+        endpoint: 0.0.0.0:4318
+        tls:
+          cert_file: /etc/ssl/certs/otel-collector.crt
+          key_file: /etc/ssl/private/otel-collector.key
+          client_ca_file: /etc/ssl/certs/ca.crt
+
+  # Prometheus receiver for scraping metrics
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'loan-management-app'
+          scrape_interval: 30s
+          static_configs:
+            - targets: ['host.docker.internal:8080']
+          metrics_path: '/actuator/prometheus'
+          scheme: https
+          tls_config:
+            insecure_skip_verify: false
+            
+        - job_name: 'log-event-store'
+          scrape_interval: 30s
+          static_configs:
+            - targets: ['log-event-store:8081']
+          metrics_path: '/actuator/prometheus'
+
+  # File log receiver for application logs
+  filelog:
+    include:
+      - /var/log/applications/*.log
+      - /var/log/applications/**/*.log
+    exclude:
+      - /var/log/applications/**/*debug*
+    start_at: end
+    include_file_path: true
+    include_file_name: false
+    operators:
+      # Parse structured JSON logs
+      - type: json_parser
+        id: json_parser
+        timestamp:
+          parse_from: attributes.timestamp
+          layout_type: epoch
+          layout: s
+      # Extract sensitive data classification
+      - type: add
+        field: resource.data_classification
+        value: EXPR(attributes.data_classification != nil ? attributes.data_classification : "INTERNAL")
+      # Mask PCI data according to PCI-DSS v4 requirements
+      - type: regex_parser
+        id: pci_masker
+        regex: '(?P<card_number>\d{4}-?\d{4}-?\d{4}-?\d{4})'
+        parse_from: body
+        parse_to: attributes.masked_data
+      - type: replace
+        field: body
+        pattern: '\d{4}-?\d{4}-?\d{4}-?\d{4}'
+        value: '****-****-****-XXXX'
+
+processors:
+  # Batch processor for efficiency
+  batch:
+    timeout: 10s
+    send_batch_size: 512
+    send_batch_max_size: 1024
+
+  # Memory limiter to prevent OOM
+  memory_limiter:
+    limit_mib: 2048
+    spike_limit_mib: 512
+    check_interval: 5s
+
+  # Resource processor to add common attributes
+  resource:
+    attributes:
+      - key: environment
+        value: ${DATA_RESIDENCY}
+        action: upsert
+      - key: service.namespace
+        value: banking
+        action: upsert
+      - key: deployment.environment
+        value: ${DEPLOYMENT_ENV}
+        action: upsert
+      - key: compliance.standard
+        value: PCI-DSS-v4
+        action: upsert
+
+  # Attributes processor for PCI-DSS compliance
+  attributes:
+    actions:
+      # Remove sensitive attributes
+      - key: credit_card_number
+        action: delete
+      - key: ssn
+        action: delete
+      - key: account_number
+        action: hash
+      # Add audit trail information
+      - key: audit.timestamp
+        value: ${timestamp}
+        action: upsert
+      - key: audit.collector_id
+        value: otel-collector-primary
+        action: upsert
+      # Data residency compliance
+      - key: data.residency
+        value: ${DATA_RESIDENCY}
+        action: upsert
+      - key: data.sovereignty_compliant
+        value: true
+        action: upsert
+
+  # Transform processor for log enrichment
+  transform:
+    trace_statements:
+      - context: span
+        statements:
+          - set(attributes["banking.transaction_id"], attributes["transaction_id"]) where attributes["transaction_id"] != nil
+          - set(attributes["banking.customer_segment"], "retail") where attributes["loan_type"] == "personal"
+          - set(attributes["pci.scope"], "in-scope") where attributes["payment_data"] == true
+
+    metric_statements:
+      - context: metric
+        statements:
+          - set(resource.attributes["metric.category"], "business") where name == "loan_approval_rate"
+          - set(resource.attributes["metric.category"], "technical") where name == "http_request_duration"
+
+    log_statements:
+      - context: log
+        statements:
+          - set(attributes["log.level_normalized"], "ERROR") where severity_text == "ERROR"
+          - set(attributes["log.level_normalized"], "WARN") where severity_text == "WARN"
+          - set(attributes["log.level_normalized"], "INFO") where severity_text == "INFO"
+          - set(attributes["compliance.audit_required"], true) where attributes["event_type"] == "payment_processed"
+
+  # Probabilistic sampler for traces (PCI environments need higher retention)
+  probabilistic_sampler:
+    hash_seed: 22
+    sampling_percentage: 100.0  # 100% sampling for PCI compliance audit trails
+
+  # Span processor for trace enhancement
+  span:
+    name:
+      from_attributes: [http.method, http.route]
+      separator: " "
+
+exporters:
+  # Elasticsearch exporter for logs with security
+  elasticsearch:
+    endpoints: 
+      - https://elasticsearch-secure:9200
+    index: loan-management-logs-${DATA_RESIDENCY}-%{+yyyy.MM.dd}
+    username: ${ELASTICSEARCH_USERNAME}
+    password: ${ELASTICSEARCH_PASSWORD}
+    tls:
+      insecure_skip_verify: false
+      ca_file: /etc/ssl/certs/ca.crt
+    mapping:
+      mode: ecs
+      ecs_version: v8.0.0
+    pipeline: loan-management-pipeline
+    headers:
+      X-Data-Classification: PCI-DSS
+      X-Audit-Required: "true"
+
+  # Jaeger exporter for distributed tracing
+  jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: false
+      ca_file: /etc/ssl/certs/ca.crt
+
+  # Prometheus exporter for metrics
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    const_labels:
+      environment: ${DATA_RESIDENCY}
+      compliance: pci-dss-v4
+
+  # OTLP exporter for forwarding to other collectors (multi-region)
+  otlp/regional:
+    endpoint: ${REGIONAL_COLLECTOR_ENDPOINT}
+    headers:
+      X-Region: ${DATA_RESIDENCY}
+      X-Compliance-Level: PCI-DSS-v4
+    tls:
+      cert_file: /etc/ssl/certs/regional-collector.crt
+      key_file: /etc/ssl/private/regional-collector.key
+      ca_file: /etc/ssl/certs/ca.crt
+
+  # Kafka exporter for real-time log streaming
+  kafka:
+    brokers: 
+      - kafka-secure:9093
+    protocol_version: 2.8.0
+    topic: banking-logs-${DATA_RESIDENCY}
+    metadata:
+      full: true
+      retry:
+        max: 3
+        backoff: 250ms
+    timeout: 10s
+    auth:
+      sasl:
+        mechanism: PLAIN
+        username: ${KAFKA_USERNAME}
+        password: ${KAFKA_PASSWORD}
+      tls:
+        ca_file: /etc/ssl/certs/kafka-ca.crt
+        cert_file: /etc/ssl/certs/kafka-client.crt
+        key_file: /etc/ssl/private/kafka-client.key
+
+  # Debug exporter for troubleshooting
+  debug:
+    verbosity: basic
+    sampling_initial: 2
+    sampling_thereafter: 500
+
+extensions:
+  # Health check extension
+  health_check:
+    endpoint: 0.0.0.0:13133
+    path: /
+
+  # Performance profiler
+  pprof:
+    endpoint: 0.0.0.0:1777
+
+  # Memory ballast for stability
+  memory_ballast:
+    size_mib: 512
+
+  # File storage for persistent queues
+  file_storage:
+    directory: /var/lib/otelcol/storage
+    timeout: 10s
+
+service:
+  extensions: [health_check, pprof, memory_ballast, file_storage]
+  
+  pipelines:
+    # Traces pipeline with PCI-DSS compliance
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, attributes, probabilistic_sampler, span, batch]
+      exporters: [jaeger, otlp/regional]
+
+    # Metrics pipeline with banking-specific processing
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, resource, attributes, transform, batch]
+      exporters: [prometheus, otlp/regional]
+
+    # Logs pipeline with enhanced security
+    logs:
+      receivers: [otlp, filelog]
+      processors: [memory_limiter, resource, attributes, transform, batch]
+      exporters: [elasticsearch, kafka, otlp/regional]
+
+    # Dedicated pipeline for audit logs
+    logs/audit:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [elasticsearch, kafka]
+
+  telemetry:
+    logs:
+      level: info
+      development: false
+      encoding: json
+    metrics:
+      level: detailed
+      address: 0.0.0.0:8888
