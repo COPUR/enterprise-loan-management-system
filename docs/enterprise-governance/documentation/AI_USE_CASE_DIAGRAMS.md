@@ -121,7 +121,7 @@ deactivate DB
 RA --> LS: Risk score: 3.2/10 (LOW)
 deactivate RA
 
-LS -> LS: Apply banking rules:\n- Credit score > 700: ✓\n- Debt-to-income < 40%: ✓\n- Loan term valid: ✓
+LS -> LS: Apply banking rules:\n- Credit score > 700: \n- Debt-to-income < 40%: \n- Loan term valid: 
 
 LS --> OAI: Eligibility result:\nAPPROVED\nRecommended rate: 0.25%
 deactivate LS
@@ -134,7 +134,7 @@ deactivate OAI
 NLP --> GQL: Natural language response
 deactivate NLP
 
-GQL --> BM: "✓ APPROVED: John Smith\nqualifies for $50,000 loan\nat 0.25% monthly rate\nwith 12 installments"
+GQL --> BM: " APPROVED: John Smith\nqualifies for $50,000 loan\nat 0.25% monthly rate\nwith 12 installments"
 deactivate GQL
 
 note right of BM
@@ -363,7 +363,7 @@ deactivate OAI
 PS -> NS: createOptimizationNotification(\ncustomerId, recommendation)
 activate NS
 
-NS -> NS: Generate personalized message:\n"💡 Smart Payment Opportunity!\nPay $10,000 now and save $850\nin interest over your loan term"
+NS -> NS: Generate personalized message:\n" Smart Payment Opportunity!\nPay $10,000 now and save $850\nin interest over your loan term"
 
 NS --> PS: Notification prepared
 deactivate NS
@@ -371,7 +371,7 @@ deactivate NS
 PS --> CP: Payment optimization plan\nwith AI recommendations
 deactivate PS
 
-CP -> CP: Display interactive options:\n✓ Early Payment: Save $850\n✓ Double Payments: Save $425\n✓ Refinancing: Save $275\n\nAI Recommends: Early Payment
+CP -> CP: Display interactive options:\n Early Payment: Save $850\n Double Payments: Save $425\n Refinancing: Save $275\n\nAI Recommends: Early Payment
 CP --> CUST: "Here are your optimized\npayment options. Our AI\nrecommends early payment\nto save $850 in interest."
 deactivate CP
 

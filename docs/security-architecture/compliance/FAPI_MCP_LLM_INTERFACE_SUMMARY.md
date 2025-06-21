@@ -348,19 +348,19 @@ curl -X POST "http://localhost:5000/llm/v1/chat" \
 
 ### API Validation Status
 
-**FAPI Endpoints**: ✅ Operational
+**FAPI Endpoints**:  Operational
 - Account information APIs responding correctly
 - Security headers validation working
 - Error responses properly formatted
 - CORS configuration for OpenBanking domains
 
-**MCP Server**: ✅ Functional
+**MCP Server**:  Functional
 - Resources endpoint providing banking capabilities
 - Tools endpoint listing available operations
 - Customer profile tool executing successfully
 - Loan eligibility calculations working
 
-**LLM Interface**: ✅ Active
+**LLM Interface**:  Active
 - Chat endpoint processing natural language
 - Intent recognition working correctly
 - Banking context properly maintained

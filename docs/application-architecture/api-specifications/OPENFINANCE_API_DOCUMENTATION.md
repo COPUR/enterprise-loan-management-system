@@ -529,7 +529,7 @@ POST /llm/v1/chat
 **Response:**
 ```json
 {
-  "message": "Great news! You're eligible for this loan.\n\n💰 Requested Amount: $50,000.00\n✅ Approved Amount: $50,000.00\n📊 Interest Rate: 12.0% per annum\n📅 Term: 36 months\n💳 Monthly Payment: $1,662.76\n\nReason: Approved based on credit score 750 and loan amount $50,000.00 within limits\n\nWould you like to proceed with the application?",
+  "message": "Great news! You're eligible for this loan.\n\n Requested Amount: $50,000.00\n Approved Amount: $50,000.00\n Interest Rate: 12.0% per annum\n📅 Term: 36 months\n Monthly Payment: $1,662.76\n\nReason: Approved based on credit score 750 and loan amount $50,000.00 within limits\n\nWould you like to proceed with the application?",
   "responseType": "loan_eligibility",
   "data": {
     "eligible": true,

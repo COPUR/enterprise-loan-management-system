@@ -235,7 +235,7 @@ cd monitoring
 
 ---
 
-## 🔧 Configuration Management
+##  Configuration Management
 
 ### Prometheus Configuration
 - **File**: `monitoring/prometheus/prometheus.yml`
@@ -300,7 +300,7 @@ cd monitoring
 
 ---
 
-## 🛡️ Security Considerations
+##  Security Considerations
 
 ### Access Control
 - Grafana authentication required (admin/banking_admin_2024)
@@ -322,7 +322,7 @@ cd monitoring
 
 ---
 
-## 📈 Business Value
+##  Business Value
 
 ### Regulatory Compliance
 - Automated banking standards monitoring

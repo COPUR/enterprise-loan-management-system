@@ -1,8 +1,8 @@
-# 🏗️ Hexagonal Architecture Validation Scripts
+#  Hexagonal Architecture Validation Scripts
 
 This directory contains comprehensive validation scripts for ensuring hexagonal architecture compliance in the Enterprise Banking System.
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Run Full Validation
 ```bash
@@ -28,21 +28,21 @@ This directory contains comprehensive validation scripts for ensuring hexagonal 
 ./scripts/hexagonal-architecture-validation.sh report
 ```
 
-## 📋 Available Scripts
+##  Available Scripts
 
 ### 1. `hexagonal-architecture-validation.sh`
 **Comprehensive hexagonal architecture validation script**
 
 **Features:**
-- 🏗️ **Domain Purity Validation** - Zero infrastructure dependencies
+-  **Domain Purity Validation** - Zero infrastructure dependencies
 - 🏭 **Factory Method Pattern** - Loan.create() and LoanInstallment.create() validation
-- 🎭 **Domain Events System** - 8+ comprehensive events verification
+-  **Domain Events System** - 8+ comprehensive events verification
 - 💎 **Value Objects Validation** - Immutable business concepts
 - 🏛️ **Aggregate Roots** - Proper boundary enforcement
-- 📊 **Domain Metrics** - Complexity and quality measurements
-- 🧪 **Architecture Tests** - ArchUnit and domain purity tests
-- 📈 **Test Coverage** - 87.4%+ overall, 95%+ domain coverage
-- 📋 **Quality Report** - Comprehensive architecture report generation
+-  **Domain Metrics** - Complexity and quality measurements
+-  **Architecture Tests** - ArchUnit and domain purity tests
+-  **Test Coverage** - 87.4%+ overall, 95%+ domain coverage
+-  **Quality Report** - Comprehensive architecture report generation
 
 **Usage:**
 ```bash
@@ -63,74 +63,74 @@ Commands:
 
 Simple one-click script that runs the full hexagonal architecture validation with proper error handling and directory checks.
 
-## 🎯 Validation Criteria
+##  Validation Criteria
 
 ### Domain Purity Requirements
-- ✅ **Zero JPA Contamination** - No `jakarta.persistence` imports in domain
-- ✅ **No Spring Dependencies** - No `org.springframework` imports in domain
-- ✅ **Infrastructure Isolation** - No infrastructure package imports
-- ✅ **Annotation Free** - No `@Repository`, `@Service`, `@Component` in domain
+-  **Zero JPA Contamination** - No `jakarta.persistence` imports in domain
+-  **No Spring Dependencies** - No `org.springframework` imports in domain
+-  **Infrastructure Isolation** - No infrastructure package imports
+-  **Annotation Free** - No `@Repository`, `@Service`, `@Component` in domain
 
 ### Factory Method Requirements
-- ✅ **Loan.create()** - Static factory method for loan creation
-- ✅ **LoanInstallment.create()** - Static factory method for installment creation
-- ✅ **No Builder Patterns** - Factory methods preferred over builders in domain
+-  **Loan.create()** - Static factory method for loan creation
+-  **LoanInstallment.create()** - Static factory method for installment creation
+-  **No Builder Patterns** - Factory methods preferred over builders in domain
 
 ### Domain Events Requirements
-- ✅ **Minimum 8 Events** - Comprehensive lifecycle coverage
-- ✅ **Proper Inheritance** - All events extend `DomainEvent`
-- ✅ **Event Coverage** - Application, approval, payment, default, restructure events
+-  **Minimum 8 Events** - Comprehensive lifecycle coverage
+-  **Proper Inheritance** - All events extend `DomainEvent`
+-  **Event Coverage** - Application, approval, payment, default, restructure events
 
 ### Architecture Quality Metrics
-- ✅ **Loan Domain** - 424+ lines of pure business logic
-- ✅ **LoanInstallment** - 215+ lines of business rules
-- ✅ **Test Coverage** - 87.4%+ overall, 95%+ domain layer
-- ✅ **Value Objects** - Strong typing and immutability
+-  **Loan Domain** - 424+ lines of pure business logic
+-  **LoanInstallment** - 215+ lines of business rules
+-  **Test Coverage** - 87.4%+ overall, 95%+ domain layer
+-  **Value Objects** - Strong typing and immutability
 
-## 🔄 CI/CD Integration
+##  CI/CD Integration
 
 These scripts are integrated into the CI/CD pipeline:
 
 ```yaml
-- name: 🏗️ Hexagonal Architecture Validation
+- name:  Hexagonal Architecture Validation
   run: |
     ./scripts/hexagonal-architecture-validation.sh validate
 ```
 
 The validation runs automatically on:
-- ✅ Push to main/develop branches
-- ✅ Pull requests
-- ✅ Manual workflow dispatch
-- ✅ Release workflows
+-  Push to main/develop branches
+-  Pull requests
+-  Manual workflow dispatch
+-  Release workflows
 
-## 📊 Example Output
+##  Example Output
 
 ```bash
-🏦 ENTERPRISE BANKING - HEXAGONAL ARCHITECTURE VALIDATION
+ ENTERPRISE BANKING - HEXAGONAL ARCHITECTURE VALIDATION
 ========================================
-🏗️ DOMAIN PURITY VALIDATION
+ DOMAIN PURITY VALIDATION
 ========================================
 ℹ️  Checking for JPA contamination in domain layer...
-✅ Domain layer is free from JPA contamination
+ Domain layer is free from JPA contamination
 ℹ️  Checking for Spring Framework contamination in domain layer...
-✅ Domain layer is free from Spring Framework contamination
-✅ DOMAIN PURITY VALIDATION PASSED
+ Domain layer is free from Spring Framework contamination
+ DOMAIN PURITY VALIDATION PASSED
 
 ========================================
 🏭 FACTORY METHOD PATTERN VALIDATION
 ========================================
 ℹ️  Validating Loan.create() factory method...
-✅ Loan.create() factory method found
+ Loan.create() factory method found
 ℹ️  Validating LoanInstallment.create() factory method...
-✅ LoanInstallment.create() factory method found
-✅ FACTORY METHOD PATTERN VALIDATION PASSED
+ LoanInstallment.create() factory method found
+ FACTORY METHOD PATTERN VALIDATION PASSED
 
 ========================================
-🎭 DOMAIN EVENTS SYSTEM VALIDATION
+ DOMAIN EVENTS SYSTEM VALIDATION
 ========================================
 ℹ️  Counting domain events...
-📊 Domain Events Found: 8
-✅ Sufficient domain events found: 8
+ Domain Events Found: 8
+ Sufficient domain events found: 8
 ℹ️  Domain Events Inventory:
    • LoanApplicationSubmittedEvent
    • LoanApprovedEvent
@@ -140,24 +140,24 @@ The validation runs automatically on:
    • LoanPaidOffEvent
    • LoanDefaultedEvent
    • LoanRestructuredEvent
-✅ DOMAIN EVENTS SYSTEM VALIDATION PASSED
+ DOMAIN EVENTS SYSTEM VALIDATION PASSED
 
-🎉 HEXAGONAL ARCHITECTURE VALIDATION SUCCESSFUL
-✅ All validations passed! Architecture is compliant with enterprise standards.
+ HEXAGONAL ARCHITECTURE VALIDATION SUCCESSFUL
+ All validations passed! Architecture is compliant with enterprise standards.
 
 Summary:
-   ✅ Domain Purity
-   ✅ Factory Methods
-   ✅ Domain Events (8+)
-   ✅ Value Objects
-   ✅ Aggregate Roots
-   ✅ Architecture Tests
-   ✅ Test Coverage (87.4%+)
+    Domain Purity
+    Factory Methods
+    Domain Events (8+)
+    Value Objects
+    Aggregate Roots
+    Architecture Tests
+    Test Coverage (87.4%+)
 
-🚀 Ready for production deployment!
+ Ready for production deployment!
 ```
 
-## 🛠️ Troubleshooting
+##  Troubleshooting
 
 ### Common Issues
 
@@ -193,7 +193,7 @@ If scripts are not executable:
 chmod +x scripts/*.sh
 ```
 
-## 📈 Continuous Improvement
+##  Continuous Improvement
 
 These scripts evolve with the architecture:
 
@@ -214,4 +214,4 @@ When adding new validation rules:
 
 ---
 
-**🏦 Enterprise Banking System - Hexagonal Architecture Excellence**
+** Enterprise Banking System - Hexagonal Architecture Excellence**

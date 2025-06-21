@@ -1,4 +1,4 @@
-# 🏗️ Architectural Decisions & Rationale Explanation
+#  Architectural Decisions & Rationale Explanation
 
 ## Executive Summary
 
@@ -8,7 +8,7 @@ This document provides a comprehensive analysis of the **critical architectural 
 
 ---
 
-## 🔍 **Root Cause Analysis: Why Two Different Architectures?**
+##  **Root Cause Analysis: Why Two Different Architectures?**
 
 ### **The Architectural Drift Problem**
 
@@ -23,23 +23,23 @@ The presence of both `src/` and `backup-src/` with completely different architec
 
 ```java
 // 🔴 CURRENT CONTAMINATED ARCHITECTURE (src/)
-@Entity  // ❌ JPA contamination in domain
+@Entity  //  JPA contamination in domain
 @Table(name = "customers")
 public class Customer extends AggregateRoot<CustomerId> {
-    @EmbeddedId  // ❌ Infrastructure concern in domain
+    @EmbeddedId  //  Infrastructure concern in domain
     private CustomerId id;
     
-    @Column(nullable = false)  // ❌ Database schema in domain
+    @Column(nullable = false)  //  Database schema in domain
     private String firstName;
 }
 
-// ✅ CORRECT CLEAN ARCHITECTURE (backup-src/)
-public class Customer {  // ✅ Pure domain model
+//  CORRECT CLEAN ARCHITECTURE (backup-src/)
+public class Customer {  //  Pure domain model
     private CustomerId customerId;
     private String name;
     private CreditLimit creditLimit;
     
-    public void reserveCredit(Money amount) {  // ✅ Business logic
+    public void reserveCredit(Money amount) {  //  Business logic
         // Pure domain logic without infrastructure
     }
 }
@@ -47,7 +47,7 @@ public class Customer {  // ✅ Pure domain model
 
 ---
 
-## 🎯 **Why Hexagonal Architecture is Non-Negotiable**
+##  **Why Hexagonal Architecture is Non-Negotiable**
 
 ### **Business Justification**
 
@@ -60,13 +60,13 @@ public class Customer {  // ✅ Pure domain model
 
 ```mermaid
 graph TB
-    subgraph "❌ Current Contaminated Architecture"
+    subgraph " Current Contaminated Architecture"
         A1[Web Controller] --> B1[JPA Domain Entity]
         B1 --> C1[Database]
         B1 -.-> D1[Business Rules Mixed<br/>with Infrastructure]
     end
     
-    subgraph "✅ Hexagonal Architecture"
+    subgraph " Hexagonal Architecture"
         A2[Web Adapter] --> B2[Application Service]
         B2 --> C2[Pure Domain Model]
         B2 --> D2[Repository Port]
@@ -78,11 +78,11 @@ graph TB
 
 ---
 
-## 📊 **Detailed Comparison Analysis**
+##  **Detailed Comparison Analysis**
 
 ### **1. Domain Model Implementation**
 
-| Aspect | Current `src/` (❌ Wrong) | Backup `backup-src/` (✅ Correct) |
+| Aspect | Current `src/` ( Wrong) | Backup `backup-src/` ( Correct) |
 |--------|---------------------------|-----------------------------------|
 | **Purity** | Contaminated with JPA | Pure business logic |
 | **Dependencies** | `jakarta.persistence.*` | No infrastructure deps |
@@ -110,7 +110,7 @@ graph TB
 
 ---
 
-## 🔧 **Technical Debt Assessment**
+##  **Technical Debt Assessment**
 
 ### **Current Technical Debt Metrics**
 
@@ -143,7 +143,7 @@ Estimated Refactoring Effort:
 
 ---
 
-## 🎯 **Strategic Recommendations**
+##  **Strategic Recommendations**
 
 ### **Immediate Actions (Week 1-2)**
 
@@ -192,7 +192,7 @@ Estimated Refactoring Effort:
 
 ---
 
-## 📋 **Migration Strategy**
+##  **Migration Strategy**
 
 ### **Step-by-Step Migration Plan**
 
@@ -332,7 +332,7 @@ class ArchitectureTest {
 
 ---
 
-## 🔄 **Microservice Boundary Strategy**
+##  **Microservice Boundary Strategy**
 
 ### **Current Monolith vs Target Microservices**
 
@@ -362,7 +362,7 @@ Target Microservice Architecture:
 ### **Service Communication Strategy**
 
 ```java
-// ✅ CORRECT: Event-driven communication
+//  CORRECT: Event-driven communication
 public class CustomerManagementService implements CustomerManagementUseCase {
     
     @Override
@@ -381,7 +381,7 @@ public class CustomerManagementService implements CustomerManagementUseCase {
     }
 }
 
-// ❌ WRONG: Direct service calls across boundaries
+//  WRONG: Direct service calls across boundaries
 @Service
 public class LoanService {
     @Autowired
@@ -443,7 +443,7 @@ Week 4: Testing Strategy
 
 ---
 
-## 📈 **Success Metrics & KPIs**
+##  **Success Metrics & KPIs**
 
 ### **Architecture Quality Metrics**
 
@@ -467,36 +467,36 @@ Week 4: Testing Strategy
 
 ---
 
-## 🚀 **Implementation Roadmap**
+##  **Implementation Roadmap**
 
 ### **Quarter 1: Foundation**
-- ✅ Architectural analysis complete
-- ✅ Guardrails established  
-- ✅ CI/CD pipeline updated
-- 🎯 Team training initiated
-- 🎯 Migration plan execution begins
+-  Architectural analysis complete
+-  Guardrails established  
+-  CI/CD pipeline updated
+-  Team training initiated
+-  Migration plan execution begins
 
 ### **Quarter 2: Core Refactoring**
-- 🎯 Domain models extracted and cleaned
-- 🎯 Port interfaces implemented
-- 🎯 Repository pattern corrected
-- 🎯 50% architecture compliance achieved
+-  Domain models extracted and cleaned
+-  Port interfaces implemented
+-  Repository pattern corrected
+-  50% architecture compliance achieved
 
 ### **Quarter 3: Service Boundaries**
-- 🎯 Microservice boundaries defined
-- 🎯 Event-driven communication implemented
-- 🎯 Database separation completed
-- 🎯 80% architecture compliance achieved
+-  Microservice boundaries defined
+-  Event-driven communication implemented
+-  Database separation completed
+-  80% architecture compliance achieved
 
 ### **Quarter 4: Optimization**
-- 🎯 Performance optimization
-- 🎯 Monitoring and observability enhanced
-- 🎯 Documentation completed
-- 🎯 100% architecture compliance achieved
+-  Performance optimization
+-  Monitoring and observability enhanced
+-  Documentation completed
+-  100% architecture compliance achieved
 
 ---
 
-## 🎯 **Conclusion & Call to Action**
+##  **Conclusion & Call to Action**
 
 ### **Why This Matters**
 
@@ -528,4 +528,4 @@ The architectural inconsistencies in this enterprise banking system represent a 
 
 ---
 
-**📞 Questions or concerns about this architectural analysis? Contact the Architecture Team immediately for clarification and support.**
+** Questions or concerns about this architectural analysis? Contact the Architecture Team immediately for clarification and support.**

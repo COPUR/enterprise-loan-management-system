@@ -250,16 +250,16 @@ docker exec -it fluent-bit \
 ## Compliance Monitoring
 
 ### PCI-DSS v4 Requirements
-- ✅ Requirement 10.2.1: Audit logs for all user access
-- ✅ Requirement 10.3.1: Log entry integrity protection
-- ✅ Requirement 3.4.1: Encryption at rest and in transit
-- ✅ Requirement 12.10.1: Incident response procedures
+-  Requirement 10.2.1: Audit logs for all user access
+-  Requirement 10.3.1: Log entry integrity protection
+-  Requirement 3.4.1: Encryption at rest and in transit
+-  Requirement 12.10.1: Incident response procedures
 
 ### GDPR Compliance (EU)
-- ✅ Article 32: Security of processing
-- ✅ Article 33: Notification of data breaches
-- ✅ Article 17: Right to erasure implementation
-- ✅ Article 25: Data protection by design
+-  Article 32: Security of processing
+-  Article 33: Notification of data breaches
+-  Article 17: Right to erasure implementation
+-  Article 25: Data protection by design
 
 ### Automated Compliance Reporting
 ```bash
