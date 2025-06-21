@@ -1,0 +1,188 @@
+# Data Residency Configuration for European Union
+# GDPR and PCI-DSS v4 Compliance Settings
+
+data_residency:
+  region: "EU"
+  jurisdiction: "European Union"
+  regulatory_framework: "GDPR"
+  
+# GDPR Configuration
+gdpr:
+  enabled: true
+  data_protection_officer: "dpo@bank.eu"
+  lawful_basis: "legitimate_interest"
+  data_subject_rights:
+    - "access"
+    - "rectification"
+    - "erasure"
+    - "portability"
+    - "restriction"
+    - "objection"
+    
+# PCI-DSS v4 Configuration (EU Requirements)
+pci_dss:
+  version: "4.0"
+  enabled: true
+  merchant_level: 1
+  eu_specific_requirements:
+    - "A1.2.3" # Multi-factor authentication
+    - "A2.2.4" # Customized authentication
+    - "A3.3.1" # Encryption in transit
+
+# Data Storage Configuration
+storage:
+  elasticsearch:
+    region: "eu-central-1"
+    endpoint: "https://search-banking-logs-eu.eu-central-1.es.amazonaws.com"
+    encryption_at_rest: true
+    encryption_in_transit: true
+    index_pattern: "banking-logs-eu-%{+yyyy.MM.dd}"
+    gdpr_compliant: true
+    
+  s3:
+    region: "eu-central-1"
+    bucket: "banking-audit-logs-eu"
+    storage_class: "STANDARD_IA"
+    encryption: "AES256"
+    versioning: true
+    lifecycle_policy: "gdpr_compliant"
+    
+# Compliance Settings
+compliance:
+  gdpr:
+    enabled: true
+    consent_management: true
+    data_minimization: true
+    purpose_limitation: true
+    storage_limitation: true
+    pseudonymization: true
+    
+  pci_dss:
+    cardholder_data_retention: "P1095D" # 3 years
+    authentication_data_retention: "P0D" # Not permitted
+    log_retention: "P365D" # 1 year minimum
+    eu_card_schemes: true
+    
+# Data Classification Mapping (GDPR Categories)
+data_classification:
+  special_categories: # Article 9 GDPR
+    - "biometric_data"
+    - "health_data"
+    - "genetic_data"
+    
+  personal_data: # Article 4(1) GDPR
+    - "name"
+    - "email_address"
+    - "phone_number"
+    - "address"
+    - "ip_address"
+    - "cookie_id"
+    
+  pseudonymous_data:
+    - "hashed_user_id"
+    - "anonymized_transaction_id"
+    
+  pci_data:
+    - "credit_card_number"
+    - "cardholder_name"
+    - "expiration_date"
+    - "cvv"
+
+# Encryption Configuration (GDPR Article 32)
+encryption:
+  algorithm: "AES-256-GCM"
+  key_management: "HSM" # Hardware Security Module
+  key_rotation_days: 90
+  pseudonymization:
+    enabled: true
+    algorithm: "HMAC-SHA256"
+    salt_rotation: "monthly"
+  field_level_encryption:
+    - "personal_data"
+    - "special_categories"
+    - "pci_data"
+
+# Log Retention Policies (GDPR Article 5)
+retention:
+  audit_logs: "P2555D" # 7 years (regulatory requirement)
+  transaction_logs: "P1095D" # 3 years (PCI-DSS)
+  personal_data_logs: "P1095D" # 3 years with consent
+  marketing_data: "P730D" # 2 years
+  application_logs: "P365D" # 1 year
+  security_logs: "P1095D" # 3 years
+  performance_logs: "P90D" # 90 days
+
+# Cross-Border Transfer Rules (GDPR Chapter V)
+cross_border_transfer:
+  adequacy_decisions: # Article 45
+    - "UK"
+    - "Switzerland"
+    - "Japan"
+    - "Canada"
+    
+  standard_contractual_clauses: # Article 46
+    enabled: true
+    version: "2021"
+    
+  prohibited_countries:
+    - "non_adequate_countries"
+    
+  transfer_mechanism: "scc" # Standard Contractual Clauses
+  transfer_impact_assessment: true
+
+# Data Subject Rights Implementation
+data_subject_rights:
+  access_request:
+    response_time: "P30D" # 30 days
+    format: "structured_common_machine_readable"
+    
+  rectification:
+    response_time: "P30D"
+    propagation_to_third_parties: true
+    
+  erasure: # Right to be forgotten
+    response_time: "P30D"
+    exceptions:
+      - "legal_obligation"
+      - "public_interest"
+      - "freedom_of_expression"
+      
+  portability:
+    format: "JSON"
+    response_time: "P30D"
+    
+  restriction:
+    response_time: "P30D"
+    notification_required: true
+
+# Monitoring and Alerting (GDPR Article 33-34)
+monitoring:
+  data_breach_detection:
+    enabled: true
+    response_time: "PT72H" # 72 hours notification
+    severity_levels:
+      - "HIGH" # Affects rights and freedoms
+      - "MEDIUM" # Personal data compromise
+      - "LOW" # Technical security incident
+      
+  cross_border_violations:
+    enabled: true
+    severity: "CRITICAL"
+    
+  consent_violations:
+    enabled: true
+    threshold: 1
+    
+  data_minimization_violations:
+    enabled: true
+    automated_detection: true
+
+# Privacy by Design Implementation
+privacy_by_design:
+  data_minimization: true
+  purpose_limitation: true
+  storage_limitation: true
+  transparency: true
+  user_control: true
+  security_by_default: true
+  holistic_approach: true

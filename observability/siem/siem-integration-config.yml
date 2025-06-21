@@ -1,0 +1,309 @@
+# SIEM Integration Configuration for Enterprise Banking System
+# Supports multiple SIEM platforms with industry standard formats
+
+siem_integration:
+  enabled: true
+  platform: "splunk" # Options: splunk, qradar, sentinel, elastic-siem
+  
+  # Common SIEM Configuration
+  general:
+    log_format: "cef" # Common Event Format for SIEM compatibility
+    timestamp_format: "iso8601"
+    encoding: "utf-8"
+    compression: "gzip"
+    
+  # Event Filtering and Classification
+  event_filtering:
+    security_events:
+      - "AUTHENTICATION_FAILURE"
+      - "AUTHORIZATION_VIOLATION" 
+      - "SUSPICIOUS_ACTIVITY"
+      - "DATA_BREACH_ATTEMPT"
+      - "PRIVILEGE_ESCALATION"
+      - "INTRUSION_DETECTED"
+      - "MALWARE_DETECTED"
+      - "ACCOUNT_LOCKOUT"
+      - "SECURITY_POLICY_VIOLATION"
+      
+    compliance_events:
+      - "PCI_DSS_VIOLATION"
+      - "GDPR_VIOLATION"
+      - "AUDIT_TRAIL_TAMPERING"
+      - "DATA_CLASSIFICATION_VIOLATION"
+      - "RETENTION_POLICY_VIOLATION"
+      - "UNAUTHORIZED_DATA_ACCESS"
+      
+    business_critical_events:
+      - "LARGE_TRANSACTION"
+      - "FRAUD_ALERT"
+      - "SYSTEM_OUTAGE"
+      - "DATA_CORRUPTION"
+      - "BACKUP_FAILURE"
+      - "DISASTER_RECOVERY_ACTIVATION"
+
+# Splunk Integration
+splunk:
+  enabled: true
+  config:
+    url: "${SPLUNK_HEC_URL}"
+    token: "${SPLUNK_HEC_TOKEN}"
+    index: "banking_security"
+    source: "enterprise_loan_management"
+    sourcetype: "banking:security:json"
+    ssl_verify: true
+    timeout: 30
+    batch_size: 100
+    flush_interval: 5000
+    
+  # Splunk-specific field mappings
+  field_mappings:
+    "@timestamp": "time"
+    "event.type": "event_type"
+    "log.level": "severity"
+    "user.id": "user"
+    "client.ip": "src_ip"
+    "host.name": "host"
+    "data_classification": "data_class"
+    "compliance.framework": "compliance"
+    "transaction.id": "transaction_id"
+    "error.type": "error_type"
+    "security.event_type": "security_event"
+    
+  # Custom Splunk indexes per data classification
+  indexes:
+    pci_dss: "banking_pci"
+    restricted: "banking_restricted"
+    confidential: "banking_confidential"
+    internal: "banking_internal"
+    public: "banking_public"
+
+# IBM QRadar Integration
+qradar:
+  enabled: false
+  config:
+    host: "${QRADAR_HOST}"
+    port: 514
+    protocol: "syslog"
+    facility: "local0"
+    severity_mapping:
+      FATAL: "emergency"
+      ERROR: "error" 
+      WARN: "warning"
+      INFO: "info"
+      DEBUG: "debug"
+      TRACE: "debug"
+    
+  # QRadar Log Source Extensions (LSX)
+  log_source_extensions:
+    - name: "Banking Authentication Events"
+      pattern: "AUTHENTICATION_.*"
+      category: "Authentication"
+      
+    - name: "Banking Transaction Events"  
+      pattern: "TRANSACTION_.*"
+      category: "Application Activity"
+      
+    - name: "Banking Compliance Events"
+      pattern: "(PCI_DSS|GDPR|CCPA)_.*"
+      category: "Compliance"
+
+# Microsoft Sentinel Integration
+sentinel:
+  enabled: false
+  config:
+    workspace_id: "${SENTINEL_WORKSPACE_ID}"
+    shared_key: "${SENTINEL_SHARED_KEY}"
+    log_type: "BankingSecurityLogs"
+    api_version: "2016-04-01"
+    timeout: 30
+    
+  # Custom tables for different data types
+  custom_tables:
+    - table_name: "BankingAuthEvents_CL"
+      event_types: ["AUTHENTICATION_.*", "AUTHORIZATION_.*"]
+      
+    - table_name: "BankingTransactionEvents_CL"
+      event_types: ["TRANSACTION_.*", "PAYMENT_.*"]
+      
+    - table_name: "BankingComplianceEvents_CL"
+      event_types: [".*_VIOLATION", "AUDIT_.*"]
+
+# Elastic SIEM Integration
+elastic_siem:
+  enabled: false
+  config:
+    elasticsearch_url: "${ELASTIC_SIEM_URL}"
+    username: "${ELASTIC_SIEM_USERNAME}"
+    password: "${ELASTIC_SIEM_PASSWORD}"
+    index_pattern: "siem-banking-*"
+    pipeline: "banking-security-pipeline"
+    
+  # ECS (Elastic Common Schema) field mappings
+  ecs_mappings:
+    event.category: "security"
+    event.dataset: "banking.security"
+    event.kind: "event"
+    event.module: "banking"
+    event.outcome: "success" # or "failure"
+    event.type: ["access", "authentication", "authorization"]
+
+# CEF (Common Event Format) Configuration
+cef_format:
+  enabled: true
+  version: "CEF:0"
+  vendor: "BankingSolutions"
+  product: "LoanManagementSystem"
+  device_version: "1.0.0"
+  
+  # CEF Extensions for banking-specific fields
+  extensions:
+    "cs1": "transaction_id"
+    "cs2": "customer_id" 
+    "cs3": "account_number"
+    "cs4": "data_classification"
+    "cs5": "compliance_framework"
+    "cs6": "business_process"
+    "cn1": "transaction_amount"
+    "cn2": "risk_score"
+    "cn3": "fraud_score"
+
+# STIX/TAXII Integration for Threat Intelligence
+threat_intelligence:
+  enabled: true
+  stix_taxii:
+    server_url: "${TAXII_SERVER_URL}"
+    collection_id: "${TAXII_COLLECTION_ID}"
+    username: "${TAXII_USERNAME}"
+    password: "${TAXII_PASSWORD}"
+    polling_interval: 3600 # 1 hour
+    
+  # Threat indicators to watch for
+  indicators:
+    - type: "ip"
+      pattern: "suspicious_ip_addresses"
+      action: "alert"
+      
+    - type: "domain"
+      pattern: "malicious_domains"
+      action: "block"
+      
+    - type: "hash"
+      pattern: "malware_hashes"
+      action: "alert"
+
+# Real-time Event Streaming
+event_streaming:
+  kafka_topics:
+    security_events: "siem-security-events"
+    compliance_events: "siem-compliance-events"
+    fraud_alerts: "siem-fraud-alerts"
+    
+  stream_processing:
+    enabled: true
+    rules_engine: "drools"
+    correlation_window: "5m"
+    
+    # Complex Event Processing Rules
+    rules:
+      - name: "Multiple Failed Logins"
+        condition: "count(AUTHENTICATION_FAILURE) > 3 within 5m"
+        action: "generate_alert"
+        severity: "high"
+        
+      - name: "Unusual Transaction Pattern"
+        condition: "transaction_amount > avg_amount * 5"
+        action: "generate_alert"
+        severity: "medium"
+        
+      - name: "Cross-Border Data Transfer"
+        condition: "cross_border_transfer = true AND data_classification IN ['pci_dss', 'restricted']"
+        action: "generate_alert"
+        severity: "critical"
+
+# Data Loss Prevention Integration
+dlp_integration:
+  enabled: true
+  policies:
+    - name: "Credit Card Number Detection"
+      pattern: "\\b\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}\\b"
+      action: "mask_and_alert"
+      severity: "high"
+      
+    - name: "SSN Detection"
+      pattern: "\\b\\d{3}-?\\d{2}-?\\d{4}\\b"
+      action: "mask_and_alert"
+      severity: "high"
+      
+    - name: "Account Number Detection"
+      pattern: "\\b\\d{8,17}\\b"
+      action: "mask_and_alert"
+      severity: "medium"
+
+# Security Orchestration, Automation and Response (SOAR)
+soar_integration:
+  enabled: true
+  platform: "phantom" # Options: phantom, demisto, resilient
+  
+  automated_responses:
+    - trigger: "INTRUSION_DETECTED"
+      actions:
+        - "isolate_host"
+        - "block_ip_address"
+        - "notify_security_team"
+        
+    - trigger: "DATA_BREACH_ATTEMPT"
+      actions:
+        - "lock_user_account"
+        - "revoke_access_tokens"
+        - "escalate_to_incident_response"
+        
+    - trigger: "FRAUD_ALERT"
+      actions:
+        - "freeze_transaction"
+        - "notify_fraud_team"
+        - "request_additional_verification"
+
+# Compliance Reporting
+compliance_reporting:
+  enabled: true
+  schedules:
+    daily:
+      - "pci_dss_daily_summary"
+      - "security_incidents_summary"
+      
+    weekly:
+      - "gdpr_compliance_report"
+      - "audit_trail_integrity_check"
+      
+    monthly:
+      - "comprehensive_security_report"
+      - "compliance_violations_analysis"
+      
+  recipients:
+    security_team: ["security@bank.com"]
+    compliance_team: ["compliance@bank.com"]
+    executives: ["ciso@bank.com", "ceo@bank.com"]
+
+# Performance Monitoring
+performance:
+  metrics:
+    - name: "events_per_second"
+      threshold: 1000
+      alert_condition: ">"
+      
+    - name: "processing_latency_ms"
+      threshold: 100
+      alert_condition: ">"
+      
+    - name: "failed_deliveries"
+      threshold: 5
+      alert_condition: ">="
+      
+  health_checks:
+    enabled: true
+    interval: 30
+    timeout: 10
+    endpoints:
+      - "/health/siem-connectivity"
+      - "/health/threat-intelligence"
+      - "/health/event-processing"

@@ -405,6 +405,150 @@ jobs:
         grep -r "runAsNonRoot: true" k8s/manifests/ || (echo "Missing non-root configuration" && exit 1)
 
   # ==========================================
+  # COMPREHENSIVE LOAD & CHAOS TESTING
+  # ==========================================
+  comprehensive-load-testing:
+    name: 🚀 Comprehensive Load & Chaos Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [docker-build, kubernetes-validation]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Install Load Testing Dependencies
+      run: |
+        # Install wrk for load testing
+        sudo apt-get update
+        sudo apt-get install -y wrk redis-tools postgresql-client stress
+        
+        # Install additional tools
+        curl -fsSL https://github.com/wg/wrk/archive/4.1.0.tar.gz | tar xz
+        cd wrk-4.1.0 && make && sudo mv wrk /usr/local/bin/
+        
+    - name: 🐳 Setup Complete Test Environment
+      run: |
+        # Start full application stack with monitoring
+        docker-compose -f docker-compose.yml -f docker-compose.observability.yml up -d
+        
+        # Wait for all services to be ready
+        timeout 300 bash -c 'until curl -f http://localhost:8080/actuator/health; do sleep 5; done'
+        timeout 60 bash -c 'until curl -f http://localhost:3000; do sleep 2; done' || echo "Grafana not ready"
+        timeout 60 bash -c 'until curl -f http://localhost:9090; do sleep 2; done' || echo "Prometheus not ready"
+        
+        # Verify database connectivity
+        docker-compose exec -T postgres pg_isready -U postgres || exit 1
+        
+        # Verify Redis connectivity  
+        docker-compose exec -T redis redis-cli ping || exit 1
+        
+    - name: 🚀 Run Comprehensive Load Tests
+      env:
+        BASE_URL: http://localhost:8080
+        CONCURRENT_USERS: 50
+        TEST_DURATION: 300
+        RAMP_UP_TIME: 60
+        MAX_REQUESTS_PER_SECOND: 100
+        CHAOS_DURATION: 120
+        RESPONSE_TIME_THRESHOLD: 2000
+        SUCCESS_RATE_THRESHOLD: 95
+        JWT_SECRET: test-secret-key-for-ci
+      run: |
+        # Make script executable
+        chmod +x scripts/e2e-comprehensive-load-test.sh
+        
+        # Run comprehensive load testing with full report
+        ./scripts/e2e-comprehensive-load-test.sh ci
+        
+    - name: 📊 Analyze Load Test Results
+      if: always()
+      run: |
+        # Display test summary
+        if [ -f test-results/reports/test-summary-*.json ]; then
+          echo "=== LOAD TEST RESULTS SUMMARY ==="
+          cat test-results/reports/test-summary-*.json | jq -r '
+            "Test ID: " + .test_id,
+            "Environment: " + .test_environment, 
+            "Duration: " + (.total_duration_seconds | tostring) + "s",
+            "Total Requests: " + (.overall_metrics.total_requests | tostring),
+            "Total Errors: " + (.overall_metrics.total_errors | tostring),
+            "Success Rate: " + .overall_metrics.overall_success_rate_percent + "%",
+            "Test Status: " + (if .overall_metrics.test_passed == 1 then "PASSED" else "FAILED" end)
+          '
+          echo "=========================="
+        fi
+        
+        # Check for critical failures
+        if [ -f test-results/load-tests/failures-*.log ] && [ -s test-results/load-tests/failures-*.log ]; then
+          echo "❌ Critical failures detected:"
+          cat test-results/load-tests/failures-*.log
+          exit 1
+        fi
+        
+    - name: 🔍 Chaos Engineering Validation
+      if: always()
+      run: |
+        # Verify chaos engineering test results
+        if [ -f test-results/load-tests/chaos-results.json ]; then
+          echo "=== CHAOS ENGINEERING RESULTS ==="
+          cat test-results/load-tests/chaos-results.json | jq -r '
+            "Scenario: " + .scenario,
+            "Failure Rate: " + (.failure_rate // "0") + "%",
+            "Duration: " + (.duration | tostring) + "s"
+          ' || echo "Chaos results format error"
+        fi
+        
+    - name: 📈 Performance Metrics Analysis
+      if: always()
+      run: |
+        # Analyze scalability test results
+        if [ -f test-results/load-tests/scalability-results.json ]; then
+          echo "=== SCALABILITY TEST RESULTS ==="
+          cat test-results/load-tests/scalability-results.json | jq -r '.[] | 
+            "Users: " + (.concurrent_users | tostring) + 
+            " | RPS: " + .requests_per_second + 
+            " | Avg Latency: " + .average_latency +
+            " | P99 Latency: " + .p99_latency +
+            " | Errors: " + .errors'
+        fi
+        
+    - name: 📤 Upload Load Test Reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: load-test-reports
+        path: |
+          test-results/
+          scripts/e2e-comprehensive-load-test.sh
+        retention-days: 30
+        
+    - name: 📊 Performance Quality Gate
+      run: |
+        # Check if performance meets requirements
+        if [ -f test-results/reports/test-summary-*.json ]; then
+          SUCCESS_RATE=$(cat test-results/reports/test-summary-*.json | jq -r '.overall_metrics.overall_success_rate_percent | tonumber')
+          
+          if (( $(echo "$SUCCESS_RATE < 95" | bc -l) )); then
+            echo "❌ Performance quality gate failed: Success rate $SUCCESS_RATE% < 95%"
+            exit 1
+          else
+            echo "✅ Performance quality gate passed: Success rate $SUCCESS_RATE%"
+          fi
+        fi
+        
+    - name: 🧹 Cleanup Test Environment
+      if: always()
+      run: |
+        # Cleanup all containers and volumes
+        docker-compose -f docker-compose.yml -f docker-compose.observability.yml down -v --remove-orphans
+        docker system prune -f
+        
+        # Clean up test artifacts
+        sudo rm -rf /tmp/chaos-* || true
+        
+  # ==========================================
   # END-TO-END TESTING
   # ==========================================
   e2e-testing:
@@ -464,7 +608,7 @@ jobs:
     name: 🚀 Deploy to Staging
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [e2e-testing]
+    needs: [e2e-testing, comprehensive-load-testing]
     if: github.ref == 'refs/heads/develop' || github.event.inputs.environment == 'staging'
     environment: staging
     

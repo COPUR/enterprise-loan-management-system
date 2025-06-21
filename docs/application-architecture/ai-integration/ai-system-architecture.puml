@@ -1,0 +1,240 @@
+@startuml AI Integration Architecture - Enterprise Banking System
+
+!define AI_COLOR #FF6B6B
+!define SPRING_COLOR #6BCF7F
+!define OPENAI_COLOR #74B9FF
+!define MCP_COLOR #A29BFE
+!define BANKING_COLOR #FD79A8
+!define INTEGRATION_COLOR #FDCB6E
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+
+title Enterprise Banking System - AI Integration Architecture
+
+' AI Framework Layer
+package "AI Framework & Integration" <<AI Platform>> #FFE8E8 {
+    
+    package "Spring AI Framework" <<Core AI Engine>> #E8F5E8 {
+        component [Spring AI Core\n(AI Abstraction Layer)] as SpringAICore SPRING_COLOR
+        component [Chat Client\n(Conversation Management)] as ChatClient SPRING_COLOR
+        component [Embedding Client\n(Vector Operations)] as EmbeddingClient SPRING_COLOR
+        component [Image Client\n(Visual AI Processing)] as ImageClient SPRING_COLOR
+        component [Audio Client\n(Voice Processing)] as AudioClient SPRING_COLOR
+        component [Function Calling\n(Tool Integration)] as FunctionCalling SPRING_COLOR
+    }
+    
+    package "Model Context Protocol (MCP)" <<Protocol Implementation>> #F0E8FF {
+        component [MCP Server\n(Context Management)] as MCPServer MCP_COLOR
+        component [MCP Client\n(Tool Integration)] as MCPClient MCP_COLOR
+        component [Context Providers\n(Banking Domain Context)] as ContextProviders MCP_COLOR
+        component [Tool Registry\n(Available AI Tools)] as ToolRegistry MCP_COLOR
+        component [Session Management\n(Conversation State)] as SessionManagement MCP_COLOR
+    }
+    
+    package "AI Model Providers" <<External AI Services>> #E8F4FF {
+        component [OpenAI GPT-4\n(Primary Language Model)] as OpenAIGPT4 OPENAI_COLOR
+        component [OpenAI Embeddings\n(text-embedding-3-large)] as OpenAIEmbeddings OPENAI_COLOR
+        component [OpenAI DALL-E\n(Image Generation)] as OpenAIDALLE OPENAI_COLOR
+        component [OpenAI Whisper\n(Speech-to-Text)] as OpenAIWhisper OPENAI_COLOR
+        component [Model Configuration\n(API Keys & Settings)] as ModelConfig OPENAI_COLOR
+    }
+}
+
+' Banking AI Services
+package "Banking AI Services" <<Domain-Specific AI>> #FFE8F0 {
+    
+    package "Credit & Risk Assessment" <<Risk AI>> #FFCCDD {
+        component [Credit Score AI\n(ML-based Assessment)] as CreditScoreAI BANKING_COLOR
+        component [Risk Analysis AI\n(Pattern Recognition)] as RiskAnalysisAI BANKING_COLOR
+        component [Fraud Detection AI\n(Anomaly Detection)] as FraudDetectionAI BANKING_COLOR
+        component [Compliance AI\n(Regulatory Validation)] as ComplianceAI BANKING_COLOR
+    }
+    
+    package "Customer Experience AI" <<Customer AI>> #FFD6E8 {
+        component [Loan Recommendation AI\n(Personalized Suggestions)] as LoanRecommendationAI BANKING_COLOR
+        component [Customer Service AI\n(Chatbot & Support)] as CustomerServiceAI BANKING_COLOR
+        component [Document Processing AI\n(OCR & NLP)] as DocumentProcessingAI BANKING_COLOR
+        component [Investment Advisory AI\n(Portfolio Optimization)] as InvestmentAdvisoryAI BANKING_COLOR
+    }
+    
+    package "Operations AI" <<Operational AI>> #FFE0EA {
+        component [Workflow Optimization AI\n(Process Improvement)] as WorkflowOptimizationAI BANKING_COLOR
+        component [Predictive Analytics AI\n(Demand Forecasting)] as PredictiveAnalyticsAI BANKING_COLOR
+        component [Market Analysis AI\n(Trend Analysis)] as MarketAnalysisAI BANKING_COLOR
+        component [Regulatory Reporting AI\n(Automated Compliance)] as RegulatoryReportingAI BANKING_COLOR
+    }
+}
+
+' Banking Domain Integration
+package "Banking Domain Services" <<Hexagonal Architecture>> #E8FFE8 {
+    
+    package "Domain Services" <<Core Banking>> #CCFFCC {
+        component [Loan Management Service\n(AI-Enhanced)] as LoanService INTEGRATION_COLOR
+        component [Customer Management Service\n(AI-Powered Insights)] as CustomerService INTEGRATION_COLOR
+        component [Risk Assessment Service\n(AI-Driven Decisions)] as RiskService INTEGRATION_COLOR
+        component [Compliance Service\n(AI-Automated Checks)] as ComplianceService INTEGRATION_COLOR
+    }
+    
+    package "AI Integration Ports" <<Clean Architecture>> #B3FFB3 {
+        component [AI Recommendation Port\n(Business Logic Interface)] as AIRecommendationPort INTEGRATION_COLOR
+        component [Risk Assessment Port\n(AI Analysis Interface)] as RiskAssessmentPort INTEGRATION_COLOR
+        component [Document Analysis Port\n(AI Processing Interface)] as DocumentAnalysisPort INTEGRATION_COLOR
+        component [Compliance Validation Port\n(AI Validation Interface)] as ComplianceValidationPort INTEGRATION_COLOR
+    }
+}
+
+' Data & Context Management
+package "AI Data & Context Management" <<Knowledge Management>> #F8F8FF {
+    
+    package "Vector Database" <<Embedding Storage>> #E8E8FF {
+        component [Vector Store\n(Banking Knowledge Base)] as VectorStore AI_COLOR
+        component [Embedding Pipeline\n(Document Indexing)] as EmbeddingPipeline AI_COLOR
+        component [Similarity Search\n(Knowledge Retrieval)] as SimilaritySearch AI_COLOR
+        component [Context Enrichment\n(Relevant Information)] as ContextEnrichment AI_COLOR
+    }
+    
+    package "Banking Knowledge Base" <<Domain Knowledge>> #EEEEEE {
+        component [Regulatory Documents\n(Basel III, PCI DSS)] as RegulatoryDocs AI_COLOR
+        component [Banking Policies\n(Internal Guidelines)] as BankingPolicies AI_COLOR
+        component [Market Data\n(Economic Indicators)] as MarketData AI_COLOR
+        component [Historical Patterns\n(Customer Behavior)] as HistoricalPatterns AI_COLOR
+    }
+    
+    package "Real-time Context" <<Live Data>> #F0F0FF {
+        component [Customer Context\n(Current Session Data)] as CustomerContext AI_COLOR
+        component [Transaction Context\n(Recent Activities)] as TransactionContext AI_COLOR
+        component [Market Context\n(Current Conditions)] as MarketContext AI_COLOR
+        component [Regulatory Context\n(Current Compliance)] as RegulatoryContext AI_COLOR
+    }
+}
+
+' Security & Compliance
+package "AI Security & Compliance" <<AI Governance>> #FFF8E8 {
+    
+    package "AI Security" <<Security Controls>> #FFEECC {
+        component [AI Access Control\n(Role-based AI Permissions)] as AIAccessControl AI_COLOR
+        component [Model Security\n(API Key Management)] as ModelSecurity AI_COLOR
+        component [Data Privacy\n(PII Protection)] as DataPrivacy AI_COLOR
+        component [Audit Trail\n(AI Decision Logging)] as AIAuditTrail AI_COLOR
+    }
+    
+    package "AI Compliance" <<Regulatory Compliance>> #FFF4D6 {
+        component [AI Explainability\n(Decision Transparency)] as AIExplainability AI_COLOR
+        component [Bias Detection\n(Fairness Monitoring)] as BiasDetection AI_COLOR
+        component [Model Validation\n(Performance Monitoring)] as ModelValidation AI_COLOR
+        component [Regulatory Reporting\n(AI Usage Reports)] as AIRegulatoryReporting AI_COLOR
+    }
+}
+
+' Monitoring & Observability
+package "AI Monitoring & Observability" <<AI Operations>> #E8F8FF {
+    component [AI Metrics Collection\n(Performance & Usage)] as AIMetrics AI_COLOR
+    component [Model Performance Monitoring\n(Accuracy & Latency)] as ModelMonitoring AI_COLOR
+    component [Token Usage Tracking\n(Cost Management)] as TokenTracking AI_COLOR
+    component [AI Alert Management\n(Anomaly Detection)] as AIAlertManagement AI_COLOR
+}
+
+' Spring AI Framework Integration
+SpringAICore --> ChatClient : Conversation API
+SpringAICore --> EmbeddingClient : Vector Operations
+SpringAICore --> ImageClient : Visual Processing
+SpringAICore --> AudioClient : Audio Processing
+SpringAICore --> FunctionCalling : Tool Integration
+
+' MCP Protocol Integration
+SpringAICore --> MCPServer : Protocol Integration
+MCPClient --> MCPServer : Client Connection
+MCPServer --> ContextProviders : Context Management
+MCPServer --> ToolRegistry : Tool Discovery
+MCPServer --> SessionManagement : State Management
+
+' External AI Provider Integration
+SpringAICore --> OpenAIGPT4 : Language Model API
+SpringAICore --> OpenAIEmbeddings : Embedding API
+SpringAICore --> OpenAIDALLE : Image Generation API
+SpringAICore --> OpenAIWhisper : Speech API
+ModelConfig --> OpenAIGPT4 : Configuration
+ModelConfig --> OpenAIEmbeddings : Configuration
+
+' Banking AI Services Integration
+ChatClient --> CreditScoreAI : Credit Assessment
+ChatClient --> RiskAnalysisAI : Risk Analysis
+ChatClient --> FraudDetectionAI : Fraud Detection
+ChatClient --> ComplianceAI : Compliance Check
+
+FunctionCalling --> LoanRecommendationAI : Loan Suggestions
+FunctionCalling --> CustomerServiceAI : Customer Support
+FunctionCalling --> DocumentProcessingAI : Document Analysis
+FunctionCalling --> InvestmentAdvisoryAI : Investment Advice
+
+EmbeddingClient --> WorkflowOptimizationAI : Process Optimization
+EmbeddingClient --> PredictiveAnalyticsAI : Predictive Analysis
+EmbeddingClient --> MarketAnalysisAI : Market Insights
+EmbeddingClient --> RegulatoryReportingAI : Regulatory Automation
+
+' Domain Service Integration
+LoanRecommendationAI --> AIRecommendationPort : Recommendation Logic
+RiskAnalysisAI --> RiskAssessmentPort : Risk Logic
+DocumentProcessingAI --> DocumentAnalysisPort : Document Logic
+ComplianceAI --> ComplianceValidationPort : Compliance Logic
+
+AIRecommendationPort --> LoanService : Business Integration
+RiskAssessmentPort --> RiskService : Risk Integration
+DocumentAnalysisPort --> CustomerService : Document Integration
+ComplianceValidationPort --> ComplianceService : Compliance Integration
+
+' Vector Database Integration
+EmbeddingClient --> VectorStore : Store Embeddings
+EmbeddingClient --> EmbeddingPipeline : Generate Embeddings
+VectorStore --> SimilaritySearch : Semantic Search
+SimilaritySearch --> ContextEnrichment : Enrich Context
+
+' Knowledge Base Integration
+EmbeddingPipeline --> RegulatoryDocs : Index Documents
+EmbeddingPipeline --> BankingPolicies : Index Policies
+EmbeddingPipeline --> MarketData : Index Market Data
+EmbeddingPipeline --> HistoricalPatterns : Index Patterns
+
+' Real-time Context Integration
+ContextProviders --> CustomerContext : Customer Data
+ContextProviders --> TransactionContext : Transaction Data
+ContextProviders --> MarketContext : Market Data
+ContextProviders --> RegulatoryContext : Regulatory Data
+
+' Security Integration
+AIAccessControl --> SpringAICore : Access Control
+ModelSecurity --> ModelConfig : Security Configuration
+DataPrivacy --> CustomerContext : Privacy Protection
+AIAuditTrail --> FunctionCalling : Audit AI Calls
+
+' Compliance Integration
+AIExplainability --> CreditScoreAI : Explain Decisions
+BiasDetection --> RiskAnalysisAI : Monitor Bias
+ModelValidation --> OpenAIGPT4 : Validate Performance
+AIRegulatoryReporting --> ComplianceService : Generate Reports
+
+' Monitoring Integration
+AIMetrics --> SpringAICore : Collect Metrics
+ModelMonitoring --> OpenAIGPT4 : Monitor Performance
+TokenTracking --> ModelConfig : Track Usage
+AIAlertManagement --> ModelMonitoring : Alert on Issues
+
+' Configuration & Notes
+note top of SpringAICore : Spring AI Configuration\n• Version: Latest stable\n• Auto-configuration enabled\n• Retry mechanisms configured\n• Circuit breaker integration
+
+note top of OpenAIGPT4 : OpenAI Integration\n• Model: GPT-4-turbo\n• Max tokens: 4096\n• Temperature: 0.7\n• Top-p: 0.9\n• API rate limiting configured
+
+note top of MCPServer : MCP Protocol Features\n• Context management\n• Tool discovery\n• Session persistence\n• Multi-client support\n• Banking domain context
+
+note bottom of VectorStore : Vector Database\n• Embeddings: text-embedding-3-large\n• Dimensions: 3072\n• Similarity: Cosine\n• Index: HNSW\n• Storage: PostgreSQL pgvector
+
+note bottom of CreditScoreAI : AI Banking Services\n• Credit scoring accuracy: 95%+\n• Risk assessment speed: <100ms\n• Fraud detection rate: 99.5%\n• Compliance automation: 90%
+
+note right of AIAccessControl : AI Security & Compliance\n• Role-based AI permissions\n• PII data protection\n• Decision audit trails\n• Bias monitoring\n• Model explainability
+
+' AI Workflow Examples
+note left of LoanRecommendationAI : AI Workflow Example\n1. Customer requests loan advice\n2. System enriches context with history\n3. AI analyzes customer profile\n4. Vector search finds similar cases\n5. AI generates personalized recommendations\n6. Compliance AI validates suggestions\n7. Decision logged for audit
+
+@enduml
