@@ -14,7 +14,7 @@ A comprehensive enterprise-grade banking system built on **pure hexagonal archit
 
 ### **Architectural Transformation Achieved**
 - **6 Major Domain Contexts** completely cleaned and refactored to hexagonal architecture
-- **424 lines of pure domain logic** in Loan aggregate with zero JPA contamination
+- **Pure domain logic** in Loan aggregate with zero JPA contamination
 - **8 comprehensive domain events** for complete business process tracking
 - **Factory method patterns** for controlled domain object creation
 - **Value object immutability** and defensive programming throughout
