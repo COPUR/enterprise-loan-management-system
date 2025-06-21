@@ -35,7 +35,7 @@ A comprehensive enterprise-grade banking system built on **pure hexagonal archit
 
 ## Architecture Overview ⭐ **Clean Hexagonal Architecture**
 
-![System Architecture](docs/generated-diagrams/OAuth2.1%20Architecture%20Overview.svg)
+![System Architecture](docs/generated-diagrams/Hexagonal%20Architecture%20-%20Enterprise%20Loan%20Management%20System%20(Production).svg)
 
 The system implements **pure hexagonal architecture** with complete separation of concerns:
 
