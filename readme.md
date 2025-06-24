@@ -1242,15 +1242,6 @@ fi
 - **Runbooks**: [Operations Guide](docs/deployment-operations/Deployment-Operations-Guide.md)
 - **Security**: [Security Architecture](docs/security-architecture/Security-Architecture-Overview.md)
 
-## License
-
-This project is proprietary software owned by the Banking Enterprise. All rights reserved.
-
-## Contact
-
-- **Development Team**: dev-team@banking.enterprise.com
-- **Security Team**: security@banking.enterprise.com
-- **Operations Team**: ops@banking.enterprise.com
 
 ---
 
