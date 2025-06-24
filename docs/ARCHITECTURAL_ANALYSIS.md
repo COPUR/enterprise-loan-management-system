@@ -22,7 +22,7 @@ public class Customer extends AggregateRoot<CustomerId> {
 }
 ```
 
-**Backup Implementation (CORRECT HEXAGONAL):**
+**Archived Implementation (CORRECT HEXAGONAL):**
 ```java
 package com.bank.loanmanagement.customermanagement.domain.model;
 
@@ -41,7 +41,7 @@ public class Customer {
 ### 2. **Missing Use Case Pattern**
 
 **Current**: Missing use case interfaces and commands
-**Backup**: Proper use case pattern:
+**Archived**: Proper use case pattern:
 ```java
 public interface CustomerManagementUseCase {
     Customer createCustomer(CreateCustomerCommand command);

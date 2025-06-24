@@ -4,8 +4,8 @@
 set -e
 
 # Configuration
-TEST_RESULTS_DIR="build/test-results/regression"
-REPORTS_DIR="build/reports/regression"
+TEST_RESULTS_DIR="data/test-outputs/regression"
+REPORTS_DIR="data/test-outputs/reports/regression"
 TIMESTAMP=$(date '+%Y%m%d_%H%M%S')
 
 # Colors for output

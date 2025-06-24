@@ -13,7 +13,7 @@ readonly BASE_URL="${BASE_URL:-http://localhost:8080}"
 readonly API_BASE="${BASE_URL}/api"
 readonly GRAPHQL_URL="${BASE_URL}/graphql"
 readonly TIMEOUT=30
-readonly TEST_RESULTS_DIR="./test-results/api-tests"
+readonly TEST_RESULTS_DIR="./data/test-outputs/api-tests"
 
 # Color codes
 readonly RED='\033[0;31m'

@@ -18,7 +18,7 @@ RAMP_UP_TIME=60    # 1 minute
 REQUESTS_PER_SECOND=50
 
 # Results directory
-RESULTS_DIR="load-test-results-$(date +%Y%m%d-%H%M%S)"
+RESULTS_DIR="data/test-outputs/load-test-results-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$RESULTS_DIR"
 
 echo "🚀 Microservices Load Testing Suite"

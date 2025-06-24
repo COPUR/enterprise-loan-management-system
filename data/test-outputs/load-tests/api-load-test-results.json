@@ -1,0 +1,50 @@
+[
+  {
+    "endpoint": "/api/v1/loans/recommendations",
+    "requests_per_second": "0",
+    "average_latency": "N/A",
+    "total_requests": "0",
+    "errors": "0",
+    "timestamp": "2025-06-21T15:27:37+03:00"
+  },
+  {
+    "endpoint": "/api/v1/customers",
+    "requests_per_second": "0",
+    "average_latency": "N/A",
+    "total_requests": "0",
+    "errors": "0",
+    "timestamp": "2025-06-21T15:27:43+03:00"
+  },
+  {
+    "endpoint": "/api/v1/loans",
+    "requests_per_second": "0",
+    "average_latency": "N/A",
+    "total_requests": "0",
+    "errors": "0",
+    "timestamp": "2025-06-21T15:27:48+03:00"
+  },
+  {
+    "endpoint": "/api/v1/payments",
+    "requests_per_second": "0",
+    "average_latency": "N/A",
+    "total_requests": "0",
+    "errors": "0",
+    "timestamp": "2025-06-21T15:27:53+03:00"
+  },
+  {
+    "endpoint": "/actuator/health",
+    "requests_per_second": "0",
+    "average_latency": "N/A",
+    "total_requests": "0",
+    "errors": "0",
+    "timestamp": "2025-06-21T15:27:58+03:00"
+  },
+  {
+    "endpoint": "/actuator/metrics",
+    "requests_per_second": "0",
+    "average_latency": "N/A",
+    "total_requests": "0",
+    "errors": "0",
+    "timestamp": "2025-06-21T15:28:03+03:00"
+  }
+]

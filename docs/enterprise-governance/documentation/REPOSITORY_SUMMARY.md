@@ -41,12 +41,12 @@ src/test/java/com/bank/loanmanagement/
 
 ### Testing & Documentation
 ```
-postman/
+tools/api-testing/
 ├── Enterprise-Loan-Management-DEV.postman_collection.json
 ├── Enterprise-Loan-Management-SIT.postman_collection.json
 └── Enterprise-Loan-Management-SMOKE.postman_collection.json
 
-sample-data/
+data/samples/
 ├── customer-sample-data.sql                # 30 customer profiles
 ├── loan-sample-data.sql                    # 30 loan records
 └── payment-sample-data.sql                 # 56 payment transactions
@@ -63,7 +63,7 @@ monitoring/
 ├── elasticsearch/                          # Log analysis configuration
 └── MONITORING_DOCUMENTATION.md            # Complete monitoring guide
 
-redis-elasticache/
+tools/graphql/
 ├── REDIS_ELASTICACHE_DOCUMENTATION.md     # Advanced caching implementation
 ├── CACHE_PERFORMANCE_TESTS.md             # Performance testing suite
 └── cache-configs/                          # Production cache configurations

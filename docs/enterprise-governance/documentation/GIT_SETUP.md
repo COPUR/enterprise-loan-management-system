@@ -170,11 +170,11 @@ enterprise-loan-management-system/
 ├── build/
 ├── docs/
 ├── gradle/
-├── postman/
+├── tools/api-testing/
 │   ├── Enterprise-Loan-Management-DEV.postman_collection.json
 │   ├── Enterprise-Loan-Management-SIT.postman_collection.json
 │   └── Enterprise-Loan-Management-SMOKE.postman_collection.json
-├── sample-data/
+├── data/samples/
 │   ├── customer-sample-data.sql
 │   ├── loan-sample-data.sql
 │   └── payment-sample-data.sql
@@ -198,7 +198,7 @@ enterprise-loan-management-system/
 ├── build.gradle
 ├── pom.xml
 ├── docker-compose.yml
-└── postgresql-42.7.1.jar
+└── tools/database-drivers/postgresql-42.7.1.jar
 ```
 
 ## Repository Features

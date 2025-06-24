@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document provides a comprehensive analysis of the **critical architectural inconsistencies** discovered in the Enterprise Banking System and explains why the current `src/` structure violates fundamental software architecture principles that the `backup-src/` structure correctly implements.
+This document provides a comprehensive analysis of the **critical architectural inconsistencies** discovered in the Enterprise Banking System and explains why the current `src/` structure violates fundamental software architecture principles that the archived backup structure correctly implements.
 
 **🚨 CRITICAL FINDING**: The project contains two incompatible architectural approaches that must be unified under proper hexagonal architecture standards.
 
@@ -12,9 +12,9 @@ This document provides a comprehensive analysis of the **critical architectural 
 
 ### **The Architectural Drift Problem**
 
-The presence of both `src/` and `backup-src/` with completely different architectural patterns indicates **architectural drift** - a common but dangerous phenomenon in enterprise projects where:
+The presence of both `src/` and the archived backup structure with completely different architectural patterns indicates **architectural drift** - a common but dangerous phenomenon in enterprise projects where:
 
-1. **Initial Clean Architecture**: `backup-src/` represents the original, well-designed hexagonal architecture
+1. **Initial Clean Architecture**: The archived backup structure represents the original, well-designed hexagonal architecture
 2. **Gradual Contamination**: `src/` shows progressive contamination with infrastructure concerns
 3. **Framework Dependency Creep**: JPA annotations leaked into domain models
 4. **Missing Architecture Governance**: No enforcement mechanisms prevented violations
@@ -33,7 +33,7 @@ public class Customer extends AggregateRoot<CustomerId> {
     private String firstName;
 }
 
-//  CORRECT CLEAN ARCHITECTURE (backup-src/)
+//  CORRECT CLEAN ARCHITECTURE (archived backup)
 public class Customer {  //  Pure domain model
     private CustomerId customerId;
     private String name;
