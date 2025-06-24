@@ -31,8 +31,8 @@ set -euo pipefail
 TEST_ENV="${1:-local}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-LOGS_DIR="$PROJECT_ROOT/test-results/load-tests"
-REPORTS_DIR="$PROJECT_ROOT/test-results/reports"
+LOGS_DIR="$PROJECT_ROOT/data/test-outputs/load-tests"
+REPORTS_DIR="$PROJECT_ROOT/data/test-outputs/reports"
 
 # Create directories
 mkdir -p "$LOGS_DIR" "$REPORTS_DIR"

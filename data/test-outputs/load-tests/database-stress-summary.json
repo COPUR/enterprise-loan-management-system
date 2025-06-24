@@ -1,0 +1,9 @@
+{
+        "test_type": "database_stress",
+        "total_operations": 410,
+        "total_errors": 88,
+        "error_rate": 21.46,
+        "duration": 120,
+        "concurrent_users": 10,
+        "timestamp": "2025-06-21T15:30:11+03:00"
+    }

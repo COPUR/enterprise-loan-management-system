@@ -421,7 +421,7 @@ comprehensive-load-testing:
 ```yaml
 - name: Performance Quality Gate
   run: |
-    SUCCESS_RATE=$(cat test-results/reports/test-summary-*.json | jq -r '.overall_metrics.overall_success_rate_percent | tonumber')
+    SUCCESS_RATE=$(cat data/test-outputs/reports/test-summary-*.json | jq -r '.overall_metrics.overall_success_rate_percent | tonumber')
     
     if (( $(echo "$SUCCESS_RATE < 95" | bc -l) )); then
       echo "Performance quality gate failed: Success rate $SUCCESS_RATE% < 95%"
@@ -460,12 +460,12 @@ pipeline {
                         allowMissing: false,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
-                        reportDir: 'test-results/reports',
+                        reportDir: 'data/test-outputs/reports',
                         reportFiles: 'test-summary-*.json',
                         reportName: 'Load Test Results'
                     ])
                     
-                    junit 'test-results/reports/junit-test-results.xml'
+                    junit 'data/test-outputs/reports/junit-test-results.xml'
                 }
             }
         }
@@ -480,7 +480,7 @@ pipeline {
 ### Output Files Structure
 
 ```
-test-results/
+data/test-outputs/
 ├── reports/
 │   ├── test-summary-{timestamp}.json      # Comprehensive test summary
 │   ├── ci-summary.json                    # CI-friendly summary
@@ -571,7 +571,7 @@ test-results/
 #### Automated Report Generation
 ```bash
 # Generate HTML performance report
-./scripts/generate-performance-report.sh test-results/
+./scripts/generate-performance-report.sh data/test-outputs/
 
 # Generate executive summary
 jq -r '
@@ -581,15 +581,15 @@ jq -r '
   "Total Requests: " + (.overall_metrics.total_requests | tostring),
   "Success Rate: " + .overall_metrics.overall_success_rate_percent + "%",
   "Overall Result: " + (if .overall_metrics.test_passed then "PASSED" else "FAILED" end)
-' test-results/reports/test-summary-*.json
+' data/test-outputs/reports/test-summary-*.json
 ```
 
 #### Performance Trends Analysis
 ```bash
 # Compare performance across test runs
 ./scripts/compare-performance-trends.sh \
-  test-results/reports/test-summary-20241220-143021.json \
-  test-results/reports/test-summary-20241220-153045.json
+  data/test-outputs/reports/test-summary-20241220-143021.json \
+  data/test-outputs/reports/test-summary-20241220-153045.json
 ```
 
 ---
@@ -665,7 +665,7 @@ docker exec -it postgres pg_isready
 redis-cli ping
 
 # 5. Review error details
-cat test-results/load-tests/failures-*.log
+cat data/test-outputs/load-tests/failures-*.log
 ```
 
 #### 5. **Memory/Resource Issues**
@@ -772,7 +772,7 @@ watch -n 10 'curl -s http://localhost:8080/actuator/metrics/jvm.memory.used'
 ./scripts/e2e-comprehensive-load-test.sh baseline
 
 # Store baseline results for comparison
-cp test-results/reports/test-summary-*.json baselines/release-v1.0.0.json
+cp data/test-outputs/reports/test-summary-*.json baselines/release-v1.0.0.json
 ```
 
 #### 3. **Performance Regression Testing**
@@ -780,7 +780,7 @@ cp test-results/reports/test-summary-*.json baselines/release-v1.0.0.json
 # Automated performance regression detection
 ./scripts/compare-performance.sh \
   baselines/release-v1.0.0.json \
-  test-results/reports/test-summary-*.json \
+  data/test-outputs/reports/test-summary-*.json \
   --threshold 10%  # Alert if performance degrades >10%
 ```
 
@@ -824,7 +824,7 @@ export JWT_TOKEN=$(curl -s -X POST "$AUTH_URL/oauth/token" \
 # Rule of thumb: Plan for 3x peak load capacity
 
 # Calculate required resources based on test results
-./scripts/capacity-planning.sh test-results/reports/test-summary-*.json
+./scripts/capacity-planning.sh data/test-outputs/reports/test-summary-*.json
 ```
 
 #### 3. **Performance Budgets**

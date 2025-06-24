@@ -56,14 +56,14 @@ This document outlines the comprehensive Test-Driven Development (TDD) implement
 ## Postman Collections
 
 ### Development Environment
-**File:** `postman/Enterprise-Loan-Management-DEV.postman_collection.json`
+**File:** `tools/api-testing/Enterprise-Loan-Management-DEV.postman_collection.json`
 - Basic API functionality testing
 - Business rule validation
 - FAPI compliance verification
 - Real PostgreSQL data validation
 
 ### System Integration Testing (SIT)
-**File:** `postman/Enterprise-Loan-Management-SIT.postman_collection.json`
+**File:** `tools/api-testing/Enterprise-Loan-Management-SIT.postman_collection.json`
 - End-to-end workflow testing
 - Comprehensive data integrity validation
 - Performance threshold testing
@@ -71,7 +71,7 @@ This document outlines the comprehensive Test-Driven Development (TDD) implement
 - Database referential integrity
 
 ### Smoke Testing
-**File:** `postman/Enterprise-Loan-Management-SMOKE.postman_collection.json`
+**File:** `tools/api-testing/Enterprise-Loan-Management-SMOKE.postman_collection.json`
 - Critical path validation
 - Production readiness checks
 - SLA compliance testing
@@ -80,14 +80,14 @@ This document outlines the comprehensive Test-Driven Development (TDD) implement
 ## Sample Data Scripts
 
 ### Customer Data
-**File:** `sample-data/customer-sample-data.sql`
+**File:** `data/samples/customer-sample-data.sql`
 - 30 diverse customer profiles
 - Credit scores across all ranges (300-850)
 - International character support
 - Address and document verification data
 
 ### Loan Data
-**File:** `sample-data/loan-sample-data.sql`
+**File:** `data/samples/loan-sample-data.sql`
 - 30 loan records with business rule compliance
 - All valid installment periods (6, 9, 12, 24)
 - Interest rates within range (0.1% - 0.5%)
@@ -95,7 +95,7 @@ This document outlines the comprehensive Test-Driven Development (TDD) implement
 - Various loan statuses and purposes
 
 ### Payment Data
-**File:** `sample-data/payment-sample-data.sql`
+**File:** `data/samples/payment-sample-data.sql`
 - 56 payment records with full transaction history
 - Multiple payment methods (Bank Transfer, ACH, Wire, Online, etc.)
 - Payment status variations (Completed, Failed, Reversed, Pending)
@@ -139,7 +139,7 @@ java -cp ../../../build/classes com.bank.loanmanagement.APIEndpointTest
 
 #### Import Collections
 1. Open Postman
-2. Import each collection file from the `postman/` directory
+2. Import each collection file from the `tools/api-testing/` directory
 3. Set environment variables:
    - `base_url`: `http://localhost:5000`
    - `dev_jwt_token`: Development authentication token
