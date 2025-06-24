@@ -25,7 +25,7 @@ This index provides quick access to all architectural diagrams with their purpos
 ## Architecture Diagrams
 
 ### Bounded Contexts
-**File:** `docs/architecture/diagrams/bounded-contexts.puml`
+**File:** `docs/business-architecture/domain-models/generated-diagrams/Bounded Contexts.svg`
 **Purpose:** Shows Domain-Driven Design bounded contexts with clear separation of business capabilities
 **Key Elements:**
 - Customer Management Context
@@ -39,7 +39,7 @@ This index provides quick access to all architectural diagrams with their purpos
 ---
 
 ### Hexagonal Architecture
-**File:** `docs/architecture/diagrams/hexagonal-architecture.puml`
+**File:** `docs/generated-diagrams/Hexagonal Architecture - Enterprise Loan Management System (Production).svg`
 **Purpose:** Demonstrates ports and adapters pattern with dependency inversion
 **Key Elements:**
 - Domain core isolation

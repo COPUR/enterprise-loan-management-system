@@ -173,13 +173,13 @@ src/main/java/com/bank/loanmanagement/customermanagement/infrastructure/
 3. **CQRS implementation** with separate read/write models
 4. **Advanced monitoring** with distributed tracing
 
-## 🔗 Documentation References
+## Documentation References
 
 ### **Architecture Documents**
-- `ARCHITECTURAL_ANALYSIS.md` - Detailed contamination analysis
-- `HEXAGONAL_ARCHITECTURE_GUARDRAILS.md` - Mandatory patterns and standards
-- `ARCHITECTURAL_DECISIONS_EXPLANATION.md` - Technical decision rationale
-- `PRE_PUSH_CHECKLIST.md` - Comprehensive testing requirements
+- `docs/ARCHITECTURAL_ANALYSIS.md` - Detailed contamination analysis
+- `docs/HEXAGONAL_ARCHITECTURE_GUARDRAILS.md` - Mandatory patterns and standards
+- `docs/ARCHITECTURAL_DECISIONS_EXPLANATION.md` - Technical decision rationale
+- `docs/PRE_PUSH_CHECKLIST.md` - Comprehensive testing requirements
 
 ### **Implementation Guides**
 - Customer Management bounded context implementation

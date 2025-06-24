@@ -51,7 +51,7 @@ jobs:
         distribution: 'temurin'
         
     - name: 📦 Cache Gradle Dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.gradle/caches
@@ -97,7 +97,7 @@ jobs:
     name: 🧪 Unit & Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: hexagonal-architecture-validation
+    needs: architecture-validation
     
     services:
       postgres:
@@ -135,7 +135,7 @@ jobs:
         distribution: 'temurin'
         
     - name: 📦 Cache Gradle Dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.gradle/caches
@@ -183,7 +183,7 @@ jobs:
           --no-daemon
           
     - name: 📤 Upload Test Results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
@@ -207,7 +207,7 @@ jobs:
     name: 🔒 Security & Compliance
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: hexagonal-architecture-validation
+    needs: architecture-validation
     
     steps:
     - name: 📥 Checkout Code
@@ -252,7 +252,7 @@ jobs:
           --no-daemon
           
     - name: 📤 Upload Security Reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: security-reports
@@ -284,7 +284,7 @@ jobs:
         distribution: 'temurin'
         
     - name: 📦 Cache Gradle Dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.gradle/caches
@@ -341,13 +341,13 @@ jobs:
     - name: 🔍 Container Security Scan (Trivy)
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: ${{ steps.meta.outputs.tags }}
+        image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
         format: 'sarif'
         output: 'trivy-results.sarif'
         severity: 'CRITICAL,HIGH'
         
     - name: 📤 Upload Container Scan Results
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
@@ -515,7 +515,7 @@ jobs:
         fi
         
     - name: 📤 Upload Load Test Reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: load-test-reports

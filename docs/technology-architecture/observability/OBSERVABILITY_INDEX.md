@@ -4,72 +4,72 @@
 
 This index provides comprehensive access to all observability documentation for the Enterprise Loan Management System, covering logging, monitoring, tracing, and compliance aspects of the observability infrastructure.
 
-## 📚 Documentation Structure
+## Documentation Structure
 
-###  Architecture & Design
+### Architecture & Design
 - **[Observability Architecture](./OBSERVABILITY_ARCHITECTURE.md)** - Complete architectural overview of the observability stack
 - **[Distributed Tracing Guide](./DISTRIBUTED_TRACING_GUIDE.md)** - OpenTelemetry implementation and tracing patterns
 - **[Metrics & Monitoring](../monitoring/METRICS_AND_MONITORING.md)** - Prometheus/Grafana monitoring architecture
 - **[Logging Best Practices](./LOGGING_BEST_PRACTICES.md)** - Banking-specific logging standards and patterns
 
-###  Implementation Guides
-- **[Deployment Guide](../../observability/logging-deployment-guide.md)** - Step-by-step deployment instructions
-- **[Configuration Reference](../../observability/)** - Complete configuration files and templates
-- **[SIEM Integration](../../observability/siem/)** - Security Information and Event Management setup
+### Implementation Guides
+- **[Deployment Guide](./logging-deployment-guide.md)** - Step-by-step deployment instructions
+- **[Configuration Reference](./)** - Complete configuration files and templates
+- **[SIEM Integration](./siem/)** - Security Information and Event Management setup
 
-###  Compliance & Security
+### Compliance & Security
 - **[PCI-DSS v4 Compliance](./OBSERVABILITY_ARCHITECTURE.md#pci-dss-v4-implementation)** - Payment card industry standards
-- **[Data Sovereignty](../../observability/config/data-residency/)** - Regional compliance configurations
-- **[GDPR Implementation](../../observability/config/data-residency/eu-config.yml)** - European data protection
+- **[Data Sovereignty](./config/data-residency/)** - Regional compliance configurations
+- **[GDPR Implementation](./config/data-residency/eu-config.yml)** - European data protection
 - **[Security Monitoring](../monitoring/METRICS_AND_MONITORING.md#security-metrics)** - Security event detection and alerting
 
-##  Quick Access by Role
+## Quick Access by Role
 
-### 👨‍💼 Banking Operations Team
+### Banking Operations Team
 - [Business Metrics Overview](../monitoring/METRICS_AND_MONITORING.md#business-metrics)
-- [Compliance Dashboards](../../observability/grafana/dashboards/banking-pci-dss-compliance.json)
+- [Compliance Dashboards](./grafana/dashboards/banking-pci-dss-compliance.json)
 - [Fraud Detection Logging](./LOGGING_BEST_PRACTICES.md#payment-processing-logging)
 - [Loan Processing Monitoring](./DISTRIBUTED_TRACING_GUIDE.md#loan-processing-service-tracing)
 
-### 👨‍💻 Development Team
+### Development Team
 - [Structured Logging Implementation](./LOGGING_BEST_PRACTICES.md#structured-logging-format)
 - [OpenTelemetry SDK Integration](./DISTRIBUTED_TRACING_GUIDE.md#opentelemetry-sdk-integration)
 - [Custom Metrics Creation](../monitoring/METRICS_AND_MONITORING.md#business-metrics)
 - [Error Handling Patterns](./LOGGING_BEST_PRACTICES.md#error-logging-patterns)
 
-###  Security & Compliance Team
-- [PCI-DSS Monitoring](../../observability/grafana/dashboards/banking-pci-dss-compliance.json)
+### Security & Compliance Team
+- [PCI-DSS Monitoring](./grafana/dashboards/banking-pci-dss-compliance.json)
 - [Security Event Logging](./LOGGING_BEST_PRACTICES.md#security-metrics)
 - [Audit Trail Implementation](./OBSERVABILITY_ARCHITECTURE.md#data-classification--compliance)
-- [SIEM Integration Guide](../../observability/siem/siem-integration-config.yml)
+- [SIEM Integration Guide](./siem/siem-integration-config.yml)
 
-###  DevOps & Platform Team
-- [Infrastructure Deployment](../../observability/logging-deployment-guide.md)
+### DevOps & Platform Team
+- [Infrastructure Deployment](./logging-deployment-guide.md)
 - [Performance Monitoring](../monitoring/METRICS_AND_MONITORING.md#technical-metrics)
-- [Alerting Configuration](../../observability/alerting/prometheus-alerts.yml)
+- [Alerting Configuration](./alerting/prometheus-alerts.yml)
 - [Multi-Region Setup](./OBSERVABILITY_ARCHITECTURE.md#data-flow-architecture)
 
-## 🌍 Regional Compliance Documentation
+## Regional Compliance Documentation
 
-### 🇺🇸 United States (CCPA/SOX)
+### United States (CCPA/SOX)
 - **Configuration**: [US Config](../../observability/config/data-residency/us-config.yml)
 - **Compliance Requirements**: CCPA, SOX, PCI-DSS v4
 - **Data Retention**: 7 years for audit logs, 3 years for transaction logs
 - **Cross-Border Transfer**: Permitted with adequate protections
 
-### 🇪🇺 European Union (GDPR)
+### European Union (GDPR)
 - **Configuration**: [EU Config](../../observability/config/data-residency/eu-config.yml)
 - **Compliance Requirements**: GDPR, PCI-DSS v4
 - **Data Subject Rights**: Access, rectification, erasure, portability
 - **Cross-Border Transfer**: Standard Contractual Clauses (SCCs)
 
-### 🌏 Asia-Pacific (Multi-jurisdictional)
+### Asia-Pacific (Multi-jurisdictional)
 - **Configuration**: [APAC Config](../../observability/config/data-residency/apac-config.yml)
 - **Compliance Requirements**: Australia Privacy Act, Singapore PDPA, Japan APPI
 - **Regional Variations**: Multi-jurisdictional compliance mapping
 - **Data Localization**: Country-specific requirements
 
-##  Technical Components
+## Technical Components
 
 ### OpenTelemetry Collector
 - **Configuration**: [OTEL Config](../../observability/otel/otel-collector-config.yaml)
@@ -101,7 +101,7 @@ This index provides comprehensive access to all observability documentation for 
 - **Data Sources**: Prometheus, Elasticsearch, Jaeger integration
 - **Customization**: Role-based dashboard access, regional filtering
 
-##  Monitoring Capabilities
+## Monitoring Capabilities
 
 ### Business Intelligence
 - **Loan Processing Metrics**: Application rates, approval times, default rates
@@ -121,7 +121,7 @@ This index provides comprehensive access to all observability documentation for 
 - **Regulatory Reporting**: Automated compliance reports, violation alerts
 - **Audit Trails**: Immutable log records, integrity verification, retention management
 
-## 🚨 Alerting & Incident Response
+## Alerting & Incident Response
 
 ### Alert Categories
 - **Critical**: Security breaches, compliance violations, system outages
@@ -141,7 +141,7 @@ This index provides comprehensive access to all observability documentation for 
 - **System Outages**: Escalation procedures, communication plans, recovery protocols
 - **Data Breaches**: Containment actions, impact assessment, regulatory notification
 
-##  Operational Procedures
+## Operational Procedures
 
 ### Daily Operations
 - **Health Checks**: Automated system health verification
@@ -167,7 +167,7 @@ This index provides comprehensive access to all observability documentation for 
 - **Technology Updates**: Platform upgrades and feature enhancements
 - **Business Continuity**: BCP testing and procedure updates
 
-## 📚 Additional Resources
+## Additional Resources
 
 ### Training Materials
 - **Developer Onboarding**: Observability implementation guidelines
@@ -189,7 +189,7 @@ This index provides comprehensive access to all observability documentation for 
 
 ---
 
-## 🗂️ File Structure Reference
+## File Structure Reference
 
 ```
 docs/technology-architecture/
