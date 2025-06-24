@@ -42,12 +42,12 @@ This section contains domain models, use cases, and business workflows for the e
 - **Reporting**: Automated regulatory compliance reports and audit trails
 
 ## Domain Models
-- [Domain Model](domain-models/domain-model.puml) - Core business domain definitions
-- [Bounded Contexts](domain-models/bounded-contexts.puml) - Domain boundary definitions
+- [Domain Model](domain-models/generated-diagrams/Domain%20Model.svg) - Core business domain definitions
+- [Bounded Contexts](domain-models/generated-diagrams/Bounded%20Contexts.svg) - Domain boundary definitions
 
 ## Use Cases
 - [Technology Use Case Mapping](use-cases/TECHNOLOGY_USECASE_MAPPING.md) - Business technology mapping
-- [Banking Workflow](use-cases/banking-workflow.puml) - Core banking process flows
+- [Banking Workflow](use-cases/generated-diagrams/Banking%20Workflow.svg) - Core banking process flows
 
 ## Scenarios
 - [Technology Showcase Summary](scenarios/TECHNOLOGY_SHOWCASE_SUMMARY.md) - Business case demonstrations

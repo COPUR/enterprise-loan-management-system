@@ -24,30 +24,31 @@ This documentation provides a comprehensive analysis of the Enterprise Loan Mana
 - **Standardized configuration patterns** across environments
 - **Enhanced security** by externalizing sensitive values
 
-###  4. Architecture Documentation
-Created comprehensive PlantUML diagrams:
+### 4. Architecture Documentation
+Created comprehensive architecture diagrams:
 - **System Context Diagram** - External system relationships
 - **Component Diagram** - Internal component structure  
 - **Hexagonal Architecture Diagram** - Ports and adapters pattern
 - **Deployment Diagram** - Infrastructure and deployment topology
 
-###  5. Comprehensive Analysis Document
+### 5. Comprehensive Analysis Document
 - **Configuration Analysis** - Complete breakdown of extracted values
 - **Java Class Analysis** - Domain, application, and infrastructure components
 - **Security and Compliance** - FAPI and banking security features
 - **AI Integration Analysis** - Spring AI and MCP implementation
 
-## 📁 Generated Documentation Structure
+## Generated Documentation Structure
 
 ```
 docs/
 └── architecture/
     ├── README.md                    # This overview document
     ├── configuration-analysis.md    # Detailed configuration analysis
-    ├── component-diagram.puml       # Component relationships
-    ├── hexagonal-architecture.puml  # Hexagonal pattern visualization
-    ├── system-context.puml         # System context and external dependencies
-    └── deployment-diagram.puml     # Infrastructure deployment
+    └── generated-diagrams/          # Generated SVG diagrams
+        ├── Enterprise Loan Management System - Component Diagram.svg
+        ├── Enterprise Loan Management System - Hexagonal Architecture.svg
+        ├── Enterprise Loan Management System - System Context.svg
+        └── Enterprise Loan Management System - Deployment Diagram.svg
 ```
 
 ##  Key Architecture Findings

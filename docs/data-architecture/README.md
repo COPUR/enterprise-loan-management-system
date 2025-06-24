@@ -3,8 +3,8 @@
 This section contains database schemas, data models, and data flow specifications.
 
 ## Data Models
-- [ER Diagram](data-models/er-diagram.puml) - Entity relationship model
-- [Database Isolation Diagram](data-models/database-isolation-diagram.puml) - Database separation strategy
+- [ER Diagram](data-models/generated-diagrams/Entity%20Relationship%20Diagram.svg) - Entity relationship model
+- [Database Isolation Diagram](data-models/generated-diagrams/Database%20Isolation%20Architecture.svg) - Database separation strategy
 
 ## Database Design
 - **PostgreSQL 16.9**: Primary ACID-compliant database

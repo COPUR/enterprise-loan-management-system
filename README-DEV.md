@@ -1,8 +1,8 @@
-#  Development Guide - Enterprise Loan Management System
+# Development Guide - Enterprise Loan Management System
 
-Welcome to the development environment for the Enterprise Loan Management System!
+Welcome to the development environment for the Enterprise Loan Management System.
 
-##  Quick Start
+## Quick Start
 
 ### Prerequisites
 - Java 21+
@@ -23,7 +23,7 @@ cd enterprise-loan-management-system
 ./dev-start.sh
 ```
 
-##  Development Commands
+## Development Commands
 
 ### Application
 ```bash
@@ -58,7 +58,7 @@ cd enterprise-loan-management-system
 ./gradlew cleanDev
 ```
 
-## 🌐 Development URLs
+## Development URLs
 
 | Service | URL | Description |
 |---------|-----|-------------|
@@ -68,7 +68,7 @@ cd enterprise-loan-management-system
 | GraphQL | http://localhost:8080/graphql | GraphQL playground |
 | Actuator | http://localhost:8080/actuator | Application metrics |
 
-## 🗄️ Database Configuration
+## Database Configuration
 
 ### H2 Database (Default for Development)
 - **URL**: `jdbc:h2:mem:banking_dev`
@@ -83,7 +83,7 @@ The development environment automatically loads test data including:
 - Sample payments and installments
 - Credit scores and financial profiles
 
-## 🐛 Debugging
+## Debugging
 
 ### IDE Configuration
 - **IntelliJ IDEA**: Use "Banking App (Debug)" run configuration
@@ -96,7 +96,7 @@ The development environment automatically loads test data including:
 - Debug logging enabled
 - H2 console for database inspection
 
-##  Monitoring
+## Monitoring
 
 ### Actuator Endpoints
 - `/actuator/health` - Application health
@@ -110,7 +110,7 @@ The development environment automatically loads test data including:
 docker run -p 9090:9090 -v ./monitoring/prometheus/prometheus-dev.yml:/etc/prometheus/prometheus.yml prom/prometheus
 ```
 
-##  Testing
+## Testing
 
 ### Test Categories
 - **Unit Tests**: `./gradlew test`
@@ -123,7 +123,7 @@ Development test data is automatically created and includes:
 - Loans: Various loan types and statuses
 - Payments: Sample payment transactions
 
-##  Configuration
+## Configuration
 
 ### Environment Variables
 Development configuration is in `.env.local`:
@@ -137,7 +137,7 @@ Development configuration is in `.env.local`:
 - `development` - Development-specific features
 - `h2` - H2 database configuration
 
-##  Development Tools
+## Development Tools
 
 ### Hot Reload
 - Automatic restart on code changes
@@ -149,7 +149,7 @@ Development configuration is in `.env.local`:
 - SpotBugs integration
 - JaCoCo test coverage
 
-## 📁 Development Structure
+## Development Structure
 ```
 .
 ├── src/main/java/              # Application code
@@ -164,7 +164,7 @@ Development configuration is in `.env.local`:
 └── dev-reset-db.sh            # Database reset
 ```
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -192,7 +192,7 @@ lsof -ti:8080 | xargs kill -9
 3. Check actuator health at http://localhost:8080/actuator/health
 4. Review configuration in `.env.local`
 
-##  Next Steps
+## Next Steps
 
 1. **API Development**: Add new endpoints in REST or GraphQL
 2. **Database Changes**: Update domain models and migrations
@@ -200,4 +200,3 @@ lsof -ti:8080 | xargs kill -9
 4. **Testing**: Add comprehensive test coverage
 5. **Documentation**: Update API documentation
 
-Happy coding! 
