@@ -69,7 +69,7 @@ This directory contains comprehensive documentation for enterprise governance, s
 
 #### Loan Creation Sequence
 - **Location**: [application-architecture/sequence-diagrams/loan-creation-sequence.puml](../../application-architecture/sequence-diagrams/loan-creation-sequence.puml)
-- **Generated Diagram**: [Loan Creation Sequence.svg](generated-diagrams/Loan%20Creation%20Sequence.svg)
+- **Generated Diagram**: [Loan Creation Sequence.svg](generated-diagrams/Loan%20Creation%20Sequence_v1.0.0.svg)
 - **Business Process**: Complete loan origination with credit validation and SAGA coordination
 - **Key Participants**: Bank Employee, LoanController, LoanApplicationService, CustomerService, EventPublisher
 - **Business Rules Enforced**:
@@ -80,7 +80,7 @@ This directory contains comprehensive documentation for enterprise governance, s
 
 #### Payment Processing Sequence
 - **Location**: [application-architecture/sequence-diagrams/payment-processing-sequence.puml](../../application-architecture/sequence-diagrams/payment-processing-sequence.puml)
-- **Generated Diagram**: [Payment Processing Sequence.svg](generated-diagrams/Payment%20Processing%20Sequence.svg)
+- **Generated Diagram**: [Payment Processing Sequence.svg](generated-diagrams/Payment%20Processing%20Sequence_v1.0.0.svg)
 - **Business Process**: End-to-end payment processing with intelligent calculation
 - **Key Features**:
   - No partial payments (full installment amounts only)

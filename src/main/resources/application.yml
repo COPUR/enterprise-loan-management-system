@@ -7,6 +7,27 @@ spring:
   application:
     name: ${APPLICATION_NAME:enterprise-loan-management-system}
   
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4}
+          temperature: ${OPENAI_TEMPERATURE:0.3}
+          max-tokens: ${OPENAI_MAX_TOKENS:2000}
+  
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: ${REDIS_TIMEOUT:2000ms}
+      lettuce:
+        pool:
+          max-active: ${REDIS_POOL_MAX_ACTIVE:20}
+          max-idle: ${REDIS_POOL_MAX_IDLE:10}
+          min-idle: ${REDIS_POOL_MIN_IDLE:2}
+  
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/banking}
     username: ${DATABASE_USERNAME:postgres}
@@ -39,19 +60,6 @@ spring:
     locations: ${FLYWAY_LOCATIONS:classpath:db/migration}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
     validate-on-migrate: ${FLYWAY_VALIDATE_ON_MIGRATE:true}
-  
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      database: ${REDIS_DATABASE:0}
-      timeout: ${REDIS_TIMEOUT:5000}
-      lettuce:
-        pool:
-          max-active: ${REDIS_POOL_MAX_ACTIVE:8}
-          max-idle: ${REDIS_POOL_MAX_IDLE:8}
-          min-idle: ${REDIS_POOL_MIN_IDLE:0}
   
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
@@ -129,3 +137,43 @@ business:
     customer:
       min-credit-score: 300
       max-credit-score: 850
+
+# Banking-specific security configuration for FAPI compliance
+banking:
+  security:
+    jwt:
+      secret: ${BANKING_JWT_SECRET:banking-jwt-secret-key-should-be-very-long-and-secure-for-production}
+      expiration: ${BANKING_JWT_EXPIRATION:86400}
+      issuer: ${BANKING_JWT_ISSUER:enterprise-loan-management-system}
+      audience: ${BANKING_JWT_AUDIENCE:banking-api-clients}
+      algorithm: ${BANKING_JWT_ALGORITHM:RS256}
+      jwk-set-uri: ${BANKING_JWT_JWK_SET_URI:/.well-known/jwks.json}
+    password:
+      strength: ${BANKING_PASSWORD_STRENGTH:12}
+    cors:
+      allowed-origins:
+        - ${BANKING_CORS_ORIGIN_1:https://localhost:3000}
+        - ${BANKING_CORS_ORIGIN_2:https://banking-frontend.local}
+        - ${BANKING_CORS_ORIGIN_3:https://*.banking-domain.com}
+      allowed-methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowed-headers:
+        - Authorization
+        - Content-Type
+        - X-Requested-With
+        - Accept
+        - Origin
+        - X-FAPI-Interaction-ID
+        - X-FAPI-Auth-Date
+        - X-FAPI-Customer-IP-Address
+      allow-credentials: ${BANKING_CORS_ALLOW_CREDENTIALS:true}
+      max-age: ${BANKING_CORS_MAX_AGE:1800}
+    rate-limit:
+      requests-per-minute: ${BANKING_RATE_LIMIT_RPM:60}
+      burst-limit: ${BANKING_RATE_LIMIT_BURST:100}
+      window-size-minutes: ${BANKING_RATE_LIMIT_WINDOW:1}
+      enable-rate-limiting: ${BANKING_RATE_LIMIT_ENABLED:true}

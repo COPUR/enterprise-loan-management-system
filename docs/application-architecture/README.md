@@ -1,11 +1,19 @@
 # Application Architecture
 
-This section contains microservices design, API specifications, integration patterns, and sequence diagrams.
+This section contains Istio service mesh microservices design, API specifications, integration patterns, and sequence diagrams.
 
-## Microservices
+## Architecture Overview
+
+The application follows **Istio Service Mesh Architecture** with:
+- **Istio Ingress Gateway**: FAPI-compliant OAuth2.1 token validation
+- **Envoy Sidecar Proxies**: mTLS encryption and traffic management  
+- **Distributed Redis**: Session cache, rate limiting, circuit breaker state
+- **Event-Driven SAGA**: Kafka orchestration with compensation patterns
+
+## Istio Service Mesh Microservices
 - [Component Diagram](microservices/component-diagram.puml) - System component relationships
-- [Microservices Architecture](microservices/microservices-architecture-diagram.puml) - Service architecture design
-- [Hexagonal Architecture](microservices/hexagonal-architecture.puml) - Ports and adapters pattern
+- [**Istio Microservices Architecture**](microservices/microservices-architecture-diagram.puml) - Istio service mesh with Envoy sidecars
+- [Hexagonal Architecture](microservices/hexagonal-architecture.puml) - Ports and adapters pattern with Event-Driven design
 - [Simple Architecture](microservices/simple-architecture.puml) - Simplified system view
 - [Gradle 9 Microservices Upgrade Report](microservices/GRADLE_9_MICROSERVICES_UPGRADE_REPORT.md) - Modernization documentation
 

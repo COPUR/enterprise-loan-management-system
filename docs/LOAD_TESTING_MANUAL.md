@@ -1,7 +1,7 @@
 # Comprehensive Load Testing Manual
 ## Enterprise Loan Management System
 
-![Load Testing Architecture](../docs/generated-diagrams/Monitoring%20&%20Observability%20-%20Enterprise%20Loan%20Management%20System.svg)
+![Load Testing Architecture](../docs/generated-diagrams/Monitoring%20&%20Observability%20-%20Enterprise%20Loan%20Management%20System_v1.0.0.svg)
 
 ---
 

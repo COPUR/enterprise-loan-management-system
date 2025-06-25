@@ -1,0 +1,248 @@
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: banking-telemetry
+  namespace: banking-system
+spec:
+  metrics:
+  - providers:
+    - name: prometheus
+  - overrides:
+    - match:
+        metric: ALL_METRICS
+      tagOverrides:
+        banking_service:
+          value: "enterprise-loan-system"
+        banking_version:
+          value: "v1.0.0"
+        banking_environment:
+          value: "local"
+  accessLogging:
+  - providers:
+    - name: otel
+  tracing:
+  - providers:
+    - name: jaeger
+  - customTags:
+      banking_user_id:
+        header:
+          name: x-banking-user-id
+      banking_session_id:
+        header:
+          name: x-banking-session-id
+      banking_request_id:
+        header:
+          name: x-banking-request-id
+      banking_operation:
+        header:
+          name: x-banking-operation
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-prometheus-config
+  namespace: banking-system
+data:
+  custom_metrics.yaml: |
+    - name: banking_loan_applications_total
+      dimensions:
+        customer_type: "individual | corporate | sme"
+        loan_type: "personal | auto | mortgage | business"
+        approval_status: "approved | rejected | pending"
+      tags:
+        banking_service: "enterprise-loan-system"
+    - name: banking_payment_transactions_total
+      dimensions:
+        payment_method: "bank_transfer | credit_card | debit_card"
+        payment_status: "success | failed | pending"
+        transaction_amount_bucket: "0-1000 | 1000-10000 | 10000+"
+      tags:
+        banking_service: "enterprise-loan-system"
+    - name: banking_authentication_duration_seconds
+      buckets: [0.1, 0.5, 1.0, 2.5, 5.0, 10.0]
+      dimensions:
+        auth_method: "oauth2 | basic | jwt"
+        auth_result: "success | failure"
+      tags:
+        banking_service: "enterprise-loan-system"
+    - name: banking_compliance_violations_total
+      dimensions:
+        violation_type: "pci_dss | gdpr | fapi | kyc"
+        severity: "low | medium | high | critical"
+      tags:
+        banking_service: "enterprise-loan-system"
+---
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: banking-observability-config
+  namespace: istio-system
+spec:
+  values:
+    telemetryV2:
+      enabled: true
+      prometheus:
+        configOverride:
+          metric_relabeling_configs:
+          - source_labels: [__name__]
+            regex: 'istio_.*'
+            target_label: service_mesh
+            replacement: 'istio'
+          - source_labels: [destination_service_name]
+            regex: 'enterprise-loan-system'
+            target_label: banking_service
+            replacement: 'loan-management'
+    pilot:
+      env:
+        PILOT_ENABLE_WORKLOAD_ENTRY_AUTOREGISTRATION: true
+        PILOT_ENABLE_CROSS_CLUSTER_WORKLOAD_ENTRY: true
+        PILOT_TRACE_SAMPLING: 100.0
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jaeger-configuration
+  namespace: istio-system
+data:
+  span_storage_type: "memory"
+  collector_zipkin_host_port: ":9411"
+  sampling_strategies: |
+    {
+      "default_strategy": {
+        "type": "probabilistic",
+        "param": 1.0
+      },
+      "per_service_strategies": [
+        {
+          "service": "enterprise-loan-system",
+          "type": "probabilistic",
+          "param": 1.0,
+          "max_traces_per_second": 1000
+        }
+      ]
+    }
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: observability-routes
+  namespace: istio-system
+spec:
+  hosts:
+  - kiali.banking.local
+  - grafana.banking.local
+  - jaeger.banking.local
+  - prometheus.banking.local
+  gateways:
+  - banking-system/banking-gateway
+  http:
+  # Kiali
+  - match:
+    - uri:
+        prefix: /
+      headers:
+        host:
+          exact: kiali.banking.local
+    route:
+    - destination:
+        host: kiali
+        port:
+          number: 20001
+  # Grafana
+  - match:
+    - uri:
+        prefix: /
+      headers:
+        host:
+          exact: grafana.banking.local
+    route:
+    - destination:
+        host: grafana
+        port:
+          number: 3000
+  # Jaeger
+  - match:
+    - uri:
+        prefix: /
+      headers:
+        host:
+          exact: jaeger.banking.local
+    route:
+    - destination:
+        host: tracing
+        port:
+          number: 80
+  # Prometheus
+  - match:
+    - uri:
+        prefix: /
+      headers:
+        host:
+          exact: prometheus.banking.local
+    route:
+    - destination:
+        host: prometheus
+        port:
+          number: 9090
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-banking-dashboards
+  namespace: istio-system
+  labels:
+    grafana_dashboard: "1"
+data:
+  banking-overview.json: |
+    {
+      "dashboard": {
+        "title": "Banking System Overview",
+        "tags": ["banking", "istio"],
+        "panels": [
+          {
+            "title": "Loan Applications Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(banking_loan_applications_total[5m])",
+                "legendFormat": "{{loan_type}} - {{approval_status}}"
+              }
+            ]
+          },
+          {
+            "title": "Payment Success Rate",
+            "type": "stat", 
+            "targets": [
+              {
+                "expr": "rate(banking_payment_transactions_total{payment_status='success'}[5m]) / rate(banking_payment_transactions_total[5m]) * 100",
+                "legendFormat": "Success Rate %"
+              }
+            ]
+          },
+          {
+            "title": "Authentication Latency",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, banking_authentication_duration_seconds_bucket)",
+                "legendFormat": "95th percentile"
+              },
+              {
+                "expr": "histogram_quantile(0.50, banking_authentication_duration_seconds_bucket)",
+                "legendFormat": "50th percentile"
+              }
+            ]
+          },
+          {
+            "title": "Service Mesh Traffic",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(istio_requests_total{destination_service_name='enterprise-loan-system'}[5m])",
+                "legendFormat": "{{source_app}} -> {{destination_service_name}}"
+              }
+            ]
+          }
+        ]
+      }
+    }

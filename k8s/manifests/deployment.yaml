@@ -31,12 +31,28 @@ spec:
         environment: production
         compliance: banking
         tier: application
+        service: loan-management
       annotations:
+        # Istio sidecar injection
+        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+        # Istio traffic management
+        traffic.sidecar.istio.io/includeInboundPorts: "8080"
+        traffic.sidecar.istio.io/excludeOutboundPorts: "5432,6379,9092"
+        # Prometheus metrics
         prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
-        prometheus.io/path: "/api/actuator/prometheus"
+        prometheus.io/port: "8080" 
+        prometheus.io/path: "/actuator/prometheus"
+        # Banking compliance
         compliance.banking/data-classification: "restricted"
         compliance.banking/audit-logging: "enabled"
+        # Istio specific annotations
+        proxy.istio.io/config: |
+          proxyStatsMatcher:
+            inclusionRegexps:
+            - ".*_cx_.*"
+            - ".*_rq_.*"
+            - ".*banking.*"
     spec:
       serviceAccountName: banking-app-sa
       securityContext:

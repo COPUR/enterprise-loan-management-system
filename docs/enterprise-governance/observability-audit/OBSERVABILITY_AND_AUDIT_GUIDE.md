@@ -1,7 +1,7 @@
 # Comprehensive Observability & Audit Guide
 ## Enterprise Loan Management System
 
-![Observability Architecture](../../technology-architecture/monitoring/monitoring-observability.svg)
+![Observability Architecture](../../technology-architecture/monitoring/monitoring-observability_v1.0.0.svg)
 
 ---
 

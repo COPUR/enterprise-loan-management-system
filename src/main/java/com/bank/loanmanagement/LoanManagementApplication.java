@@ -10,17 +10,13 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication(scanBasePackages = {
-    "com.bank.loanmanagement",
-    "com.banking.loans.domain.party"
+    "com.bank.loanmanagement"
 })
 @EntityScan(basePackages = {
-    "com.bank.loanmanagement.domain",
-    "com.bank.loanmanagement.infrastructure.persistence",
-    "com.banking.loans.domain.party"
+    "com.bank.loanmanagement.domain"
 })
 @EnableJpaRepositories(basePackages = {
-    "com.bank.loanmanagement.infrastructure.persistence",
-    "com.banking.loans.domain.party"
+    "com.bank.loanmanagement.infrastructure"
 })
 @EnableJpaAuditing
 @EnableCaching

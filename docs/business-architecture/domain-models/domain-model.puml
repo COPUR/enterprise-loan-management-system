@@ -4,73 +4,165 @@
 !define ENTITY_COLOR #E6F3FF
 !define VALUE_OBJECT_COLOR #E6FFE6
 !define DOMAIN_SERVICE_COLOR #FFE6F3
+!define EVENT_COLOR #FFE6E6
+!define BIAN_COLOR #E6E6FF
+!define SAGA_COLOR #FFEEEE
 
-package "Shared Kernel" {
+title Enterprise Banking Domain Model - Event-Driven Architecture v1.0.0
+
+package "Shared Kernel - Event Sourcing Foundation" {
     abstract class AggregateRoot<<Root>> AGGREGATE_ROOT_COLOR {
-        +raiseEvent(event: DomainEvent)
+        -domainEvents: List<DomainEvent>
+        -version: Long
+        -createdAt: OffsetDateTime
+        -updatedAt: OffsetDateTime
+        +addDomainEvent(event: DomainEvent)
         +getDomainEvents(): List<DomainEvent>
         +clearDomainEvents()
+        +getVersion(): Long
+        +incrementVersion()
     }
     
     abstract class Entity<<Entity>> ENTITY_COLOR {
-        -id: ID
-        -createdAt: LocalDateTime
-        -updatedAt: LocalDateTime
+        -id: DomainId
+        -createdAt: OffsetDateTime
+        -updatedAt: OffsetDateTime
         -version: Long
+        +equals(other: Entity): boolean
+        +hashCode(): int
+    }
+    
+    abstract class DomainId<<Value Object>> VALUE_OBJECT_COLOR {
+        -value: String
+        +getValue(): String
+        +equals(other: DomainId): boolean
+        +hashCode(): int
     }
     
     interface ValueObject<<Value Object>> VALUE_OBJECT_COLOR {
         +validate()
+        +equals(other: ValueObject): boolean
+        +hashCode(): int
     }
     
-    abstract class DomainEvent<<Event>> {
+    abstract class DomainEvent<<Event>> EVENT_COLOR {
         -eventId: String
-        -occurredOn: LocalDateTime
+        -aggregateId: String
+        -occurredOn: OffsetDateTime
         -eventType: String
+        -eventVersion: String
+        -correlationId: String
+        -causationId: String
+        +getEventId(): String
+        +getAggregateId(): String
+        +getOccurredOn(): OffsetDateTime
     }
     
     class Money<<Value Object>> VALUE_OBJECT_COLOR {
         -amount: BigDecimal
+        -currency: Currency
         +of(amount: BigDecimal): Money
+        +of(amount: BigDecimal, currency: Currency): Money
         +add(other: Money): Money
         +subtract(other: Money): Money
         +multiply(factor: BigDecimal): Money
         +divide(divisor: BigDecimal): Money
         +isGreaterThan(other: Money): boolean
         +isZero(): boolean
+        +negate(): Money
     }
     
     class InterestRate<<Value Object>> VALUE_OBJECT_COLOR {
         -rate: BigDecimal
         +of(rate: BigDecimal): InterestRate
-        +calculateInterest(principal: Money): Money
+        +calculateInterest(principal: Money, months: Integer): Money
         +asPercentage(): BigDecimal
-    }
-    
-    class InstallmentCount<<Value Object>> VALUE_OBJECT_COLOR {
-        -count: Integer
-        +of(count: Integer): InstallmentCount
-        +getValidCounts(): Set<Integer>
-        +isValid(count: Integer): boolean
+        +isWithinBankingRange(): boolean
     }
 }
 
-package "Customer Management" {
+package "BIAN Service Domains - Event-Driven" {
+    
+    package "Consumer Loan Service Domain" BIAN_COLOR {
+        class LoanBehaviorQualifier<<BIAN>> BIAN_COLOR {
+            +INITIATE: String
+            +UPDATE: String
+            +CONTROL: String
+            +EXCHANGE: String
+            +EXECUTE: String
+            +REQUEST: String
+            +RETRIEVE: String
+        }
+        
+        class ConsumerLoanServiceDomain<<BIAN Service Domain>> BIAN_COLOR {
+            -serviceDomainId: String
+            -serviceDomainName: String
+            -functionalPatterns: List<String>
+            +initiateLoanArrangement(): ServiceDomainActivity
+            +updateLoanArrangement(): ServiceDomainActivity
+            +controlLoanArrangement(): ServiceDomainActivity
+        }
+    }
+    
+    package "Party Data Management Service Domain" BIAN_COLOR {
+        class PartyDataBehaviorQualifier<<BIAN>> BIAN_COLOR {
+            +INITIATE: String
+            +UPDATE: String
+            +CONTROL: String
+            +EXCHANGE: String
+            +RETRIEVE: String
+        }
+        
+        class PartyDataManagementSD<<BIAN Service Domain>> BIAN_COLOR {
+            -serviceDomainId: String
+            +initiatePartyDataDirectory(): ServiceDomainActivity
+            +updatePartyReference(): ServiceDomainActivity
+            +retrievePartyReference(): ServiceDomainActivity
+        }
+    }
+    
+    package "Payment Initiation Service Domain" BIAN_COLOR {
+        class PaymentInitiationSD<<BIAN Service Domain>> BIAN_COLOR {
+            -serviceDomainId: String
+            +initiatePaymentTransaction(): ServiceDomainActivity
+            +updatePaymentTransaction(): ServiceDomainActivity
+            +executePaymentTransaction(): ServiceDomainActivity
+        }
+        
+        class BerlinGroupPaymentTypes<<Berlin Group PSD2>> BIAN_COLOR {
+            +SEPA_CREDIT_TRANSFER: String
+            +INSTANT_SEPA_CREDIT_TRANSFER: String
+            +TARGET2_PAYMENT: String
+            +CROSS_BORDER_TRANSFER: String
+        }
+    }
+}
+
+package "Customer Management - Event Sourcing" {
     class Customer<<Aggregate Root>> AGGREGATE_ROOT_COLOR {
         -customerId: CustomerId
         -name: String
         -surname: String
+        -email: String
         -creditLimit: CreditLimit
         -usedCreditLimit: Money
-        +reserveCredit(amount: Money): boolean
-        +releaseCredit(amount: Money)
+        -kycStatus: KYCStatus
+        -creditScore: CreditScore
+        -riskLevel: CreditRiskLevel
+        +create(id: CustomerId, name: String, email: String): Customer
+        +reserveCredit(amount: Money, correlationId: String): boolean
+        +releaseCredit(amount: Money, correlationId: String)
+        +updateCreditLimit(newLimit: Money, reason: String)
         +getAvailableCredit(): Money
         +hasSufficientCredit(amount: Money): boolean
+        +updateKYCStatus(status: KYCStatus, verifiedBy: String)
+        +updateCreditScore(score: CreditScore, assessedBy: String)
     }
     
     class CustomerId<<Value Object>> VALUE_OBJECT_COLOR {
-        -value: Long
-        +of(value: Long): CustomerId
+        -value: String
+        +of(value: String): CustomerId
+        +generate(): CustomerId
     }
     
     class CreditLimit<<Value Object>> VALUE_OBJECT_COLOR {
@@ -78,40 +170,84 @@ package "Customer Management" {
         +of(limit: Money): CreditLimit
         +increase(amount: Money): CreditLimit
         +decrease(amount: Money): CreditLimit
+        +isWithinBankingLimits(): boolean
+    }
+    
+    class KYCStatus<<Value Object>> VALUE_OBJECT_COLOR {
+        +PENDING: KYCStatus
+        +VERIFIED: KYCStatus
+        +REJECTED: KYCStatus
+        +EXPIRED: KYCStatus
+        +of(status: String): KYCStatus
+    }
+    
+    class CreditScore<<Value Object>> VALUE_OBJECT_COLOR {
+        -score: Integer
+        +of(score: Integer): CreditScore
+        +isExcellent(): boolean
+        +isGood(): boolean
+        +isFair(): boolean
+        +isPoor(): boolean
     }
     
     class CreditAssessmentService<<Domain Service>> DOMAIN_SERVICE_COLOR {
-        +isEligibleForLoan(customer: Customer, amount: Money): boolean
+        +assessCreditworthiness(customer: Customer): CreditAssessmentResult
         +calculateMaximumLoanAmount(customer: Customer): Money
-        +assessCreditRisk(customer: Customer): CreditRiskLevel
+        +evaluateRiskLevel(customer: Customer): CreditRiskLevel
+        +validateCreditReservation(customer: Customer, amount: Money): boolean
     }
     
-    class CreditReserved<<Event>> {
-        -customerId: CustomerId
+    ' Customer Domain Events
+    class CustomerCreatedEvent<<Event>> EVENT_COLOR {
+        -customerId: String
+        -name: String
+        -email: String
+        -initialCreditLimit: Money
+        -kycStatus: String
+        -correlationId: String
+    }
+    
+    class CreditReservedEvent<<Event>> EVENT_COLOR {
+        -customerId: String
         -reservedAmount: Money
         -remainingCredit: Money
+        -reservationId: String
+        -correlationId: String
+        -sagaId: String
     }
     
-    class CreditReleased<<Event>> {
-        -customerId: CustomerId
+    class CreditReleasedEvent<<Event>> EVENT_COLOR {
+        -customerId: String
         -releasedAmount: Money
         -availableCredit: Money
+        -releaseReason: String
+        -correlationId: String
+    }
+    
+    class CreditAssessmentCompletedEvent<<Event>> EVENT_COLOR {
+        -customerId: String
+        -assessmentResult: String
+        -creditScore: Integer
+        -riskLevel: String
+        -assessedBy: String
+        -correlationId: String
     }
     
     enum CreditRiskLevel {
         LOW
         MEDIUM
         HIGH
+        VERY_HIGH
     }
 }
 
-package "Loan Management" {
+package "Loan Management - Event-Driven Domain" {
     class Loan<<Aggregate Root>> AGGREGATE_ROOT_COLOR {
         -id: LoanId
         -customerId: CustomerId
         -principalAmount: Money
         -outstandingBalance: Money
-        -interestRate: BigDecimal
+        -interestRate: InterestRate
         -termInMonths: Integer
         -loanType: LoanType
         -status: LoanStatus
@@ -122,23 +258,26 @@ package "Loan Management" {
         -approvedBy: String
         -rejectionReason: String
         -installments: List<LoanInstallment>
-        +create(id, customerId, amount, rate, term, type, purpose): Loan
-        +approve(approvedBy: String)
-        +reject(reason: String, rejectedBy: String)
-        +disburse(disbursementDate: LocalDate)
-        +makePayment(amount: Money, paymentDate: LocalDate)
-        +markAsDefaulted(reason: String)
-        +restructure(newRate: BigDecimal, newTerm: Integer, reason: String)
+        -sagaId: String
+        +create(customerId: CustomerId, amount: Money, rate: InterestRate, term: Integer): Loan
+        +approve(approvedBy: String, correlationId: String)
+        +reject(reason: String, rejectedBy: String, correlationId: String)
+        +disburse(disbursementDate: LocalDate, correlationId: String)
+        +processPayment(amount: Money, paymentDate: LocalDate, sagaId: String)
+        +markAsDefaulted(reason: String, correlationId: String)
+        +restructure(newRate: InterestRate, newTerm: Integer, reason: String)
         +generateAmortizationSchedule()
         +calculateMonthlyPayment(): Money
         +getTotalInterest(): Money
         +getNextPaymentDue(): LocalDate
         +isOverdue(): boolean
-        +getDaysOverdue(): Integer
         +isFullyPaid(): boolean
+        +setSagaId(sagaId: String)
+        +getSagaId(): String
     }
     
     class LoanInstallment<<Entity>> ENTITY_COLOR {
+        -id: LoanInstallmentId
         -loanId: LoanId
         -installmentNumber: Integer
         -dueDate: LocalDate
@@ -148,8 +287,9 @@ package "Loan Management" {
         -paidAmount: Money
         -paymentDate: LocalDate
         -status: InstallmentStatus
-        +create(loanId, number, dueDate, principal, interest, total): LoanInstallment
-        +processPayment(amount: Money, paymentDate: LocalDate)
+        -sagaId: String
+        +create(loanId: LoanId, number: Integer, dueDate: LocalDate): LoanInstallment
+        +processPayment(amount: Money, paymentDate: LocalDate, sagaId: String)
         +calculateEarlyPaymentDiscount(paymentDate: LocalDate): Money
         +calculateLatePaymentPenalty(paymentDate: LocalDate): Money
         +isOverdue(): boolean
@@ -162,7 +302,12 @@ package "Loan Management" {
         -value: String
         +of(value: String): LoanId
         +generate(): LoanId
-        +getValue(): String
+    }
+    
+    class LoanInstallmentId<<Value Object>> VALUE_OBJECT_COLOR {
+        -value: String
+        +of(value: String): LoanInstallmentId
+        +generate(): LoanInstallmentId
     }
     
     class LoanType<<Value Object>> VALUE_OBJECT_COLOR {
@@ -173,6 +318,7 @@ package "Loan Management" {
         +BUSINESS: LoanType
         +EDUCATIONAL: LoanType
         +of(type: String): LoanType
+        +getBianServiceDomain(): String
     }
     
     class LoanStatus<<Value Object>> VALUE_OBJECT_COLOR {
@@ -185,6 +331,7 @@ package "Loan Management" {
         +DEFAULTED: LoanStatus
         +CANCELLED: LoanStatus
         +of(status: String): LoanStatus
+        +canTransitionTo(newStatus: LoanStatus): boolean
     }
     
     class InstallmentStatus<<Value Object>> VALUE_OBJECT_COLOR {
@@ -196,85 +343,103 @@ package "Loan Management" {
         +of(status: String): InstallmentStatus
     }
     
-    class LoanApplicationSubmittedEvent<<Event>> {
+    ' Loan Domain Events with SAGA Support
+    class LoanApplicationInitiatedEvent<<Event>> EVENT_COLOR {
         -loanId: String
         -customerId: String
         -requestedAmount: Money
-        -loanType: LoanType
+        -interestRate: BigDecimal
+        -termInMonths: Integer
+        -loanType: String
         -purpose: String
-        -timestamp: LocalDateTime
+        -sagaId: String
+        -correlationId: String
     }
     
-    class LoanApprovedEvent<<Event>> {
+    class LoanCreatedEvent<<Event>> EVENT_COLOR {
+        -loanId: String
+        -customerId: String
+        -principalAmount: Money
+        -interestRate: BigDecimal
+        -termInMonths: Integer
+        -totalAmount: Money
+        -monthlyPayment: Money
+        -sagaId: String
+        -correlationId: String
+    }
+    
+    class LoanApprovedEvent<<Event>> EVENT_COLOR {
         -loanId: String
         -customerId: String
         -approvedAmount: Money
         -approvedBy: String
-        -timestamp: LocalDateTime
+        -approvalDate: LocalDate
+        -sagaId: String
+        -correlationId: String
     }
     
-    class LoanRejectedEvent<<Event>> {
+    class LoanRejectedEvent<<Event>> EVENT_COLOR {
         -loanId: String
         -customerId: String
         -rejectionReason: String
         -rejectedBy: String
-        -timestamp: LocalDateTime
+        -rejectionDate: LocalDate
+        -sagaId: String
+        -correlationId: String
     }
     
-    class LoanDisbursedEvent<<Event>> {
+    class InstallmentScheduleGeneratedEvent<<Event>> EVENT_COLOR {
         -loanId: String
         -customerId: String
-        -disbursedAmount: Money
-        -disbursementDate: LocalDate
-        -timestamp: LocalDateTime
+        -totalInstallments: Integer
+        -monthlyPayment: Money
+        -firstDueDate: LocalDate
+        -lastDueDate: LocalDate
+        -sagaId: String
+        -correlationId: String
     }
     
-    class LoanPaymentMadeEvent<<Event>> {
+    class InstallmentPaidEvent<<Event>> EVENT_COLOR {
         -loanId: String
-        -customerId: String
+        -installmentId: String
         -paymentAmount: Money
-        -paymentDate: LocalDate
-        -timestamp: LocalDateTime
+        -paidDate: LocalDate
+        -remainingBalance: Money
+        -sagaId: String
+        -correlationId: String
     }
     
-    class LoanPaidOffEvent<<Event>> {
+    class LoanFullyPaidEvent<<Event>> EVENT_COLOR {
         -loanId: String
         -customerId: String
-        -timestamp: LocalDateTime
-    }
-    
-    class LoanDefaultedEvent<<Event>> {
-        -loanId: String
-        -customerId: String
-        -outstandingAmount: Money
-        -defaultReason: String
-        -timestamp: LocalDateTime
-    }
-    
-    class LoanRestructuredEvent<<Event>> {
-        -loanId: String
-        -customerId: String
-        -newInterestRate: BigDecimal
-        -newTermInMonths: Integer
-        -restructureReason: String
-        -timestamp: LocalDateTime
+        -totalAmountPaid: Money
+        -finalPaymentDate: LocalDate
+        -sagaId: String
+        -correlationId: String
     }
 }
 
-package "Payment Processing" {
+package "Payment Processing - Berlin Group Compliant" {
     class Payment<<Aggregate Root>> AGGREGATE_ROOT_COLOR {
         -paymentId: PaymentId
         -loanId: LoanId
+        -customerId: CustomerId
         -paymentAmount: Money
-        -paymentDate: LocalDateTime
+        -paymentDate: OffsetDateTime
         -status: PaymentStatus
+        -paymentType: BerlinGroupPaymentType
         -installmentsPaid: Integer
         -totalDiscount: Money
         -totalPenalty: Money
+        -strongCustomerAuthId: String
         -isLoanFullyPaid: boolean
-        +processPayment(result: PaymentResult)
+        -sagaId: String
+        +initiate(loanId: LoanId, amount: Money, paymentType: BerlinGroupPaymentType): Payment
+        +validateSCA(scaId: String): boolean
+        +processPayment(result: PaymentResult, sagaId: String)
         +getTotalAmountSpent(): Money
         +isSuccessful(): boolean
+        +requiresStrongAuthentication(): boolean
     }
     
     class PaymentId<<Value Object>> VALUE_OBJECT_COLOR {
@@ -283,299 +448,272 @@ package "Payment Processing" {
         +generate(): PaymentId
     }
     
+    class BerlinGroupPaymentType<<Value Object>> VALUE_OBJECT_COLOR {
+        -type: String
+        +SEPA_CREDIT_TRANSFER: BerlinGroupPaymentType
+        +INSTANT_SEPA_CREDIT_TRANSFER: BerlinGroupPaymentType
+        +TARGET2_PAYMENT: BerlinGroupPaymentType
+        +of(type: String): BerlinGroupPaymentType
+        +requiresSCA(): boolean
+    }
+    
     enum PaymentStatus {
         INITIATED
+        SCA_REQUIRED
+        AUTHORISED
         PROCESSING
         COMPLETED
         FAILED
+        REJECTED
+        CANCELLED
     }
     
     class PaymentCalculationService<<Domain Service>> DOMAIN_SERVICE_COLOR {
         +calculatePayment(installments: List<LoanInstallment>, amount: Money): PaymentCalculationResult
+        +validatePaymentAmount(amount: Money): ValidationResult
+        +calculateEarlyPaymentDiscount(installments: List<LoanInstallment>, date: LocalDate): Money
+        +calculatePenalties(installments: List<LoanInstallment>, date: LocalDate): Money
         +isAdvancePaymentAllowed(installments: List<LoanInstallment>, date: LocalDate): boolean
-        +calculateTotalEffectiveAmount(installments: List<LoanInstallment>, date: LocalDate): Money
     }
     
-    class PaymentProcessed<<Event>> {
-        -paymentId: PaymentId
-        -loanId: LoanId
+    ' Payment Domain Events with SAGA Support
+    class PaymentInitiatedEvent<<Event>> EVENT_COLOR {
+        -paymentId: String
+        -loanId: String
+        -customerId: String
         -paymentAmount: Money
+        -paymentType: String
+        -scaRequired: Boolean
+        -sagaId: String
+        -correlationId: String
+    }
+    
+    class PaymentAuthorisedEvent<<Event>> EVENT_COLOR {
+        -paymentId: String
+        -scaId: String
+        -authorisedAt: OffsetDateTime
+        -sagaId: String
+        -correlationId: String
+    }
+    
+    class PaymentProcessedEvent<<Event>> EVENT_COLOR {
+        -paymentId: String
+        -loanId: String
+        -customerId: String
+        -processedAmount: Money
         -installmentsPaid: Integer
-        -totalAmountSpent: Money
+        -totalDiscount: Money
         -isLoanFullyPaid: Boolean
+        -processedAt: OffsetDateTime
+        -sagaId: String
+        -correlationId: String
     }
     
-    class LoanFullyPaid<<Event>> {
-        -loanId: LoanId
-        -customerId: CustomerId
-        -totalLoanAmount: Money
+    class PaymentFailedEvent<<Event>> EVENT_COLOR {
+        -paymentId: String
+        -loanId: String
+        -failureReason: String
+        -failureCode: String
+        -failedAt: OffsetDateTime
+        -sagaId: String
+        -correlationId: String
     }
 }
 
-package "Party Data Management" {
-    class Party<<Aggregate Root>> AGGREGATE_ROOT_COLOR {
-        -id: Long
-        -externalId: String
-        -identifier: String
-        -displayName: String
-        -email: String
-        -partyType: PartyType
-        -status: PartyStatus
-        -complianceLevel: ComplianceLevel
-        -department: String
-        -title: String
-        -employeeNumber: String
-        -phoneNumber: String
-        -partyRoles: Set<PartyRole>
-        -partyGroups: Set<PartyGroup>
-        +addRole(role: PartyRole)
-        +removeRole(role: PartyRole)
-        +addToGroup(group: PartyGroup)
-        +removeFromGroup(group: PartyGroup)
-        +hasRole(roleName: String): boolean
-        +isInGroup(groupName: String): boolean
-        +isActive(): boolean
-        +recordLogin()
-        +recordPasswordChange()
-        +recordAccessReview()
-        +requireAccessReview(reason: String)
+package "SAGA Orchestration - Event-Driven Coordination" SAGA_COLOR {
+    
+    class LoanOriginationSaga<<SAGA>> SAGA_COLOR {
+        -sagaId: String
+        -loanId: String
+        -customerId: String
+        -requestedAmount: Money
+        -currentStep: SagaStep
+        -status: SagaStatus
+        -compensationRequired: Boolean
+        -startedAt: OffsetDateTime
+        -completedAt: OffsetDateTime
+        -failureReason: String
+        +start(loanApplicationEvent: LoanApplicationInitiatedEvent)
+        +processCustomerValidation(event: CustomerValidatedEvent)
+        +processCreditReservation(event: CreditReservedEvent)
+        +processLoanCreation(event: LoanCreatedEvent)
+        +processInstallmentGeneration(event: InstallmentScheduleGeneratedEvent)
+        +handleFailure(failureEvent: DomainEvent)
+        +compensate(reason: String)
+        +complete()
     }
     
-    class PartyRole<<Entity>> ENTITY_COLOR {
-        -id: Long
-        -party: Party
-        -roleName: String
-        -roleDescription: String
-        -roleSource: RoleSource
-        -active: Boolean
-        -effectiveFrom: LocalDateTime
-        -effectiveTo: LocalDateTime
-        -authorityLevel: Integer
-        -businessUnit: String
-        -geographicScope: String
-        -monetaryLimit: Long
-        -assignedBy: String
-        -assignmentReason: String
-        -approvalReference: String
-        +isCurrentlyActive(): boolean
-        +isExpired(): boolean
-        +isNotYetEffective(): boolean
-        +activate()
-        +deactivate(reason: String)
-        +extendValidity(newEffectiveTo: LocalDateTime, reason: String)
-        +markForReview(reason: String)
-        +completeReview(reviewedBy: String, nextReviewDue: LocalDateTime)
-        +requiresReview(): boolean
-        +hasAuthorityFor(amount: Long): boolean
+    class PaymentProcessingSaga<<SAGA>> SAGA_COLOR {
+        -sagaId: String
+        -paymentId: String
+        -loanId: String
+        -customerId: String
+        -paymentAmount: Money
+        -currentStep: SagaStep
+        -status: SagaStatus
+        -startedAt: OffsetDateTime
+        +start(paymentInitiatedEvent: PaymentInitiatedEvent)
+        +processPaymentAuthorisation(event: PaymentAuthorisedEvent)
+        +processInstallmentUpdate(event: InstallmentPaidEvent)
+        +processLoanStatusUpdate(event: LoanStatusUpdatedEvent)
+        +complete()
     }
     
-    class PartyGroup<<Entity>> ENTITY_COLOR {
-        -id: Long
-        -party: Party
-        -groupName: String
-        -groupDescription: String
-        -groupType: GroupType
-        -groupSource: RoleSource
-        -active: Boolean
-        -effectiveFrom: LocalDateTime
-        -effectiveTo: LocalDateTime
-        -groupRole: GroupRole
-        -priority: Integer
-        -businessUnit: String
-        -geographicScope: String
-        +isCurrentlyActive(): boolean
-        +isExpired(): boolean
-        +activate()
-        +deactivate(reason: String)
-        +isLeader(): boolean
-        +isAdministrator(): boolean
-        +promoteToLeader(promotedBy: String, reason: String)
-        +promoteToAdministrator(promotedBy: String, reason: String)
-        +demoteToMember(demotedBy: String, reason: String)
+    enum SagaStatus {
+        INITIATED
+        RUNNING
+        COMPLETED
+        COMPENSATING
+        COMPENSATED
+        FAILED
+        TIMEOUT
     }
     
-    enum PartyType {
-        INDIVIDUAL
-        ORGANIZATION
-        SERVICE_ACCOUNT
-        SYSTEM_USER
-        API_CLIENT
+    enum SagaStep {
+        CUSTOMER_VALIDATION
+        CREDIT_ASSESSMENT
+        CREDIT_RESERVATION
+        LOAN_CREATION
+        INSTALLMENT_GENERATION
+        PAYMENT_VALIDATION
+        PAYMENT_PROCESSING
+        LOAN_UPDATE
+        COMPLETED
     }
     
-    enum PartyStatus {
-        ACTIVE
-        INACTIVE
-        SUSPENDED
-        LOCKED
-        PENDING
-        CLOSED
+    ' SAGA Events
+    class SagaStartedEvent<<Event>> EVENT_COLOR {
+        -sagaId: String
+        -sagaType: String
+        -triggeredBy: String
+        -startedAt: OffsetDateTime
+        -correlationId: String
     }
     
-    enum ComplianceLevel {
-        BASIC
-        ENHANCED
-        PREMIUM
-        INSTITUTIONAL
-        REGULATORY
+    class SagaCompletedEvent<<Event>> EVENT_COLOR {
+        -sagaId: String
+        -sagaType: String
+        -completedAt: OffsetDateTime
+        -totalSteps: Integer
+        -executionTimeMs: Long
+        -correlationId: String
     }
     
-    enum RoleSource {
-        DATABASE
-        LDAP
-        KEYCLOAK
-        EXTERNAL
-        AUTOMATED
-        LEGACY_IMPORT
-    }
-    
-    enum GroupType {
-        DEPARTMENT
-        TEAM
-        FUNCTIONAL
-        SECURITY
-        PROJECT
-        GEOGRAPHIC
-        COMPLIANCE
-        AUDIT
-        BUSINESS_LINE
-        RISK_MANAGEMENT
-    }
-    
-    enum GroupRole {
-        MEMBER
-        LEADER
-        ADMINISTRATOR
-        DEPUTY
-        SENIOR_MEMBER
-        OBSERVER
-        GUEST
-    }
-    
-    class PartyRoleService<<Domain Service>> DOMAIN_SERVICE_COLOR {
-        +assignRole(party: Party, roleName: String, authorityLevel: Integer): PartyRole
-        +revokeRole(party: Party, roleName: String)
-        +validateRoleAssignment(party: Party, roleName: String): boolean
-        +getEffectiveRoles(party: Party): List<PartyRole>
-        +checkAuthorization(party: Party, resource: String, operation: String): boolean
-        +getMonetaryAuthority(party: Party): Money
-        +requiresAccessReview(party: Party): boolean
-    }
-    
-    class PartyRoleAssigned<<Event>> {
-        -partyId: Long
-        -roleName: String
-        -authorityLevel: Integer
-        -monetaryLimit: Long
-        -assignedBy: String
-        -effectiveFrom: LocalDateTime
-    }
-    
-    class PartyRoleRevoked<<Event>> {
-        -partyId: Long
-        -roleName: String
-        -revokedBy: String
-        -revocationReason: String
-        -revokedAt: LocalDateTime
-    }
-    
-    class PartyAccessReviewRequired<<Event>> {
-        -partyId: Long
-        -reviewReason: String
-        -requiredBy: LocalDateTime
-        -reviewType: String
+    class SagaCompensatedEvent<<Event>> EVENT_COLOR {
+        -sagaId: String
+        -sagaType: String
+        -compensationReason: String
+        -compensatedAt: OffsetDateTime
+        -stepsCompensated: Integer
+        -correlationId: String
     }
 }
 
-' Relationships
+' Relationships - Event-Driven Architecture
 AggregateRoot --|> Entity
 Customer --|> AggregateRoot
 Loan --|> AggregateRoot
 Payment --|> AggregateRoot
-Party --|> AggregateRoot
 LoanInstallment --|> Entity
-PartyRole --|> Entity
-PartyGroup --|> Entity
 
 Customer *-- CustomerId
 Customer *-- CreditLimit
 Customer *-- Money
+Customer *-- KYCStatus
+Customer *-- CreditScore
 
 Loan *-- LoanId
 Loan *-- CustomerId
 Loan *-- Money
+Loan *-- InterestRate
 Loan *-- LoanType
 Loan *-- LoanStatus
 Loan *-- LoanInstallment
 
+LoanInstallment *-- LoanInstallmentId
 LoanInstallment *-- LoanId
 LoanInstallment *-- Money
 LoanInstallment *-- InstallmentStatus
 
 Payment *-- PaymentId
 Payment *-- LoanId
+Payment *-- CustomerId
 Payment *-- Money
+Payment *-- BerlinGroupPaymentType
 Payment *-- PaymentStatus
 
-Party *-- PartyType
-Party *-- PartyStatus
-Party *-- ComplianceLevel
-Party *-- PartyRole
-Party *-- PartyGroup
+' SAGA Relationships
+LoanOriginationSaga *-- SagaStatus
+LoanOriginationSaga *-- SagaStep
+PaymentProcessingSaga *-- SagaStatus
+PaymentProcessingSaga *-- SagaStep
 
-PartyRole *-- RoleSource
-PartyRole *-- Money
-
-PartyGroup *-- GroupType
-PartyGroup *-- GroupRole
-PartyGroup *-- RoleSource
-
+' Value Objects Implementation
 Money ..|> ValueObject
 InterestRate ..|> ValueObject
-InstallmentCount ..|> ValueObject
-CustomerId ..|> ValueObject
+CustomerId ..|> DomainId
 CreditLimit ..|> ValueObject
-LoanId ..|> ValueObject
+KYCStatus ..|> ValueObject
+CreditScore ..|> ValueObject
+LoanId ..|> DomainId
+LoanInstallmentId ..|> DomainId
 LoanType ..|> ValueObject
 LoanStatus ..|> ValueObject
 InstallmentStatus ..|> ValueObject
-PaymentId ..|> ValueObject
+PaymentId ..|> DomainId
+BerlinGroupPaymentType ..|> ValueObject
 
-CreditReserved --|> DomainEvent
-CreditReleased --|> DomainEvent
-LoanApplicationSubmittedEvent --|> DomainEvent
+' Domain Events Inheritance
+CustomerCreatedEvent --|> DomainEvent
+CreditReservedEvent --|> DomainEvent
+CreditReleasedEvent --|> DomainEvent
+CreditAssessmentCompletedEvent --|> DomainEvent
+LoanApplicationInitiatedEvent --|> DomainEvent
+LoanCreatedEvent --|> DomainEvent
 LoanApprovedEvent --|> DomainEvent
 LoanRejectedEvent --|> DomainEvent
-LoanDisbursedEvent --|> DomainEvent
-LoanPaymentMadeEvent --|> DomainEvent
-LoanPaidOffEvent --|> DomainEvent
-LoanDefaultedEvent --|> DomainEvent
-LoanRestructuredEvent --|> DomainEvent
-PaymentProcessed --|> DomainEvent
-LoanFullyPaid --|> DomainEvent
-PartyRoleAssigned --|> DomainEvent
-PartyRoleRevoked --|> DomainEvent
-PartyAccessReviewRequired --|> DomainEvent
+InstallmentScheduleGeneratedEvent --|> DomainEvent
+InstallmentPaidEvent --|> DomainEvent
+LoanFullyPaidEvent --|> DomainEvent
+PaymentInitiatedEvent --|> DomainEvent
+PaymentAuthorisedEvent --|> DomainEvent
+PaymentProcessedEvent --|> DomainEvent
+PaymentFailedEvent --|> DomainEvent
+SagaStartedEvent --|> DomainEvent
+SagaCompletedEvent --|> DomainEvent
+SagaCompensatedEvent --|> DomainEvent
 
-Customer ..> CreditReserved : raises
-Customer ..> CreditReleased : raises
-Loan ..> LoanApplicationSubmittedEvent : raises
+' Event Publishing Relationships
+Customer ..> CustomerCreatedEvent : raises
+Customer ..> CreditReservedEvent : raises
+Customer ..> CreditReleasedEvent : raises
+Customer ..> CreditAssessmentCompletedEvent : raises
+Loan ..> LoanApplicationInitiatedEvent : raises
+Loan ..> LoanCreatedEvent : raises
 Loan ..> LoanApprovedEvent : raises
 Loan ..> LoanRejectedEvent : raises
-Loan ..> LoanDisbursedEvent : raises
-Loan ..> LoanPaymentMadeEvent : raises
-Loan ..> LoanPaidOffEvent : raises
-Loan ..> LoanDefaultedEvent : raises
-Loan ..> LoanRestructuredEvent : raises
-Payment ..> PaymentProcessed : raises
-Party ..> PartyRoleAssigned : raises
-Party ..> PartyRoleRevoked : raises
-Party ..> PartyAccessReviewRequired : raises
+Loan ..> InstallmentScheduleGeneratedEvent : raises
+Loan ..> InstallmentPaidEvent : raises
+Loan ..> LoanFullyPaidEvent : raises
+Payment ..> PaymentInitiatedEvent : raises
+Payment ..> PaymentAuthorisedEvent : raises
+Payment ..> PaymentProcessedEvent : raises
+Payment ..> PaymentFailedEvent : raises
+LoanOriginationSaga ..> SagaStartedEvent : raises
+LoanOriginationSaga ..> SagaCompletedEvent : raises
+LoanOriginationSaga ..> SagaCompensatedEvent : raises
+PaymentProcessingSaga ..> SagaStartedEvent : raises
+PaymentProcessingSaga ..> SagaCompletedEvent : raises
 
-CreditAssessmentService ..> Customer : uses
+' Domain Services
+CreditAssessmentService ..> Customer : evaluates
 CreditAssessmentService ..> CreditRiskLevel : returns
-PaymentCalculationService ..> LoanInstallment : uses
-PartyRoleService ..> Party : uses
-PartyRoleService ..> PartyRole : manages
-PartyRoleService ..> Money : calculates authority with
+PaymentCalculationService ..> LoanInstallment : calculates
+PaymentCalculationService ..> Money : returns
+
+' BIAN Service Domain Integration
+ConsumerLoanServiceDomain ..> Loan : manages
+PartyDataManagementSD ..> Customer : manages
+PaymentInitiationSD ..> Payment : processes
 
 @enduml

@@ -1,6 +1,6 @@
 package com.bank.loanmanagement.domain.loan;
 
-import com.bank.loanmanagement.domain.customer.Customer;
+import com.bank.loanmanagement.customermanagement.domain.model.Customer;
 import com.bank.loanmanagement.domain.shared.Money;
 import org.springframework.stereotype.Service;
 

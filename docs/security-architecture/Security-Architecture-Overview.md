@@ -121,7 +121,7 @@ Never Trust, Always Verify
 
 ### Architecture Overview
 
-![Component Diagram](../generated-diagrams/Component%20Diagram.svg)
+![Component Diagram](../generated-diagrams/Component%20Diagram_v1.0.0.svg)
 
 ### Core Components
 

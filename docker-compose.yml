@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Enterprise Loan Management System - Microservices Docker Compose
 # Following 12-Factor App methodology and banking best practices
 
