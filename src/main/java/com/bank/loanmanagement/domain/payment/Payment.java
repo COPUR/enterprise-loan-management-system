@@ -35,9 +35,11 @@ public class Payment extends AggregateRoot<PaymentId> {
     private PaymentId id;
     
     @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "loan_id"))
     private LoanId loanId;
     
     @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "customer_id"))
     private CustomerId customerId;
     
     @Embedded

@@ -1,0 +1,111 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: banking-gateway
+  namespace: banking-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - banking.local
+    - "*.banking.local"
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: banking-tls
+    hosts:
+    - banking.local
+    - "*.banking.local"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: banking-virtualservice
+  namespace: banking-system
+spec:
+  hosts:
+  - banking.local
+  gateways:
+  - banking-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api
+    route:
+    - destination:
+        host: enterprise-loan-system
+        port:
+          number: 8080
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+  - match:
+    - uri:
+        prefix: /actuator
+    route:
+    - destination:
+        host: enterprise-loan-system
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /swagger-ui
+    route:
+    - destination:
+        host: enterprise-loan-system
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /graphql
+    route:
+    - destination:
+        host: enterprise-loan-system
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: enterprise-loan-system
+        port:
+          number: 8080
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: banking-destination-rule
+  namespace: banking-system
+spec:
+  host: enterprise-loan-system
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_CONN
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 50
+        maxRequestsPerConnection: 10
+        consecutiveGatewayErrors: 5
+        interval: 30s
+        baseEjectionTime: 30s
+    circuitBreaker:
+      consecutiveGatewayErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+  subsets:
+  - name: v1
+    labels:
+      version: v1

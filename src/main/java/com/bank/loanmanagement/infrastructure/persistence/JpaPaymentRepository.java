@@ -13,25 +13,20 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface JpaPaymentRepository extends JpaRepository<Payment, PaymentId>, PaymentRepository {
+public interface JpaPaymentRepository extends JpaRepository<Payment, PaymentId> {
     
-    @Override
     @Query("SELECT p FROM Payment p WHERE p.paymentReference = :paymentReference")
     Optional<Payment> findByPaymentReference(@Param("paymentReference") String paymentReference);
     
-    @Override
     @Query("SELECT p FROM Payment p WHERE p.loanId = :loanId")
     List<Payment> findByLoanId(@Param("loanId") LoanId loanId);
     
-    @Override
     @Query("SELECT p FROM Payment p WHERE p.customerId = :customerId")
     List<Payment> findByCustomerId(@Param("customerId") CustomerId customerId);
     
-    @Override
     @Query("SELECT p FROM Payment p WHERE p.status = :status")
     List<Payment> findByStatus(@Param("status") PaymentStatus status);
     
-    @Override
     @Query("SELECT p FROM Payment p WHERE p.paymentDate BETWEEN :startDate AND :endDate")
     List<Payment> findByPaymentDateBetween(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

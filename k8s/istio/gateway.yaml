@@ -1,0 +1,295 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: banking-gateway
+  namespace: banking-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - banking.local
+    - api.banking.local
+    - "*.banking.local"
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: banking-tls-secret
+    hosts:
+    - banking.local
+    - api.banking.local
+    - "*.banking.local"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: banking-api-virtualservice
+  namespace: banking-system
+spec:
+  hosts:
+  - banking.local
+  - api.banking.local
+  gateways:
+  - banking-gateway
+  http:
+  # Customer Service Routes
+  - match:
+    - uri:
+        prefix: /api/v1/customers
+    route:
+    - destination:
+        host: customer-service
+        port:
+          number: 8081
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+    fault:
+      delay:
+        percentage:
+          value: 0.1
+        fixedDelay: 50ms
+    headers:
+      request:
+        add:
+          x-service: "customer-service"
+          x-istio-routing: "microservices"
+  
+  # Loan Service Routes
+  - match:
+    - uri:
+        prefix: /api/v1/loans
+    route:
+    - destination:
+        host: loan-service
+        port:
+          number: 8082
+    timeout: 45s
+    retries:
+      attempts: 3
+      perTryTimeout: 15s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+    headers:
+      request:
+        add:
+          x-service: "loan-service"
+          x-istio-routing: "microservices"
+  
+  # Payment Service Routes
+  - match:
+    - uri:
+        prefix: /api/v1/payments
+    route:
+    - destination:
+        host: payment-service
+        port:
+          number: 8083
+    timeout: 60s
+    retries:
+      attempts: 5
+      perTryTimeout: 12s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+    headers:
+      request:
+        add:
+          x-service: "payment-service"
+          x-istio-routing: "microservices"
+  
+  # Party Data Management Routes
+  - match:
+    - uri:
+        prefix: /api/v1/party
+    route:
+    - destination:
+        host: party-service
+        port:
+          number: 8084
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+    headers:
+      request:
+        add:
+          x-service: "party-service"
+          x-istio-routing: "microservices"
+  # OAuth and Authentication
+  - match:
+    - uri:
+        prefix: /oauth2
+    route:
+    - destination:
+        host: enterprise-loan-system
+        port:
+          number: 8080
+    timeout: 30s
+  # Health and Monitoring
+  - match:
+    - uri:
+        prefix: /actuator
+    route:
+    - destination:
+        host: enterprise-loan-system
+        port:
+          number: 8080
+    timeout: 10s
+  # API Documentation
+  - match:
+    - uri:
+        prefix: /swagger-ui
+    route:
+    - destination:
+        host: enterprise-loan-system
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: /v3/api-docs
+    route:
+    - destination:
+        host: enterprise-loan-system
+        port:
+          number: 8080
+  # GraphQL
+  - match:
+    - uri:
+        prefix: /graphql
+    route:
+    - destination:
+        host: enterprise-loan-system
+        port:
+          number: 8080
+    timeout: 30s
+  # Default route
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: enterprise-loan-system
+        port:
+          number: 8080
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: customer-service-destination-rule
+  namespace: banking-system
+spec:
+  host: customer-service
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 50
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 25
+        http2MaxRequests: 500
+        maxRequestsPerConnection: 5
+        maxRetries: 3
+    outlierDetection:
+      consecutiveGatewayErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: loan-service-destination-rule
+  namespace: banking-system
+spec:
+  host: loan-service
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_CONN
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 1000
+        maxRequestsPerConnection: 10
+        maxRetries: 3
+    outlierDetection:
+      consecutiveGatewayErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: payment-service-destination-rule
+  namespace: banking-system
+spec:
+  host: payment-service
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_CONN
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 1000
+        maxRequestsPerConnection: 10
+        maxRetries: 5
+    outlierDetection:
+      consecutiveGatewayErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: party-service-destination-rule
+  namespace: banking-system
+spec:
+  host: party-service
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 50
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 25
+        http2MaxRequests: 500
+        maxRequestsPerConnection: 5
+        maxRetries: 3
+    outlierDetection:
+      consecutiveGatewayErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: redis-cluster-destination-rule
+  namespace: banking-system
+spec:
+  host: banking-redis
+  trafficPolicy:
+    loadBalancer:
+      simple: RANDOM
+    connectionPool:
+      tcp:
+        maxConnections: 200
+        connectTimeout: 10s
+        tcpKeepalive:
+          time: 7200s
+          interval: 60s

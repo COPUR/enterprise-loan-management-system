@@ -1,5 +1,6 @@
 package com.bank.loanmanagement.domain.payment;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class PaymentId implements Serializable {
     
+    @Column(name = "payment_id")
     private String value;
     
     public static PaymentId generate() {

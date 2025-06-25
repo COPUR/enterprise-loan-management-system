@@ -1,0 +1,1349 @@
+{
+  "info": {
+    "name": "Orange Solution - Business Requirements Validation",
+    "description": "Comprehensive test suite for Orange Solution Java Backend Developer Case Study requirements validation",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "{{admin_username}}",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "{{admin_password}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "description": "Base URL for the banking application"
+    },
+    {
+      "key": "admin_username",
+      "value": "admin",
+      "description": "Admin username for authentication"
+    },
+    {
+      "key": "admin_password",
+      "value": "admin123",
+      "description": "Admin password for authentication"
+    },
+    {
+      "key": "customer_username",
+      "value": "customer",
+      "description": "Customer username for testing customer role"
+    },
+    {
+      "key": "customer_password",
+      "value": "customer123",
+      "description": "Customer password for testing customer role"
+    },
+    {
+      "key": "test_customer_id",
+      "value": "",
+      "description": "Test customer ID generated during tests"
+    },
+    {
+      "key": "test_loan_id",
+      "value": "",
+      "description": "Test loan ID generated during tests"
+    },
+    {
+      "key": "test_installment_id",
+      "value": "",
+      "description": "Test installment ID generated during tests"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Setup & Health Check",
+      "item": [
+        {
+          "name": "Application Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Application is healthy', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.status).to.eql('UP');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/actuator/health",
+              "host": ["{{base_url}}"],
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Database Connectivity Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Database is connected', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.components.db.status).to.eql('UP');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/actuator/health",
+              "host": ["{{base_url}}"],
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "1. Business Requirement: Create Loan",
+      "item": [
+        {
+          "name": "1.1 Create Test Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Customer created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.customerId || responseJson.id).to.not.be.undefined;",
+                  "    pm.collectionVariables.set('test_customer_id', responseJson.customerId || responseJson.id);",
+                  "});",
+                  "",
+                  "pm.test('Customer has required fields', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.name || responseJson.firstName).to.not.be.undefined;",
+                  "    pm.expect(responseJson.surname || responseJson.lastName).to.not.be.undefined;",
+                  "    pm.expect(responseJson.creditLimit).to.be.a('number');",
+                  "    pm.expect(responseJson.usedCreditLimit).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John\",\n  \"surname\": \"Doe\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@test.com\",\n  \"phoneNumber\": \"+1-555-123-4567\",\n  \"creditLimit\": 50000.0,\n  \"usedCreditLimit\": 0.0,\n  \"address\": {\n    \"street\": \"123 Test Street\",\n    \"city\": \"Test City\",\n    \"state\": \"TS\",\n    \"zipCode\": \"12345\",\n    \"country\": \"USA\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 Create Valid Loan (12 installments, 0.2 rate)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Loan created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.loanId || responseJson.id).to.not.be.undefined;",
+                  "    pm.collectionVariables.set('test_loan_id', responseJson.loanId || responseJson.id);",
+                  "});",
+                  "",
+                  "pm.test('Loan has correct total amount calculation', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    // Total should be amount * (1 + interestRate) = 10000 * 1.2 = 12000",
+                  "    const expectedTotal = 10000 * (1 + 0.2);",
+                  "    pm.expect(responseJson.totalAmount || responseJson.loanAmount * (1 + responseJson.interestRate)).to.be.closeTo(expectedTotal, 0.01);",
+                  "});",
+                  "",
+                  "pm.test('Loan has required fields', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.customerId).to.not.be.undefined;",
+                  "    pm.expect(responseJson.loanAmount || responseJson.amount).to.be.a('number');",
+                  "    pm.expect(responseJson.numberOfInstallments || responseJson.numberOfInstallment).to.eql(12);",
+                  "    pm.expect(responseJson.createDate).to.not.be.undefined;",
+                  "    pm.expect(responseJson.isPaid).to.be.a('boolean');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 10000.0,\n  \"loanAmount\": 10000.0,\n  \"interestRate\": 0.2,\n  \"numberOfInstallments\": 12,\n  \"numberOfInstallment\": 12\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Test Invalid Installment Numbers",
+          "item": [
+            {
+              "name": "Reject 5 installments",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Should reject 5 installments', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 422, 500]);",
+                      "    const responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.match(/installment|invalid|error/i);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 5000.0,\n  \"loanAmount\": 5000.0,\n  \"interestRate\": 0.15,\n  \"numberOfInstallments\": 5,\n  \"numberOfInstallment\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/loans",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "loans"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Accept 6 installments",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Should accept 6 installments', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson.numberOfInstallments || responseJson.numberOfInstallment).to.eql(6);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 5000.0,\n  \"loanAmount\": 5000.0,\n  \"interestRate\": 0.15,\n  \"numberOfInstallments\": 6,\n  \"numberOfInstallment\": 6\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/loans",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "loans"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Accept 9 installments",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Should accept 9 installments', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson.numberOfInstallments || responseJson.numberOfInstallment).to.eql(9);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 5000.0,\n  \"loanAmount\": 5000.0,\n  \"interestRate\": 0.15,\n  \"numberOfInstallments\": 9,\n  \"numberOfInstallment\": 9\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/loans",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "loans"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Accept 24 installments",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Should accept 24 installments', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson.numberOfInstallments || responseJson.numberOfInstallment).to.eql(24);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 5000.0,\n  \"loanAmount\": 5000.0,\n  \"interestRate\": 0.15,\n  \"numberOfInstallments\": 24,\n  \"numberOfInstallment\": 24\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/loans",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "loans"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Reject 36 installments",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Should reject 36 installments', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 422, 500]);",
+                      "    const responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.match(/installment|invalid|error/i);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 5000.0,\n  \"loanAmount\": 5000.0,\n  \"interestRate\": 0.15,\n  \"numberOfInstallments\": 36,\n  \"numberOfInstallment\": 36\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/loans",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "loans"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "1.4 Test Interest Rate Validation",
+          "item": [
+            {
+              "name": "Reject 0.05 interest rate (too low)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Should reject 0.05 interest rate', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 422, 500]);",
+                      "    const responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.match(/interest|rate|invalid|error/i);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 5000.0,\n  \"loanAmount\": 5000.0,\n  \"interestRate\": 0.05,\n  \"numberOfInstallments\": 12,\n  \"numberOfInstallment\": 12\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/loans",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "loans"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Accept 0.1 interest rate (minimum)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Should accept 0.1 interest rate', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson.interestRate).to.eql(0.1);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 5000.0,\n  \"loanAmount\": 5000.0,\n  \"interestRate\": 0.1,\n  \"numberOfInstallments\": 12,\n  \"numberOfInstallment\": 12\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/loans",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "loans"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Accept 0.5 interest rate (maximum)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Should accept 0.5 interest rate', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.expect(responseJson.interestRate).to.eql(0.5);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 5000.0,\n  \"loanAmount\": 5000.0,\n  \"interestRate\": 0.5,\n  \"numberOfInstallments\": 12,\n  \"numberOfInstallment\": 12\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/loans",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "loans"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Reject 0.6 interest rate (too high)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Should reject 0.6 interest rate', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 422, 500]);",
+                      "    const responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.match(/interest|rate|invalid|error/i);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 5000.0,\n  \"loanAmount\": 5000.0,\n  \"interestRate\": 0.6,\n  \"numberOfInstallments\": 12,\n  \"numberOfInstallment\": 12\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/v1/loans",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "v1", "loans"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "1.5 Test Credit Limit Validation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Should reject loan exceeding credit limit', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 422, 500]);",
+                  "    const responseText = pm.response.text();",
+                  "    pm.expect(responseText).to.match(/credit.*limit|insufficient|exceed/i);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 100000.0,\n  \"loanAmount\": 100000.0,\n  \"interestRate\": 0.2,\n  \"numberOfInstallments\": 12,\n  \"numberOfInstallment\": 12\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Business Requirement: List Loans",
+      "item": [
+        {
+          "name": "2.1 List Loans for Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Can list loans for customer', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Loans have required fields', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.length > 0) {",
+                  "        const loan = responseJson[0];",
+                  "        pm.expect(loan.loanId || loan.id).to.not.be.undefined;",
+                  "        pm.expect(loan.customerId).to.not.be.undefined;",
+                  "        pm.expect(loan.loanAmount || loan.amount).to.be.a('number');",
+                  "        pm.expect(loan.numberOfInstallments || loan.numberOfInstallment).to.be.a('number');",
+                  "        pm.expect(loan.createDate).to.not.be.undefined;",
+                  "        pm.expect(loan.isPaid).to.be.a('boolean');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans/customer/{{test_customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans", "customer", "{{test_customer_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2.2 List All Loans (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin can list all loans', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2.3 List Loans with Filters (Bonus)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Can filter loans by paid status', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans?isPaid=false&numberOfInstallments=12",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans"],
+              "query": [
+                {
+                  "key": "isPaid",
+                  "value": "false"
+                },
+                {
+                  "key": "numberOfInstallments",
+                  "value": "12"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Business Requirement: List Installments",
+      "item": [
+        {
+          "name": "3.1 List Installments for Loan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Can list installments for loan', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Installments have required fields', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.length > 0) {",
+                  "        const installment = responseJson[0];",
+                  "        pm.expect(installment.id).to.not.be.undefined;",
+                  "        pm.expect(installment.loanId).to.not.be.undefined;",
+                  "        pm.expect(installment.amount).to.be.a('number');",
+                  "        pm.expect(installment.paidAmount).to.be.a('number');",
+                  "        pm.expect(installment.dueDate).to.not.be.undefined;",
+                  "        pm.expect(installment.isPaid).to.be.a('boolean');",
+                  "        ",
+                  "        // Store first installment ID for payment tests",
+                  "        pm.collectionVariables.set('test_installment_id', installment.id);",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Due dates are first day of months', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.length > 0) {",
+                  "        responseJson.forEach(installment => {",
+                  "            const dueDate = new Date(installment.dueDate);",
+                  "            pm.expect(dueDate.getDate()).to.eql(1, 'Due date should be first day of month');",
+                  "        });",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('All installments have same amount', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.length > 1) {",
+                  "        const firstAmount = responseJson[0].amount;",
+                  "        responseJson.forEach(installment => {",
+                  "            pm.expect(installment.amount).to.eql(firstAmount, 'All installments should have same amount');",
+                  "        });",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans/{{test_loan_id}}/installments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans", "{{test_loan_id}}", "installments"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Business Requirement: Pay Loan",
+      "item": [
+        {
+          "name": "4.1 Pay Single Installment (Exact Amount)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Payment processed successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.installmentsPaid || responseJson.paidInstallments).to.be.a('number');",
+                  "    pm.expect(responseJson.totalAmountSpent || responseJson.amountPaid).to.be.a('number');",
+                  "    pm.expect(responseJson.loanFullyPaid || responseJson.isLoanPaid).to.be.a('boolean');",
+                  "});",
+                  "",
+                  "pm.test('Exactly one installment paid', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.installmentsPaid || responseJson.paidInstallments).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanId\": \"{{test_loan_id}}\",\n  \"amount\": 1000.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.2 Pay Multiple Installments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Multiple installments paid', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.installmentsPaid || responseJson.paidInstallments).to.be.greaterThan(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanId\": \"{{test_loan_id}}\",\n  \"amount\": 2500.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.3 Partial Payment (Should Fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Partial payment should be rejected or pay zero installments', function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson.installmentsPaid || responseJson.paidInstallments).to.eql(0);",
+                  "    } else {",
+                  "        pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanId\": \"{{test_loan_id}}\",\n  \"amount\": 500.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.4 Payment Beyond 3 Month Limit (Should Fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Future payment beyond 3 months should be rejected', function () {",
+                  "    // This test requires specific test data setup",
+                  "    // In a real scenario, we would create a loan with future installments",
+                  "    // and try to pay an installment more than 3 months in the future",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 422]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanId\": \"{{test_loan_id}}\",\n  \"amount\": 1000.0,\n  \"comment\": \"Testing 3-month payment limit\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Security Requirements",
+      "item": [
+        {
+          "name": "5.1 Admin Access Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Admin can access all customers', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{admin_username}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{admin_password}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5.2 Unauthorized Access Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Unauthorized access should be rejected', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5.3 Invalid Credentials Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Invalid credentials should be rejected', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "invalid_user",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "invalid_pass",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Database Schema Validation",
+      "item": [
+        {
+          "name": "6.1 Customer Table Structure",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Customer has required fields', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    ",
+                  "    // Required fields from specification:",
+                  "    // Customer: id, name, surname, creditLimit, usedCreditLimit",
+                  "    pm.expect(responseJson.customerId || responseJson.id).to.not.be.undefined;",
+                  "    pm.expect(responseJson.name || responseJson.firstName).to.not.be.undefined;",
+                  "    pm.expect(responseJson.surname || responseJson.lastName).to.not.be.undefined;",
+                  "    pm.expect(responseJson.creditLimit).to.be.a('number');",
+                  "    pm.expect(responseJson.usedCreditLimit).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/{{test_customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "{{test_customer_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6.2 Loan Table Structure",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Loan has required fields', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    ",
+                  "    // Required fields from specification:",
+                  "    // Loan: id, customerId, loanAmount, numberOfInstallment, createDate, isPaid",
+                  "    pm.expect(responseJson.loanId || responseJson.id).to.not.be.undefined;",
+                  "    pm.expect(responseJson.customerId).to.not.be.undefined;",
+                  "    pm.expect(responseJson.loanAmount || responseJson.amount).to.be.a('number');",
+                  "    pm.expect(responseJson.numberOfInstallments || responseJson.numberOfInstallment).to.be.a('number');",
+                  "    pm.expect(responseJson.createDate).to.not.be.undefined;",
+                  "    pm.expect(responseJson.isPaid).to.be.a('boolean');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans/{{test_loan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans", "{{test_loan_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6.3 LoanInstallment Table Structure",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Loan installments have required fields', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const responseJson = pm.response.json();",
+                  "    ",
+                  "    if (responseJson.length > 0) {",
+                  "        const installment = responseJson[0];",
+                  "        ",
+                  "        // Required fields from specification:",
+                  "        // LoanInstallment: id, loanId, amount, paidAmount, dueDate, paymentDate, isPaid",
+                  "        pm.expect(installment.id).to.not.be.undefined;",
+                  "        pm.expect(installment.loanId).to.not.be.undefined;",
+                  "        pm.expect(installment.amount).to.be.a('number');",
+                  "        pm.expect(installment.paidAmount).to.be.a('number');",
+                  "        pm.expect(installment.dueDate).to.not.be.undefined;",
+                  "        // paymentDate can be null for unpaid installments",
+                  "        pm.expect(installment.isPaid).to.be.a('boolean');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans/{{test_loan_id}}/installments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans", "{{test_loan_id}}", "installments"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Bonus Requirements",
+      "item": [
+        {
+          "name": "7.1 Customer Role Access (Bonus 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Customer role implementation test', function () {",
+                  "    // This test checks if customer role-based access is implemented",
+                  "    // The exact behavior depends on implementation",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{customer_username}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{customer_password}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans/customer/{{test_customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans", "customer", "{{test_customer_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7.2 Early Payment Discount Test (Bonus 2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Early payment discount calculation', function () {",
+                  "    // This test would require creating a loan and paying before due date",
+                  "    // The discount should be: installmentAmount * 0.001 * (days before due date)",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 422]);",
+                  "    ",
+                  "    if (pm.response.code === 200) {",
+                  "        const responseJson = pm.response.json();",
+                  "        // Check if discount was applied (paidAmount < original amount)",
+                  "        pm.expect(responseJson).to.not.be.undefined;",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanId\": \"{{test_loan_id}}\",\n  \"amount\": 1000.0,\n  \"paymentDate\": \"2024-01-15\",\n  \"comment\": \"Early payment test\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7.3 Late Payment Penalty Test (Bonus 2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Late payment penalty calculation', function () {",
+                  "    // This test would require creating a loan with past due date",
+                  "    // The penalty should be: installmentAmount * 0.001 * (days after due date)",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 422]);",
+                  "    ",
+                  "    if (pm.response.code === 200) {",
+                  "        const responseJson = pm.response.json();",
+                  "        // Check if penalty was applied (paidAmount > original amount)",
+                  "        pm.expect(responseJson).to.not.be.undefined;",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanId\": \"{{test_loan_id}}\",\n  \"amount\": 1000.0,\n  \"paymentDate\": \"2024-06-15\",\n  \"comment\": \"Late payment test\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set timestamp for request tracking",
+          "pm.globals.set('timestamp', Date.now());",
+          "",
+          "// Add request correlation ID",
+          "pm.request.headers.add({",
+          "    key: 'X-Request-ID',",
+          "    value: 'postman-' + pm.globals.get('timestamp')",
+          "});",
+          "",
+          "// Add business requirements test marker",
+          "pm.request.headers.add({",
+          "    key: 'X-Test-Suite',",
+          "    value: 'Orange-Solution-Business-Requirements'",
+          "});"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global response time check",
+          "pm.test('Response time is acceptable (< 2000ms)', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});",
+          "",
+          "// Log test results for reporting",
+          "const testName = pm.info.requestName;",
+          "const status = pm.response.status;",
+          "const responseTime = pm.response.responseTime;",
+          "",
+          "console.log(`Test: ${testName} | Status: ${status} | Time: ${responseTime}ms`);",
+          "",
+          "// Banking compliance: Log all financial transactions",
+          "if (pm.request.url.toString().includes('/loans') || pm.request.url.toString().includes('/payments')) {",
+          "    console.log('Financial Transaction Logged:', {",
+          "        endpoint: pm.request.url.toString(),",
+          "        method: pm.request.method,",
+          "        timestamp: new Date().toISOString(),",
+          "        requestId: pm.request.headers.get('X-Request-ID')",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ]
+}

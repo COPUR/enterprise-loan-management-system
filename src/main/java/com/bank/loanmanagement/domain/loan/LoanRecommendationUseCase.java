@@ -1,6 +1,6 @@
 package com.bank.loanmanagement.domain.loan;
 
-import com.bank.loanmanagement.domain.customer.CustomerId;
+import com.bank.loanmanagement.customermanagement.domain.model.CustomerId;
 import com.bank.loanmanagement.domain.shared.Money;
 
 import java.util.List;

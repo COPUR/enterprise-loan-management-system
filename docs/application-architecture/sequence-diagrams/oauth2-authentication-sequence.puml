@@ -121,13 +121,15 @@ BankingService -> App : 25. API Response\nLoan data + authorization context
 
 == Audit & Compliance Logging ==
 
-parallel
+par Log Access Event
     BankingService -> PartyDB : 26a. Log Access Event\nUser accessed loan 12345
+and Log Authorization Event
     BankingService -> Keycloak : 26b. Log Authorization Event\nSuccessful role-based access
 end
 
-parallel
+par Store Audit Record
     PartyDB -> DB : 27a. Store Audit Record\nINSERT INTO audit_log...
+and Event Logging
     Keycloak -> Keycloak : 27b. Event Logging\nUser access event recorded
 end
 

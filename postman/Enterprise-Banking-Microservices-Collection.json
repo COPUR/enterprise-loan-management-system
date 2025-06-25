@@ -1,0 +1,950 @@
+{
+  "info": {
+    "name": "Enterprise Banking System - Istio Microservices",
+    "description": "Comprehensive API testing suite for Enterprise Banking System with Istio Service Mesh Architecture",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "oauth2",
+    "oauth2": [
+      {
+        "key": "tokenName",
+        "value": "Banking System Token",
+        "type": "string"
+      },
+      {
+        "key": "accessTokenUrl",
+        "value": "{{base_url}}/oauth2/token",
+        "type": "string"
+      },
+      {
+        "key": "authUrl",
+        "value": "{{base_url}}/oauth2/authorize",
+        "type": "string"
+      },
+      {
+        "key": "grant_type",
+        "value": "authorization_code",
+        "type": "string"
+      },
+      {
+        "key": "client_id",
+        "value": "banking-client",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://banking.local",
+      "description": "Base URL for Istio Gateway"
+    },
+    {
+      "key": "customer_service_url",
+      "value": "http://customer-service:8081",
+      "description": "Direct Customer Service URL"
+    },
+    {
+      "key": "loan_service_url",
+      "value": "http://loan-service:8082",
+      "description": "Direct Loan Service URL"
+    },
+    {
+      "key": "payment_service_url",
+      "value": "http://payment-service:8083",
+      "description": "Direct Payment Service URL"
+    },
+    {
+      "key": "party_service_url",
+      "value": "http://party-service:8084",
+      "description": "Direct Party Service URL"
+    },
+    {
+      "key": "customer_id",
+      "value": "12345",
+      "description": "Test customer ID"
+    },
+    {
+      "key": "loan_id",
+      "value": "loan-001",
+      "description": "Test loan ID"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "description": "OAuth2 access token"
+    }
+  ],
+  "item": [
+    {
+      "name": "Infrastructure Health Checks",
+      "item": [
+        {
+          "name": "Gateway Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/actuator/health",
+              "host": ["{{base_url}}"],
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Customer Service Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "AI Service Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ai", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Prometheus Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/actuator/prometheus",
+              "host": ["{{base_url}}"],
+              "path": ["actuator", "prometheus"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication & Authorization",
+      "item": [
+        {
+          "name": "OAuth2 Token Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', responseJson.access_token);",
+                  "    pm.test('Token received successfully', function () {",
+                  "        pm.expect(responseJson.access_token).to.not.be.undefined;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials"
+                },
+                {
+                  "key": "client_id",
+                  "value": "banking-client"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "banking-secret"
+                },
+                {
+                  "key": "scope",
+                  "value": "banking:read banking:write"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/oauth2/token",
+              "host": ["{{base_url}}"],
+              "path": ["oauth2", "token"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Customer Management Microservice",
+      "item": [
+        {
+          "name": "Create Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has customer ID', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.customerId).to.not.be.undefined;",
+                  "    pm.collectionVariables.set('customer_id', responseJson.customerId);",
+                  "});",
+                  "",
+                  "pm.test('Customer has credit limit', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.creditLimit).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "x-service",
+                "value": "customer-service"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phoneNumber\": \"+1-555-123-4567\",\n  \"address\": {\n    \"street\": \"123 Banking Street\",\n    \"city\": \"Financial District\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"country\": \"USA\"\n  },\n  \"dateOfBirth\": \"1985-06-15\",\n  \"ssn\": \"123-45-6789\",\n  \"creditLimit\": 50000.00,\n  \"currency\": \"USD\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Customer data is valid', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.customerId).to.eql(pm.collectionVariables.get('customer_id'));",
+                  "    pm.expect(responseJson.firstName).to.not.be.undefined;",
+                  "    pm.expect(responseJson.email).to.not.be.undefined;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/{{customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "{{customer_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check Loan Eligibility",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Eligibility response is boolean', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.eligible).to.be.a('boolean');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/{{customer_id}}/loan-eligibility?amount=25000&currency=USD",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "{{customer_id}}", "loan-eligibility"],
+              "query": [
+                {
+                  "key": "amount",
+                  "value": "25000"
+                },
+                {
+                  "key": "currency",
+                  "value": "USD"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reserve Credit Limit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Credit reservation successful', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 25000.00,\n  \"currency\": \"USD\",\n  \"reason\": \"Loan application processing\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/{{customer_id}}/credit/reserve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "{{customer_id}}", "credit", "reserve"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Customers (Paginated)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Paginated response structure', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.content).to.be.an('array');",
+                  "    pm.expect(responseJson.totalElements).to.be.a('number');",
+                  "    pm.expect(responseJson.totalPages).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers?page=0&size=10&sortBy=lastName&sortDirection=ASC",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "lastName"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "ASC"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI-Powered Banking Services",
+      "item": [
+        {
+          "name": "AI Loan Analysis",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('AI analysis contains recommendation', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.recommendation).to.not.be.undefined;",
+                  "    pm.expect(responseJson.riskScore).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"loanAmount\": 25000.00,\n  \"currency\": \"USD\",\n  \"loanPurpose\": \"HOME_IMPROVEMENT\",\n  \"termInMonths\": 36,\n  \"customerIncome\": 75000.00,\n  \"existingDebts\": 15000.00,\n  \"creditScore\": 720,\n  \"employmentStatus\": \"FULL_TIME\",\n  \"collateral\": {\n    \"type\": \"REAL_ESTATE\",\n    \"value\": 200000.00\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai/analyze/loan-application",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ai", "analyze", "loan-application"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Credit Risk Assessment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Risk assessment is valid', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.riskLevel).to.be.oneOf(['LOW', 'MEDIUM', 'HIGH']);",
+                  "    pm.expect(responseJson.score).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"creditScore\": 720,\n  \"income\": 75000.00,\n  \"existingDebts\": 15000.00,\n  \"employmentYears\": 5,\n  \"bankingHistory\": 3,\n  \"loanAmount\": 25000.00,\n  \"loanPurpose\": \"HOME_IMPROVEMENT\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai/assess/credit-risk",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ai", "assess", "credit-risk"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Loan Recommendations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Recommendations are provided', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.recommendations).to.be.an('array');",
+                  "    pm.expect(responseJson.recommendations.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"preferredLoanAmount\": 25000.00,\n  \"maxMonthlyPayment\": 800.00,\n  \"loanPurpose\": \"HOME_IMPROVEMENT\",\n  \"preferredTerm\": 36\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai/recommend/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ai", "recommend", "loans"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Natural Language Loan Analysis",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('NLP analysis successful', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.extractedData).to.not.be.undefined;",
+                  "    pm.expect(responseJson.recommendation).to.not.be.undefined;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestText\": \"Hi, I'm John Doe and I would like to apply for a home improvement loan. I earn $75,000 per year and need about $25,000 to renovate my kitchen. I have been with my current employer for 5 years and have a credit score of around 720. I can afford monthly payments of up to $800.\",\n  \"customerId\": \"{{customer_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai/loan-analysis/analyze/natural-language",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ai", "loan-analysis", "analyze", "natural-language"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "AI Insights Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Dashboard contains insights', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.totalAnalyses).to.be.a('number');",
+                  "    pm.expect(responseJson.insights).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai/insights/dashboard?days=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ai", "insights", "dashboard"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Microservice Integration Tests",
+      "item": [
+        {
+          "name": "Customer to Loan Service Communication",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 503 (service unavailable)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Inter-service communication working', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.not.be.undefined;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "x-service",
+                "value": "loan-service"
+              },
+              {
+                "key": "x-istio-routing",
+                "value": "microservices"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans/recommendations/{{customer_id}}/latest",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans", "recommendations", "{{customer_id}}", "latest"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Payment Service Integration",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 503 (service unavailable)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 503]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Payment service responding', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.not.be.undefined;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "x-service",
+                "value": "payment-service"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/loan/{{loan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "loan", "{{loan_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Service Mesh Monitoring",
+      "item": [
+        {
+          "name": "Istio Gateway Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/actuator/health",
+              "host": ["{{base_url}}"],
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Service Mesh Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/actuator/metrics",
+              "host": ["{{base_url}}"],
+              "path": ["actuator", "metrics"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Distributed Tracing Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Tracing headers present', function () {",
+                  "    pm.expect(pm.response.headers.get('x-trace-id')).to.not.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test('Service mesh headers present', function () {",
+                  "    pm.expect(pm.response.headers.get('x-envoy-upstream-service-time')).to.not.be.undefined;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-request-id",
+                "value": "test-{{$randomUUID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/{{customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "{{customer_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Load Testing Scenarios",
+      "item": [
+        {
+          "name": "Concurrent Customer Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers?page={{$randomInt}}&size=5",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{$randomInt}}"
+                },
+                {
+                  "key": "size",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Circuit Breaker Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Circuit breaker response', function () {",
+                  "    // This should either succeed (200) or fail fast (503) due to circuit breaker",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 503, 429]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 503) {",
+                  "    pm.test('Circuit breaker activated', function () {",
+                  "        pm.expect(pm.response.text()).to.include('Service Unavailable');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"loanAmount\": 1000000.00,\n  \"currency\": \"USD\",\n  \"loanPurpose\": \"STRESS_TEST\",\n  \"termInMonths\": 360\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai/analyze/loan-application",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ai", "analyze", "loan-application"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Automatically add trace headers for distributed tracing",
+          "if (!pm.request.headers.has('x-request-id')) {",
+          "    pm.request.headers.add({",
+          "        key: 'x-request-id',",
+          "        value: 'postman-' + pm.variables.replaceIn('{{$randomUUID}}').substring(0, 8)",
+          "    });",
+          "}",
+          "",
+          "// Add service mesh headers",
+          "pm.request.headers.add({",
+          "    key: 'x-istio-test',",
+          "    value: 'postman-collection'",
+          "});",
+          "",
+          "// Add correlation ID for banking compliance",
+          "pm.request.headers.add({",
+          "    key: 'x-correlation-id',",
+          "    value: 'banking-' + pm.variables.replaceIn('{{$timestamp}}')",
+          "});"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test for response time (service mesh should be fast)",
+          "pm.test('Response time is less than 5 seconds', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "// Log response for debugging",
+          "console.log('Response Status:', pm.response.status);",
+          "console.log('Response Time:', pm.response.responseTime + 'ms');",
+          "",
+          "// Check for Istio headers in response",
+          "if (pm.response.headers.has('x-envoy-upstream-service-time')) {",
+          "    console.log('Envoy proxy time:', pm.response.headers.get('x-envoy-upstream-service-time'));",
+          "}",
+          "",
+          "// Banking compliance logging",
+          "if (pm.response.headers.has('x-correlation-id')) {",
+          "    console.log('Correlation ID:', pm.response.headers.get('x-correlation-id'));",
+          "}"
+        ]
+      }
+    }
+  ]
+}

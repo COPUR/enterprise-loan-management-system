@@ -26,7 +26,7 @@ The Enterprise Banking System implements a comprehensive OAuth2.1 authentication
 - **Temporal Access Control** with role expiration and review cycles
 - **12-Factor App** methodology for cloud-native deployment
 
-![OAuth2.1 Architecture Overview](generated-diagrams/OAuth2.1%20Architecture%20Overview.svg)
+![OAuth2.1 Architecture Overview](generated-diagrams/OAuth2.1%20Architecture%20Overview_v1.0.0.svg)
 
 ---
 
@@ -84,7 +84,7 @@ The Enterprise Banking System implements a comprehensive OAuth2.1 authentication
 
 The system implements OAuth2.1 Authorization Code Flow with PKCE for enhanced security:
 
-![OAuth2.1 Authentication Sequence](generated-diagrams/OAuth2.1%20Authentication%20%26%20Authorization%20Sequence.svg)
+![OAuth2.1 Authentication Sequence](generated-diagrams/OAuth2.1%20Authentication%20%26%20Authorization%20Sequence_v1.0.0.svg)
 
 ### Step-by-Step Process
 
@@ -269,7 +269,7 @@ CREATE TABLE party_groups (
 
 ### Domain Model
 
-![Domain Model](generated-diagrams/Domain%20Model.svg)
+![Domain Model](generated-diagrams/Domain%20Model_v1.0.0.svg)
 
 The domain model shows the complete Party Data Management bounded context with:
 

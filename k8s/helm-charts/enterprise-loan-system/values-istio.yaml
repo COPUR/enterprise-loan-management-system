@@ -1,0 +1,293 @@
+# Istio Service Mesh Enterprise Banking System
+# Microservices Architecture Configuration
+
+global:
+  environment: production
+  namespace: banking-system
+  imageRegistry: docker.io
+  imagePullPolicy: IfNotPresent
+  
+  # Istio Service Mesh Configuration
+  istio:
+    enabled: true
+    sidecarInjection: true
+    gateway:
+      enabled: true
+      hosts:
+        - banking.local
+        - api.banking.local
+        - "*.banking.local"
+      tls:
+        enabled: true
+        secretName: banking-tls-secret
+    security:
+      mtls: STRICT
+      jwt:
+        enabled: true
+        issuer: "https://banking.local/oauth2/token"
+    observability:
+      tracing: true
+      metrics: true
+      accessLogs: true
+
+# Microservices Configuration
+microservices:
+  customerService:
+    enabled: true
+    name: customer-service
+    image:
+      repository: customer-service
+      tag: "1.0.0"
+    port: 8081
+    replicas: 2
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+    env:
+      SPRING_PROFILES_ACTIVE: "production,kubernetes,customer"
+      MICROSERVICE_NAME: "customer-service"
+    service:
+      type: ClusterIP
+      port: 8081
+    istio:
+      sidecar: true
+      includeInboundPorts: "8081"
+      excludeOutboundPorts: "5432,6379"
+
+  loanService:
+    enabled: true
+    name: loan-service
+    image:
+      repository: loan-service
+      tag: "1.0.0"
+    port: 8082
+    replicas: 3
+    resources:
+      requests:
+        memory: "1.5Gi"
+        cpu: "750m"
+      limits:
+        memory: "3Gi"
+        cpu: "1500m"
+    env:
+      SPRING_PROFILES_ACTIVE: "production,kubernetes,loan,saga"
+      SAGA_ENABLED: "true"
+      BUSINESS_RULES_STRICT: "true"
+      MICROSERVICE_NAME: "loan-service"
+    service:
+      type: ClusterIP
+      port: 8082
+    istio:
+      sidecar: true
+      includeInboundPorts: "8082"
+      excludeOutboundPorts: "5432,6379,9092"
+
+  paymentService:
+    enabled: true
+    name: payment-service
+    image:
+      repository: payment-service
+      tag: "1.0.0"
+    port: 8083
+    replicas: 3
+    resources:
+      requests:
+        memory: "1.5Gi"
+        cpu: "750m"
+      limits:
+        memory: "3Gi"
+        cpu: "1500m"
+    env:
+      SPRING_PROFILES_ACTIVE: "production,kubernetes,payment,pci-compliant"
+      PCI_COMPLIANCE_ENABLED: "true"
+      TRANSACTION_SECURITY_STRICT: "true"
+      MICROSERVICE_NAME: "payment-service"
+    service:
+      type: ClusterIP
+      port: 8083
+    istio:
+      sidecar: true
+      includeInboundPorts: "8083"
+      excludeOutboundPorts: "5432,6379,9092"
+
+  partyService:
+    enabled: true
+    name: party-service
+    image:
+      repository: party-service
+      tag: "1.0.0"
+    port: 8084
+    replicas: 2
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+    env:
+      SPRING_PROFILES_ACTIVE: "production,kubernetes,party,ldap"
+      MICROSERVICE_NAME: "party-service"
+    service:
+      type: ClusterIP
+      port: 8084
+    istio:
+      sidecar: true
+      includeInboundPorts: "8084"
+      excludeOutboundPorts: "5432,6379,389"
+
+# Distributed Redis Cluster Configuration
+redis:
+  enabled: true
+  cluster:
+    enabled: true
+    nodes: 6
+    replicas: 1
+  persistence:
+    enabled: true
+    size: 10Gi
+  auth:
+    enabled: true
+    password: "redis-banking-password"
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "500m"
+  istio:
+    sidecar: true
+    includeInboundPorts: "6379,16379"
+
+# PostgreSQL Configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "postgres-banking-password"
+    database: "banking_system"
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "1000m"
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+  readReplicas:
+    replicaCount: 1
+
+# Kafka Configuration for Event-Driven Architecture
+kafka:
+  enabled: true
+  replicas: 3
+  persistence:
+    enabled: true
+    size: 50Gi
+  zookeeper:
+    enabled: true
+    replicaCount: 3
+  topics:
+    - name: customer-events
+      partitions: 6
+      replicationFactor: 3
+    - name: loan-events
+      partitions: 12
+      replicationFactor: 3
+    - name: payment-events
+      partitions: 12
+      replicationFactor: 3
+    - name: saga-events
+      partitions: 6
+      replicationFactor: 3
+
+# Keycloak OAuth2.1 Configuration
+keycloak:
+  enabled: true
+  image:
+    tag: "22.0.1"
+  auth:
+    adminUser: admin
+    adminPassword: "keycloak-admin-password"
+  postgresql:
+    enabled: true
+  service:
+    type: ClusterIP
+    port: 8080
+  ingress:
+    enabled: true
+    hostname: auth.banking.local
+
+# Monitoring and Observability
+monitoring:
+  prometheus:
+    enabled: true
+    server:
+      persistentVolume:
+        enabled: true
+        size: 50Gi
+  grafana:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 10Gi
+    adminPassword: "grafana-admin-password"
+  jaeger:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 20Gi
+  kiali:
+    enabled: true
+
+# Security Configuration
+security:
+  networkPolicies:
+    enabled: true
+  podSecurityPolicy:
+    enabled: true
+  rbac:
+    enabled: true
+  serviceAccount:
+    create: true
+    name: ""
+
+# Compliance and Audit
+compliance:
+  pci:
+    enabled: true
+  gdpr:
+    enabled: true
+  fapi:
+    enabled: true
+  audit:
+    enabled: true
+    logLevel: INFO
+
+# Load Testing and Performance
+performance:
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  vpa:
+    enabled: false
+  
+# Secrets Management
+secrets:
+  database:
+    password: "secure-database-password"
+  redis:
+    password: "secure-redis-password"
+  jwt:
+    secret: "secure-jwt-secret-key"
+  oauth:
+    clientSecret: "secure-oauth-client-secret"

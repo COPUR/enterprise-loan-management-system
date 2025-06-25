@@ -43,7 +43,7 @@ The Enterprise Banking System is built on a cloud-native infrastructure followin
    - Centralized logging
    - Real-time alerting
 
-![Microservices Architecture](../generated-diagrams/Microservices%20Architecture.svg)
+![Microservices Architecture](../generated-diagrams/Microservices%20Architecture_v1.0.0.svg)
 
 ---
 

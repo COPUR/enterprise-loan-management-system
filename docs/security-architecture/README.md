@@ -6,8 +6,8 @@ This section contains security compliance documentation and security model imple
 - [FAPI MCP LLM Interface Summary](compliance/FAPI_MCP_LLM_INTERFACE_SUMMARY.md) - Financial API compliance
 
 ## Security Models
-- [FAPI Security Architecture](security-models/generated-diagrams/FAPI%20Security%20Architecture.svg) - Financial-grade API security
-- [Security Architecture Diagram](security-models/generated-diagrams/OWASP%20Top%2010%20Security%20Architecture.svg) - Comprehensive security design
+- [FAPI Security Architecture](security-models/generated-diagrams/FAPI%20Security%20Architecture_v1.0.0.svg) - Financial-grade API security
+- [Security Architecture Diagram](security-models/generated-diagrams/OWASP%20Top%2010%20Security%20Architecture_v1.0.0.svg) - Comprehensive security design
 
 ## Security Implementation
 - **FAPI 1.0 Advanced**: Financial-grade API security

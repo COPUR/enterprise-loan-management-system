@@ -13,25 +13,20 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface JpaCustomerRepository extends JpaRepository<Customer, CustomerId>, CustomerRepository {
+public interface JpaCustomerRepository extends JpaRepository<Customer, CustomerId> {
     
-    @Override
     @Query("SELECT c FROM Customer c WHERE c.email = :email")
     Optional<Customer> findByEmail(@Param("email") String email);
     
-    @Override
     @Query("SELECT c FROM Customer c WHERE c.ssn = :ssn")
     Optional<Customer> findBySsn(@Param("ssn") String ssn);
     
-    @Override
     @Query("SELECT c FROM Customer c WHERE c.status = :status")
     List<Customer> findByStatus(@Param("status") CustomerStatus status);
     
-    @Override
     @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Customer c WHERE c.email = :email")
     boolean existsByEmail(@Param("email") String email);
     
-    @Override
     @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Customer c WHERE c.ssn = :ssn")
     boolean existsBySsn(@Param("ssn") String ssn);
 }

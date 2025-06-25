@@ -43,7 +43,7 @@ The Enterprise Banking System follows a microservices architecture built on Doma
    - Port and adapter pattern
    - Testability and maintainability
 
-![Component Diagram](../generated-diagrams/Component%20Diagram.svg)
+![Component Diagram](../generated-diagrams/Component%20Diagram_v1.0.0.svg)
 
 ---
 
@@ -128,7 +128,7 @@ The system is organized into the following bounded contexts:
 - Authority level enforcement
 - Compliance tracking
 
-![Domain Model](../generated-diagrams/Domain%20Model.svg)
+![Domain Model](../generated-diagrams/Domain%20Model_v1.0.0.svg)
 
 ### Domain Events - Comprehensive Event-Driven Architecture
 

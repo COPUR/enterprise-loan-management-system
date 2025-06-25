@@ -1,9 +1,11 @@
 # Enterprise Banking System - Loan Management Platform
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/banking/enterprise-loan-management-system)
-[![Security Scan](https://img.shields.io/badge/security-compliant-green)](https://github.com/banking/enterprise-loan-management-system/security)
-[![Coverage](https://img.shields.io/badge/coverage-87.4%25-green)](https://codecov.io/gh/banking/enterprise-loan-management-system)
-[![OAuth2.1](https://img.shields.io/badge/OAuth2.1-FAPI%20Compliant-blue)](docs/OAuth2.1-Architecture-Guide.md)
+[![Build Status](https://img.shields.io/badge/build-restored-green)](https://github.com/banking/enterprise-loan-management-system)
+[![Security Scan](https://img.shields.io/badge/security-core%20functional-yellow)](https://github.com/banking/enterprise-loan-management-system/security)
+[![Coverage](https://img.shields.io/badge/coverage-core%20components-green)](https://codecov.io/gh/banking/enterprise-loan-management-system)
+[![Architecture](https://img.shields.io/badge/architecture-hexagonal%20core-blue)](docs/architecture/eda-saga-patterns.md)
+[![Status](https://img.shields.io/badge/status-core%20restored-brightgreen)](docs/security-architecture/fapi-event-security.md)
+[![Java Version](https://img.shields.io/badge/Java-21%20ready-blue)](docs/OAuth2.1-Architecture-Guide.md)
 [![Java Version](https://img.shields.io/badge/Java-21-blue)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.6-green)](https://spring.io/projects/spring-boot)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
@@ -35,7 +37,7 @@ A comprehensive enterprise-grade banking system built on **pure hexagonal archit
 
 ## Architecture Overview - Clean Hexagonal Architecture
 
-![System Architecture](docs/generated-diagrams/Hexagonal%20Architecture%20-%20Enterprise%20Loan%20Management%20System%20(Production).svg)
+![System Architecture](docs/generated-diagrams/Hexagonal%20Architecture%20-%20Enterprise%20Loan%20Management%20System%20(Production)_v1.0.0.svg)
 
 The system implements **pure hexagonal architecture** with complete separation of concerns:
 
@@ -166,7 +168,7 @@ kubectl get applications -n argocd
 
 ### Domain Models
 
-![Domain Model](docs/business-architecture/domain-models/generated-diagrams/Domain%20Model.svg)
+![Domain Model](docs/business-architecture/domain-models/generated-diagrams/Domain%20Model_v1.0.0.svg)
 
 ## Security & Compliance
 
@@ -188,7 +190,7 @@ The system implements OAuth2.1 Authorization Code Flow with PKCE for enhanced se
 
 ### Security Features
 
-![Security Architecture](docs/security-architecture/security-models/generated-diagrams/FAPI%20Security%20Architecture.svg)
+![Security Architecture](docs/security-architecture/security-models/generated-diagrams/FAPI%20Security%20Architecture_v1.0.0.svg)
 
 - **OWASP Top 10 Protection**: Complete mitigation of web application risks
 - **Zero Trust Architecture**: Continuous verification and monitoring
@@ -457,7 +459,7 @@ spec:
 
 ### Dashboards
 
-![Monitoring Dashboard](docs/technology-architecture/monitoring/generated-diagrams/Monitoring%20&%20Observability%20-%20Enterprise%20Loan%20Management%20System.svg)
+![Monitoring Dashboard](docs/technology-architecture/monitoring/generated-diagrams/Monitoring%20&%20Observability%20-%20Enterprise%20Loan%20Management%20System_v1.0.0.svg)
 
 ### Health Checks
 
@@ -1248,6 +1250,12 @@ This project is proprietary software owned by the Banking Enterprise. All rights
 
 ## Contact
 
+### **Architectural Lead & Project Maintainer**
+- **Name**: Copur
+- **Company**: AliCo
+- **GitHub**: [@copur](https://github.com/copur)
+
+### **Enterprise Teams**
 - **Development Team**: dev-team@banking.enterprise.com
 - **Security Team**: security@banking.enterprise.com
 - **Operations Team**: ops@banking.enterprise.com

@@ -1,7 +1,7 @@
 # Enterprise Banking System - Architecture Catalogue
 ## Comprehensive Architecture Documentation - From Holistic to Implementation
 
-![System Overview](architecture/generated-diagrams/OAuth2.1%20Architecture%20Overview.svg)
+![System Overview](architecture/generated-diagrams/OAuth2.1%20Architecture%20Overview_v1.0.0.svg)
 
 ---
 
@@ -73,7 +73,7 @@ This catalogue provides a **comprehensive, layered view** of the Enterprise Bank
 
 ### 1.1 System Context Diagram (C4 Level 1)
 
-![System Context](architecture/generated-diagrams/Enterprise%20Loan%20Management%20System%20-%20System%20Context.svg)
+![System Context](architecture/generated-diagrams/Enterprise%20Loan%20Management%20System%20-%20System%20Context_v1.0.0.svg)
 
 **Strategic Purpose**: Provides the highest-level view of the Enterprise Banking System within the broader financial ecosystem.
 
@@ -114,7 +114,7 @@ Infrastructure:
 
 ### 2.1 Business Process Architecture
 
-![Banking Workflow](business-architecture/use-cases/generated-diagrams/Banking%20Workflow.svg)
+![Banking Workflow](business-architecture/use-cases/generated-diagrams/Banking%20Workflow_v1.0.0.svg)
 
 **Business Process Overview**: Core banking workflows that drive customer value and business outcomes.
 
@@ -130,13 +130,13 @@ Infrastructure:
 
 ### 3.1 Domain Model Architecture
 
-![Domain Model](business-architecture/domain-models/generated-diagrams/Domain%20Model.svg)
+![Domain Model](business-architecture/domain-models/generated-diagrams/Domain%20Model_v1.0.0.svg)
 
 **Domain-Driven Design**: Core business concepts and their relationships in the banking domain.
 
 ### 3.2 Bounded Context Architecture
 
-![Bounded Contexts](business-architecture/domain-models/generated-diagrams/Bounded%20Contexts.svg)
+![Bounded Contexts](business-architecture/domain-models/generated-diagrams/Bounded%20Contexts_v1.0.0.svg)
 
 **Context Mapping**: Strategic design showing how different business domains interact and integrate.
 
@@ -148,17 +148,23 @@ Infrastructure:
 
 ### 4.1 Container Architecture (C4 Level 2) - Hexagonal Design
 
-![Hexagonal Architecture](application-architecture/microservices/generated-diagrams/Hexagonal%20Architecture%20-%20Enterprise%20Loan%20Management%20System%20(Production).svg)
+![Hexagonal Architecture](application-architecture/microservices/generated-diagrams/Hexagonal%20Architecture%20-%20Enterprise%20Loan%20Management%20System%20(Production)_v1.0.0.svg)
 
 **Clean Architecture Implementation**: Hexagonal architecture ensuring separation of concerns and testability.
 
 ### 4.2 Microservices Architecture Overview
 
-![Microservices Architecture](application-architecture/microservices/generated-diagrams/Enterprise%20Loan%20Management%20-%20Microservices%20Architecture.svg)
+![Istio Service Mesh Microservices Architecture](application-architecture/microservices/generated-diagrams/Enterprise%20Banking%20System%20-%20Istio%20Service%20Mesh%20Microservices%20Architecture_v1.0.0.svg)
 
 **Service Decomposition**: Microservices aligned with business capabilities and bounded contexts.
 
 **Architecture Style**: Clean Hexagonal Architecture with Domain-Driven Design
+
+**Service Mesh**: Istio service mesh with Envoy sidecar proxies providing:
+- **mTLS Security**: Zero trust service-to-service communication
+- **Traffic Management**: Load balancing, circuit breaking, and retry policies  
+- **Observability**: Distributed tracing and metrics collection
+- **Gateway**: Istio Ingress Gateway replacing traditional API Gateway
 
 #### **Domain Layer (Core Business Logic)**
 ```yaml
@@ -212,37 +218,40 @@ Output Adapters:
 
 ### 4.3 Component Architecture (C4 Level 3)
 
-![Component Diagram](application-architecture/microservices/generated-diagrams/Component%20Diagram.svg)
+![Component Diagram](application-architecture/microservices/generated-diagrams/Component%20Diagram_v1.0.0.svg)
 
 **Internal Component Structure**: Detailed view of components within each microservice.
 
 ### 4.4 Banking System Architecture
 
-![Banking System Architecture](application-architecture/microservices/generated-diagrams/Banking%20System%20Architecture.svg)
+![Banking System Architecture](application-architecture/microservices/generated-diagrams/Banking%20System%20Architecture_v1.0.0.svg)
 
 **System Integration**: How the banking system integrates with external systems and services.
 
-**Microservices Components**:
-- **Loan Management Service**: Core loan lifecycle management
-- **Customer Management Service**: Customer profile and credit assessment
-- **Payment Processing Service**: Transaction and installment handling
+**Istio Service Mesh Components**:
+- **Istio Ingress Gateway**: TLS termination, OAuth2.1 validation, FAPI compliance
+- **Loan Management Service**: Core loan lifecycle management with Envoy sidecar
+- **Customer Management Service**: Customer profile and credit assessment with Envoy sidecar  
+- **Payment Processing Service**: Transaction and installment handling with Envoy sidecar
+- **Party Data Management Service**: Role authorization with Envoy sidecar
+- **Distributed Redis**: Session cache, rate limiting, circuit breaker state
 - **Compliance Service**: Regulatory compliance automation
 - **AI Integration Service**: OpenAI and Spring AI integration
 
 ### 4.5 Process Flow Architecture
 
 #### OAuth2.1 Authentication & Authorization Flow
-![OAuth2.1 Authentication](application-architecture/sequence-diagrams/generated-diagrams/OAuth2.1%20Authentication%20&%20Authorization%20Sequence.svg)
+![OAuth2.1 Authentication](application-architecture/sequence-diagrams/generated-diagrams/OAuth2.1%20Authentication%20&%20Authorization%20Sequence_v1.0.0.svg)
 
 **Security Process**: Comprehensive authentication and authorization flow following FAPI standards.
 
 #### Loan Creation Business Process
-![Loan Creation](application-architecture/sequence-diagrams/generated-diagrams/Loan%20Creation%20Sequence.svg)
+![Loan Creation](application-architecture/sequence-diagrams/generated-diagrams/Loan%20Creation%20Sequence_v1.0.0.svg)
 
 **Core Business Process**: End-to-end loan origination workflow with all stakeholders.
 
 #### Payment Processing Workflow
-![Payment Processing](application-architecture/sequence-diagrams/generated-diagrams/Payment%20Processing%20Sequence.svg)
+![Payment Processing](application-architecture/sequence-diagrams/generated-diagrams/Payment%20Processing%20Sequence_v1.0.0.svg)
 
 **Financial Transaction Process**: Secure payment processing with compliance and audit trails.
 
@@ -250,7 +259,7 @@ Output Adapters:
 
 ### 5.1 SAGA Pattern Integration
 
-![SAGA Workflow](application-architecture/integration-patterns/generated-diagrams/SAGA%20Pattern%20-%20Loan%20Creation%20Workflow.svg)
+![SAGA Workflow](application-architecture/integration-patterns/generated-diagrams/SAGA%20Pattern%20-%20Loan%20Creation%20Workflow_v1.0.0.svg)
 
 **Distributed Transaction Management**: Choreography-based SAGA pattern for complex business processes.
 
@@ -260,13 +269,13 @@ Output Adapters:
 
 ### 6.1 FAPI Security Architecture
 
-![FAPI Security](security-architecture/security-models/generated-diagrams/FAPI%20Security%20Architecture.svg)
+![FAPI Security](security-architecture/security-models/generated-diagrams/FAPI%20Security%20Architecture_v1.0.0.svg)
 
 **Financial API Security**: Implementation of FAPI 1.0 Advanced Profile for banking compliance.
 
 ### 6.2 OWASP Security Architecture
 
-![OWASP Security](security-architecture/security-models/generated-diagrams/OWASP%20Top%2010%20Security%20Architecture.svg)
+![OWASP Security](security-architecture/security-models/generated-diagrams/OWASP%20Top%2010%20Security%20Architecture_v1.0.0.svg)
 
 **Comprehensive Security Controls**: Defense-in-depth security architecture addressing OWASP Top 10.
 
@@ -334,31 +343,35 @@ CI/CD Integration:
 
 ### 8.1 AWS EKS Cloud Architecture
 
-![AWS EKS](technology-architecture/infrastructure-diagrams/generated-diagrams/AWS%20EKS%20Enterprise%20Loan%20Management%20System%20Architecture.svg)
+![AWS EKS](technology-architecture/infrastructure-diagrams/generated-diagrams/AWS%20EKS%20Enterprise%20Loan%20Management%20System%20Architecture_v1.0.0.svg)
 
 **Cloud-Native Infrastructure**: Kubernetes-based architecture on AWS EKS with high availability.
 
 ### 8.2 Cache Performance Architecture
 
-![Cache Architecture](technology-architecture/infrastructure-diagrams/generated-diagrams/Multi-Level%20Cache%20Architecture%20-%20Enterprise%20Loan%20Management%20System.svg)
+![Cache Architecture](technology-architecture/infrastructure-diagrams/generated-diagrams/Multi-Level%20Cache%20Architecture%20-%20Enterprise%20Loan%20Management%20System_v1.0.0.svg)
 
 **Performance Optimization**: Multi-level caching strategy for optimal performance.
 
 ### 8.3 OAuth2.1 Infrastructure Architecture
 
-![OAuth2.1 Infrastructure](technology-architecture/infrastructure-diagrams/generated-diagrams/OAuth2.1%20Infrastructure%20Architecture%20-%20Banking%20System.svg)
+![OAuth2.1 Infrastructure](technology-architecture/infrastructure-diagrams/generated-diagrams/OAuth2.1%20Infrastructure%20Architecture%20-%20Banking%20System_v1.0.0.svg)
 
-**Identity & Access Management**: Infrastructure supporting secure authentication and authorization.
+**Identity & Access Management**: Istio service mesh infrastructure supporting secure authentication and authorization with:
+- **Istio Ingress Gateway**: FAPI-compliant OAuth2.1 token validation
+- **Keycloak Integration**: Banking realm with LDAP federation  
+- **mTLS Security**: Service-to-service authentication via Istio Citadel
+- **Zero Trust Architecture**: Envoy sidecar policy enforcement
 
 ### 8.4 Deployment Architecture
 
-![Deployment Diagram](architecture/generated-diagrams/Enterprise%20Loan%20Management%20System%20-%20Deployment%20Diagram.svg)
+![Deployment Diagram](architecture/generated-diagrams/Enterprise%20Loan%20Management%20System%20-%20Deployment%20Diagram_v1.0.0.svg)
 
 **Production Deployment**: Complete deployment architecture with all environments.
 
 ### 8.5 CI/CD Pipeline Architecture
 
-![CI/CD Pipeline](technology-architecture/deployment/generated-diagrams/CI/CD%20Pipeline%20-%20Enterprise%20Loan%20Management%20System.svg)
+![CI/CD Pipeline](technology-architecture/deployment/generated-diagrams/CI/CD%20Pipeline%20-%20Enterprise%20Loan%20Management%20System_v1.0.0.svg)
 
 **DevOps Automation**: Continuous integration and deployment pipeline architecture.
 
@@ -366,13 +379,13 @@ CI/CD Integration:
 
 ### 9.1 Entity-Relationship Architecture
 
-![ER Diagram](data-architecture/data-models/generated-diagrams/Entity%20Relationship%20Diagram.svg)
+![ER Diagram](data-architecture/data-models/generated-diagrams/Entity%20Relationship%20Diagram_v1.0.0.svg)
 
 **Database Schema Design**: Complete entity-relationship model for the banking domain.
 
 ### 9.2 Database Isolation Architecture
 
-![Database Isolation](data-architecture/data-models/generated-diagrams/Database%20Isolation%20Architecture.svg)
+![Database Isolation](data-architecture/data-models/generated-diagrams/Database%20Isolation%20Architecture_v1.0.0.svg)
 
 **Data Isolation Strategy**: Microservice-specific database isolation for data integrity and security.
 
@@ -467,7 +480,7 @@ Data Security:
 
 ### 10.1 Observability Architecture
 
-![Monitoring & Observability](technology-architecture/monitoring/generated-diagrams/Monitoring%20&%20Observability%20-%20Enterprise%20Loan%20Management%20System.svg)
+![Monitoring & Observability](technology-architecture/monitoring/generated-diagrams/Monitoring%20&%20Observability%20-%20Enterprise%20Loan%20Management%20System_v1.0.0.svg)
 
 **Complete Observability Stack**: Metrics, logging, tracing, and alerting for operational excellence.
 
@@ -592,7 +605,7 @@ Load Testing Integration:
 
 ### 12.1 Test Coverage Visualization
 
-![TDD Coverage](enterprise-governance/quality-assurance/generated-diagrams/TDD%20Coverage%20Visualization.svg)
+![TDD Coverage](enterprise-governance/quality-assurance/generated-diagrams/TDD%20Coverage%20Visualization_v1.0.0.svg)
 
 **Quality Metrics**: Comprehensive test coverage analysis and quality gates.
 
@@ -715,3 +728,26 @@ Development:
   Quality: SonarQube, OWASP Dependency Check
   CI/CD: GitHub Actions, Blue-Green Deployment
 ```
+
+---
+
+## Architecture Contact & Maintainer
+
+**Enterprise Banking System - Istio Service Mesh Architecture**
+
+### **Solution Architect & Technical Lead**
+- **Name**: Copur
+- **Company**: AliCo  
+- **GitHub**: [@copur](https://github.com/copur)
+- **Specialization**: Event-Driven Architecture, Istio Service Mesh, SAGA Patterns, BIAN Compliance
+
+### **Architecture Contributions**
+- **Event-Driven Architecture**: SAGA orchestration with Kafka integration
+- **Service Mesh Implementation**: Istio Ingress Gateway with mTLS security
+- **Banking Compliance**: FAPI 1.0, Berlin Group PSD2, BIAN service domains
+- **Hexagonal Architecture**: Clean domain models with zero infrastructure dependencies
+- **Distributed Systems**: Redis cache integration and OAuth2.1 FAPI compliance
+
+---
+
+*This architecture catalogue represents a comprehensive enterprise banking platform designed for scalability, security, and regulatory compliance.*
