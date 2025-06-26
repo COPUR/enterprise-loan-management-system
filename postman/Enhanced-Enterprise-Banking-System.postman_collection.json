@@ -1,0 +1,1064 @@
+{
+  "info": {
+    "name": "Enhanced Enterprise Banking System - Complete API Collection",
+    "description": "Comprehensive API testing collection for the enhanced enterprise banking system with AI, FAPI compliance, and event-driven architecture",
+    "version": "2.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "oauth2",
+    "oauth2": [
+      {
+        "key": "tokenName",
+        "value": "Banking Token",
+        "type": "string"
+      },
+      {
+        "key": "accessTokenUrl",
+        "value": "{{keycloak_url}}/realms/banking-enterprise/protocol/openid_connect/token",
+        "type": "string"
+      },
+      {
+        "key": "authUrl",
+        "value": "{{keycloak_url}}/realms/banking-enterprise/protocol/openid_connect/auth",
+        "type": "string"
+      },
+      {
+        "key": "clientId",
+        "value": "{{client_id}}",
+        "type": "string"
+      },
+      {
+        "key": "clientSecret",
+        "value": "{{client_secret}}",
+        "type": "string"
+      },
+      {
+        "key": "scope",
+        "value": "openid profile email banking-api",
+        "type": "string"
+      },
+      {
+        "key": "grant_type",
+        "value": "authorization_code",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Generate correlation ID for request tracing",
+          "pm.globals.set('correlation_id', pm.variables.replaceIn('{{$guid}}'));",
+          "",
+          "// Set request timestamp",
+          "pm.globals.set('request_timestamp', new Date().toISOString());",
+          "",
+          "// Generate DPoP token for FAPI compliance",
+          "const dpopHeader = {",
+          "  alg: 'RS256',",
+          "  typ: 'dpop+jwt',",
+          "  jwk: {",
+          "    kty: 'RSA',",
+          "    n: 'example-key-n',",
+          "    e: 'AQAB'",
+          "  }",
+          "};",
+          "",
+          "pm.globals.set('dpop_header', JSON.stringify(dpopHeader));"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test validations",
+          "pm.test('Response time is acceptable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has correlation ID', function () {",
+          "    pm.expect(pm.response.headers.get('X-Correlation-ID')).to.not.be.null;",
+          "});",
+          "",
+          "// Log response for debugging",
+          "console.log('Response Status:', pm.response.status);",
+          "console.log('Response Time:', pm.response.responseTime + 'ms');",
+          "console.log('Correlation ID:', pm.response.headers.get('X-Correlation-ID'));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "keycloak_url",
+      "value": "http://localhost:8090",
+      "type": "string"
+    },
+    {
+      "key": "client_id",
+      "value": "banking-client",
+      "type": "string"
+    },
+    {
+      "key": "client_secret",
+      "value": "banking-client-secret",
+      "type": "string"
+    },
+    {
+      "key": "test_customer_id",
+      "value": "cust-12345-test",
+      "type": "string"
+    },
+    {
+      "key": "test_loan_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication & Security",
+      "item": [
+        {
+          "name": "Get FAPI-Compliant Access Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "{{client_secret}}"
+                },
+                {
+                  "key": "scope",
+                  "value": "banking-api:read banking-api:write"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/banking-enterprise/protocol/openid_connect/token",
+              "host": ["{{keycloak_url}}"],
+              "path": ["realms", "banking-enterprise", "protocol", "openid_connect", "token"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Token request successful', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains access token', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.access_token).to.not.be.undefined;",
+                  "    pm.globals.set('access_token', response.access_token);",
+                  "});",
+                  "",
+                  "pm.test('Token type is DPoP', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.token_type).to.equal('DPoP');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Validate Token Introspection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/banking-enterprise/protocol/openid_connect/token/introspect",
+              "host": ["{{keycloak_url}}"],
+              "path": ["realms", "banking-enterprise", "protocol", "openid_connect", "token", "introspect"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Customer Management",
+      "item": [
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerType\": \"INDIVIDUAL\",\n  \"personalInfo\": {\n    \"firstName\": \"Ahmed\",\n    \"lastName\": \"Al-Mansouri\",\n    \"dateOfBirth\": \"1985-03-15\",\n    \"nationalId\": \"784-1985-1234567-8\",\n    \"nationality\": \"AE\"\n  },\n  \"contactInfo\": {\n    \"email\": \"ahmed.almansouri@example.com\",\n    \"phoneNumber\": \"+971-50-123-4567\",\n    \"address\": {\n      \"street\": \"Sheikh Zayed Road\",\n      \"city\": \"Dubai\",\n      \"emirate\": \"Dubai\",\n      \"postalCode\": \"12345\",\n      \"country\": \"AE\"\n    }\n  },\n  \"financialInfo\": {\n    \"monthlyIncome\": 15000,\n    \"employmentStatus\": \"EMPLOYED\",\n    \"employer\": \"Emirates NBD\",\n    \"currency\": \"AED\"\n  },\n  \"preferences\": {\n    \"language\": \"ar\",\n    \"communicationChannel\": \"EMAIL\",\n    \"islamicBanking\": true\n  },\n  \"kycDocuments\": [\n    {\n      \"type\": \"EMIRATES_ID\",\n      \"documentNumber\": \"784-1985-1234567-8\",\n      \"expiryDate\": \"2025-03-15\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customers",
+              "host": ["{{base_url}}"],
+              "path": ["customers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Customer created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response contains customer ID', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.customerId).to.not.be.undefined;",
+                  "    pm.globals.set('test_customer_id', response.customerId);",
+                  "});",
+                  "",
+                  "pm.test('Islamic banking preference preserved', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.preferences.islamicBanking).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Customer Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar-AE"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/customers/{{test_customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["customers", "{{test_customer_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💰 Loan Management",
+      "item": [
+        {
+          "name": "Submit Loan Application (Murabaha)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 250000,\n  \"termInMonths\": 36,\n  \"loanType\": \"MURABAHA\",\n  \"purpose\": \"HOME_PURCHASE\",\n  \"collateralType\": \"REAL_ESTATE\",\n  \"additionalData\": {\n    \"propertyValue\": 500000,\n    \"downPayment\": 125000,\n    \"propertyLocation\": \"Dubai Marina\",\n    \"shariahCompliance\": true,\n    \"preferredCurrency\": \"AED\",\n    \"islamicBankingProduct\": \"MURABAHA_HOME_FINANCE\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/loans",
+              "host": ["{{base_url}}"],
+              "path": ["loans"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Loan application submitted successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response contains loan ID and application reference', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.loanId).to.not.be.undefined;",
+                  "    pm.expect(response.applicationReference).to.not.be.undefined;",
+                  "    pm.globals.set('test_loan_id', response.loanId);",
+                  "});",
+                  "",
+                  "pm.test('AI assessment will be performed', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.nextSteps).to.include('AI risk assessment will be performed');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Submit Personal Loan Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 50000,\n  \"termInMonths\": 24,\n  \"loanType\": \"PERSONAL\",\n  \"purpose\": \"EDUCATION\",\n  \"additionalData\": {\n    \"monthlyIncome\": 15000,\n    \"existingDebts\": 5000,\n    \"educationInstitution\": \"American University of Dubai\",\n    \"courseType\": \"MBA\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/loans",
+              "host": ["{{base_url}}"],
+              "path": ["loans"]
+            }
+          }
+        },
+        {
+          "name": "Get Loan Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loans/{{test_loan_id}}?includeAI=true&includeCompliance=true",
+              "host": ["{{base_url}}"],
+              "path": ["loans", "{{test_loan_id}}"],
+              "query": [
+                {
+                  "key": "includeAI",
+                  "value": "true"
+                },
+                {
+                  "key": "includeCompliance",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approvedInterestRate\": 4.25,\n  \"approvedAmount\": 250000,\n  \"conditions\": [\n    \"Property insurance required\",\n    \"Monthly income verification\",\n    \"Shariah compliance certification\"\n  ],\n  \"approvalNotes\": \"Approved based on excellent credit score and sufficient income. Islamic banking product approved by Shariah board.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/loans/{{test_loan_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["loans", "{{test_loan_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Get Customer Loans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loans?customerId={{test_customer_id}}&status=ACTIVE&page=0&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["loans"],
+              "query": [
+                {
+                  "key": "customerId",
+                  "value": "{{test_customer_id}}"
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💳 Payment Processing",
+      "item": [
+        {
+          "name": "Process Loan Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 8500,\n  \"paymentMethod\": \"BANK_TRANSFER\",\n  \"paymentReference\": \"PAY-{{$timestamp}}\",\n  \"paymentChannel\": \"MOBILE_APP\",\n  \"paymentDetails\": {\n    \"bankAccount\": \"AE07 0331 2345 6789 0123 456\",\n    \"beneficiaryName\": \"Ahmed Al-Mansouri\",\n    \"currency\": \"AED\",\n    \"description\": \"Monthly installment payment\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/loans/{{test_loan_id}}/payments",
+              "host": ["{{base_url}}"],
+              "path": ["loans", "{{test_loan_id}}", "payments"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Payment processed successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Payment result contains transaction reference', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.transactionReference).to.not.be.undefined;",
+                  "});",
+                  "",
+                  "pm.test('Fraud check was performed', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.fraudCheckResult).to.not.be.undefined;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Payment History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loans/{{test_loan_id}}/payments?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["loans", "{{test_loan_id}}", "payments"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Calculate Early Payment Options",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loans/{{test_loan_id}}/early-payment",
+              "host": ["{{base_url}}"],
+              "path": ["loans", "{{test_loan_id}}", "early-payment"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI Services",
+      "item": [
+        {
+          "name": "Perform Fraud Detection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transactionId\": \"TXN-{{$timestamp}}\",\n  \"customerId\": \"{{test_customer_id}}\",\n  \"amount\": 10000,\n  \"merchantId\": \"MERCHANT-001\",\n  \"location\": \"Dubai, UAE\",\n  \"timestamp\": \"{{request_timestamp}}\",\n  \"aiModel\": \"enhanced-fraud-detection\",\n  \"transactionDetails\": {\n    \"paymentMethod\": \"CREDIT_CARD\",\n    \"currency\": \"AED\",\n    \"deviceFingerprint\": \"device-{{$timestamp}}\",\n    \"ipAddress\": \"192.168.1.100\",\n    \"userAgent\": \"BankingApp/2.1.0 (iOS 16.0)\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai/fraud/analyze",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "fraud", "analyze"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Fraud analysis completed', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Risk score provided', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.riskScore).to.be.a('number');",
+                  "    pm.expect(response.riskScore).to.be.at.least(0);",
+                  "    pm.expect(response.riskScore).to.be.at.most(100);",
+                  "});",
+                  "",
+                  "pm.test('AI model information included', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.modelUsed).to.not.be.undefined;",
+                  "    pm.expect(response.confidence).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Generate Loan Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ai/recommendations/loans?customerId={{test_customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "recommendations", "loans"],
+              "query": [
+                {
+                  "key": "customerId",
+                  "value": "{{test_customer_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "RAG Query - Banking Knowledge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "DPoP",
+                "value": "{{dpop_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar-AE"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"ما هي متطلبات الحصول على قرض المرابحة العقاري؟\",\n  \"customerId\": \"{{test_customer_id}}\",\n  \"context\": \"islamic_banking_inquiry\",\n  \"language\": \"ar\",\n  \"includeShariahCompliance\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai/rag/query",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "rag", "query"]
+            }
+          }
+        },
+        {
+          "name": "AI Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ai/health",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚖️ Compliance & Validation",
+      "item": [
+        {
+          "name": "Validate Berlin Group Account Structure",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"iban\": \"AE07 0331 2345 6789 0123 456\",\n  \"currency\": \"AED\",\n  \"accountType\": \"Cacc\",\n  \"ownerName\": \"Ahmed Al-Mansouri\",\n  \"bankCode\": \"EBILAEAD\",\n  \"balances\": [\n    {\n      \"balanceAmount\": {\n        \"amount\": \"150000.00\",\n        \"currency\": \"AED\"\n      },\n      \"balanceType\": \"closingBooked\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/accounts/validate-berlin-group",
+              "host": ["{{base_url}}"],
+              "path": ["accounts", "validate-berlin-group"]
+            }
+          }
+        },
+        {
+          "name": "Validate BIAN Service Domain",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceDomainReference\": \"CR-ConsumerLoan-001\",\n  \"functionalPattern\": \"Fulfill\",\n  \"businessArea\": \"Customer Products & Services\",\n  \"serviceDomain\": \"Consumer Loan\",\n  \"serviceOperation\": \"Loan Origination\",\n  \"assetType\": \"Islamic Banking Product\",\n  \"partyReference\": \"{{test_customer_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bian/validate-service-domain",
+              "host": ["{{base_url}}"],
+              "path": ["bian", "validate-service-domain"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Monitoring & Health",
+      "item": [
+        {
+          "name": "Application Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/actuator/health",
+              "host": ["{{base_url}}"],
+              "path": ["actuator", "health"]
+            }
+          }
+        },
+        {
+          "name": "Prometheus Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/actuator/prometheus",
+              "host": ["{{base_url}}"],
+              "path": ["actuator", "prometheus"]
+            }
+          }
+        },
+        {
+          "name": "Circuit Breaker Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/actuator/circuitbreakers",
+              "host": ["{{base_url}}"],
+              "path": ["actuator", "circuitbreakers"]
+            }
+          }
+        },
+        {
+          "name": "Rate Limiting Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/actuator/ratelimit",
+              "host": ["{{base_url}}"],
+              "path": ["actuator", "ratelimit"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧪 Load Testing & Performance",
+      "item": [
+        {
+          "name": "Concurrent Loan Applications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "load-test-{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"load-test-customer-{{$randomInt}}\",\n  \"amount\": {{$randomInt}},\n  \"termInMonths\": {{$randomInt}},\n  \"loanType\": \"PERSONAL\",\n  \"purpose\": \"EDUCATION\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/loans",
+              "host": ["{{base_url}}"],
+              "path": ["loans"]
+            }
+          }
+        },
+        {
+          "name": "Rate Limit Test - Rapid Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "rate-limit-test-{{$timestamp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loans?customerId={{test_customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["loans"],
+              "query": [
+                {
+                  "key": "customerId",
+                  "value": "{{test_customer_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🌐 Multi-Language Support",
+      "item": [
+        {
+          "name": "Arabic Error Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "ar-AE"
+              },
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loans/invalid-loan-id",
+              "host": ["{{base_url}}"],
+              "path": ["loans", "invalid-loan-id"]
+            }
+          }
+        },
+        {
+          "name": "French Error Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept-Language",
+                "value": "fr-FR"
+              },
+              {
+                "key": "Authorization",
+                "value": "DPoP {{access_token}}"
+              },
+              {
+                "key": "X-Correlation-ID",
+                "value": "{{correlation_id}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loans/invalid-loan-id",
+              "host": ["{{base_url}}"],
+              "path": ["loans", "invalid-loan-id"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
