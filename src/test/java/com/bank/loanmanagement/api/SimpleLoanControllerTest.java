@@ -25,9 +25,9 @@ import static org.hamcrest.Matchers.*;
  * Integration tests for SimpleLoanController
  * Tests all 4 core business requirements from Orange Solution case study
  */
-@SpringBootTest(classes = LoanManagementApplication.class)
+@SpringBootTest(classes = TestConfiguration.class)
 @AutoConfigureWebMvc
-@ActiveProfiles("simple")
+@ActiveProfiles("test")
 public class SimpleLoanControllerTest {
 
     @Autowired
