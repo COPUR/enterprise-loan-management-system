@@ -3,9 +3,9 @@ server:
 
 spring:
   application:
-    name: simple-loan-test
+    name: loan-management-test
   
-  # Use H2 in-memory database for testing
+  # H2 in-memory database for testing
   datasource:
     url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
     username: sa
@@ -26,17 +26,28 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
         format_sql: false
   
+  # Disable all cloud and security features for testing
+  cloud:
+    config:
+      enabled: false
+    
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics
+      base-path: /api/actuator
   endpoint:
     health:
       show-details: always
 
 logging:
   level:
-    com.bank.loanmanagement: INFO
+    com.bank.loanmanagement: DEBUG
     org.springframework.security: WARN
     org.hibernate: WARN
