@@ -1,6 +1,6 @@
 # Enterprise Banking Kafka Design - Industry Standards
 
-## 📋 Table of Contents
+## Table of Contents
 1. [Banking Industry Event Taxonomy](#banking-industry-event-taxonomy)
 2. [Topic Naming Convention](#topic-naming-convention)
 3. [Partition Strategy](#partition-strategy)
@@ -12,7 +12,7 @@
 9. [Disaster Recovery & Data Retention](#disaster-recovery--data-retention)
 10. [Performance & Scalability](#performance--scalability)
 
-## 🏦 Banking Industry Event Taxonomy
+## Banking Industry Event Taxonomy
 
 ### Core Banking Domains
 ```
@@ -29,7 +29,7 @@ Financial Services Industry Standard Event Categories:
 └── Data Analytics & AI (AI)
 ```
 
-## 🎯 Topic Naming Convention
+##  Topic Naming Convention
 
 ### Industry Standard Pattern
 ```
@@ -117,7 +117,7 @@ banking.ai.anomaly.detected.v1
 banking.analytics.behavior.analyzed.v1
 ```
 
-## 🔄 Partition Strategy
+##  Partition Strategy
 
 ### Customer-Based Partitioning (Most Common)
 ```yaml
@@ -167,7 +167,7 @@ Example:
   partition: dayOfYear(2024-01-15) % 365
 ```
 
-## 🏗️ Event Schema Design
+##  Event Schema Design
 
 ### ISO 20022 Compliant Message Structure
 ```json
@@ -265,7 +265,7 @@ Example:
 }
 ```
 
-## 📊 High-Volume Transaction Events
+##  High-Volume Transaction Events
 
 ### Real-Time Payment Processing
 ```yaml
@@ -399,7 +399,7 @@ Topic: banking.compliance.local.uk-fca.v1
 Topic: banking.compliance.local.sg-mas.v1
 ```
 
-## 🚀 Performance & Scalability
+##  Performance & Scalability
 
 ### Topic Configuration for High Performance
 ```yaml
@@ -460,7 +460,7 @@ compliance-monitoring-group:
   processing: real-time alerting
 ```
 
-## 🔄 Event Ordering & Consistency
+##  Event Ordering & Consistency
 
 ### Account Transaction Ordering
 ```yaml
@@ -483,7 +483,7 @@ Topics:
   - banking.customer.profile.*.v1
 ```
 
-## 📈 Monitoring & Alerting
+##  Monitoring & Alerting
 
 ### Key Metrics to Monitor
 ```yaml
@@ -509,7 +509,7 @@ Alerting Thresholds:
   - Compliance event processing delay > 30 seconds
 ```
 
-## 🏛️ Multi-Region Deployment
+##  Multi-Region Deployment
 
 ### Global Banking Architecture
 ```yaml

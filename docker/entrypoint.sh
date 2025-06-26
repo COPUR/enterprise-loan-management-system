@@ -1,114 +1,241 @@
 #!/bin/bash
 
-# Enterprise Banking System - Docker Entrypoint Script
-# Handles environment setup, configuration validation, and application startup
+# Enhanced Enterprise Banking System - Application Entrypoint
+# Production-ready startup script with comprehensive checks
 
-set -euo pipefail
+set -e
 
-# Color codes for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Configuration
+APP_JAR="${APP_JAR:-app.jar}"
+SPRING_PROFILES_ACTIVE="${SPRING_PROFILES_ACTIVE:-production}"
+LOG_LEVEL="${LOG_LEVEL:-INFO}"
+JAVA_OPTS="${JAVA_OPTS:-}"
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1"
-}
-
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] $1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERROR] $1" >&2
 }
 
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1"
+log_warning() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] $1"
 }
 
-# Function to validate required environment variables
+# Wait for dependent services
+wait_for_service() {
+    local host="$1"
+    local port="$2"
+    local service_name="$3"
+    local timeout="${4:-60}"
+    
+    log_info "Waiting for $service_name at $host:$port..."
+    
+    local count=0
+    while ! nc -z "$host" "$port" &>/dev/null; do
+        if [ $count -ge $timeout ]; then
+            log_error "Timeout waiting for $service_name at $host:$port"
+            return 1
+        fi
+        sleep 1
+        ((count++))
+    done
+    
+    log_info "$service_name is ready at $host:$port"
+}
+
+# Health check for external dependencies
+check_dependencies() {
+    log_info "Checking external dependencies..."
+    
+    # PostgreSQL
+    if [ -n "${DATABASE_HOST:-}" ]; then
+        wait_for_service "${DATABASE_HOST}" "${DATABASE_PORT:-5432}" "PostgreSQL Database" 120
+    fi
+    
+    # Redis
+    if [ -n "${REDIS_HOST:-}" ]; then
+        wait_for_service "${REDIS_HOST}" "${REDIS_PORT:-6379}" "Redis Cache" 60
+    fi
+    
+    # Kafka
+    if [ -n "${KAFKA_HOST:-}" ]; then
+        wait_for_service "${KAFKA_HOST}" "${KAFKA_PORT:-9092}" "Kafka Message Broker" 120
+    fi
+    
+    # Keycloak
+    if [ -n "${KEYCLOAK_HOST:-}" ]; then
+        wait_for_service "${KEYCLOAK_HOST}" "${KEYCLOAK_PORT:-8080}" "Keycloak OAuth Server" 180
+    fi
+    
+    log_info "All dependencies are ready"
+}
+
+# Validate environment
 validate_environment() {
     log_info "Validating environment configuration..."
     
+    # Check required environment variables
     local required_vars=(
         "SPRING_PROFILES_ACTIVE"
-        "DATABASE_URL"
-        "DATABASE_USERNAME"
     )
     
-    local missing_vars=()
-    
     for var in "${required_vars[@]}"; do
-        if [[ -z "${!var:-}" ]]; then
-            missing_vars+=("$var")
+        if [ -z "${!var:-}" ]; then
+            log_error "Required environment variable $var is not set"
+            exit 1
         fi
     done
     
-    if [[ ${#missing_vars[@]} -gt 0 ]]; then
-        log_error "Missing required environment variables: ${missing_vars[*]}"
+    # Validate database configuration
+    if [[ "$SPRING_PROFILES_ACTIVE" != *"test"* ]]; then
+        if [ -z "${DATABASE_URL:-}" ] && [ -z "${DATABASE_HOST:-}" ]; then
+            log_warning "No database configuration found. Using embedded H2 database."
+        fi
+    fi
+    
+    # Validate AI configuration
+    if [[ "$SPRING_PROFILES_ACTIVE" == *"ai-enabled"* ]]; then
+        if [ -z "${OPENAI_API_KEY:-}" ]; then
+            log_warning "AI features enabled but OPENAI_API_KEY not set. AI features will be limited."
+        fi
+    fi
+    
+    log_info "Environment validation completed"
+}
+
+# Setup application directories
+setup_directories() {
+    log_info "Setting up application directories..."
+    
+    # Create necessary directories
+    mkdir -p /app/logs /app/tmp /app/config
+    
+    # Set permissions (if running as root, change ownership)
+    if [ "$(id -u)" = "0" ]; then
+        chown -R banking:banking /app/logs /app/tmp /app/config
+    fi
+    
+    log_info "Directories setup completed"
+}
+
+# Configure JVM options
+configure_jvm() {
+    log_info "Configuring JVM options..."
+    
+    # Base JVM options for production
+    local base_opts=(
+        "-server"
+        "-XX:+UseG1GC"
+        "-XX:+UseContainerSupport"
+        "-XX:MaxRAMPercentage=75"
+        "-XX:+ExitOnOutOfMemoryError"
+        "-XX:+HeapDumpOnOutOfMemoryError"
+        "-XX:HeapDumpPath=/app/logs/heapdump.hprof"
+        "-Djava.security.egd=file:/dev/./urandom"
+        "-Dfile.encoding=UTF-8"
+        "-Duser.timezone=UTC"
+        "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}"
+    )
+    
+    # Performance optimizations for banking workloads
+    local performance_opts=(
+        "-XX:+OptimizeStringConcat"
+        "-XX:+UseStringDeduplication"
+        "-XX:MaxGCPauseMillis=200"
+        "-XX:G1HeapRegionSize=16m"
+    )
+    
+    # Security options for banking compliance
+    local security_opts=(
+        "-Djava.awt.headless=true"
+        "-Dcom.sun.management.jmxremote=false"
+        "-Djdk.tls.ephemeralDHKeySize=2048"
+    )
+    
+    # Combine all options
+    JAVA_OPTS="${JAVA_OPTS} ${base_opts[*]} ${performance_opts[*]} ${security_opts[*]}"
+    
+    log_info "JVM configuration completed"
+}
+
+# Signal handlers for graceful shutdown
+shutdown_handler() {
+    log_info "Received shutdown signal. Initiating graceful shutdown..."
+    
+    if [ -n "${APP_PID:-}" ] && kill -0 "$APP_PID" 2>/dev/null; then
+        log_info "Sending SIGTERM to application (PID: $APP_PID)"
+        kill -TERM "$APP_PID"
+        
+        # Wait for graceful shutdown
+        local count=0
+        while kill -0 "$APP_PID" 2>/dev/null && [ $count -lt 30 ]; do
+            sleep 1
+            ((count++))
+        done
+        
+        # Force kill if still running
+        if kill -0 "$APP_PID" 2>/dev/null; then
+            log_warning "Application did not shut down gracefully. Forcing termination."
+            kill -KILL "$APP_PID"
+        fi
+    fi
+    
+    log_info "Application shutdown completed"
+    exit 0
+}
+
+# Setup signal handlers
+trap shutdown_handler SIGTERM SIGINT
+
+# Main startup function
+start_application() {
+    log_info "Starting Enhanced Enterprise Banking Application..."
+    log_info "Profile: $SPRING_PROFILES_ACTIVE"
+    log_info "JAR: $APP_JAR"
+    log_info "JVM Options: $JAVA_OPTS"
+    
+    # Start the application in background
+    java $JAVA_OPTS -jar "/app/$APP_JAR" &
+    APP_PID=$!
+    
+    log_info "Application started with PID: $APP_PID"
+    
+    # Wait for application to start
+    local count=0
+    while ! curl -f http://localhost:8080/actuator/health &>/dev/null && [ $count -lt 120 ]; do
+        if ! kill -0 "$APP_PID" 2>/dev/null; then
+            log_error "Application process died during startup"
+            exit 1
+        fi
+        sleep 1
+        ((count++))
+    done
+    
+    if [ $count -ge 120 ]; then
+        log_error "Application failed to start within 2 minutes"
         exit 1
     fi
     
-    log_success "Environment validation completed"
+    log_info "Application is ready and healthy"
+    
+    # Wait for the application process
+    wait "$APP_PID"
 }
 
-# Function to wait for database connectivity
-wait_for_database() {
-    log_info "Waiting for database connectivity..."
-    
-    local max_attempts=30
-    local attempt=1
-    
-    # Extract host and port from DATABASE_URL
-    local db_host=$(echo "$DATABASE_URL" | sed -n 's|.*://[^@]*@\([^:]*\):.*|\1|p')
-    local db_port=$(echo "$DATABASE_URL" | sed -n 's|.*://[^@]*@[^:]*:\([0-9]*\)/.*|\1|p')
-    
-    if [[ -z "$db_host" || -z "$db_port" ]]; then
-        log_warn "Could not extract database host/port from URL, skipping connectivity check"
-        return 0
-    fi
-    
-    while ! nc -z "$db_host" "$db_port"; do
-        if [[ $attempt -ge $max_attempts ]]; then
-            log_error "Database is not available after $max_attempts attempts"
-            exit 1
-        fi
-        
-        log_info "Database not ready, waiting... (attempt $attempt/$max_attempts)"
-        sleep 2
-        ((attempt++))
-    done
-    
-    log_success "Database is available"
-}
-
-# Function to display startup information
-display_startup_info() {
-    log_info "=========================================="
-    log_info "Enterprise Loan Management System"
-    log_info "=========================================="
-    log_info "Version: ${APP_VERSION:-1.0.0}"
-    log_info "Environment: ${SPRING_PROFILES_ACTIVE}"
-    log_info "Java Version: $(java -version 2>&1 | head -n 1)"
-    log_info "Database: ${DATABASE_URL}"
-    log_info "=========================================="
-}
-
-# Main function
+# Main execution flow
 main() {
-    # Execute startup sequence
-    display_startup_info
+    log_info "Enhanced Enterprise Banking System - Starting Up"
+    log_info "======================================================="
+    
+    setup_directories
     validate_environment
-    wait_for_database
-    
-    log_info "Starting Enterprise Loan Management System..."
-    
-    # Start the application
-    exec java $JAVA_OPTS -jar /app/app.jar "$@"
+    configure_jvm
+    check_dependencies
+    start_application
 }
 
-# Execute main function with all arguments
+# Execute main function
 main "$@"

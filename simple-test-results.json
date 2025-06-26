@@ -1,0 +1,2516 @@
+{
+  "collection": {
+    "item": [
+      {
+        "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+        "name": "Application Health Check",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "8080",
+            "path": [
+              "actuator",
+              "health"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Health check responds', function () {",
+                "    pm.response.to.not.have.status(404);",
+                "});",
+                "",
+                "pm.test('Response time is acceptable', function () {",
+                "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                "});"
+              ],
+              "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+            }
+          }
+        ]
+      },
+      {
+        "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+        "name": "Keycloak Health Check",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "8090",
+            "path": [
+              "realms",
+              "master"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Keycloak responds', function () {",
+                "    pm.response.to.not.have.status(404);",
+                "});",
+                "",
+                "pm.test('Response time is acceptable', function () {",
+                "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                "});"
+              ],
+              "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+            }
+          }
+        ]
+      },
+      {
+        "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+        "name": "Simple Loan API Test",
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "8080",
+            "path": [
+              "api",
+              "loans"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Loan API endpoint responds', function () {",
+                "    // Accept any response that's not 404",
+                "    pm.response.to.not.have.status(404);",
+                "});",
+                "",
+                "pm.test('Response time is acceptable', function () {",
+                "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                "});"
+              ],
+              "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+            }
+          }
+        ]
+      }
+    ],
+    "event": [],
+    "variable": [],
+    "info": {
+      "_postman_id": "6c88b37a-ae23-446c-bb29-9ad5017b2e40",
+      "name": "Simple Banking Health Tests",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    }
+  },
+  "environment": {
+    "id": "1a37b2fd-4d79-4d92-a72c-7427be6e72cf",
+    "values": []
+  },
+  "globals": {
+    "id": "ed943824-a750-437f-a029-8c92552f7559",
+    "values": []
+  },
+  "run": {
+    "stats": {
+      "iterations": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "items": {
+        "total": 3,
+        "pending": 0,
+        "failed": 0
+      },
+      "scripts": {
+        "total": 3,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequests": {
+        "total": 3,
+        "pending": 0,
+        "failed": 0
+      },
+      "requests": {
+        "total": 3,
+        "pending": 0,
+        "failed": 3
+      },
+      "tests": {
+        "total": 3,
+        "pending": 0,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 6,
+        "pending": 0,
+        "failed": 6
+      },
+      "testScripts": {
+        "total": 3,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequestScripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      }
+    },
+    "timings": {
+      "responseAverage": 0,
+      "started": 1750945933917,
+      "completed": 1750945935635
+    },
+    "executions": [
+      {
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 3,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "da3ebf65-a402-4ab5-8172-1e3ac8629ee4",
+          "httpRequestId": "2430d74f-8c3b-4594-903c-08e673703eb3"
+        },
+        "item": {
+          "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+          "name": "Application Health Check",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "8080",
+              "path": [
+                "actuator",
+                "health"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Health check responds', function () {",
+                  "    pm.response.to.not.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "8080",
+            "path": [
+              "actuator",
+              "health"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+        "requestError": {
+          "code": "ERR_INVALID_IP_ADDRESS"
+        },
+        "assertions": [
+          {
+            "assertion": "Health check responds",
+            "error": {
+              "name": "AssertionError",
+              "index": 0,
+              "test": "Health check responds",
+              "message": "expected { Object (id, _details, ...) } to have property 'code'",
+              "stack": "AssertionError: expected { Object (id, _details, ...) } to have property 'code'\n   at Object.eval sandbox-script.js:1:1)"
+            }
+          },
+          {
+            "assertion": "Response time is acceptable",
+            "error": {
+              "name": "AssertionError",
+              "index": 1,
+              "test": "Response time is acceptable",
+              "message": "expected undefined to be a number or a date",
+              "stack": "AssertionError: expected undefined to be a number or a date\n   at Object.eval sandbox-script.js:2:1)"
+            }
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "87dbd35a-f828-4a15-bc1e-a73a89908f99",
+          "length": 3,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "c1572b09-2ded-4c0c-aa50-781a3104ab29"
+        },
+        "item": {
+          "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+          "name": "Keycloak Health Check",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "8090",
+              "path": [
+                "realms",
+                "master"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Keycloak responds', function () {",
+                  "    pm.response.to.not.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "8090",
+            "path": [
+              "realms",
+              "master"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+        "requestError": {
+          "code": "ERR_INVALID_IP_ADDRESS"
+        },
+        "assertions": [
+          {
+            "assertion": "Keycloak responds",
+            "error": {
+              "name": "AssertionError",
+              "index": 0,
+              "test": "Keycloak responds",
+              "message": "expected { Object (id, _details, ...) } to have property 'code'",
+              "stack": "AssertionError: expected { Object (id, _details, ...) } to have property 'code'\n   at Object.eval sandbox-script.js:1:2)"
+            }
+          },
+          {
+            "assertion": "Response time is acceptable",
+            "error": {
+              "name": "AssertionError",
+              "index": 1,
+              "test": "Response time is acceptable",
+              "message": "expected undefined to be a number or a date",
+              "stack": "AssertionError: expected undefined to be a number or a date\n   at Object.eval sandbox-script.js:2:2)"
+            }
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "a8e5e1a2-3d64-468b-bd6a-128860342a91",
+          "length": 3,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "d65c469b-4306-49dc-ab82-faf13a684739"
+        },
+        "item": {
+          "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+          "name": "Simple Loan API Test",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "8080",
+              "path": [
+                "api",
+                "loans"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Loan API endpoint responds', function () {",
+                  "    // Accept any response that's not 404",
+                  "    pm.response.to.not.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "8080",
+            "path": [
+              "api",
+              "loans"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+        "requestError": {
+          "code": "ERR_INVALID_IP_ADDRESS"
+        },
+        "assertions": [
+          {
+            "assertion": "Loan API endpoint responds",
+            "error": {
+              "name": "AssertionError",
+              "index": 0,
+              "test": "Loan API endpoint responds",
+              "message": "expected { Object (id, _details, ...) } to have property 'code'",
+              "stack": "AssertionError: expected { Object (id, _details, ...) } to have property 'code'\n   at Object.eval sandbox-script.js:1:3)"
+            }
+          },
+          {
+            "assertion": "Response time is acceptable",
+            "error": {
+              "name": "AssertionError",
+              "index": 1,
+              "test": "Response time is acceptable",
+              "message": "expected undefined to be a number or a date",
+              "stack": "AssertionError: expected undefined to be a number or a date\n   at Object.eval sandbox-script.js:2:3)"
+            }
+          }
+        ]
+      }
+    ],
+    "transfers": {
+      "responseTotal": 0
+    },
+    "failures": [
+      {
+        "error": {
+          "code": "ERR_INVALID_IP_ADDRESS",
+          "name": "TypeError",
+          "message": "Invalid IP address: undefined",
+          "stack": "TypeError [ERR_INVALID_IP_ADDRESS]: Invalid IP address: undefined\n    at emitLookup (node:net:1494:17)\n    at /usr/local/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/core.js:141:31\n    at Socket.done (/usr/local/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/core.js:95:21)\n    at Object.onceWrapper (node:events:633:26)\n    at Socket.emit (node:events:518:28)\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)",
+          "checksum": "2e7b0ac64afa5f8fe8623406c05e4d3f",
+          "id": "ea56d6b2-db83-459f-955d-cc938c964a9b",
+          "timestamp": 1750945934514,
+          "stacktrace": [
+            {
+              "fileName": "node:net",
+              "lineNumber": 1494,
+              "functionName": "emitLookup",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 17,
+              "native": false
+            },
+            {
+              "fileName": "/usr/local/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/core.js",
+              "lineNumber": 141,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 31,
+              "native": false
+            },
+            {
+              "fileName": "/usr/local/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/core.js",
+              "lineNumber": 95,
+              "functionName": "Socket.done",
+              "typeName": "Socket",
+              "methodName": "done",
+              "columnNumber": 21,
+              "native": false
+            },
+            {
+              "fileName": "node:events",
+              "lineNumber": 633,
+              "functionName": "Object.onceWrapper",
+              "typeName": "Object",
+              "methodName": "onceWrapper",
+              "columnNumber": 26,
+              "native": false
+            },
+            {
+              "fileName": "node:events",
+              "lineNumber": 518,
+              "functionName": "Socket.emit",
+              "typeName": "Socket",
+              "methodName": "emit",
+              "columnNumber": 28,
+              "native": false
+            },
+            {
+              "fileName": "node:internal/streams/destroy",
+              "lineNumber": 170,
+              "functionName": "emitErrorNT",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 8,
+              "native": false
+            },
+            {
+              "fileName": "node:internal/streams/destroy",
+              "lineNumber": 129,
+              "functionName": "emitErrorCloseNT",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 3,
+              "native": false
+            },
+            {
+              "fileName": "node:internal/process/task_queues",
+              "lineNumber": 90,
+              "functionName": "process.processTicksAndRejections",
+              "typeName": "process",
+              "methodName": "processTicksAndRejections",
+              "columnNumber": 21,
+              "native": false
+            }
+          ]
+        },
+        "at": "request",
+        "source": {
+          "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+          "name": "Application Health Check",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "8080",
+              "path": [
+                "actuator",
+                "health"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Health check responds', function () {",
+                  "    pm.response.to.not.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+              }
+            }
+          ]
+        },
+        "parent": {
+          "item": [
+            {
+              "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+              "name": "Application Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "actuator",
+                    "health"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Health check responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+              "name": "Keycloak Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8090",
+                  "path": [
+                    "realms",
+                    "master"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Keycloak responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+              "name": "Simple Loan API Test",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "loans"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Loan API endpoint responds', function () {",
+                      "    // Accept any response that's not 404",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+                  }
+                }
+              ]
+            }
+          ],
+          "event": [],
+          "variable": [],
+          "info": {
+            "_postman_id": "6c88b37a-ae23-446c-bb29-9ad5017b2e40",
+            "name": "Simple Banking Health Tests",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+          }
+        },
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 3,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "da3ebf65-a402-4ab5-8172-1e3ac8629ee4",
+          "httpRequestId": "2430d74f-8c3b-4594-903c-08e673703eb3"
+        }
+      },
+      {
+        "error": {
+          "name": "AssertionError",
+          "index": 0,
+          "test": "Health check responds",
+          "message": "expected { Object (id, _details, ...) } to have property 'code'",
+          "stack": "AssertionError: expected { Object (id, _details, ...) } to have property 'code'\n   at Object.eval sandbox-script.js:1:1)",
+          "checksum": "e9e87e6b01c04e7c7efdc9bf6d78d374",
+          "id": "5b6e5c0a-29b5-40a7-a6f4-5bdf0c298695",
+          "timestamp": 1750945934566,
+          "stacktrace": [
+            {
+              "fileName": "sandbox-script.js",
+              "lineNumber": 1,
+              "functionName": "Object.eval",
+              "typeName": "Object",
+              "methodName": "eval",
+              "columnNumber": 1,
+              "native": false
+            }
+          ]
+        },
+        "at": "assertion:0 in test-script",
+        "source": {
+          "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+          "name": "Application Health Check",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "8080",
+              "path": [
+                "actuator",
+                "health"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Health check responds', function () {",
+                  "    pm.response.to.not.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+              }
+            }
+          ]
+        },
+        "parent": {
+          "item": [
+            {
+              "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+              "name": "Application Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "actuator",
+                    "health"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Health check responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+              "name": "Keycloak Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8090",
+                  "path": [
+                    "realms",
+                    "master"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Keycloak responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+              "name": "Simple Loan API Test",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "loans"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Loan API endpoint responds', function () {",
+                      "    // Accept any response that's not 404",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+                  }
+                }
+              ]
+            }
+          ],
+          "event": [],
+          "variable": [],
+          "info": {
+            "_postman_id": "6c88b37a-ae23-446c-bb29-9ad5017b2e40",
+            "name": "Simple Banking Health Tests",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+          }
+        },
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 3,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "da3ebf65-a402-4ab5-8172-1e3ac8629ee4",
+          "httpRequestId": "2430d74f-8c3b-4594-903c-08e673703eb3",
+          "scriptId": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+          "execution": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+        }
+      },
+      {
+        "error": {
+          "name": "AssertionError",
+          "index": 1,
+          "test": "Response time is acceptable",
+          "message": "expected undefined to be a number or a date",
+          "stack": "AssertionError: expected undefined to be a number or a date\n   at Object.eval sandbox-script.js:2:1)",
+          "checksum": "8e0c786c8b9962ac543ff076ce6f5f2a",
+          "id": "d87685fa-efa6-4b97-9eaf-23046dbcd054",
+          "timestamp": 1750945934568,
+          "stacktrace": [
+            {
+              "fileName": "sandbox-script.js",
+              "lineNumber": 2,
+              "functionName": "Object.eval",
+              "typeName": "Object",
+              "methodName": "eval",
+              "columnNumber": 1,
+              "native": false
+            }
+          ]
+        },
+        "at": "assertion:1 in test-script",
+        "source": {
+          "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+          "name": "Application Health Check",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "8080",
+              "path": [
+                "actuator",
+                "health"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Health check responds', function () {",
+                  "    pm.response.to.not.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+              }
+            }
+          ]
+        },
+        "parent": {
+          "item": [
+            {
+              "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+              "name": "Application Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "actuator",
+                    "health"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Health check responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+              "name": "Keycloak Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8090",
+                  "path": [
+                    "realms",
+                    "master"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Keycloak responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+              "name": "Simple Loan API Test",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "loans"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Loan API endpoint responds', function () {",
+                      "    // Accept any response that's not 404",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+                  }
+                }
+              ]
+            }
+          ],
+          "event": [],
+          "variable": [],
+          "info": {
+            "_postman_id": "6c88b37a-ae23-446c-bb29-9ad5017b2e40",
+            "name": "Simple Banking Health Tests",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+          }
+        },
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 3,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "da3ebf65-a402-4ab5-8172-1e3ac8629ee4",
+          "httpRequestId": "2430d74f-8c3b-4594-903c-08e673703eb3",
+          "scriptId": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+          "execution": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+        }
+      },
+      {
+        "error": {
+          "code": "ERR_INVALID_IP_ADDRESS",
+          "name": "TypeError",
+          "message": "Invalid IP address: undefined",
+          "stack": "TypeError [ERR_INVALID_IP_ADDRESS]: Invalid IP address: undefined\n    at emitLookup (node:net:1494:17)\n    at /usr/local/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/core.js:143:13\n    at Socket.done (/usr/local/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/core.js:95:21)\n    at Object.onceWrapper (node:events:632:28)\n    at Socket.emit (node:events:518:28)\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1621:10)",
+          "checksum": "9d2f9b1ade50d74980c472eb2c3ab395",
+          "id": "9c1457a8-625b-4c25-914d-34f11a61574a",
+          "timestamp": 1750945935093,
+          "stacktrace": [
+            {
+              "fileName": "node:net",
+              "lineNumber": 1494,
+              "functionName": "emitLookup",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 17,
+              "native": false
+            },
+            {
+              "fileName": "/usr/local/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/core.js",
+              "lineNumber": 143,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 13,
+              "native": false
+            },
+            {
+              "fileName": "/usr/local/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/core.js",
+              "lineNumber": 95,
+              "functionName": "Socket.done",
+              "typeName": "Socket",
+              "methodName": "done",
+              "columnNumber": 21,
+              "native": false
+            },
+            {
+              "fileName": "node:events",
+              "lineNumber": 632,
+              "functionName": "Object.onceWrapper",
+              "typeName": "Object",
+              "methodName": "onceWrapper",
+              "columnNumber": 28,
+              "native": false
+            },
+            {
+              "fileName": "node:events",
+              "lineNumber": 518,
+              "functionName": "Socket.emit",
+              "typeName": "Socket",
+              "methodName": "emit",
+              "columnNumber": 28,
+              "native": false
+            },
+            {
+              "fileName": "node:net",
+              "lineNumber": 1621,
+              "functionName": "TCPConnectWrap.afterConnect [as oncomplete]",
+              "typeName": "TCPConnectWrap",
+              "methodName": "afterConnect [as oncomplete]",
+              "columnNumber": 10,
+              "native": false
+            }
+          ]
+        },
+        "at": "request",
+        "source": {
+          "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+          "name": "Keycloak Health Check",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "8090",
+              "path": [
+                "realms",
+                "master"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Keycloak responds', function () {",
+                  "    pm.response.to.not.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+              }
+            }
+          ]
+        },
+        "parent": {
+          "item": [
+            {
+              "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+              "name": "Application Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "actuator",
+                    "health"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Health check responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+              "name": "Keycloak Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8090",
+                  "path": [
+                    "realms",
+                    "master"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Keycloak responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+              "name": "Simple Loan API Test",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "loans"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Loan API endpoint responds', function () {",
+                      "    // Accept any response that's not 404",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+                  }
+                }
+              ]
+            }
+          ],
+          "event": [],
+          "variable": [],
+          "info": {
+            "_postman_id": "6c88b37a-ae23-446c-bb29-9ad5017b2e40",
+            "name": "Simple Banking Health Tests",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+          }
+        },
+        "cursor": {
+          "ref": "87dbd35a-f828-4a15-bc1e-a73a89908f99",
+          "length": 3,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "c1572b09-2ded-4c0c-aa50-781a3104ab29"
+        }
+      },
+      {
+        "error": {
+          "name": "AssertionError",
+          "index": 0,
+          "test": "Keycloak responds",
+          "message": "expected { Object (id, _details, ...) } to have property 'code'",
+          "stack": "AssertionError: expected { Object (id, _details, ...) } to have property 'code'\n   at Object.eval sandbox-script.js:1:2)",
+          "checksum": "1313378fe5139ea2a14127acb8eed7f0",
+          "id": "3c1d1349-b40a-4e03-9eea-3bb244e94efe",
+          "timestamp": 1750945935104,
+          "stacktrace": [
+            {
+              "fileName": "sandbox-script.js",
+              "lineNumber": 1,
+              "functionName": "Object.eval",
+              "typeName": "Object",
+              "methodName": "eval",
+              "columnNumber": 2,
+              "native": false
+            }
+          ]
+        },
+        "at": "assertion:0 in test-script",
+        "source": {
+          "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+          "name": "Keycloak Health Check",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "8090",
+              "path": [
+                "realms",
+                "master"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Keycloak responds', function () {",
+                  "    pm.response.to.not.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+              }
+            }
+          ]
+        },
+        "parent": {
+          "item": [
+            {
+              "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+              "name": "Application Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "actuator",
+                    "health"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Health check responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+              "name": "Keycloak Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8090",
+                  "path": [
+                    "realms",
+                    "master"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Keycloak responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+              "name": "Simple Loan API Test",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "loans"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Loan API endpoint responds', function () {",
+                      "    // Accept any response that's not 404",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+                  }
+                }
+              ]
+            }
+          ],
+          "event": [],
+          "variable": [],
+          "info": {
+            "_postman_id": "6c88b37a-ae23-446c-bb29-9ad5017b2e40",
+            "name": "Simple Banking Health Tests",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+          }
+        },
+        "cursor": {
+          "ref": "87dbd35a-f828-4a15-bc1e-a73a89908f99",
+          "length": 3,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "c1572b09-2ded-4c0c-aa50-781a3104ab29",
+          "scriptId": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+          "execution": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+        }
+      },
+      {
+        "error": {
+          "name": "AssertionError",
+          "index": 1,
+          "test": "Response time is acceptable",
+          "message": "expected undefined to be a number or a date",
+          "stack": "AssertionError: expected undefined to be a number or a date\n   at Object.eval sandbox-script.js:2:2)",
+          "checksum": "0da716cdd0eb4b058928ea81a95fe3c9",
+          "id": "5ef2176a-6a3f-4478-8c89-e849ebc0ef34",
+          "timestamp": 1750945935105,
+          "stacktrace": [
+            {
+              "fileName": "sandbox-script.js",
+              "lineNumber": 2,
+              "functionName": "Object.eval",
+              "typeName": "Object",
+              "methodName": "eval",
+              "columnNumber": 2,
+              "native": false
+            }
+          ]
+        },
+        "at": "assertion:1 in test-script",
+        "source": {
+          "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+          "name": "Keycloak Health Check",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "8090",
+              "path": [
+                "realms",
+                "master"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Keycloak responds', function () {",
+                  "    pm.response.to.not.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+              }
+            }
+          ]
+        },
+        "parent": {
+          "item": [
+            {
+              "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+              "name": "Application Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "actuator",
+                    "health"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Health check responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+              "name": "Keycloak Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8090",
+                  "path": [
+                    "realms",
+                    "master"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Keycloak responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+              "name": "Simple Loan API Test",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "loans"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Loan API endpoint responds', function () {",
+                      "    // Accept any response that's not 404",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+                  }
+                }
+              ]
+            }
+          ],
+          "event": [],
+          "variable": [],
+          "info": {
+            "_postman_id": "6c88b37a-ae23-446c-bb29-9ad5017b2e40",
+            "name": "Simple Banking Health Tests",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+          }
+        },
+        "cursor": {
+          "ref": "87dbd35a-f828-4a15-bc1e-a73a89908f99",
+          "length": 3,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "c1572b09-2ded-4c0c-aa50-781a3104ab29",
+          "scriptId": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+          "execution": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+        }
+      },
+      {
+        "error": {
+          "code": "ERR_INVALID_IP_ADDRESS",
+          "name": "TypeError",
+          "message": "Invalid IP address: undefined",
+          "stack": "TypeError [ERR_INVALID_IP_ADDRESS]: Invalid IP address: undefined\n    at emitLookup (node:net:1494:17)\n    at /usr/local/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/core.js:141:31\n    at Socket.done (/usr/local/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/core.js:95:21)\n    at Object.onceWrapper (node:events:633:26)\n    at Socket.emit (node:events:518:28)\n    at emitErrorNT (node:internal/streams/destroy:170:8)\n    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)",
+          "checksum": "2e7b0ac64afa5f8fe8623406c05e4d3f",
+          "id": "331f49e3-dab8-43eb-8da2-58d35a2cd95b",
+          "timestamp": 1750945935622,
+          "stacktrace": [
+            {
+              "fileName": "node:net",
+              "lineNumber": 1494,
+              "functionName": "emitLookup",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 17,
+              "native": false
+            },
+            {
+              "fileName": "/usr/local/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/core.js",
+              "lineNumber": 141,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 31,
+              "native": false
+            },
+            {
+              "fileName": "/usr/local/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/core.js",
+              "lineNumber": 95,
+              "functionName": "Socket.done",
+              "typeName": "Socket",
+              "methodName": "done",
+              "columnNumber": 21,
+              "native": false
+            },
+            {
+              "fileName": "node:events",
+              "lineNumber": 633,
+              "functionName": "Object.onceWrapper",
+              "typeName": "Object",
+              "methodName": "onceWrapper",
+              "columnNumber": 26,
+              "native": false
+            },
+            {
+              "fileName": "node:events",
+              "lineNumber": 518,
+              "functionName": "Socket.emit",
+              "typeName": "Socket",
+              "methodName": "emit",
+              "columnNumber": 28,
+              "native": false
+            },
+            {
+              "fileName": "node:internal/streams/destroy",
+              "lineNumber": 170,
+              "functionName": "emitErrorNT",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 8,
+              "native": false
+            },
+            {
+              "fileName": "node:internal/streams/destroy",
+              "lineNumber": 129,
+              "functionName": "emitErrorCloseNT",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 3,
+              "native": false
+            },
+            {
+              "fileName": "node:internal/process/task_queues",
+              "lineNumber": 90,
+              "functionName": "process.processTicksAndRejections",
+              "typeName": "process",
+              "methodName": "processTicksAndRejections",
+              "columnNumber": 21,
+              "native": false
+            }
+          ]
+        },
+        "at": "request",
+        "source": {
+          "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+          "name": "Simple Loan API Test",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "8080",
+              "path": [
+                "api",
+                "loans"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Loan API endpoint responds', function () {",
+                  "    // Accept any response that's not 404",
+                  "    pm.response.to.not.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+              }
+            }
+          ]
+        },
+        "parent": {
+          "item": [
+            {
+              "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+              "name": "Application Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "actuator",
+                    "health"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Health check responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+              "name": "Keycloak Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8090",
+                  "path": [
+                    "realms",
+                    "master"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Keycloak responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+              "name": "Simple Loan API Test",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "loans"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Loan API endpoint responds', function () {",
+                      "    // Accept any response that's not 404",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+                  }
+                }
+              ]
+            }
+          ],
+          "event": [],
+          "variable": [],
+          "info": {
+            "_postman_id": "6c88b37a-ae23-446c-bb29-9ad5017b2e40",
+            "name": "Simple Banking Health Tests",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+          }
+        },
+        "cursor": {
+          "ref": "a8e5e1a2-3d64-468b-bd6a-128860342a91",
+          "length": 3,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "d65c469b-4306-49dc-ab82-faf13a684739"
+        }
+      },
+      {
+        "error": {
+          "name": "AssertionError",
+          "index": 0,
+          "test": "Loan API endpoint responds",
+          "message": "expected { Object (id, _details, ...) } to have property 'code'",
+          "stack": "AssertionError: expected { Object (id, _details, ...) } to have property 'code'\n   at Object.eval sandbox-script.js:1:3)",
+          "checksum": "5be37d1831f8790c06d9b046c2564bb9",
+          "id": "7d044b90-5226-4b78-a810-96ad0007e5ad",
+          "timestamp": 1750945935630,
+          "stacktrace": [
+            {
+              "fileName": "sandbox-script.js",
+              "lineNumber": 1,
+              "functionName": "Object.eval",
+              "typeName": "Object",
+              "methodName": "eval",
+              "columnNumber": 3,
+              "native": false
+            }
+          ]
+        },
+        "at": "assertion:0 in test-script",
+        "source": {
+          "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+          "name": "Simple Loan API Test",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "8080",
+              "path": [
+                "api",
+                "loans"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Loan API endpoint responds', function () {",
+                  "    // Accept any response that's not 404",
+                  "    pm.response.to.not.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+              }
+            }
+          ]
+        },
+        "parent": {
+          "item": [
+            {
+              "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+              "name": "Application Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "actuator",
+                    "health"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Health check responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+              "name": "Keycloak Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8090",
+                  "path": [
+                    "realms",
+                    "master"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Keycloak responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+              "name": "Simple Loan API Test",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "loans"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Loan API endpoint responds', function () {",
+                      "    // Accept any response that's not 404",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+                  }
+                }
+              ]
+            }
+          ],
+          "event": [],
+          "variable": [],
+          "info": {
+            "_postman_id": "6c88b37a-ae23-446c-bb29-9ad5017b2e40",
+            "name": "Simple Banking Health Tests",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+          }
+        },
+        "cursor": {
+          "ref": "a8e5e1a2-3d64-468b-bd6a-128860342a91",
+          "length": 3,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "d65c469b-4306-49dc-ab82-faf13a684739",
+          "scriptId": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+          "execution": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+        }
+      },
+      {
+        "error": {
+          "name": "AssertionError",
+          "index": 1,
+          "test": "Response time is acceptable",
+          "message": "expected undefined to be a number or a date",
+          "stack": "AssertionError: expected undefined to be a number or a date\n   at Object.eval sandbox-script.js:2:3)",
+          "checksum": "3884ba70eaee80778d64ba0f23da6a23",
+          "id": "6d4dc84c-98d9-49c6-8dd3-56bd437ec9e0",
+          "timestamp": 1750945935630,
+          "stacktrace": [
+            {
+              "fileName": "sandbox-script.js",
+              "lineNumber": 2,
+              "functionName": "Object.eval",
+              "typeName": "Object",
+              "methodName": "eval",
+              "columnNumber": 3,
+              "native": false
+            }
+          ]
+        },
+        "at": "assertion:1 in test-script",
+        "source": {
+          "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+          "name": "Simple Loan API Test",
+          "request": {
+            "url": {
+              "protocol": "http",
+              "port": "8080",
+              "path": [
+                "api",
+                "loans"
+              ],
+              "host": [
+                "localhost"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Loan API endpoint responds', function () {",
+                  "    // Accept any response that's not 404",
+                  "    pm.response.to.not.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+              }
+            }
+          ]
+        },
+        "parent": {
+          "item": [
+            {
+              "id": "7fb026f1-ce16-4bc6-9b51-62b3ff0d760a",
+              "name": "Application Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "actuator",
+                    "health"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f0bb8a09-5423-4b89-8b43-9ada9e21edc1",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Health check responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "258a95ed-a789-407b-b444-b3e38e6f53eb"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "c83344a7-de36-4e06-a507-7e7b9281d5f5",
+              "name": "Keycloak Health Check",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8090",
+                  "path": [
+                    "realms",
+                    "master"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f8a3fa65-cfae-4184-b4de-7d3712d4b33c",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Keycloak responds', function () {",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "39f67174-abc9-4ed4-830c-cce54b0875ce"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "41c15560-19d9-4db1-a164-0ffa213b3e0f",
+              "name": "Simple Loan API Test",
+              "request": {
+                "url": {
+                  "protocol": "http",
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "loans"
+                  ],
+                  "host": [
+                    "localhost"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "method": "GET"
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Loan API endpoint responds', function () {",
+                      "    // Accept any response that's not 404",
+                      "    pm.response.to.not.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test('Response time is acceptable', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                      "});"
+                    ],
+                    "_lastExecutionId": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+                  }
+                }
+              ]
+            }
+          ],
+          "event": [],
+          "variable": [],
+          "info": {
+            "_postman_id": "6c88b37a-ae23-446c-bb29-9ad5017b2e40",
+            "name": "Simple Banking Health Tests",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+          }
+        },
+        "cursor": {
+          "ref": "a8e5e1a2-3d64-468b-bd6a-128860342a91",
+          "length": 3,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "d65c469b-4306-49dc-ab82-faf13a684739",
+          "scriptId": "80eb7da9-d2c4-47c4-a940-ce154e0bf31d",
+          "execution": "2103c5f6-c4f8-4c18-9192-15627d0f48e6"
+        }
+      }
+    ],
+    "error": null
+  }
+}

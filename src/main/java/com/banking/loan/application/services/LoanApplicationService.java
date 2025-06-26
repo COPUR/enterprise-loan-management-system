@@ -9,6 +9,8 @@ import com.banking.loan.domain.loan.*;
 import com.banking.loan.domain.shared.DomainEventPublisher;
 import com.banking.loan.application.commands.*;
 import com.banking.loan.application.queries.*;
+import com.banking.loan.application.results.*;
+import com.banking.loan.application.exceptions.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -232,47 +234,3 @@ public class LoanApplicationService implements LoanApplicationUseCase {
     }
 }
 
-/**
- * Custom exceptions for loan application service
- */
-public class LoanApplicationException extends RuntimeException {
-    public LoanApplicationException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
-
-public class LoanApprovalException extends RuntimeException {
-    public LoanApprovalException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
-
-public class LoanRejectionException extends RuntimeException {
-    public LoanRejectionException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
-
-public class CustomerNotFoundException extends RuntimeException {
-    public CustomerNotFoundException(String message) {
-        super(message);
-    }
-}
-
-public class LoanNotFoundException extends RuntimeException {
-    public LoanNotFoundException(String message) {
-        super(message);
-    }
-}
-
-public class CustomerNotEligibleException extends RuntimeException {
-    public CustomerNotEligibleException(String message) {
-        super(message);
-    }
-}
-
-public class ComplianceViolationException extends RuntimeException {
-    public ComplianceViolationException(String message) {
-        super(message);
-    }
-}

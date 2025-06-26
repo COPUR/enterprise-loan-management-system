@@ -4,6 +4,8 @@ import com.banking.loan.application.ports.in.LoanApplicationUseCase;
 import com.banking.loan.application.ports.in.PaymentProcessingUseCase;
 import com.banking.loan.application.commands.*;
 import com.banking.loan.application.queries.*;
+import com.banking.loan.application.results.*;
+import com.banking.loan.infrastructure.adapters.in.dto.*;
 import com.banking.loan.infrastructure.config.BankingSecurityContext;
 import com.banking.loan.resilience.BankingCircuitBreakerService;
 import com.banking.loan.ratelimit.AdaptiveRateLimitingService;
@@ -287,35 +289,3 @@ public class LoanController {
     }
 }
 
-/**
- * Request/Response DTOs for the REST API
- */
-public record SubmitLoanApplicationRequest(
-    String customerId,
-    BigDecimal amount,
-    Integer termInMonths,
-    String loanType,
-    String purpose,
-    String collateralType,
-    Map<String, Object> additionalData
-) {}
-
-public record ApproveLoanRequest(
-    BigDecimal approvedInterestRate,
-    BigDecimal approvedAmount,
-    List<String> conditions,
-    String approvalNotes
-) {}
-
-public record RejectLoanRequest(
-    List<String> rejectionReasons,
-    String rejectionNotes
-) {}
-
-public record ProcessPaymentRequest(
-    BigDecimal amount,
-    String paymentMethod,
-    String paymentReference,
-    String paymentChannel,
-    Map<String, Object> paymentDetails
-) {}
