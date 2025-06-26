@@ -12,30 +12,29 @@
 
 ## Today's Banking with Tommorow's needs - business use case driven future proof architecture Implementation
 
-Today’s digital banking landscape demands systems that are not only scalable and secure — but also resilient, auditable, and future-proof by design.
+Today’s digital banking landscape demands systems that are not only scalable and secure but also resilient, auditable, and future-proof by design.
 
 We are excited to introduce a next-generation Enterprise Loan Management System, purpose-built using a pure hexagonal architecture and rooted in domain-driven design (DDD). This platform reflects true business use-case-driven engineering, allowing banking institutions to respond with agility, maintain compliance, and achieve high development velocity without compromising integrity.
-
-Here’s what sets this system apart:
-	•	Architectural Discipline: We’ve completely refactored 6 major business domains into hexagonal architecture. Our domain core is clean, infrastructure-agnostic, and fully aligned with banking logic — not technology constraints.
-	•	Real Business Fidelity: The Loan aggregate, along with Party, Customer, and Installment models, have no JPA contamination. Business logic is preserved, auditable, and versionable.
-	•	Built-in Audit and Eventing: With 8 domain events, every meaningful business activity is captured in real time — ready for regulatory audits or operational intelligence.
-	•	Security and Compliance First: We’ve embedded OAuth 2.1, FAPI 1.0 Advanced, OWASP protections, and support for PCI DSS, SOX, GDPR, and Basel III standards.
-	•	Modern, Cloud-Native Deployment: From Dockerized builds to Kubernetes orchestration and automated testing pipelines, this platform is enterprise-ready and battle-tested for production.
+ /n
+	- **•	Architectural Discipline: We’ve completely refactored 6 major business domains into hexagonal architecture. Our domain core is clean, infrastructure-agnostic, and fully aligned with banking logic not only technology constraints. /n
+	- **•	Real Business Fidelity: The Loan aggregate, along with Party, Customer, and Installment models, have no JPA contamination. Business logic is preserved, auditable, and versionable. /n
+	- **•	Built-in Audit and Eventing: With 8 domain events, every meaningful business activity is captured in real time — ready for regulatory audits or operational intelligence. /n
+	- **•	Security and Compliance First: We’ve embedded OAuth 2.1, FAPI 1.0 Advanced, OWASP protections, and support for PCI DSS,  GDPR, and  ındustry standards. /n
+	- **•	Modern, Cloud-Native Deployment: From Dockerized builds to Kubernetes orchestration and automated testing pipelines, this platform is enterprise-ready and battle-tested stack for production. /n
 
 This isn’t just another digital banking system. It’s a composable core that accelerates digital transformation while reducing regulatory risk and technical debt.
 
 
-The Enterprise Loan Management System is a strategic digital banking platform engineered with regulatory compliance, clean architecture, and domain clarity at its core. Designed to align technology with business outcomes, the system delivers:
-	•	Faster time-to-market for loan products
-	•	Reduced compliance risks through auditable event streams
-	•	Lower long-term maintenance via clean domain models
+The Enterprise Loan Management System is a strategic digital banking platform engineered with regulatory compliance, clean architecture, and domain clarity at its core. Designed to align technology with business outcomes, the system delivers: /n
+	- **•	Faster time-to-market for loan products /n
+	- **•	Reduced compliance risks through auditable event streams /n
+	- **•	Lower long-term maintenance via clean domain models /n
 
 It’s a future-proof platform that meets today’s regulatory and customer demands — without the usual architectural baggage.
-
+/n
 
 Capability  - Description
-Hexagonal Architecture - Clean separation of domain, application, and infrastructure concerns
+Hexagonal Architecture - Clean separation of domain, application, and infrastructure concerns /n
 Domain-Driven Design -  6 bounded contexts with aggregate roots, immutable value objects, and events
 OAuth 2.1 with FAPI 1.0  - Secure identity management and enterprise-grade access control
 Event-Driven Core - 8 domain events enabling audit trails and microservice decoupling
