@@ -1,0 +1,131 @@
+# Minimal Enterprise Setup - Core Services Only
+# PostgreSQL + Keycloak + Banking App with OAuth2
+
+networks:
+  enterprise-banking:
+    driver: bridge
+    name: enterprise-banking-minimal
+
+volumes:
+  postgres_minimal_data:
+    driver: local
+  keycloak_minimal_data:
+    driver: local
+  banking_minimal_logs:
+    driver: local
+
+services:
+  # PostgreSQL Database
+  postgres-minimal:
+    image: postgres:15-alpine
+    container_name: banking-postgres-minimal
+    environment:
+      POSTGRES_DB: banking_enterprise
+      POSTGRES_USER: banking_enterprise
+      POSTGRES_PASSWORD: enterprise_banking_pass_2024
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_minimal_data:/var/lib/postgresql/data
+      - ./scripts/db-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U banking_enterprise -d banking_enterprise"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - enterprise-banking
+
+  # Keycloak Identity Provider (with H2 database for simplicity)
+  keycloak-minimal:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: banking-keycloak-minimal
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      KC_DB: dev-file
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8091
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+    ports:
+      - "8091:8080"
+    volumes:
+      - keycloak_minimal_data:/opt/keycloak/data
+      - ./keycloak/realm-config.json:/opt/keycloak/data/import/realm-config.json
+    command: start-dev --import-realm
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - enterprise-banking
+
+  # Banking Application
+  banking-app-minimal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: enterprise-loan-system:minimal
+    container_name: banking-loan-management-minimal
+    depends_on:
+      postgres-minimal:
+        condition: service_healthy
+      keycloak-minimal:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: enterprise-minimal,docker
+      SERVER_PORT: 8080
+      
+      # Database
+      DATABASE_URL: jdbc:postgresql://postgres-minimal:5432/banking_enterprise
+      DATABASE_USERNAME: banking_enterprise
+      DATABASE_PASSWORD: enterprise_banking_pass_2024
+      
+      # OAuth2 Configuration
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak-minimal:8080/realms/banking-enterprise
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak-minimal:8080/realms/banking-enterprise/protocol/openid_connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_ID: banking-client
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET: banking-client-secret
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_REDIRECT_URI: http://localhost:8083/login/oauth2/code/keycloak
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI: http://localhost:8091/realms/banking-enterprise/protocol/openid_connect/auth
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak-minimal:8080/realms/banking-enterprise/protocol/openid_connect/token
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_USER_INFO_URI: http://keycloak-minimal:8080/realms/banking-enterprise/protocol/openid_connect/userinfo
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_JWK_SET_URI: http://keycloak-minimal:8080/realms/banking-enterprise/protocol/openid_connect/certs
+      
+      # Management
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics
+      
+      # Banking Config
+      LOAN_MAX_AMOUNT: 10000000
+      TRANSACTION_DAILY_LIMIT: 100000
+      
+      # JVM
+      JAVA_OPTS: >-
+        -server
+        -XX:+UseG1GC
+        -XX:MaxRAMPercentage=70.0
+        -Dspring.profiles.active=enterprise-minimal,docker
+        -Dlogging.level.com.bank.loanmanagement=INFO
+        -Dlogging.level.org.springframework.security=DEBUG
+        
+    ports:
+      - "8083:8080"
+    volumes:
+      - banking_minimal_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/actuator/health"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+    networks:
+      - enterprise-banking
