@@ -2,6 +2,7 @@ package com.banking.loan.domain.loan;
 
 import com.banking.loan.domain.shared.AggregateRoot;
 import com.banking.loan.domain.shared.DomainEvent;
+import com.banking.loan.domain.exceptions.LoanDomainException;
 import com.banking.loan.domain.shared.EventMetadata;
 import lombok.Getter;
 
@@ -282,15 +283,3 @@ public class LoanAggregate extends AggregateRoot<LoanId> {
     }
 }
 
-/**
- * Loan Domain Exception
- */
-public class LoanDomainException extends RuntimeException {
-    public LoanDomainException(String message) {
-        super(message);
-    }
-    
-    public LoanDomainException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}

@@ -2,6 +2,7 @@ package com.banking.loan.application.ports.in;
 
 import com.banking.loan.application.commands.*;
 import com.banking.loan.application.queries.*;
+import com.banking.loan.application.results.*;
 import java.util.List;
 
 /**
@@ -39,7 +40,7 @@ public interface LoanApplicationUseCase {
 /**
  * Payment Processing Use Case
  */
-public interface PaymentProcessingUseCase {
+interface PaymentProcessingUseCase {
     
     /**
      * Process a loan payment
@@ -65,7 +66,7 @@ public interface PaymentProcessingUseCase {
 /**
  * Customer Management Use Case
  */
-public interface CustomerManagementUseCase {
+interface CustomerManagementUseCase {
     
     /**
      * Create a new customer
@@ -96,7 +97,7 @@ public interface CustomerManagementUseCase {
 /**
  * AI Services Use Case
  */
-public interface AIServicesUseCase {
+interface AIServicesUseCase {
     
     /**
      * Perform fraud detection analysis
@@ -122,7 +123,7 @@ public interface AIServicesUseCase {
 /**
  * Compliance Use Case
  */
-public interface ComplianceUseCase {
+interface ComplianceUseCase {
     
     /**
      * Perform compliance check

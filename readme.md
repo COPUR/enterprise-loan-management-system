@@ -17,6 +17,17 @@ Today’s digital banking landscape requires systems that are not only scalable 
 
 This Enterprise Loan Management System is engineered with a pure hexagonal architecture and founded on Domain-Driven Design (DDD) principles. The platform reflects a business use case-driven approach, enabling banking institutions to adapt with agility, maintain regulatory compliance, and accelerate delivery velocity without compromising architectural integrity.
 
+## Current System Architecture
+
+### Security Architecture
+![Enhanced Enterprise Banking Security Architecture](docs/images/Enhanced%20Enterprise%20Banking%20Security%20Architecture.svg)
+
+### Hexagonal Architecture with DDD
+![Enhanced Enterprise Banking Hexagonal Architecture](docs/images/Enhanced%20Enterprise%20Banking%20-%20Hexagonal%20Architecture.svg)
+
+### Service Mesh Architecture
+![Enhanced Enterprise Banking Service Mesh Architecture](docs/images/Enhanced%20Enterprise%20Banking%20-%20Service%20Mesh%20Architecture.svg)
+
 ### Core Design Principles
 
 - **Architectural Discipline**  

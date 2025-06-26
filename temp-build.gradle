@@ -1,0 +1,74 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.6'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.bank'
+version = '1.0.0'
+sourceCompatibility = '21'
+targetCompatibility = '21'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+springBoot {
+    mainClass = 'com.bank.loanmanagement.TestApplication'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'temp-src/main/java'
+        }
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    springBootVersion = '3.3.6'
+    httpclientVersion = '5.4.1'
+    httpcoreVersion = '5.3.1'
+}
+
+// Resolution strategy for dependency version conflicts
+configurations.all {
+    resolutionStrategy {
+        force "org.apache.httpcomponents.core5:httpcore5:${httpcoreVersion}"
+        force "org.apache.httpcomponents.core5:httpcore5-h2:${httpcoreVersion}"
+        force "org.apache.httpcomponents.core5:httpcore5-reactive:${httpcoreVersion}"
+    }
+}
+
+dependencyManagement {
+    dependencies {
+        dependency "org.apache.httpcomponents.client5:httpclient5:${httpclientVersion}"
+        dependency "org.apache.httpcomponents.core5:httpcore5:${httpcoreVersion}"
+        dependency "org.apache.httpcomponents.core5:httpcore5-h2:${httpcoreVersion}"
+        dependency "org.apache.httpcomponents.core5:httpcore5-reactive:${httpcoreVersion}"
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // HTTP Client with fixed versions
+    implementation("org.apache.httpcomponents.client5:httpclient5:${httpclientVersion}") {
+        exclude group: 'org.apache.httpcomponents.core5', module: 'httpcore5'
+    }
+    implementation "org.apache.httpcomponents.core5:httpcore5:${httpcoreVersion}"
+}
+
+bootJar {
+    archiveFileName = 'banking-test-app.jar'
+}

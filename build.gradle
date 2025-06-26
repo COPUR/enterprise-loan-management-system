@@ -132,6 +132,7 @@ ext {
     
     // HTTP Clients
     httpclientVersion = '5.4.1'
+    httpcoreVersion = '5.3.1'
     
     // Logging
     logbackVersion = '1.5.12'
@@ -149,12 +150,29 @@ ext {
     jsonPathVersion = '2.9.0'
 }
 
+// Resolution strategy for dependency version conflicts
+configurations.all {
+    resolutionStrategy {
+        // Force specific httpcore5 version to prevent conflicts
+        force "org.apache.httpcomponents.core5:httpcore5:${httpcoreVersion}"
+        force "org.apache.httpcomponents.core5:httpcore5-h2:${httpcoreVersion}"
+        force "org.apache.httpcomponents.core5:httpcore5-reactive:${httpcoreVersion}"
+    }
+}
+
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
         mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
         mavenBom "io.micrometer:micrometer-bom:${micrometerVersion}"
         mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+    }
+    dependencies {
+        // Force compatible HttpClient versions to prevent classpath conflicts
+        dependency "org.apache.httpcomponents.client5:httpclient5:${httpclientVersion}"
+        dependency "org.apache.httpcomponents.core5:httpcore5:${httpcoreVersion}"
+        dependency "org.apache.httpcomponents.core5:httpcore5-h2:${httpcoreVersion}"
+        dependency "org.apache.httpcomponents.core5:httpcore5-reactive:${httpcoreVersion}"
     }
 }
 
@@ -261,8 +279,11 @@ dependencies {
     implementation "org.apache.commons:commons-collections4:${commonsCollectionsVersion}"
     implementation "commons-io:commons-io:${commonsIoVersion}"
     
-    // HTTP Client (Latest version)
-    implementation "org.apache.httpcomponents.client5:httpclient5:${httpclientVersion}"
+    // HTTP Client (Latest version) - Explicit dependency management for classpath consistency
+    implementation("org.apache.httpcomponents.client5:httpclient5:${httpclientVersion}") {
+        exclude group: 'org.apache.httpcomponents.core5', module: 'httpcore5'
+    }
+    implementation "org.apache.httpcomponents.core5:httpcore5:${httpcoreVersion}"
     
     // Testing (Latest versions)
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
