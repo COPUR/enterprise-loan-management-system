@@ -10,7 +10,7 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.6-green)](https://spring.io/projects/spring-boot)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
-## Overview - Hexagonal Architecture Implementation
+## Overview - business use case driven Architecture Implementation
 
 A comprehensive enterprise-grade banking system built on **pure hexagonal architecture** with clean domain-driven design, OAuth2.1 authentication, and full regulatory compliance. The system demonstrates enterprise-level software craftsmanship with zero infrastructure dependencies in domain models and comprehensive event-driven architecture.
 
@@ -35,11 +35,10 @@ A comprehensive enterprise-grade banking system built on **pure hexagonal archit
 - **Production-Ready Deployment**: Docker multi-stage builds, Kubernetes manifests, and end-to-end testing
 - **Zero-Trust Security Model**: OWASP Top 10 protection with continuous security validation
 
-## Architecture Overview - Clean Hexagonal Architecture
-
+## Architecture Overview - Clean business use case driven
 ![System Architecture](docs/architecture/generated-diagrams/Enterprise%20Loan%20Management%20System%20-%20Hexagonal%20Architecture_v1.0.0.svg)
 ![Context Architecture](docs/architecture/generated-diagrams/Enterprise%20Loan%20Management%20System%20-%20System%20Context_v1.0.0.svg)
-The system implements **pure hexagonal architecture** with complete separation of concerns:
+The system implements **pure business use case driven architecture** with complete separation of concerns:
 
 ### **Hexagonal Architecture Layers**
 - **Domain Core**: Pure business logic with zero infrastructure dependencies
