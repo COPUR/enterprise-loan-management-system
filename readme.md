@@ -37,14 +37,14 @@ A comprehensive enterprise-grade banking system built on **pure hexagonal archit
 
 ## Architecture Overview - Clean Hexagonal Architecture
 
-![System Architecture](docs/generated-diagrams/Hexagonal%20Architecture%20-%20Enterprise%20Loan%20Management%20System%20(Production)_v1.0.0.svg)
-
+![System Architecture](docs/architecture/generated-diagrams/Enterprise%20Loan%20Management%20System%20-%20Hexagonal%20Architecture_v1.0.0.svg)
+![Context Architecture](docs/architecture/generated-diagrams/Enterprise%20Loan%20Management%20System%20-%20System%20Context_v1.0.0.svg)
 The system implements **pure hexagonal architecture** with complete separation of concerns:
 
 ### **Hexagonal Architecture Layers**
 - **Domain Core**: Pure business logic with zero infrastructure dependencies
-  - `Loan` (424 lines) - Complete loan lifecycle management
-  - `LoanInstallment` (215 lines) - Payment processing logic
+  - `Loan`  - Complete loan lifecycle management
+  - `LoanInstallment`  - Payment processing logic
   - `Customer`, `Party`, `PartyGroup`, `PartyRole` - Clean domain models
   - **8 Domain Events** - Comprehensive event-driven communication
 - **Application Layer**: Use case orchestration and transaction management
@@ -59,91 +59,6 @@ The system implements **pure hexagonal architecture** with complete separation o
 - **Application Services Tier**: Spring Boot microservices with hexagonal architecture
 - **Data Persistence Tier**: PostgreSQL with Redis caching and Apache Kafka event streaming
 
-## Quick Start
-
-### Prerequisites
-
-- Java 21+
-- Docker & Docker Compose
-- Kubernetes 1.28+
-- Helm 3.13+
-
-### Local Development
-
-```bash
-# Clone the repository
-git clone https://github.com/banking/enterprise-loan-management-system.git
-cd enterprise-loan-management-system
-
-# Build the application
-./gradlew clean bootJar -x test -x copyContracts
-
-# Start local development environment
-docker-compose up -d
-
-# Run tests
-./gradlew test
-
-# Start the application (alternative to Docker)
-./gradlew bootRun --args='--spring.profiles.active=dev'
-```
-
-### Docker Deployment
-
-```bash
-# Build Docker image
-docker build -t enterprise-loan-system:1.0.0 .
-
-# Start full stack with Docker Compose
-docker-compose up -d
-
-# Start minimal stack for testing
-docker-compose -f docker-compose.test.yml up -d
-
-# View logs
-docker-compose logs -f banking-app
-
-# Stop and cleanup
-docker-compose down
-```
-
-### Kubernetes Deployment
-
-```bash
-# Create namespace
-kubectl apply -f k8s/manifests/namespace.yaml
-
-# Apply secrets (update values first)
-kubectl apply -f k8s/manifests/secrets.yaml
-
-# Deploy application
-kubectl apply -f k8s/manifests/
-
-# Deploy using Helm (recommended for production)
-helm install banking-system k8s/helm-charts/enterprise-loan-system \
-  --namespace banking-system \
-  --values k8s/helm-charts/enterprise-loan-system/values-production.yaml
-
-# Verify deployment
-kubectl get pods -n banking-system
-kubectl get svc -n banking-system
-
-# View logs
-kubectl logs -f deployment/enterprise-loan-system -n banking-system
-```
-
-### Production Deployment
-
-```bash
-# For AWS EKS deployment
-./scripts/deploy-to-eks.sh
-
-# For GitOps with ArgoCD
-kubectl apply -f k8s/argocd/application.yaml
-
-# Monitor deployment
-kubectl get applications -n argocd
-```
 
 ## Documentation
 
@@ -1256,10 +1171,95 @@ This project is proprietary software owned by the Banking Enterprise. All rights
 - **GitHub**: [@copur](https://github.com/copur)
 
 ### **Enterprise Teams**
-- **Development Team**: dev-team@banking.enterprise.com
-- **Security Team**: security@banking.enterprise.com
-- **Operations Team**: ops@banking.enterprise.com
+- **Development Team**: loan_dev-team@humble_banking.enterprise.com
+- **Security Team**: security@humble_banking.enterprise.com
+- **Operations Team**: ops@humble_banking.enterprise.com
 
 ---
+## Quick Start
+
+### Prerequisites
+
+- Java 21+
+- Docker & Docker Compose
+- Kubernetes 1.28+
+- Helm 3.13+
+
+### Local Development
+
+```bash
+# Clone the repository
+git clone https://github.com/banking/enterprise-loan-management-system.git
+cd enterprise-loan-management-system
+
+# Build the application
+./gradlew clean bootJar -x test -x copyContracts
+
+# Start local development environment
+docker-compose up -d
+
+# Run tests
+./gradlew test
+
+# Start the application (alternative to Docker)
+./gradlew bootRun --args='--spring.profiles.active=dev'
+```
+
+### Docker Deployment
+
+```bash
+# Build Docker image
+docker build -t enterprise-loan-system:1.0.0 .
+
+# Start full stack with Docker Compose
+docker-compose up -d
+
+# Start minimal stack for testing
+docker-compose -f docker-compose.test.yml up -d
+
+# View logs
+docker-compose logs -f banking-app
+
+# Stop and cleanup
+docker-compose down
+```
+
+### Kubernetes Deployment
+
+```bash
+# Create namespace
+kubectl apply -f k8s/manifests/namespace.yaml
+
+# Apply secrets (update values first)
+kubectl apply -f k8s/manifests/secrets.yaml
+
+# Deploy application
+kubectl apply -f k8s/manifests/
+
+# Deploy using Helm (recommended for production)
+helm install banking-system k8s/helm-charts/enterprise-loan-system \
+  --namespace banking-system \
+  --values k8s/helm-charts/enterprise-loan-system/values-production.yaml
+
+# Verify deployment
+kubectl get pods -n banking-system
+kubectl get svc -n banking-system
+
+# View logs
+kubectl logs -f deployment/enterprise-loan-system -n banking-system
+```
+
+### Production Deployment
+
+```bash
+# For AWS EKS deployment
+./scripts/deploy-to-eks.sh
+
+# For GitOps with ArgoCD
+kubectl apply -f k8s/argocd/application.yaml
+
+# Monitor deployment
+kubectl get applications -n argocd
+```
 
 **Enterprise Banking Platform - Secure by Design**
