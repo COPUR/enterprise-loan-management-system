@@ -1,0 +1,343 @@
+# Horizontal Pod Autoscaler for Banking Services
+# Implements intelligent autoscaling based on multiple metrics
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: banking-app-hpa
+  namespace: banking-system
+  labels:
+    app: banking-app
+    tier: application
+    component: autoscaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: banking-app-deployment
+  minReplicas: 3
+  maxReplicas: 50
+  metrics:
+  # CPU-based scaling
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  # Memory-based scaling
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  # Custom metrics for banking operations
+  - type: Pods
+    pods:
+      metric:
+        name: banking_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "50"
+  - type: Pods
+    pods:
+      metric:
+        name: banking_response_time_milliseconds
+      target:
+        type: AverageValue
+        averageValue: "500"
+  # External metrics for load balancer queue
+  - type: External
+    external:
+      metric:
+        name: aws_application_load_balancer_request_count_per_target
+        selector:
+          matchLabels:
+            load_balancer: banking-alb
+      target:
+        type: AverageValue
+        averageValue: "100"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+      selectPolicy: Min
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 30
+      - type: Pods
+        value: 5
+        periodSeconds: 30
+      selectPolicy: Max
+
+---
+# Loan Service HPA with Banking-Specific Metrics
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: loan-service-hpa
+  namespace: banking-system
+  labels:
+    app: loan-service
+    tier: microservice
+    component: autoscaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: loan-service-deployment
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 65
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+  # Loan-specific metrics
+  - type: Pods
+    pods:
+      metric:
+        name: loan_applications_processing_time_seconds
+      target:
+        type: AverageValue
+        averageValue: "3"
+  - type: Pods
+    pods:
+      metric:
+        name: loan_queue_depth
+      target:
+        type: AverageValue
+        averageValue: "10"
+  - type: Pods
+    pods:
+      metric:
+        name: loan_ai_processing_time_seconds
+      target:
+        type: AverageValue
+        averageValue: "2"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 600  # Longer stabilization for financial operations
+      policies:
+      - type: Percent
+        value: 15
+        periodSeconds: 120
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+
+---
+# Payment Service HPA with Strict Scaling Policies
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: payment-service-hpa
+  namespace: banking-system
+  labels:
+    app: payment-service
+    tier: microservice
+    component: autoscaling
+    criticality: high
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: payment-service-deployment
+  minReplicas: 5  # Higher minimum for critical payment operations
+  maxReplicas: 30
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60  # Lower threshold for payments
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 70
+  # Payment-specific metrics
+  - type: Pods
+    pods:
+      metric:
+        name: payment_transactions_per_second
+      target:
+        type: AverageValue
+        averageValue: "20"
+  - type: Pods
+    pods:
+      metric:
+        name: payment_fraud_checks_queue_depth
+      target:
+        type: AverageValue
+        averageValue: "5"
+  - type: Pods
+    pods:
+      metric:
+        name: payment_settlement_time_seconds
+      target:
+        type: AverageValue
+        averageValue: "1"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 900  # Very conservative scaling down
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 180
+    scaleUp:
+      stabilizationWindowSeconds: 15   # Aggressive scaling up
+      policies:
+      - type: Percent
+        value: 200
+        periodSeconds: 15
+
+---
+# AI Service HPA with ML Workload Considerations
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ai-service-hpa
+  namespace: banking-system
+  labels:
+    app: ai-service
+    tier: ai-ml
+    component: autoscaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ai-service-deployment
+  minReplicas: 2
+  maxReplicas: 15
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75  # Higher for AI workloads
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 85  # AI services are memory intensive
+  # AI-specific metrics
+  - type: Pods
+    pods:
+      metric:
+        name: ai_model_inference_time_seconds
+      target:
+        type: AverageValue
+        averageValue: "1.5"
+  - type: Pods
+    pods:
+      metric:
+        name: ai_queue_depth
+      target:
+        type: AverageValue
+        averageValue: "8"
+  - type: Pods
+    pods:
+      metric:
+        name: vector_database_query_time_milliseconds
+      target:
+        type: AverageValue
+        averageValue: "200"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 25
+        periodSeconds: 120
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 75
+        periodSeconds: 30
+
+---
+# Customer Service HPA
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: customer-service-hpa
+  namespace: banking-system
+  labels:
+    app: customer-service
+    tier: microservice
+    component: autoscaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: customer-service-deployment
+  minReplicas: 2
+  maxReplicas: 15
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+  # Customer service metrics
+  - type: Pods
+    pods:
+      metric:
+        name: customer_queries_per_second
+      target:
+        type: AverageValue
+        averageValue: "30"
+  - type: Pods
+    pods:
+      metric:
+        name: customer_data_access_time_milliseconds
+      target:
+        type: AverageValue
+        averageValue: "100"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 20
+        periodSeconds: 90
+    scaleUp:
+      stabilizationWindowSeconds: 45
+      policies:
+      - type: Percent
+        value: 60
+        periodSeconds: 30
