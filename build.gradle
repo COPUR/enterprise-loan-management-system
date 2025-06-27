@@ -310,6 +310,7 @@ jacoco {
 
 jacocoTestReport {
     dependsOn test
+    mustRunAfter contractTest, copyContracts
     reports {
         xml.required = true
         html.required = true
