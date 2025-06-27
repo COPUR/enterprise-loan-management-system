@@ -26,6 +26,16 @@ This platform transcends traditional banking systems by implementing a **secure-
 
 ![Enhanced Enterprise Banking Security Architecture](docs/images/Enhanced%20Enterprise%20Banking%20Security%20Architecture.svg)
 
+### System Architecture Diagrams
+
+| Diagram | Description | Source |
+|---------|-------------|--------|
+| **[Security Architecture](docs/images/Enhanced%20Enterprise%20Banking%20Security%20Architecture.svg)** | Zero-trust security with OAuth 2.1 and mTLS | [PlantUML Source](docs/puml/oauth2-sequence-flow.puml) |
+| **[Service Mesh Architecture](docs/images/Istio%20Service%20Mesh%20Zero-Trust%20Architecture.svg)** | Istio service mesh with circuit breakers | [PlantUML Source](docs/puml/istio-service-mesh-architecture.puml) |
+| **[Microservices Overview](docs/images/Secure%20Microservices%20Architecture%20Overview.svg)** | Complete microservices architecture | [PlantUML Source](docs/puml/secure-microservices-overview.puml) |
+| **[OAuth 2.1 Flow](docs/images/OAuth%202.1%20Authorization%20Code%20Flow%20with%20PKCE.svg)** | Authentication and authorization flow | [PlantUML Source](docs/puml/oauth2-sequence-flow.puml) |
+| **[Keycloak Architecture](docs/images/OAuth%202.1%20Keycloak%20Authentication%20Architecture.svg)** | Identity provider integration | [PlantUML Source](docs/puml/oauth2-keycloak-architecture.puml) |
+
 ### Core Design Principles
 
 - **Zero-Trust Security**: Never trust, always verify with mTLS everywhere
@@ -95,10 +105,16 @@ kubectl get svc -n banking-system
 | Document | Description | Category |
 |----------|-------------|----------|
 | **[Architecture Catalogue](docs/architecture/overview/ARCHITECTURE_CATALOGUE.md)** | **Complete system architecture overview** | **Primary** |
+| **[Diagram Reference Index](docs/architecture/DIAGRAM_REFERENCE_INDEX.md)** | **Complete diagram and PlantUML reference** | **Primary** |
 | [Secure Microservices Architecture](docs/architecture/overview/SECURE_MICROSERVICES_ARCHITECTURE.md) | Zero-trust security implementation | Architecture |
 | [ADR-004: OAuth 2.1](docs/architecture/adr/ADR-004-oauth21-authentication.md) | Authentication architecture decisions | Decisions |
 | [ADR-005: Istio Service Mesh](docs/architecture/adr/ADR-005-istio-service-mesh.md) | Service mesh implementation | Decisions |
 | [ADR-006: Zero-Trust Security](docs/architecture/adr/ADR-006-zero-trust-security.md) | Security architecture decisions | Decisions |
+| **[ADR-007: Docker Multi-Stage](docs/architecture/decisions/ADR-007-docker-multi-stage-architecture.md)** | **Banking containerization strategy** | **Infrastructure** |
+| **[ADR-008: Kubernetes Deployment](docs/architecture/decisions/ADR-008-kubernetes-production-deployment.md)** | **Production orchestration with Istio** | **Infrastructure** |
+| **[ADR-009: AWS EKS Infrastructure](docs/architecture/decisions/ADR-009-aws-eks-infrastructure-design.md)** | **Cloud infrastructure design** | **Infrastructure** |
+| **[ADR-010: Active-Active Architecture](docs/architecture/decisions/ADR-010-active-active-architecture.md)** | **Multi-region 99.999% availability** | **Enterprise** |
+| **[ADR-011: Multi-Entity Banking](docs/architecture/decisions/ADR-011-multi-entity-banking-architecture.md)** | **Multi-jurisdictional compliance** | **Enterprise** |
 
 ###  Deployment & Operations
 
