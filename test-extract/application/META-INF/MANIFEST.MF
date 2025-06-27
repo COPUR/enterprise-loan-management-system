@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Implementation-Title: Enterprise Loan Management System
+Implementation-Version: 1.0.0
+Implementation-Vendor: Banking Solutions Inc.
+Built-By: root
+Built-Date: 2025-06-27 09:55:26
+Built-JDK: 23.0.1
+Built-Gradle: 8.11.1
+Spring-Boot-Version: 3.3.6
+Main-Class: org.springframework.boot.loader.launch.JarLauncher
+Start-Class: com.bank.loanmanagement.LoanManagementApplication
+Spring-Boot-Classes: BOOT-INF/classes/
+Spring-Boot-Lib: BOOT-INF/lib/
+Spring-Boot-Classpath-Index: BOOT-INF/classpath.idx
+Spring-Boot-Layers-Index: BOOT-INF/layers.idx
+Build-Jdk-Spec: 21
+

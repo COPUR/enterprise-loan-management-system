@@ -1,0 +1,109 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: enterprise-loan-management-minimal
+  
+  # Database Configuration - PostgreSQL
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5435/banking_enterprise}
+    username: ${DATABASE_USERNAME:banking_enterprise}
+    password: ${DATABASE_PASSWORD:enterprise_banking_pass_2024}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+  
+  # JPA Configuration - No Redis Cache
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        # Remove Redis cache configuration
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+  
+  # Disable Redis for minimal setup
+  data:
+    redis:
+      repositories:
+        enabled: false
+  
+  # Cache Configuration - Use Simple Cache
+  cache:
+    type: simple
+  
+  # Security Configuration - OAuth2 with Keycloak (fallback to simple if not available)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost:8091/realms/banking-enterprise}
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:http://localhost:8091/realms/banking-enterprise/protocol/openid_connect/certs}
+      client:
+        registration:
+          keycloak:
+            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_ID:banking-client}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET:banking-client-secret}
+            authorization-grant-type: authorization_code
+            redirect-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_REDIRECT_URI:http://localhost:8083/login/oauth2/code/keycloak}
+            scope: openid,profile,email
+        provider:
+          keycloak:
+            authorization-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI:http://localhost:8091/realms/banking-enterprise/protocol/openid_connect/auth}
+            token-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI:http://localhost:8091/realms/banking-enterprise/protocol/openid_connect/token}
+            user-info-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_USER_INFO_URI:http://localhost:8091/realms/banking-enterprise/protocol/openid_connect/userinfo}
+            jwk-set-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_JWK_SET_URI:http://localhost:8091/realms/banking-enterprise/protocol/openid_connect/certs}
+
+  # GraphQL Configuration
+  graphql:
+    graphiql:
+      enabled: true
+      path: /graphiql
+    path: /graphql
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /api/actuator
+  endpoint:
+    health:
+      show-details: always
+
+# Banking Business Configuration
+banking:
+  loan:
+    max-amount: ${LOAN_MAX_AMOUNT:10000000}
+    min-amount: 1000
+    max-installments: 60
+    min-installments: 6
+    default-interest-rate: 0.029
+  transaction:
+    daily-limit: ${TRANSACTION_DAILY_LIMIT:100000}
+
+# Logging Configuration
+logging:
+  level:
+    com.bank.loanmanagement: INFO
+    org.springframework.security: INFO
+    org.springframework.oauth2: WARN
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Application Information
+info:
+  app:
+    name: "Enterprise Loan Management System - Minimal"
+    description: "Enterprise Banking System with OAuth2.1 and PostgreSQL"
+    version: "1.0.0-enterprise-minimal"
