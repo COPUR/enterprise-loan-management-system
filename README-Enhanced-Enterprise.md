@@ -409,18 +409,6 @@ helm install jaeger jaegertracing/jaeger
 helm install grafana grafana/grafana
 ```
 
-## Support
-
-For enterprise support and licensing:
-- **Email**: enterprise-support@banking.com
-- **Phone**: +1-800-BANKING
-- **Portal**: https://support.banking.com
-- **Slack**: #enterprise-banking-support
-
-## License
-
-This project is licensed under the Enterprise Banking License - see the [LICENSE](LICENSE) file for details.
-
----
+--
 
 **Enterprise Banking System v2.0** - Powered by AI, Secured by Design, Compliant by Default
