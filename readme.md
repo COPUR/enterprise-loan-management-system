@@ -9,12 +9,93 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.6-green)](https://spring.io/projects/spring-boot)
 [![Keycloak](https://img.shields.io/badge/Keycloak-OAuth2.1-red)](https://www.keycloak.org/)
 [![Compliance](https://img.shields.io/badge/compliance-FAPI%20|%20PCI%20DSS%20|%20GDPR-yellow)](docs/compliance/compliance-overview.md)
+## Today's Banking with Tommorow's needs - business use case driven future proof architecture Implementation
+## Enterprise Loan Management SystemMore actions
+
+Today’s digital banking landscape requires systems that are not only scalable and secure, but also resilient, auditable, and future-proof by design.
+
+This Enterprise Loan Management System is engineered with a pure hexagonal architecture and founded on Domain-Driven Design (DDD) principles. The platform reflects a business use case-driven approach, enabling banking institutions to adapt with agility, maintain regulatory compliance, and accelerate delivery velocity without compromising architectural integrity.
 
 ## 🏛️ Next-Generation Banking Platform with Zero-Trust Security
 
 The **Enhanced Enterprise Banking System** represents the pinnacle of modern financial services architecture - a **secure microservices platform** built with **zero-trust security**, **OAuth 2.1 authentication**, and **Istio service mesh**. Designed for enterprise banking institutions that demand uncompromising security, regulatory compliance, and operational excellence.
 
 This platform transcends traditional banking systems by implementing a **secure-by-design architecture** that enforces security at every layer, from network communication to application logic, ensuring comprehensive protection of financial data and operations.
+
+## Current System Architecture
+
+### Security Architecture
+![Enhanced Enterprise Banking Security Architecture](docs/images/Enhanced%20Enterprise%20Banking%20Security%20Architecture.svg)
+
+### Hexagonal Architecture with DDD
+![Enhanced Enterprise Banking Hexagonal Architecture](docs/images/Enhanced%20Enterprise%20Banking%20-%20Hexagonal%20Architecture.svg)
+
+### Service Mesh Architecture
+![Enhanced Enterprise Banking Service Mesh Architecture](docs/images/Enhanced%20Enterprise%20Banking%20-%20Service%20Mesh%20Architecture.svg)
+
+### Core Design Principles
+
+- **Architectural Discipline**  
+  Six major business domains have been refactored into a hexagonal structure. The domain layer remains infrastructure-agnostic and aligns directly with core banking logic.
+
+- **Business Fidelity**  
+  Aggregates such as `Loan`, `Party`, `Customer`, and `Installment` are implemented without JPA contamination. Domain logic is preserved and fully auditable.
+
+- **Audit and Eventing**  
+  Eight domain events capture all critical business actions, enabling real-time tracking and auditability for operational and regulatory transparency.
+
+- **Security and Compliance**  
+  The platform integrates OAuth 2.1 and FAPI 1.0 Advanced, and adheres to OWASP security practices. It supports compliance frameworks including PCI DSS, GDPR, and other industry standards.
+
+- **Cloud-Native Deployment**  
+  The system supports modern deployment practices including Docker multi-stage builds, Kubernetes orchestration, and automated CI/CD pipelines.
+
+This is not a conventional digital banking system. It is a composable architecture designed to accelerate transformation initiatives, reduce regulatory risk, and minimize long-term technical debt.
+
+### Business Outcomes
+
+The Enterprise Loan Management System is designed to align with strategic business goals and deliver measurable outcomes:
+
+- Faster time-to-market for loan product launches  
+- Lower regulatory and operational risk through event-based audit trails  
+- Reduced maintenance overhead due to clean domain isolation  
+
+The platform offers long-term viability and readiness for evolving regulatory and business requirements.
+
+### Capability Matrix
+
+| Capability                      | Description                                                                 |
+|---------------------------------|-----------------------------------------------------------------------------|
+| Hexagonal Architecture          | Clean separation of domain, application, and infrastructure concerns        |
+| Domain-Driven Design            | Six bounded contexts with aggregate roots, immutable value objects, and events |
+| OAuth 2.1 with FAPI 1.0         | Secure identity management and financial-grade access control               |
+| Event-Driven Architecture       | Eight domain events enabling audit trails and service decoupling            |
+| Cloud-Native Microservices      | Spring Boot microservices with Docker, Kubernetes, Redis, Kafka, PostgreSQL |
+| Zero Trust Security             | OWASP Top 10 protection, runtime validation, and principle of least privilege |
+| Production-Ready DevOps         | Multi-stage Docker builds, Helm-based deployment, and over 88 automated tests |
+| Compliance Infrastructure       | Readiness for PCI DSS, SOX, GDPR, and Basel III standards                   |
+
+### **Architectural Transformation Achieved**
+- **6 Major Domain Contexts** completely cleaned and refactored to hexagonal architecture
+- **Pure domain logic** in Loan aggregate with zero JPA contamination
+- **8 comprehensive domain events** for complete business process tracking
+- **Factory method patterns** for controlled domain object creation
+- **Value object immutability** and defensive programming throughout
+- **Port/Adapter separation** with clean persistence abstraction
+
+### Core Capabilities - Enterprise Banking Excellence
+
+- **Hexagonal Architecture Implementation**: Pure domain models with complete separation of business logic from infrastructure concerns
+- **Domain-Driven Design Mastery**: 6 bounded contexts with clean aggregate roots, value objects, and domain events
+- **Factory Method Patterns**: Controlled domain object creation with comprehensive business rule enforcement
+- **Event-Driven Architecture**: 8 comprehensive domain events enabling loose coupling and audit trail
+- **OAuth2.1 Authentication Framework**: Enterprise identity and access management with FAPI 1.0 Advanced compliance
+- **Regulatory Compliance Infrastructure**: PCI DSS, SOX, GDPR, and Basel III frameworks with automated monitoring
+- **Cloud-Native Microservices Platform**: Kubernetes-orchestrated architecture with comprehensive testing (88 tests)
+- **Enterprise Audit Infrastructure**: Immutable audit trail with real-time compliance reporting
+- **Production-Ready Deployment**: Docker multi-stage builds, Kubernetes manifests, and end-to-end testing
+- **Zero-Trust Security Model**: OWASP Top 10 protection with continuous security validation
+
 
 ---
 
