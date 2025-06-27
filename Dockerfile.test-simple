@@ -1,0 +1,166 @@
+# Simplified Enhanced Enterprise Banking System Docker for Testing
+# Test version without complex build dependencies
+
+# ============================================================================
+# Stage 1: Build Environment (Simplified)
+# ============================================================================
+FROM gradle:8.11.1-jdk21-alpine AS builder
+
+# Enhanced metadata
+LABEL maintainer="Enterprise Banking Team <team@banking.com>"
+LABEL version="2.0.0-test"
+LABEL description="Enhanced Enterprise Banking System - Test Build"
+
+# Security hardening
+RUN apk update && apk upgrade \
+    && apk add --no-cache \
+        curl \
+        git \
+        ca-certificates \
+    && update-ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+WORKDIR /app
+
+# Copy Gradle configuration
+COPY gradle/ gradle/
+COPY gradlew build.gradle settings.gradle ./
+RUN chmod +x gradlew
+
+# Download dependencies
+RUN ./gradlew dependencies --no-daemon --quiet
+
+# Copy source code
+COPY src/ src/
+COPY docker/ docker/
+
+# Build application (simplified without tests)
+RUN ./gradlew clean bootJar \
+    --no-daemon \
+    --build-cache \
+    -x test \
+    && cp build/libs/enterprise-loan-management-system.jar app.jar \
+    && echo "Enhanced Enterprise Banking System Build Complete" \
+    && ls -la build/libs/
+
+# Extract layers for Docker caching
+RUN java -Djarmode=layertools -jar app.jar extract --destination extracted/
+
+# Generate build metadata
+RUN echo "build.version=2.0.0-test" > build-info.properties \
+    && echo "build.time=$(date)" >> build-info.properties \
+    && echo "build.java.version=$(java -version 2>&1 | head -n 1)" >> build-info.properties
+
+# ============================================================================
+# Stage 2: Runtime Environment (Enhanced)
+# ============================================================================
+FROM eclipse-temurin:21-jre-alpine AS runtime
+
+# Install required packages
+RUN apk update && apk upgrade \
+    && apk add --no-cache \
+        curl \
+        ca-certificates \
+        tzdata \
+        dumb-init \
+        jq \
+        bash \
+    && update-ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Create banking user
+RUN addgroup -S banking \
+    && adduser -S -G banking -u 1000 -h /app -s /bin/false banking \
+    && mkdir -p /app/logs /app/config /app/tmp \
+    && chown -R banking:banking /app
+
+WORKDIR /app
+
+# Copy layered application
+COPY --from=builder --chown=banking:banking /app/extracted/dependencies/ ./
+COPY --from=builder --chown=banking:banking /app/extracted/spring-boot-loader/ ./
+COPY --from=builder --chown=banking:banking /app/extracted/application-dependencies/ ./
+COPY --from=builder --chown=banking:banking /app/extracted/application/ ./
+
+# Copy build metadata and scripts
+COPY --from=builder --chown=banking:banking /app/build-info.properties ./
+COPY --chown=banking:banking docker/enhanced-entrypoint.sh /app/entrypoint.sh
+COPY --chown=banking:banking docker/enhanced-healthcheck.sh /app/healthcheck.sh
+
+# Set executable permissions
+RUN chmod +x /app/entrypoint.sh /app/healthcheck.sh
+
+# Switch to banking user
+USER banking
+
+# Expose ports
+EXPOSE 8080 8081
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+    CMD /app/healthcheck.sh || exit 1
+
+# Enhanced JVM configuration
+ENV JAVA_OPTS="\
+    -server \
+    -XX:+UseG1GC \
+    -XX:MaxGCPauseMillis=200 \
+    -XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=75.0 \
+    -Dspring.profiles.active=production \
+    -Dfile.encoding=UTF-8 \
+    -Duser.timezone=UTC"
+
+# Banking environment variables
+ENV SERVER_PORT=8080
+ENV SPRING_PROFILES_ACTIVE=production
+ENV APP_NAME="Enhanced Enterprise Banking System"
+ENV APP_VERSION="2.0.0-test"
+
+# Banking compliance
+ENV FAPI_ENABLED=true
+ENV BANKING_SECURITY_STRICT=true
+ENV ISLAMIC_BANKING_ENABLED=true
+ENV BIAN_COMPLIANCE_ENABLED=true
+
+# Volume declarations
+VOLUME ["/app/logs", "/app/config"]
+
+# Start application
+ENTRYPOINT ["/usr/bin/dumb-init", "--", "/app/entrypoint.sh"]
+CMD ["java", "-jar", "/app/BOOT-INF/lib/*:/app/BOOT-INF/classes", "com.bank.loanmanagement.LoanManagementApplication"]
+
+# ============================================================================
+# Stage 3: Development Environment
+# ============================================================================
+FROM builder AS development
+
+# Install development tools
+RUN apk add --no-cache \
+    postgresql-client \
+    redis \
+    curl \
+    vim \
+    bash
+
+# Development configuration
+ENV SPRING_PROFILES_ACTIVE=development,local
+ENV JAVA_OPTS="-XX:+UseG1GC -Xmx2g -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+
+# Expose debug ports
+EXPOSE 5005 8080 8081
+
+# Development health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Development entry point
+CMD ["./gradlew", "bootRun", "--no-daemon"]
+
+# Metadata
+LABEL org.opencontainers.image.title="Enhanced Enterprise Banking System - Test"
+LABEL org.opencontainers.image.description="Simplified test build for Docker validation"
+LABEL org.opencontainers.image.version="2.0.0-test"
+LABEL banking.compliance.fapi="true"
+LABEL banking.compliance.islamic="true"
+LABEL banking.architecture="ddd-hexagonal"

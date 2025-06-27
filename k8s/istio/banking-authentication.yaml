@@ -1,0 +1,248 @@
+# Enhanced Enterprise Banking System - Istio Authentication & Authorization
+# Zero-Trust Security with Keycloak OAuth 2.1 Integration
+
+# Banking Namespace with Istio Injection
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: banking-system
+  labels:
+    istio-injection: enabled
+    security.istio.io/tlsMode: istio
+---
+# RequestAuthentication for JWT Validation
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: banking-jwt-auth
+  namespace: banking-system
+spec:
+  selector:
+    matchLabels:
+      app: banking-service
+  jwtRules:
+  - issuer: "https://keycloak.banking.local/realms/banking-system"
+    jwksUri: "https://keycloak.banking.local/realms/banking-system/protocol/openid-connect/certs"
+    audiences:
+    - "banking-system-frontend"
+    - "banking-microservices"
+    outputPayloadToHeader: "x-jwt-payload"
+    forwardOriginalToken: true
+    fromHeaders:
+    - name: "Authorization"
+      prefix: "Bearer "
+    fromParams:
+    - "access_token"
+---
+# Authorization Policy for Role-Based Access Control
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: banking-rbac-policy
+  namespace: banking-system
+spec:
+  selector:
+    matchLabels:
+      app: banking-service
+  action: ALLOW
+  rules:
+  # Banking Admin Access
+  - from:
+    - source:
+        requestPrincipals: ["https://keycloak.banking.local/realms/banking-system/*"]
+    when:
+    - key: request.auth.claims[realm_access.roles]
+      values: ["banking-admin"]
+    to:
+    - operation:
+        paths: ["/api/admin/*", "/actuator/*"]
+  
+  # Banking Manager Access
+  - from:
+    - source:
+        requestPrincipals: ["https://keycloak.banking.local/realms/banking-system/*"]
+    when:
+    - key: request.auth.claims[realm_access.roles]
+      values: ["banking-manager", "banking-admin"]
+    to:
+    - operation:
+        paths: ["/api/loans/*", "/api/customers/*", "/api/reports/*"]
+  
+  # Banking Officer Access
+  - from:
+    - source:
+        requestPrincipals: ["https://keycloak.banking.local/realms/banking-system/*"]
+    when:
+    - key: request.auth.claims[realm_access.roles]
+      values: ["banking-officer", "banking-manager", "banking-admin"]
+    to:
+    - operation:
+        paths: ["/api/customers/*", "/api/transactions/*"]
+  
+  # Customer Access
+  - from:
+    - source:
+        requestPrincipals: ["https://keycloak.banking.local/realms/banking-system/*"]
+    when:
+    - key: request.auth.claims[realm_access.roles]
+      values: ["banking-customer"]
+    to:
+    - operation:
+        paths: ["/api/customer/profile", "/api/customer/accounts", "/api/customer/transactions"]
+    
+  # Health Check Access (No Authentication Required)
+  - to:
+    - operation:
+        paths: ["/actuator/health", "/actuator/info"]
+---
+# Service-to-Service Authentication
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: banking-service-auth
+  namespace: banking-system
+spec:
+  selector:
+    matchLabels:
+      type: banking-microservice
+  jwtRules:
+  - issuer: "https://keycloak.banking.local/realms/banking-system"
+    jwksUri: "https://keycloak.banking.local/realms/banking-system/protocol/openid-connect/certs"
+    audiences:
+    - "banking-microservices"
+    fromHeaders:
+    - name: "Authorization"
+      prefix: "Bearer "
+---
+# Service-to-Service Authorization
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: banking-service-to-service
+  namespace: banking-system
+spec:
+  selector:
+    matchLabels:
+      type: banking-microservice
+  action: ALLOW
+  rules:
+  # Allow service account authentication
+  - from:
+    - source:
+        principals: ["cluster.local/ns/banking-system/sa/banking-service-account"]
+  # Allow JWT-authenticated service calls
+  - from:
+    - source:
+        requestPrincipals: ["https://keycloak.banking.local/realms/banking-system/*"]
+    when:
+    - key: request.auth.claims[azp]
+      values: ["banking-microservices"]
+---
+# PeerAuthentication for mTLS
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: banking-mtls
+  namespace: banking-system
+spec:
+  selector:
+    matchLabels:
+      app: banking-service
+  mtls:
+    mode: STRICT
+---
+# Database Access Policy (mTLS Only)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: banking-db-access
+  namespace: banking-system
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/banking-system/sa/banking-service-account"]
+---
+# Audit and Compliance Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: banking-audit-policy
+  namespace: banking-system
+spec:
+  action: CUSTOM
+  provider:
+    name: "audit-logger"
+  rules:
+  - to:
+    - operation:
+        paths: ["/api/loans/*", "/api/payments/*", "/api/transfers/*"]
+  - when:
+    - key: request.auth.claims[realm_access.roles]
+      values: ["banking-admin", "banking-manager", "banking-officer"]
+---
+# FAPI Compliance Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: banking-fapi-policy
+  namespace: banking-system
+spec:
+  selector:
+    matchLabels:
+      fapi-compliant: "true"
+  action: ALLOW
+  rules:
+  - when:
+    - key: request.headers[x-fapi-financial-id]
+      values: ["enhanced-banking-system"]
+    - key: request.headers[x-fapi-customer-ip-address]
+      notValues: [""]
+    - key: request.headers[x-fapi-interaction-id]
+      notValues: [""]
+  - from:
+    - source:
+        requestPrincipals: ["https://keycloak.banking.local/realms/banking-system/*"]
+---
+# Rate Limiting Policy
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: banking-rate-limit
+  namespace: banking-system
+spec:
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.local_ratelimit
+        typed_config:
+          "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+          type_url: type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+          value:
+            stat_prefix: banking_rate_limiter
+            token_bucket:
+              max_tokens: 100
+              tokens_per_fill: 10
+              fill_interval: 60s
+            filter_enabled:
+              runtime_key: rate_limit_enabled
+              default_value:
+                numerator: 100
+                denominator: HUNDRED
+            filter_enforced:
+              runtime_key: rate_limit_enforced
+              default_value:
+                numerator: 100
+                denominator: HUNDRED
