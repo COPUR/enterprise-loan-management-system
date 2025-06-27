@@ -1,0 +1,245 @@
+@startuml "OAuth 2.1 Authorization Code Flow with PKCE"
+
+title Enhanced Enterprise Banking System - OAuth 2.1 Authorization Code Flow with PKCE
+
+skinparam backgroundColor #f8f9fa
+skinparam shadowing false
+
+participant "Banking Client\n(Web/Mobile)" as Client
+participant "Istio Ingress\nGateway" as Gateway
+participant "OAuth2 Proxy" as Proxy
+participant "Keycloak\nOAuth 2.1 Server" as Keycloak
+participant "Banking\nMicroservice" as Service
+participant "Envoy\nSidecar" as Envoy
+
+note over Client : **PKCE Setup**\ncode_verifier = random(43-128 chars)\ncode_challenge = SHA256(code_verifier)\ncode_challenge_method = "S256"
+
+== Initial Access Attempt ==
+
+Client -> Gateway : **1. GET /api/customers**\nNo Authorization header
+activate Gateway
+
+Gateway -> Proxy : **2. Check Authentication**
+activate Proxy
+
+Proxy -> Proxy : **3. No valid session found**
+
+Proxy -> Client : **4. HTTP 302 Redirect**\nLocation: /oauth2/start?rd=/api/customers
+deactivate Proxy
+deactivate Gateway
+
+== OAuth 2.1 Authorization Request ==
+
+Client -> Gateway : **5. GET /oauth2/start**
+activate Gateway
+
+Gateway -> Proxy : **6. Start OAuth flow**
+activate Proxy
+
+Proxy -> Client : **7. HTTP 302 Redirect to Keycloak**\nLocation: https://keycloak.banking.local/realms/banking-system/protocol/openid-connect/auth?\n  response_type=code&\n  client_id=banking-system-frontend&\n  redirect_uri=https://api.banking.local/oauth2/callback&\n  scope=openid profile banking:read banking:write&\n  state=random_state_value&\n  code_challenge=SHA256_hash&\n  code_challenge_method=S256&\n  x-fapi-financial-id=bank-001
+deactivate Proxy
+deactivate Gateway
+
+== User Authentication at Keycloak ==
+
+Client -> Keycloak : **8. Authorization Request**\nwith PKCE challenge
+activate Keycloak
+
+Keycloak -> Keycloak : **9. Present Login Form**
+note right : **FAPI Requirements:**\n• Strong customer authentication\n• Multi-factor authentication\n• Risk-based authentication
+
+Client -> Keycloak : **10. User Credentials + MFA**\nusername, password, OTP/SMS
+
+Keycloak -> Keycloak : **11. Authenticate User**\nValidate credentials and MFA
+
+Keycloak -> Keycloak : **12. User Consent**\nnote right : Display requested scopes:\n• Customer data access\n• Account information\n• Transaction history
+
+Client -> Keycloak : **13. Grant Consent**
+
+Keycloak -> Client : **14. HTTP 302 Redirect with Code**\nLocation: https://api.banking.local/oauth2/callback?\n  code=authorization_code&\n  state=random_state_value
+
+deactivate Keycloak
+
+== Token Exchange ==
+
+Client -> Gateway : **15. GET /oauth2/callback**\nwith authorization code
+activate Gateway
+
+Gateway -> Proxy : **16. Handle callback**
+activate Proxy
+
+Proxy -> Proxy : **17. Validate state parameter**
+
+Proxy -> Keycloak : **18. POST /token**\ngrant_type=authorization_code&\ncode=authorization_code&\nredirect_uri=https://api.banking.local/oauth2/callback&\nclient_id=banking-system-frontend&\ncode_verifier=original_code_verifier
+activate Keycloak
+
+Keycloak -> Keycloak : **19. Validate PKCE**\nVerify: SHA256(code_verifier) == code_challenge
+
+Keycloak -> Keycloak : **20. Validate Authorization Code**
+
+Keycloak -> Proxy : **21. Token Response**\n{\n  "access_token": "JWT_ACCESS_TOKEN",\n  "token_type": "Bearer",\n  "expires_in": 300,\n  "refresh_token": "REFRESH_TOKEN",\n  "scope": "openid profile banking:read banking:write",\n  "id_token": "JWT_ID_TOKEN"\n}
+deactivate Keycloak
+
+Proxy -> Proxy : **22. Create Session**\nStore tokens securely
+
+Proxy -> Client : **23. HTTP 302 Redirect**\nLocation: /api/customers\nSet-Cookie: session_cookie
+deactivate Proxy
+deactivate Gateway
+
+== Authenticated API Request ==
+
+Client -> Gateway : **24. GET /api/customers**\nCookie: session_cookie
+activate Gateway
+
+Gateway -> Proxy : **25. Check Authentication**
+activate Proxy
+
+Proxy -> Proxy : **26. Validate Session**\nRetrieve stored JWT token
+
+Proxy -> Gateway : **27. Add Authorization Header**\nAuthorization: Bearer JWT_ACCESS_TOKEN\nx-fapi-financial-id: bank-001\nx-fapi-interaction-id: unique-request-id
+deactivate Proxy
+
+Gateway -> Envoy : **28. Forward Request**\nwith JWT token
+activate Envoy
+
+Envoy -> Envoy : **29. JWT Validation**\n• Verify signature with Keycloak JWKS\n• Check expiration\n• Validate audience\n• Extract claims (roles, scopes)
+
+Envoy -> Service : **30. Authorized Request**\nwith validated user context
+activate Service
+
+Service -> Service : **31. Business Logic**\n• Check user permissions\n• Apply business rules\n• Access customer data
+
+Service -> Envoy : **32. Response Data**\n{\n  "customers": [...],\n  "fapi-interaction-id": "unique-request-id"\n}
+deactivate Service
+
+Envoy -> Gateway : **33. Response with Headers**\nx-fapi-interaction-id: unique-request-id
+deactivate Envoy
+
+Gateway -> Client : **34. Final Response**\nCustomer data with compliance headers
+deactivate Gateway
+
+== Token Refresh (when access token expires) ==
+
+note over Client : **Access token expires after 5 minutes**
+
+Client -> Gateway : **35. API Request**\nwith expired token
+activate Gateway
+
+Gateway -> Proxy : **36. Token expired**
+activate Proxy
+
+Proxy -> Keycloak : **37. POST /token (Refresh)**\ngrant_type=refresh_token&\nrefresh_token=REFRESH_TOKEN&\nclient_id=banking-system-frontend
+activate Keycloak
+
+Keycloak -> Proxy : **38. New Token Response**\n{\n  "access_token": "NEW_JWT_ACCESS_TOKEN",\n  "token_type": "Bearer",\n  "expires_in": 300,\n  "refresh_token": "NEW_REFRESH_TOKEN"\n}
+deactivate Keycloak
+
+Proxy -> Proxy : **39. Update Session**\nStore new tokens
+
+Proxy -> Gateway : **40. Retry with New Token**\nAuthorization: Bearer NEW_JWT_ACCESS_TOKEN
+deactivate Proxy
+
+Gateway -> Envoy : **41. Forward Request**
+activate Envoy
+
+Envoy -> Service : **42. Process Request**
+activate Service
+
+Service -> Envoy : **43. Response**
+deactivate Service
+
+Envoy -> Gateway : **44. Response**
+deactivate Envoy
+
+Gateway -> Client : **45. Successful Response**
+deactivate Gateway
+
+== Exception Handling Scenarios ==
+
+note over Client, Service : **Exception Case 1: Invalid Credentials**
+
+Client -> Keycloak : **E1. Invalid Credentials**\nwrong username/password
+
+Keycloak -> Client : **E2. HTTP 401 Unauthorized**\n{\n  "error": "invalid_grant",\n  "error_description": "Invalid credentials"\n}
+
+note over Client, Service : **Exception Case 2: Insufficient Permissions**
+
+Client -> Gateway : **E3. API Request**\nwith valid token but wrong role
+activate Gateway
+
+Gateway -> Envoy : **E4. Forward Request**
+activate Envoy
+
+Envoy -> Envoy : **E5. Authorization Check**\nJWT valid but insufficient permissions
+
+Envoy -> Gateway : **E6. HTTP 403 Forbidden**\n{\n  "error": "insufficient_scope",\n  "error_description": "Insufficient permissions for banking operation"\n}
+deactivate Envoy
+
+Gateway -> Client : **E7. Access Denied**
+deactivate Gateway
+
+note over Client, Service : **Exception Case 3: Service Unavailable**
+
+Client -> Gateway : **E8. API Request**\nwith valid token
+activate Gateway
+
+Gateway -> Envoy : **E9. Forward Request**
+activate Envoy
+
+Envoy -> Service : **E10. Service Request**
+activate Service
+
+Service -> Service : **E11. Internal Error**\nDatabase connection failure
+
+Service -> Envoy : **E12. HTTP 503 Service Unavailable**\n{\n  "error": "service_unavailable",\n  "error_description": "Banking service temporarily unavailable",\n  "retry_after": 30\n}
+deactivate Service
+
+Envoy -> Gateway : **E13. Circuit Breaker**\nActivate circuit breaker
+deactivate Envoy
+
+Gateway -> Client : **E14. Service Unavailable**\nwith retry instructions
+deactivate Gateway
+
+note over Client, Service : **Exception Case 4: Token Validation Failure**
+
+Client -> Gateway : **E15. API Request**\nwith malformed JWT token
+activate Gateway
+
+Gateway -> Envoy : **E16. Forward Request**
+activate Envoy
+
+Envoy -> Envoy : **E17. JWT Validation**\nToken signature verification fails
+
+Envoy -> Gateway : **E18. HTTP 401 Unauthorized**\n{\n  "error": "invalid_token",\n  "error_description": "JWT signature verification failed"\n}
+deactivate Envoy
+
+Gateway -> Client : **E19. Authentication Required**
+deactivate Gateway
+
+note over Client, Service : **Exception Case 5: Rate Limiting**
+
+Client -> Gateway : **E20. Excessive Requests**\nBeyond rate limit
+activate Gateway
+
+Gateway -> Gateway : **E21. Rate Limit Check**\nToo many requests from client
+
+Gateway -> Client : **E22. HTTP 429 Too Many Requests**\n{\n  "error": "rate_limit_exceeded",\n  "error_description": "Rate limit exceeded for banking operations",\n  "retry_after": 60\n}
+deactivate Gateway
+
+note over Client, Service : **Exception Case 6: FAPI Compliance Violation**
+
+Client -> Gateway : **E23. API Request**\nMissing required FAPI headers
+activate Gateway
+
+Gateway -> Proxy : **E24. FAPI Validation**
+activate Proxy
+
+Proxy -> Proxy : **E25. Header Check**\nMissing x-fapi-financial-id
+
+Proxy -> Client : **E26. HTTP 400 Bad Request**\n{\n  "error": "invalid_request",\n  "error_description": "Missing required FAPI headers",\n  "required_headers": ["x-fapi-financial-id", "x-fapi-interaction-id"]\n}
+deactivate Proxy
+deactivate Gateway
+
+note over Client, Service : **Security Features Implemented:**\n• PKCE prevents authorization code interception\n• Short-lived access tokens (5 minutes)\n• Refresh token rotation\n• mTLS between all services\n• JWT signature validation at mesh level\n• FAPI compliance headers\n• Comprehensive audit logging
+
+@enduml
