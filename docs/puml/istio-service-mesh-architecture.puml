@@ -1,0 +1,285 @@
+@startuml "Istio Service Mesh Zero-Trust Architecture"
+!define RECTANGLE class
+
+title Enhanced Enterprise Banking System - Istio Service Mesh Zero-Trust Architecture
+
+skinparam backgroundColor #f8f9fa
+skinparam shadowing false
+skinparam rectangle {
+    BackgroundColor #ffffff
+    BorderColor #dee2e6
+    RoundCorner 10
+}
+
+skinparam cloud {
+    BackgroundColor #e3f2fd
+    BorderColor #1976d2
+}
+
+skinparam package {
+    BackgroundColor #f5f5f5
+    BorderColor #9e9e9e
+}
+
+' External traffic
+cloud "Internet" {
+    rectangle "Client Applications" as Clients {
+        rectangle "Web Frontend" as WebApp
+        rectangle "Mobile App" as MobileApp
+        rectangle "Third-party APIs" as ThirdParty
+    }
+}
+
+package "Istio Control Plane" #e8f5e8 {
+    rectangle "Istiod" as Istiod {
+        rectangle "Pilot\n(Traffic Management)" as Pilot
+        rectangle "Citadel\n(Security)" as Citadel
+        rectangle "Galley\n(Configuration)" as Galley
+    }
+}
+
+package "Istio Data Plane" #fff3e0 {
+    rectangle "Istio Ingress Gateway" as IngressGW {
+        rectangle "Envoy Proxy" as IngressEnvoy
+        note right : • TLS 1.3 termination\n• OAuth2 Proxy integration\n• Rate limiting\n• Request validation
+    }
+    
+    rectangle "Istio Egress Gateway" as EgressGW {
+        rectangle "Envoy Proxy" as EgressEnvoy
+        note right : • External API calls\n• Certificate validation\n• Audit logging
+    }
+}
+
+package "Banking System Namespace" #f3e5f5 {
+    
+    package "Customer Domain" #e1f5fe {
+        rectangle "Customer Service" as CustomerSvc {
+            rectangle "Application" as CustomerApp
+            rectangle "Envoy Sidecar" as CustomerEnvoy
+        }
+    }
+    
+    package "Loan Domain" #e8f5e8 {
+        rectangle "Loan Service" as LoanSvc {
+            rectangle "Application" as LoanApp
+            rectangle "Envoy Sidecar" as LoanEnvoy
+        }
+    }
+    
+    package "Payment Domain" #fff9c4 {
+        rectangle "Payment Service" as PaymentSvc {
+            rectangle "Application" as PaymentApp
+            rectangle "Envoy Sidecar" as PaymentEnvoy
+        }
+    }
+    
+    package "Risk Domain" #fce4ec {
+        rectangle "Risk Service" as RiskSvc {
+            rectangle "Application" as RiskApp
+            rectangle "Envoy Sidecar" as RiskEnvoy
+        }
+    }
+    
+    package "Audit Domain" #f1f8e9 {
+        rectangle "Audit Service" as AuditSvc {
+            rectangle "Application" as AuditApp
+            rectangle "Envoy Sidecar" as AuditEnvoy
+        }
+    }
+}
+
+package "Security Components" #ffebee {
+    rectangle "Keycloak OAuth 2.1" as Keycloak {
+        rectangle "Banking Realm" as Realm
+        rectangle "RBAC Policies" as RBAC
+    }
+    
+    rectangle "OAuth2 Proxy" as OAuth2Proxy {
+        note right : • Authorization Code Flow\n• PKCE validation\n• Token refresh\n• Session management
+    }
+}
+
+package "Data Layer" #e8eaf6 {
+    rectangle "PostgreSQL Primary" as PostgreSQLPrimary {
+        rectangle "Envoy Sidecar" as DBEnvoy1
+    }
+    
+    rectangle "PostgreSQL Replica" as PostgreSQLReplica {
+        rectangle "Envoy Sidecar" as DBEnvoy2
+    }
+    
+    rectangle "Redis Cluster" as Redis {
+        rectangle "Envoy Sidecar" as RedisEnvoy
+    }
+    
+    rectangle "Apache Kafka" as Kafka {
+        rectangle "Envoy Sidecar" as KafkaEnvoy
+    }
+}
+
+package "Observability Stack" #e0f2f1 {
+    rectangle "Prometheus" as Prometheus {
+        rectangle "Envoy Sidecar" as PrometheusEnvoy
+    }
+    
+    rectangle "Grafana" as Grafana {
+        rectangle "Envoy Sidecar" as GrafanaEnvoy
+    }
+    
+    rectangle "Jaeger" as Jaeger {
+        rectangle "Envoy Sidecar" as JaegerEnvoy
+    }
+    
+    rectangle "Elasticsearch" as Elasticsearch {
+        rectangle "Envoy Sidecar" as ESEnvoy
+    }
+}
+
+' Control plane connections
+Istiod --> CustomerEnvoy : "Configuration\nSecurity Policies"
+Istiod --> LoanEnvoy : "Configuration\nSecurity Policies"
+Istiod --> PaymentEnvoy : "Configuration\nSecurity Policies"
+Istiod --> RiskEnvoy : "Configuration\nSecurity Policies"
+Istiod --> AuditEnvoy : "Configuration\nSecurity Policies"
+Istiod --> IngressEnvoy : "Configuration\nSecurity Policies"
+Istiod --> EgressEnvoy : "Configuration\nSecurity Policies"
+
+' External traffic flow
+Clients --> IngressGW : "HTTPS/TLS 1.3"
+IngressGW --> OAuth2Proxy : "Authentication Check"
+OAuth2Proxy --> Keycloak : "OAuth 2.1 Flow"
+
+' Authenticated traffic routing
+IngressGW --> CustomerEnvoy : "Authenticated Requests\n(mTLS)"
+IngressGW --> LoanEnvoy : "Authenticated Requests\n(mTLS)"
+IngressGW --> PaymentEnvoy : "Authenticated Requests\n(mTLS)"
+IngressGW --> RiskEnvoy : "Authenticated Requests\n(mTLS)"
+IngressGW --> AuditEnvoy : "Authenticated Requests\n(mTLS)"
+
+' Inter-service communication (all mTLS)
+CustomerEnvoy <==> LoanEnvoy : "mTLS\nJWT Validation"
+LoanEnvoy <==> PaymentEnvoy : "mTLS\nJWT Validation"
+PaymentEnvoy <==> RiskEnvoy : "mTLS\nJWT Validation"
+CustomerEnvoy <==> AuditEnvoy : "mTLS\nJWT Validation"
+LoanEnvoy <==> AuditEnvoy : "mTLS\nJWT Validation"
+PaymentEnvoy <==> AuditEnvoy : "mTLS\nJWT Validation"
+RiskEnvoy <==> AuditEnvoy : "mTLS\nJWT Validation"
+
+' Database connections
+CustomerEnvoy --> DBEnvoy1 : "mTLS\nCustomer Data"
+LoanEnvoy --> DBEnvoy1 : "mTLS\nLoan Data"
+PaymentEnvoy --> RedisEnvoy : "mTLS\nPayment Cache"
+RiskEnvoy --> DBEnvoy2 : "mTLS\nRisk Data"
+AuditEnvoy --> DBEnvoy1 : "mTLS\nAudit Logs"
+
+' Event streaming
+CustomerEnvoy --> KafkaEnvoy : "mTLS\nCustomer Events"
+LoanEnvoy --> KafkaEnvoy : "mTLS\nLoan Events"
+PaymentEnvoy --> KafkaEnvoy : "mTLS\nPayment Events"
+RiskEnvoy --> KafkaEnvoy : "mTLS\nRisk Events"
+AuditEnvoy --> KafkaEnvoy : "mTLS\nCompliance Events"
+
+' Observability connections
+CustomerEnvoy --> PrometheusEnvoy : "Metrics\n(mTLS)"
+LoanEnvoy --> PrometheusEnvoy : "Metrics\n(mTLS)"
+PaymentEnvoy --> PrometheusEnvoy : "Metrics\n(mTLS)"
+RiskEnvoy --> PrometheusEnvoy : "Metrics\n(mTLS)"
+AuditEnvoy --> PrometheusEnvoy : "Metrics\n(mTLS)"
+
+PrometheusEnvoy --> GrafanaEnvoy : "Dashboard Data\n(mTLS)"
+CustomerEnvoy --> JaegerEnvoy : "Traces\n(mTLS)"
+LoanEnvoy --> JaegerEnvoy : "Traces\n(mTLS)"
+PaymentEnvoy --> JaegerEnvoy : "Traces\n(mTLS)"
+RiskEnvoy --> JaegerEnvoy : "Traces\n(mTLS)"
+AuditEnvoy --> JaegerEnvoy : "Traces\n(mTLS)"
+
+AuditEnvoy --> ESEnvoy : "Logs\n(mTLS)"
+
+' External API calls
+PaymentEnvoy --> EgressGW : "External Payment\nGateways"
+RiskEnvoy --> EgressGW : "Credit Bureau\nAPIs"
+CustomerEnvoy --> EgressGW : "KYC/AML\nServices"
+
+note top of Istiod : **Istio Control Plane:**\n• Certificate management\n• Traffic policies\n• Security policies\n• Telemetry configuration
+
+note top of IngressGW : **Zero-Trust Ingress:**\n• All traffic authenticated\n• TLS 1.3 termination\n• Rate limiting per client\n• Geographic restrictions
+
+note bottom of CustomerEnvoy : **Envoy Sidecar Features:**\n• mTLS enforcement\n• JWT token validation\n• Circuit breaking\n• Retry policies\n• Load balancing\n• Metrics collection\n• Distributed tracing
+
+note bottom of DBEnvoy1 : **Database Security:**\n• mTLS to databases\n• Connection pooling\n• Query monitoring\n• Access logging
+
+note right of OAuth2Proxy : **Security Policies:**\n• RequestAuthentication\n• AuthorizationPolicy\n• PeerAuthentication\n• SecurityPolicy
+
+' Exception Handling Components
+package "Exception Handling & Resilience" #ffebee {
+    rectangle "Circuit Breakers" as CB {
+        note right : • Fail-fast on service degradation\n• Automatic recovery detection\n• Cascading failure prevention
+    }
+    
+    rectangle "Rate Limiters" as RL {
+        note right : • Per-client request limiting\n• Burst traffic protection\n• Fair resource allocation
+    }
+    
+    rectangle "Retry Policies" as RP {
+        note right : • Exponential backoff\n• Jitter for thundering herd\n• Maximum retry attempts
+    }
+    
+    rectangle "Timeout Management" as TM {
+        note right : • Request timeout enforcement\n• Streaming timeout handling\n• Connection timeout management
+    }
+    
+    rectangle "Health Checks" as HC {
+        note right : • Liveness probes\n• Readiness probes\n• Custom health endpoints
+    }
+}
+
+' Exception flow connections
+Gateway --> CB : "Circuit breaker activation"
+CB --> RL : "Rate limiting coordination"
+RL --> RP : "Retry policy enforcement"
+RP --> TM : "Timeout management"
+TM --> HC : "Health check validation"
+
+' Exception scenarios
+note top of CB : **Exception Scenarios:**\n• Service degradation detection\n• Cascading failure prevention\n• Automatic traffic shifting\n• Graceful service recovery
+
+' Error handling flows
+CustomerEnvoy -.-> CB : "Service health monitoring"
+LoanEnvoy -.-> RL : "Rate limit enforcement"
+PaymentEnvoy -.-> RP : "Failed request retries"
+RiskEnvoy -.-> TM : "Request timeout handling"
+AuditEnvoy -.-> HC : "Health status reporting"
+
+' Failure scenarios
+note as FailureScenario1
+**Failure Scenario 1: Database Connection Lost**
+1. Service detects database failure
+2. Circuit breaker opens
+3. Fallback to cached data
+4. Client receives degraded response
+5. Automatic recovery when DB restored
+end note
+
+note as FailureScenario2
+**Failure Scenario 2: Service Overload**
+1. Rate limiter detects traffic spike
+2. Requests queued with backpressure
+3. Circuit breaker prevents overload
+4. Load balancer redirects traffic
+5. Auto-scaling triggers new instances
+end note
+
+note as FailureScenario3
+**Failure Scenario 3: Network Partition**
+1. Service mesh detects partition
+2. Isolate affected service zone
+3. Reroute traffic to healthy zones
+4. Maintain service availability
+5. Restore traffic when partition heals
+end note
+
+FailureScenario1 .. CustomerEnvoy
+FailureScenario2 .. LoanEnvoy
+FailureScenario3 .. PaymentEnvoy
+
+@enduml

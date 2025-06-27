@@ -1,0 +1,459 @@
+@startuml "Secure Microservices Architecture Overview"
+
+title Enhanced Enterprise Banking System - Secure Microservices Architecture Overview
+
+skinparam backgroundColor #f8f9fa
+skinparam shadowing false
+skinparam rectangle {
+    BackgroundColor #ffffff
+    BorderColor #dee2e6
+    RoundCorner 10
+}
+
+!define SECURITY_COLOR #ffebee
+!define BANKING_COLOR #f3e5f5
+!define DATA_COLOR #e8eaf6
+!define INFRA_COLOR #e0f2f1
+
+' External actors
+actor "Banking Customers" as Customers
+actor "Banking Officers" as Officers
+actor "System Administrators" as Admins
+actor "External Partners" as Partners
+
+' Security perimeter
+package "Security Perimeter" <<Cloud>> {
+    rectangle "Internet Gateway" as IGW {
+        note right : • DDoS protection\n• Geographic filtering\n• SSL termination
+    }
+    
+    rectangle "Web Application Firewall" as WAF {
+        note right : • OWASP Top 10 protection\n• SQL injection prevention\n• XSS filtering
+    }
+}
+
+' Istio service mesh
+package "Istio Service Mesh" SECURITY_COLOR {
+    
+    package "Ingress Layer" {
+        rectangle "Istio Ingress Gateway" as IngressGW {
+            rectangle "Envoy Proxy" as IngressEnvoy
+            rectangle "OAuth2 Proxy" as OAuth2Proxy
+        }
+        
+        note top of IngressGW : **Zero-Trust Ingress:**\n• TLS 1.3 termination\n• Authentication enforcement\n• Rate limiting\n• Request validation
+    }
+    
+    package "Security Services" {
+        rectangle "Keycloak OAuth 2.1" as Keycloak {
+            rectangle "Banking Realm" as Realm {
+                rectangle "Users & Groups" as Users
+                rectangle "Roles & Permissions" as Roles
+                rectangle "Clients & Scopes" as Clients
+            }
+        }
+        
+        rectangle "Policy Engine" as PolicyEngine {
+            note right : • RBAC policies\n• ABAC rules\n• Compliance checks
+        }
+    }
+}
+
+' Banking application layer
+package "Banking Application Layer" BANKING_COLOR {
+    
+    package "Customer Domain" {
+        rectangle "Customer Service" as CustomerSvc {
+            rectangle "REST API" as CustomerAPI
+            rectangle "GraphQL API" as CustomerGraphQL
+            rectangle "Envoy Sidecar" as CustomerEnvoy
+        }
+        
+        rectangle "KYC/AML Service" as KYCSvc {
+            rectangle "Identity Verification" as IDVerify
+            rectangle "Risk Scoring" as RiskScore
+            rectangle "Envoy Sidecar" as KYCEnvoy
+        }
+    }
+    
+    package "Loan Domain" {
+        rectangle "Loan Service" as LoanSvc {
+            rectangle "Application Processing" as LoanApp
+            rectangle "Underwriting Engine" as Underwriting
+            rectangle "Envoy Sidecar" as LoanEnvoy
+        }
+        
+        rectangle "Credit Assessment" as CreditSvc {
+            rectangle "Credit Scoring" as CreditScore
+            rectangle "Risk Analysis" as RiskAnalysis
+            rectangle "Envoy Sidecar" as CreditEnvoy
+        }
+    }
+    
+    package "Payment Domain" {
+        rectangle "Payment Service" as PaymentSvc {
+            rectangle "Payment Processing" as PaymentProc
+            rectangle "Settlement Engine" as Settlement
+            rectangle "Envoy Sidecar" as PaymentEnvoy
+        }
+        
+        rectangle "Transaction Service" as TransactionSvc {
+            rectangle "Transaction History" as TxnHistory
+            rectangle "Fraud Detection" as FraudDetect
+            rectangle "Envoy Sidecar" as TransactionEnvoy
+        }
+    }
+    
+    package "Risk Domain" {
+        rectangle "Risk Management" as RiskSvc {
+            rectangle "Portfolio Risk" as PortfolioRisk
+            rectangle "Operational Risk" as OpRisk
+            rectangle "Envoy Sidecar" as RiskEnvoy
+        }
+        
+        rectangle "Compliance Service" as ComplianceSvc {
+            rectangle "Regulatory Reporting" as RegReporting
+            rectangle "Audit Trail" as AuditTrail
+            rectangle "Envoy Sidecar" as ComplianceEnvoy
+        }
+    }
+    
+    package "Shared Services" {
+        rectangle "Notification Service" as NotificationSvc {
+            rectangle "Email/SMS Gateway" as EmailSMS
+            rectangle "Push Notifications" as PushNotif
+            rectangle "Envoy Sidecar" as NotificationEnvoy
+        }
+        
+        rectangle "Document Service" as DocumentSvc {
+            rectangle "Document Storage" as DocStorage
+            rectangle "Digital Signatures" as DigitalSig
+            rectangle "Envoy Sidecar" as DocumentEnvoy
+        }
+    }
+}
+
+' Data persistence layer
+package "Data Persistence Layer" DATA_COLOR {
+    
+    package "Operational Databases" {
+        rectangle "PostgreSQL Primary" as PostgreSQLPrimary {
+            rectangle "Customer Data" as CustomerDB
+            rectangle "Loan Data" as LoanDB
+            rectangle "Transaction Data" as TransactionDB
+            rectangle "Envoy Sidecar" as PostgreSQLEnvoy1
+        }
+        
+        rectangle "PostgreSQL Replicas" as PostgreSQLReplicas {
+            rectangle "Read Replicas (3)" as ReadReplicas
+            rectangle "Envoy Sidecar" as PostgreSQLEnvoy2
+        }
+    }
+    
+    package "Caching Layer" {
+        rectangle "Redis Cluster" as Redis {
+            rectangle "Session Storage" as SessionStore
+            rectangle "Application Cache" as AppCache
+            rectangle "Rate Limiting" as RateLimit
+            rectangle "Envoy Sidecar" as RedisEnvoy
+        }
+    }
+    
+    package "Event Streaming" {
+        rectangle "Apache Kafka" as Kafka {
+            rectangle "Domain Events" as DomainEvents
+            rectangle "Audit Events" as AuditEvents
+            rectangle "Integration Events" as IntegrationEvents
+            rectangle "Envoy Sidecar" as KafkaEnvoy
+        }
+    }
+    
+    package "Analytics & Search" {
+        rectangle "Elasticsearch" as Elasticsearch {
+            rectangle "Audit Logs" as AuditLogs
+            rectangle "Transaction Search" as TxnSearch
+            rectangle "Envoy Sidecar" as ESEnvoy
+        }
+        
+        rectangle "PGVector" as PGVector {
+            rectangle "AI/ML Embeddings" as Embeddings
+            rectangle "Similarity Search" as SimilaritySearch
+            rectangle "Envoy Sidecar" as VectorEnvoy
+        }
+    }
+}
+
+' Infrastructure layer
+package "Infrastructure Layer" INFRA_COLOR {
+    
+    package "Monitoring & Observability" {
+        rectangle "Prometheus" as Prometheus {
+            rectangle "Metrics Collection" as MetricsCollection
+            rectangle "Alerting Rules" as AlertingRules
+            rectangle "Envoy Sidecar" as PrometheusEnvoy
+        }
+        
+        rectangle "Grafana" as Grafana {
+            rectangle "Dashboards" as Dashboards
+            rectangle "Alerting" as Alerting
+            rectangle "Envoy Sidecar" as GrafanaEnvoy
+        }
+        
+        rectangle "Jaeger" as Jaeger {
+            rectangle "Distributed Tracing" as DistributedTracing
+            rectangle "Performance Analysis" as PerfAnalysis
+            rectangle "Envoy Sidecar" as JaegerEnvoy
+        }
+    }
+    
+    package "Security Monitoring" {
+        rectangle "SIEM Platform" as SIEM {
+            rectangle "Security Analytics" as SecurityAnalytics
+            rectangle "Threat Detection" as ThreatDetection
+            rectangle "Envoy Sidecar" as SIEMEnvoy
+        }
+        
+        rectangle "Vulnerability Scanner" as VulnScanner {
+            rectangle "Container Scanning" as ContainerScan
+            rectangle "Code Analysis" as CodeAnalysis
+        }
+    }
+    
+    package "CI/CD Pipeline" {
+        rectangle "GitLab CI/CD" as GitLabCI {
+            rectangle "Build Pipeline" as BuildPipeline
+            rectangle "Security Scanning" as SecurityScan
+            rectangle "Deployment Automation" as DeployAuto
+        }
+        
+        rectangle "ArgoCD" as ArgoCD {
+            rectangle "GitOps Deployment" as GitOpsDeployment
+            rectangle "Application Sync" as AppSync
+        }
+    }
+}
+
+' External integrations
+package "External Systems" {
+    rectangle "Credit Bureaus" as CreditBureaus
+    rectangle "Payment Gateways" as PaymentGateways
+    rectangle "Regulatory Systems" as RegulatorySystemsExt
+    rectangle "Partner Banks" as PartnerBanks
+}
+
+' User interactions
+Customers --> IGW : "HTTPS"
+Officers --> IGW : "HTTPS"
+Admins --> IGW : "HTTPS"
+Partners --> IGW : "HTTPS"
+
+' Traffic flow through security
+IGW --> WAF : "Filtered Traffic"
+WAF --> IngressGW : "Clean Traffic"
+IngressGW --> OAuth2Proxy : "Authentication Check"
+OAuth2Proxy --> Keycloak : "OAuth 2.1 Flow"
+
+' Service mesh communication (all mTLS)
+IngressGW --> CustomerEnvoy : "mTLS"
+IngressGW --> LoanEnvoy : "mTLS"
+IngressGW --> PaymentEnvoy : "mTLS"
+IngressGW --> RiskEnvoy : "mTLS"
+
+' Inter-service communication
+CustomerEnvoy <==> KYCEnvoy : "mTLS"
+LoanEnvoy <==> CreditEnvoy : "mTLS"
+PaymentEnvoy <==> TransactionEnvoy : "mTLS"
+CustomerEnvoy <==> NotificationEnvoy : "mTLS"
+LoanEnvoy <==> DocumentEnvoy : "mTLS"
+
+' Data access patterns
+CustomerEnvoy --> PostgreSQLEnvoy1 : "mTLS"
+LoanEnvoy --> PostgreSQLEnvoy1 : "mTLS"
+PaymentEnvoy --> RedisEnvoy : "mTLS"
+TransactionEnvoy --> PostgreSQLEnvoy2 : "mTLS"
+ComplianceEnvoy --> ESEnvoy : "mTLS"
+
+' Event streaming
+CustomerEnvoy --> KafkaEnvoy : "Domain Events"
+LoanEnvoy --> KafkaEnvoy : "Domain Events"
+PaymentEnvoy --> KafkaEnvoy : "Domain Events"
+ComplianceEnvoy --> KafkaEnvoy : "Audit Events"
+
+' Monitoring
+CustomerEnvoy --> PrometheusEnvoy : "Metrics"
+LoanEnvoy --> PrometheusEnvoy : "Metrics"
+PaymentEnvoy --> PrometheusEnvoy : "Metrics"
+RiskEnvoy --> PrometheusEnvoy : "Metrics"
+
+PrometheusEnvoy --> GrafanaEnvoy : "Dashboard Data"
+
+CustomerEnvoy --> JaegerEnvoy : "Traces"
+LoanEnvoy --> JaegerEnvoy : "Traces"
+PaymentEnvoy --> JaegerEnvoy : "Traces"
+
+' Security monitoring
+CustomerEnvoy --> SIEMEnvoy : "Security Events"
+LoanEnvoy --> SIEMEnvoy : "Security Events"
+PaymentEnvoy --> SIEMEnvoy : "Security Events"
+
+' External connections through egress
+CreditEnvoy --> CreditBureaus : "External API"
+PaymentEnvoy --> PaymentGateways : "External API"
+ComplianceEnvoy --> RegulatorySystemsExt : "Regulatory API"
+
+note top of OAuth2Proxy : **Authentication Features:**\n• OAuth 2.1 with PKCE\n• FAPI 1.0 Advanced\n• Multi-factor authentication\n• Session management
+
+note top of CustomerEnvoy : **Envoy Sidecar Features:**\n• mTLS enforcement\n• JWT validation\n• Circuit breaking\n• Load balancing\n• Metrics & tracing\n• Security policies
+
+note bottom of PostgreSQLEnvoy1 : **Zero-Trust Data Access:**\n• mTLS to databases\n• Query-level authorization\n• Audit logging\n• Encryption at rest
+
+note bottom of Keycloak : **Identity & Access Management:**\n• Banking-specific roles\n• Fine-grained permissions\n• LDAP/AD integration\n• Compliance reporting
+
+' Exception Handling and Monitoring
+package "Exception Handling & Monitoring" #fff3e0 {
+    rectangle "Error Recovery Service" as ERS {
+        rectangle "Dead Letter Queue" as DLQ
+        rectangle "Retry Orchestrator" as RO
+        rectangle "Compensation Handler" as CH
+        rectangle "Envoy Sidecar" as ERSEnvoy
+    }
+    
+    rectangle "Alerting Service" as AlertSvc {
+        rectangle "Incident Manager" as IM
+        rectangle "Escalation Engine" as EE
+        rectangle "Notification Hub" as NH
+        rectangle "Envoy Sidecar" as AlertEnvoy
+    }
+    
+    rectangle "Chaos Engineering" as ChaosEng {
+        rectangle "Fault Injection" as FI
+        rectangle "Latency Simulation" as LS
+        rectangle "Network Partition" as NP
+        rectangle "Envoy Sidecar" as ChaosEnvoy
+    }
+}
+
+package "Circuit Breaker Patterns" #e8f5e8 {
+    rectangle "Service Circuit Breakers" as SCB {
+        rectangle "Customer CB" as CustomerCB
+        rectangle "Loan CB" as LoanCB
+        rectangle "Payment CB" as PaymentCB
+        rectangle "Risk CB" as RiskCB
+    }
+    
+    rectangle "Database Circuit Breakers" as DCB {
+        rectangle "Primary DB CB" as PrimaryDBCB
+        rectangle "Replica DB CB" as ReplicaDBCB
+        rectangle "Cache CB" as CacheCB
+    }
+}
+
+' Exception flows
+CustomerEnvoy --> ERS : "Failed request handling"
+LoanEnvoy --> AlertSvc : "Business error alerts"
+PaymentEnvoy --> ChaosEng : "Resilience testing"
+RiskEnvoy --> SCB : "Circuit breaker status"
+
+ERS --> DLQ : "Unrecoverable errors"
+ERS --> RO : "Retry coordination"
+ERS --> CH : "Compensation logic"
+
+AlertSvc --> IM : "Incident creation"
+AlertSvc --> EE : "Escalation rules"
+AlertSvc --> NH : "Notification dispatch"
+
+ChaosEng --> FI : "Inject failures"
+ChaosEng --> LS : "Add latency"
+ChaosEng --> NP : "Simulate partitions"
+
+SCB --> CustomerCB : "Monitor customer service"
+SCB --> LoanCB : "Monitor loan service"
+SCB --> PaymentCB : "Monitor payment service"
+SCB --> RiskCB : "Monitor risk service"
+
+DCB --> PrimaryDBCB : "Primary database health"
+DCB --> ReplicaDBCB : "Replica database health"
+DCB --> CacheCB : "Cache health"
+
+' Database connections with circuit breakers
+CustomerEnvoy --> PrimaryDBCB : "DB access via CB"
+LoanEnvoy --> PrimaryDBCB : "DB access via CB"
+PaymentEnvoy --> CacheCB : "Cache access via CB"
+RiskEnvoy --> ReplicaDBCB : "Read-only access via CB"
+
+' Exception scenarios documentation
+note as ExceptionScenarios
+**Exception Handling Scenarios:**
+
+**1. Service Degradation:**
+• Circuit breaker opens on repeated failures
+• Traffic routed to healthy instances
+• Fallback responses provided
+• Automatic recovery detection
+
+**2. Database Failures:**
+• Primary DB circuit breaker trips
+• Automatic failover to replicas
+• Read-only mode activation
+• Data consistency maintenance
+
+**3. Authentication Failures:**
+• Invalid token detection
+• Graceful authentication retry
+• Fallback to cached permissions
+• Security incident logging
+
+**4. Network Partitions:**
+• Service isolation detection
+• Cross-zone traffic rerouting
+• Eventual consistency handling
+• Partition healing recovery
+
+**5. Overload Protection:**
+• Rate limiting activation
+• Request queuing with backpressure
+• Auto-scaling trigger
+• Load shedding for non-critical requests
+
+**6. Data Corruption Detection:**
+• Checksum validation failures
+• Automatic data recovery
+• Backup restoration
+• Integrity monitoring alerts
+end note
+
+ExceptionScenarios .. ERS
+
+' Resilience patterns
+note as ResiliencePatterns
+**Resilience Patterns:**
+
+**Bulkhead Pattern:**
+• Resource isolation between services
+• Separate thread pools per operation
+• Independent failure domains
+
+**Timeout Pattern:**
+• Request timeout enforcement
+• Streaming operation limits
+• Connection timeout management
+
+**Retry Pattern:**
+• Exponential backoff strategy
+• Jitter to prevent thundering herd
+• Maximum retry attempt limits
+
+**Fallback Pattern:**
+• Cached response delivery
+• Default value provision
+• Graceful degradation
+
+**Health Check Pattern:**
+• Deep health verification
+• Dependency health aggregation
+• Real-time status reporting
+end note
+
+ResiliencePatterns .. SCB
+
+@enduml
