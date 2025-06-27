@@ -83,7 +83,7 @@ graph TB
 
 ### Zero-Trust Security Model
 
-![Security Architecture](docs/images/Enhanced%20Enterprise%20Banking%20Security%20Architecture.svg)
+![Security Architecture](../../images/Enhanced%20Enterprise%20Banking%20Security%20Architecture.svg)
 
 #### Security Layers
 
@@ -139,7 +139,7 @@ sequenceDiagram
 
 ### Domain-Driven Design Implementation
 
-![Hexagonal Architecture](docs/images/Enhanced%20Enterprise%20Banking%20-%20Hexagonal%20Architecture.svg)
+![Hexagonal Architecture](../../images/Enhanced%20Enterprise%20Banking%20-%20Hexagonal%20Architecture.svg)
 
 #### Bounded Contexts
 
@@ -219,7 +219,7 @@ public class JpaLoanRepository implements LoanRepository {
 
 ### Service Mesh Architecture
 
-![Service Mesh](docs/images/Enhanced%20Enterprise%20Banking%20-%20Service%20Mesh%20Architecture.svg)
+![Service Mesh](../../images/Enhanced%20Enterprise%20Banking%20-%20Service%20Mesh%20Architecture.svg)
 
 #### Core Banking Services
 
