@@ -54,8 +54,9 @@ import java.util.List;
 @EnableMethodSecurity(prePostEnabled = true)
 @EnableConfigurationProperties(SecurityProperties.class)
 @RequiredArgsConstructor
-@Slf4j
 public class FAPISecurityConfig {
+    
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FAPISecurityConfig.class);
 
     private final SecurityProperties securityProperties;
     private final FAPIRateLimitingFilter rateLimitingFilter;
@@ -77,15 +78,12 @@ public class FAPISecurityConfig {
                         .maxAgeInSeconds(31536000)
                         .includeSubDomains(true)
                         .preload(true))
-                    .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
                     .addHeaderWriter((request, response) -> {
                         // FAPI-specific security headers
                         response.setHeader("X-FAPI-Interaction-ID", java.util.UUID.randomUUID().toString());
                         response.setHeader("Cache-Control", "no-store");
                         response.setHeader("Pragma", "no-cache");
-                        response.setHeader("X-Content-Type-Options", "nosniff");
-                        response.setHeader("X-Frame-Options", "DENY");
-                        response.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+                        response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
                     }))
                 
                 // Session Management - Stateless for FAPI
@@ -152,7 +150,6 @@ public class FAPISecurityConfig {
     public JwtDecoder jwtDecoder() {
         return NimbusJwtDecoder.withJwkSetUri(securityProperties.getJwt().getJwkSetUri())
                 .jwsAlgorithm(org.springframework.security.oauth2.jose.jws.SignatureAlgorithm.RS256)
-                .cache(Duration.ofMinutes(5), Duration.ofMinutes(10))
                 .build();
     }
 

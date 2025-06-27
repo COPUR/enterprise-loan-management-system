@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @Value
 @Builder
-public class LoanApplicationSubmittedEvent implements DomainEvent {
+class LoanApplicationSubmittedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "LoanApplicationSubmitted";
     String aggregateId;
@@ -40,7 +40,7 @@ public class LoanApplicationSubmittedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class LoanApprovedEvent implements DomainEvent {
+class LoanApprovedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "LoanApproved";
     String aggregateId;
@@ -61,7 +61,7 @@ public class LoanApprovedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class LoanRejectedEvent implements DomainEvent {
+class LoanRejectedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "LoanRejected";
     String aggregateId;
@@ -80,7 +80,7 @@ public class LoanRejectedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class LoanFullyPaidEvent implements DomainEvent {
+class LoanFullyPaidEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "LoanFullyPaid";
     String aggregateId;
@@ -99,7 +99,7 @@ public class LoanFullyPaidEvent implements DomainEvent {
 
 @Value
 @Builder
-public class AIRiskAssessmentCompletedEvent implements DomainEvent {
+class AIRiskAssessmentCompletedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "AIRiskAssessmentCompleted";
     String aggregateId;
@@ -122,7 +122,7 @@ public class AIRiskAssessmentCompletedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class PaymentProcessedEvent implements DomainEvent {
+class PaymentProcessedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "PaymentProcessed";
     String aggregateId;
@@ -145,7 +145,7 @@ public class PaymentProcessedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class PaymentFailedEvent implements DomainEvent {
+class PaymentFailedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "PaymentFailed";
     String aggregateId;
@@ -167,7 +167,7 @@ public class PaymentFailedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class PaymentScheduleUpdatedEvent implements DomainEvent {
+class PaymentScheduleUpdatedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "PaymentScheduleUpdated";
     String aggregateId;
@@ -190,7 +190,7 @@ public class PaymentScheduleUpdatedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class CustomerCreatedEvent implements DomainEvent {
+class CustomerCreatedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "CustomerCreated";
     String aggregateId;
@@ -212,7 +212,7 @@ public class CustomerCreatedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class CustomerUpdatedEvent implements DomainEvent {
+class CustomerUpdatedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "CustomerUpdated";
     String aggregateId;
@@ -232,7 +232,7 @@ public class CustomerUpdatedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class CustomerBlockedEvent implements DomainEvent {
+class CustomerBlockedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "CustomerBlocked";
     String aggregateId;
@@ -254,7 +254,7 @@ public class CustomerBlockedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class FraudDetectedEvent implements DomainEvent {
+class FraudDetectedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "FraudDetected";
     String aggregateId;
@@ -277,7 +277,7 @@ public class FraudDetectedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class FraudInvestigationCompletedEvent implements DomainEvent {
+class FraudInvestigationCompletedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "FraudInvestigationCompleted";
     String aggregateId;
@@ -300,7 +300,7 @@ public class FraudInvestigationCompletedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class AIRecommendationGeneratedEvent implements DomainEvent {
+class AIRecommendationGeneratedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "AIRecommendationGenerated";
     String aggregateId;
@@ -322,7 +322,7 @@ public class AIRecommendationGeneratedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class AIModelUpdatedEvent implements DomainEvent {
+class AIModelUpdatedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "AIModelUpdated";
     String aggregateId;
@@ -345,7 +345,7 @@ public class AIModelUpdatedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class ComplianceCheckCompletedEvent implements DomainEvent {
+class ComplianceCheckCompletedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "ComplianceCheckCompleted";
     String aggregateId;
@@ -367,7 +367,7 @@ public class ComplianceCheckCompletedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class RegulatoryReportGeneratedEvent implements DomainEvent {
+class RegulatoryReportGeneratedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "RegulatoryReportGenerated";
     String aggregateId;
@@ -390,7 +390,7 @@ public class RegulatoryReportGeneratedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class SagaStartedEvent implements DomainEvent {
+class SagaStartedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "SagaStarted";
     String aggregateId;
@@ -410,7 +410,7 @@ public class SagaStartedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class SagaCompletedEvent implements DomainEvent {
+class SagaCompletedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "SagaCompleted";
     String aggregateId;
@@ -430,7 +430,7 @@ public class SagaCompletedEvent implements DomainEvent {
 
 @Value
 @Builder
-public class SagaFailedEvent implements DomainEvent {
+class SagaFailedEvent implements DomainEvent {
     UUID eventId = UUID.randomUUID();
     String eventType = "SagaFailed";
     String aggregateId;

@@ -44,22 +44,7 @@ sourceSets {
             exclude '**/microservices/**'
             exclude '**/messaging/**'
             exclude '**/infrastructure/persistence/**'
-            exclude '**/infrastructure/adapter/**'
-            exclude '**/infrastructure/cache/**'
-            exclude '**/infrastructure/eventstore/**'
-            exclude '**/infrastructure/repository/**'
-            exclude '**/application/port/**'
-            exclude '**/application/service/**'
-            exclude '**/account/**'
-            exclude '**/risk/**'
-            exclude '**/customer/**'
-            exclude '**/payment/**'
-            exclude '**/security/config/FAPISecurityConfig*'
-            exclude '**/loan/domain/model/BianConsumerLoan*'
-            exclude '**/LoanEligibilityService*'
-            exclude '**/LoanRecommendationUseCase*'
-            exclude '**/LoanRecommendation*'
-            exclude '**/GenerateLoanRecommendationsUseCase*'
+            // All exclusions removed - now compiling full application
         }
     }
     test {

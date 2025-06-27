@@ -59,6 +59,7 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
                                  CustomerFinancialProfile financialProfile,
                                  CustomerSegment customerSegment,
                                  CustomerRiskProfile riskProfile) {
+        super(id);
         this.id = id;
         this.serviceDomainInstanceReference = serviceDomainInstanceReference;
         this.customerReference = customerReference;
@@ -96,13 +97,13 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
         BianCustomerManagement customer = new BianCustomerManagement(
             instanceRef,
             serviceDomainRef,
-            request.getCustomerReference(),
-            request.getPersonalDetails(),
-            request.getContactDetails(),
-            request.getIdentification(),
-            request.getFinancialProfile(),
-            request.getCustomerSegment(),
-            request.getRiskProfile()
+            request.customerReference(),
+            request.personalDetails(),
+            request.contactDetails(),
+            request.identification(),
+            request.financialProfile(),
+            request.customerSegment(),
+            request.riskProfile()
         );
 
         // Add initial activity log
@@ -111,7 +112,7 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
                 "INITIATE",
                 "INIT-" + instanceRef.getValue(),
                 OffsetDateTime.now(),
-                request.getInitiatedBy(),
+                request.initiatedBy(),
                 "Customer onboarding initiated",
                 "COMPLETED"
             )
@@ -129,12 +130,12 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
 
         CustomerStatus previousStatus = this.customerStatus;
 
-        if (request.getNewStatus() != null) {
-            this.customerStatus = request.getNewStatus();
+        if (request.newStatus() != null) {
+            this.customerStatus = request.newStatus();
         }
 
         this.lastUpdated = OffsetDateTime.now();
-        this.lastUpdatedBy = request.getUpdatedBy();
+        this.lastUpdatedBy = request.updatedBy();
 
         // Add status change action if applicable
         if (previousStatus != this.customerStatus) {
@@ -143,7 +144,7 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
                 String.format("Customer status changed from %s to %s", previousStatus, this.customerStatus),
                 "COMPLETED",
                 OffsetDateTime.now(),
-                request.getUpdatedBy()
+                request.updatedBy()
             );
             this.customerActions.add(statusChangeAction);
         }
@@ -154,7 +155,7 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
                 "UPDATE",
                 "UPD-" + id.getValue(),
                 OffsetDateTime.now(),
-                request.getUpdatedBy(),
+                request.updatedBy(),
                 "Customer information updated",
                 "COMPLETED"
             )
@@ -176,7 +177,7 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
         // Execute onboarding
         this.customerStatus = CustomerStatus.ACTIVE;
         this.lastUpdated = OffsetDateTime.now();
-        this.lastUpdatedBy = request.getExecutedBy();
+        this.lastUpdatedBy = request.executedBy();
 
         // Create onboarding action
         Action onboardingAction = Action.of(
@@ -184,7 +185,7 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
             "Customer onboarding completed successfully",
             "COMPLETED",
             OffsetDateTime.now(),
-            request.getExecutedBy()
+            request.executedBy()
         );
         this.customerActions.add(onboardingAction);
 
@@ -194,7 +195,7 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
                 "EXECUTE",
                 "EXE-" + id.getValue(),
                 OffsetDateTime.now(),
-                request.getExecutedBy(),
+                request.executedBy(),
                 "Customer onboarding executed",
                 "COMPLETED"
             )
@@ -218,7 +219,7 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
 
         CustomerStatus previousStatus = this.customerStatus;
 
-        switch (request.getControlAction()) {
+        switch (request.controlAction()) {
             case SUSPEND -> {
                 if (this.customerStatus == CustomerStatus.ACTIVE) {
                     this.customerStatus = CustomerStatus.SUSPENDED;
@@ -241,11 +242,11 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
                     throw new IllegalStateException("Cannot close customer in current status");
                 }
             }
-            default -> throw new IllegalArgumentException("Unsupported control action: " + request.getControlAction());
+            default -> throw new IllegalArgumentException("Unsupported control action: " + request.controlAction());
         }
 
         this.lastUpdated = OffsetDateTime.now();
-        this.lastUpdatedBy = request.getControlledBy();
+        this.lastUpdatedBy = request.controlledBy();
 
         // Add control action
         Action controlAction = Action.of(
@@ -253,7 +254,7 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
             String.format("Customer status changed from %s to %s", previousStatus, this.customerStatus),
             "COMPLETED",
             OffsetDateTime.now(),
-            request.getControlledBy()
+            request.controlledBy()
         );
         this.customerActions.add(controlAction);
 
@@ -263,8 +264,8 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
                 "CONTROL",
                 "CTL-" + id.getValue(),
                 OffsetDateTime.now(),
-                request.getControlledBy(),
-                String.format("Control action %s executed", request.getControlAction()),
+                request.controlledBy(),
+                String.format("Control action %s executed", request.controlAction()),
                 "COMPLETED"
             )
         );
@@ -280,15 +281,15 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
         // Create interaction action
         Action interactionAction = Action.of(
             "INTERACTION",
-            String.format("Customer interaction: %s", request.getInteractionType()),
+            String.format("Customer interaction: %s", request.interactionType()),
             "COMPLETED",
             OffsetDateTime.now(),
-            request.getCapturedBy()
+            request.capturedBy()
         );
         this.customerActions.add(interactionAction);
 
         this.lastUpdated = OffsetDateTime.now();
-        this.lastUpdatedBy = request.getCapturedBy();
+        this.lastUpdatedBy = request.capturedBy();
 
         // Add activity log
         addActivityLog(
@@ -296,8 +297,8 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
                 "CAPTURE",
                 "CAP-" + id.getValue(),
                 OffsetDateTime.now(),
-                request.getCapturedBy(),
-                String.format("Customer interaction %s captured", request.getInteractionType()),
+                request.capturedBy(),
+                String.format("Customer interaction %s captured", request.interactionType()),
                 "COMPLETED"
             )
         );
@@ -338,33 +339,33 @@ public class BianCustomerManagement extends AggregateRoot<CustomerManagementInst
     // Validation methods following DDD invariants
     private static void validateInitiateRequest(InitiateCustomerOnboardingRequest request) {
         Objects.requireNonNull(request, "Initiate request cannot be null");
-        Objects.requireNonNull(request.getCustomerReference(), "Customer reference is required");
-        Objects.requireNonNull(request.getPersonalDetails(), "Personal details are required");
-        Objects.requireNonNull(request.getContactDetails(), "Contact details are required");
-        Objects.requireNonNull(request.getIdentification(), "Identification is required");
-        Objects.requireNonNull(request.getInitiatedBy(), "Initiated by is required");
+        Objects.requireNonNull(request.customerReference(), "Customer reference is required");
+        Objects.requireNonNull(request.personalDetails(), "Personal details are required");
+        Objects.requireNonNull(request.contactDetails(), "Contact details are required");
+        Objects.requireNonNull(request.identification(), "Identification is required");
+        Objects.requireNonNull(request.initiatedBy(), "Initiated by is required");
     }
 
     private void validateUpdateRequest(UpdateCustomerInformationRequest request) {
         Objects.requireNonNull(request, "Update request cannot be null");
-        Objects.requireNonNull(request.getUpdatedBy(), "Updated by is required");
+        Objects.requireNonNull(request.updatedBy(), "Updated by is required");
     }
 
     private void validateOnboardingRequest(ExecuteCustomerOnboardingRequest request) {
         Objects.requireNonNull(request, "Onboarding request cannot be null");
-        Objects.requireNonNull(request.getExecutedBy(), "Executed by is required");
+        Objects.requireNonNull(request.executedBy(), "Executed by is required");
     }
 
     private void validateControlRequest(ControlCustomerRequest request) {
         Objects.requireNonNull(request, "Control request cannot be null");
-        Objects.requireNonNull(request.getControlAction(), "Control action is required");
-        Objects.requireNonNull(request.getControlledBy(), "Controlled by is required");
+        Objects.requireNonNull(request.controlAction(), "Control action is required");
+        Objects.requireNonNull(request.controlledBy(), "Controlled by is required");
     }
 
     private void validateCaptureRequest(CaptureCustomerInteractionRequest request) {
         Objects.requireNonNull(request, "Capture request cannot be null");
-        Objects.requireNonNull(request.getInteractionType(), "Interaction type is required");
-        Objects.requireNonNull(request.getCapturedBy(), "Captured by is required");
+        Objects.requireNonNull(request.interactionType(), "Interaction type is required");
+        Objects.requireNonNull(request.capturedBy(), "Captured by is required");
     }
 
     @Override

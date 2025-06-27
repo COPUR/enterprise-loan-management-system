@@ -8,5 +8,8 @@ public record ApproveLoanCommand(
     String approverId,
     String approvalNotes,
     BigDecimal approvedAmount,
+    BigDecimal approvedInterestRate,
+    String approvedBy,
+    String correlationId,
     List<String> conditions
 ) {}

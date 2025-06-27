@@ -13,8 +13,10 @@ import io.github.resilience4j.bulkhead.BulkheadRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
+// Using individual decorator patterns instead of generic Decorators class
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +31,10 @@ import java.util.function.Supplier;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class BankingCircuitBreakerService {
 
+    private static final Logger log = LoggerFactory.getLogger(BankingCircuitBreakerService.class);
+    
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final RetryRegistry retryRegistry;
     private final BulkheadRegistry bulkheadRegistry;
@@ -122,8 +125,6 @@ public class BankingCircuitBreakerService {
             RetryConfig.custom()
                 .maxAttempts(3)
                 .waitDuration(Duration.ofMillis(500))
-                .exponentialBackoffMultiplier(2)
-                .intervalFunction(attempt -> Duration.ofMillis(500 * (long) Math.pow(2, attempt - 1)))
                 .retryOnException(throwable -> !(throwable instanceof IllegalArgumentException))
                 .build());
     }
@@ -185,15 +186,14 @@ public class BankingCircuitBreakerService {
         
         Supplier<CompletableFuture<T>> futureSupplier = () -> CompletableFuture.supplyAsync(operation);
         
-        Supplier<CompletableFuture<T>> decoratedSupplier = TimeLimiter
-            .decorateCompletionStage(timeLimiter, futureSupplier);
-        decoratedSupplier = CircuitBreaker.decorateCompletionStage(circuitBreaker, decoratedSupplier);
-        decoratedSupplier = Retry.decorateCompletionStage(retry, decoratedSupplier);
-        decoratedSupplier = Bulkhead.decorateCompletionStage(bulkhead, decoratedSupplier);
+        // Apply decorators using individual resilience patterns
+        Supplier<T> decoratedSupplier = CircuitBreaker.decorateSupplier(circuitBreaker, operation);
+        decoratedSupplier = Retry.decorateSupplier(retry, decoratedSupplier);
+        decoratedSupplier = Bulkhead.decorateSupplier(bulkhead, decoratedSupplier);
         
         try {
             log.info("Executing payment operation: {}", operationName);
-            T result = decoratedSupplier.get().join();
+            T result = decoratedSupplier.get();
             log.info("Payment operation completed successfully: {}", operationName);
             return result;
         } catch (Exception e) {
@@ -211,16 +211,13 @@ public class BankingCircuitBreakerService {
         Retry retry = getBankingRetry("ai-service");
         TimeLimiter timeLimiter = getBankingTimeLimiter("ai-service", Duration.ofSeconds(15));
         
-        Supplier<CompletableFuture<T>> futureSupplier = () -> CompletableFuture.supplyAsync(operation);
-        
-        Supplier<CompletableFuture<T>> decoratedSupplier = TimeLimiter
-            .decorateCompletionStage(timeLimiter, futureSupplier);
-        decoratedSupplier = CircuitBreaker.decorateCompletionStage(circuitBreaker, decoratedSupplier);
-        decoratedSupplier = Retry.decorateCompletionStage(retry, decoratedSupplier);
+        // Apply decorators using individual resilience patterns
+        Supplier<T> decoratedSupplier = CircuitBreaker.decorateSupplier(circuitBreaker, operation);
+        decoratedSupplier = Retry.decorateSupplier(retry, decoratedSupplier);
         
         try {
             log.info("Executing AI operation: {}", operationName);
-            T result = decoratedSupplier.get().join();
+            T result = decoratedSupplier.get();
             log.info("AI operation completed successfully: {}", operationName);
             return result;
         } catch (Exception e) {

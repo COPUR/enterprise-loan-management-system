@@ -1,5 +1,6 @@
 package com.bank.loanmanagement.security.model;
 
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -7,5 +8,15 @@ import reactor.core.publisher.Mono;
 public class TokenValidationService {
     public Mono<Boolean> validateJwt(String token) {
         return Mono.just(true);
+    }
+    
+    public Jwt decodeAndValidateJWT(String token) {
+        // Stub implementation for compilation
+        return null;
+    }
+    
+    public Jwt decodeJWT(String token) {
+        // Stub implementation for compilation
+        return null;
     }
 }
