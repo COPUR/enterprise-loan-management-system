@@ -151,6 +151,7 @@ sequenceDiagram
 | **Risk Management** | Credit and operational risk | RiskProfile, CreditScore, Assessment | RiskAssessed, ScoreUpdated |
 | **Compliance & Audit** | Regulatory compliance | AuditLog, ComplianceReport | AuditCreated, ComplianceChecked |
 | **Financial Products** | Banking products catalog | Product, Rate, Term | ProductCreated, RateChanged |
+| **AI & Intelligence** | Machine learning operations | Model, Prediction, Feature | ModelDeployed, PredictionMade, ModelRetrained |
 
 #### Hexagonal Architecture Layers
 
@@ -231,6 +232,7 @@ public class JpaLoanRepository implements LoanRepository {
 | **Risk Service** | Credit scoring and risk assessment | Spring Boot 3.3.6, PGVector, ML models | GPU-accelerated pods for ML workloads |
 | **Audit Service** | Compliance logging and reporting | Spring Boot 3.3.6, PostgreSQL, Elasticsearch | Write-heavy optimization |
 | **Notification Service** | Customer and internal notifications | Spring Boot 3.3.6, Kafka, SMTP/SMS | Event-driven processing |
+| **AI/ML Services** | Intelligent banking operations | Python 3.11, TensorFlow/PyTorch, NVIDIA Triton | GPU-accelerated inference |
 
 #### Service Communication Patterns
 
