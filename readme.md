@@ -888,4 +888,4 @@ This project is proprietary software owned by the Enhanced Banking Enterprise. A
 
 ---
 
-*Built with ❤️ by the Enterprise Architecture Team for the future of secure banking*
+*Built with ❤️ by the AliCo Digital Banking Architecture Team for the future of secure banking*
