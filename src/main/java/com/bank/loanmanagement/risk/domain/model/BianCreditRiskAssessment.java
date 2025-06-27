@@ -59,6 +59,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
                                    CustomerReference customerReference,
                                    CreditRiskAssessmentRequest assessmentRequest,
                                    CreditRiskMethodology methodology) {
+        super(id);
         this.id = id;
         this.serviceDomainInstanceReference = serviceDomainInstanceReference;
         this.customerReference = customerReference;
@@ -93,13 +94,13 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
         BianCreditRiskAssessment assessment = new BianCreditRiskAssessment(
             instanceRef,
             serviceDomainRef,
-            request.getCustomerReference(),
-            request.getAssessmentRequest(),
-            request.getMethodology()
+            request.customerReference(),
+            request.assessmentRequest(),
+            request.methodology()
         );
 
         // Initialize risk factors from request
-        assessment.riskFactors.addAll(request.getInitialRiskFactors());
+        assessment.riskFactors.addAll(request.initialRiskFactors());
 
         // Add initial activity log
         assessment.addActivityLog(
@@ -107,7 +108,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
                 "INITIATE",
                 "INIT-" + instanceRef.getValue(),
                 OffsetDateTime.now(),
-                request.getInitiatedBy(),
+                request.initiatedBy(),
                 "Credit risk assessment initiated",
                 "COMPLETED"
             )
@@ -125,20 +126,20 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
 
         AssessmentStatus previousStatus = this.assessmentStatus;
 
-        if (request.getNewStatus() != null) {
-            this.assessmentStatus = request.getNewStatus();
+        if (request.newStatus() != null) {
+            this.assessmentStatus = request.newStatus();
         }
 
-        if (request.getCreditScore() != null) {
-            this.creditScore = request.getCreditScore();
+        if (request.creditScore() != null) {
+            this.creditScore = request.creditScore();
         }
 
-        if (request.getCreditRiskRating() != null) {
-            this.creditRiskRating = request.getCreditRiskRating();
+        if (request.creditRiskRating() != null) {
+            this.creditRiskRating = request.creditRiskRating();
         }
 
         this.lastUpdated = OffsetDateTime.now();
-        this.lastUpdatedBy = request.getUpdatedBy();
+        this.lastUpdatedBy = request.updatedBy();
 
         // Add status change action if applicable
         if (previousStatus != this.assessmentStatus) {
@@ -147,7 +148,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
                 String.format("Assessment status changed from %s to %s", previousStatus, this.assessmentStatus),
                 "COMPLETED",
                 OffsetDateTime.now(),
-                request.getUpdatedBy()
+                request.updatedBy()
             );
             this.assessmentActions.add(statusChangeAction);
         }
@@ -158,7 +159,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
                 "UPDATE",
                 "UPD-" + id.getValue(),
                 OffsetDateTime.now(),
-                request.getUpdatedBy(),
+                request.updatedBy(),
                 "Credit risk assessment updated",
                 "COMPLETED"
             )
@@ -183,7 +184,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
         this.assessmentStatus = AssessmentStatus.COMPLETED;
 
         this.lastUpdated = OffsetDateTime.now();
-        this.lastUpdatedBy = request.getExecutedBy();
+        this.lastUpdatedBy = request.executedBy();
 
         // Create execution action
         Action executionAction = Action.of(
@@ -191,7 +192,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
             "Credit risk assessment calculation completed",
             "COMPLETED",
             OffsetDateTime.now(),
-            request.getExecutedBy()
+            request.executedBy()
         );
         this.assessmentActions.add(executionAction);
 
@@ -201,7 +202,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
                 "EXECUTE",
                 "EXE-" + id.getValue(),
                 OffsetDateTime.now(),
-                request.getExecutedBy(),
+                request.executedBy(),
                 "Credit risk assessment executed",
                 "COMPLETED"
             )
@@ -228,7 +229,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
 
         AssessmentStatus previousStatus = this.assessmentStatus;
 
-        switch (request.getControlAction()) {
+        switch (request.controlAction()) {
             case APPROVE -> {
                 if (this.assessmentStatus == AssessmentStatus.COMPLETED) {
                     this.assessmentStatus = AssessmentStatus.APPROVED;
@@ -252,11 +253,11 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
                     throw new IllegalStateException("Cannot recalculate assessment in current status");
                 }
             }
-            default -> throw new IllegalArgumentException("Unsupported control action: " + request.getControlAction());
+            default -> throw new IllegalArgumentException("Unsupported control action: " + request.controlAction());
         }
 
         this.lastUpdated = OffsetDateTime.now();
-        this.lastUpdatedBy = request.getControlledBy();
+        this.lastUpdatedBy = request.controlledBy();
 
         // Add control action
         Action controlAction = Action.of(
@@ -264,7 +265,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
             String.format("Assessment status changed from %s to %s", previousStatus, this.assessmentStatus),
             "COMPLETED",
             OffsetDateTime.now(),
-            request.getControlledBy()
+            request.controlledBy()
         );
         this.assessmentActions.add(controlAction);
 
@@ -274,8 +275,8 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
                 "CONTROL",
                 "CTL-" + id.getValue(),
                 OffsetDateTime.now(),
-                request.getControlledBy(),
-                String.format("Control action %s executed", request.getControlAction()),
+                request.controlledBy(),
+                String.format("Control action %s executed", request.controlAction()),
                 "COMPLETED"
             )
         );
@@ -289,17 +290,17 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
         validateCaptureRequest(request);
 
         // Add new risk factors
-        if (request.getAdditionalRiskFactors() != null) {
-            this.riskFactors.addAll(request.getAdditionalRiskFactors());
+        if (request.additionalRiskFactors() != null) {
+            this.riskFactors.addAll(request.additionalRiskFactors());
         }
 
         // Add new credit metrics
-        if (request.getAdditionalCreditMetrics() != null) {
-            this.creditMetrics.addAll(request.getAdditionalCreditMetrics());
+        if (request.additionalCreditMetrics() != null) {
+            this.creditMetrics.addAll(request.additionalCreditMetrics());
         }
 
         this.lastUpdated = OffsetDateTime.now();
-        this.lastUpdatedBy = request.getCapturedBy();
+        this.lastUpdatedBy = request.capturedBy();
 
         // Create capture action
         Action captureAction = Action.of(
@@ -307,7 +308,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
             "Additional risk information captured",
             "COMPLETED",
             OffsetDateTime.now(),
-            request.getCapturedBy()
+            request.capturedBy()
         );
         this.assessmentActions.add(captureAction);
 
@@ -317,7 +318,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
                 "CAPTURE",
                 "CAP-" + id.getValue(),
                 OffsetDateTime.now(),
-                request.getCapturedBy(),
+                request.capturedBy(),
                 "Risk information captured",
                 "COMPLETED"
             )
@@ -331,7 +332,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
 
         // Calculate credit score based on risk factors
         BigDecimal scoreSum = riskFactors.stream()
-            .map(RiskFactor::getWeight)
+            .map(RiskFactor::weight)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         this.creditScore = scoreSum.multiply(BigDecimal.valueOf(10)); // Simplified calculation
@@ -355,6 +356,7 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
             case LOW -> BigDecimal.valueOf(2.0);
             case MEDIUM -> BigDecimal.valueOf(1.0);
             case HIGH -> BigDecimal.valueOf(0.5);
+            case VERY_HIGH -> BigDecimal.valueOf(0.2);
         };
         
         BigDecimal limitAmount = baseLimit.multiply(ratingMultiplier);
@@ -368,31 +370,31 @@ public class BianCreditRiskAssessment extends AggregateRoot<CreditRiskAssessment
     // Validation methods following DDD invariants
     private static void validateInitiateRequest(InitiateCreditRiskAssessmentRequest request) {
         Objects.requireNonNull(request, "Initiate request cannot be null");
-        Objects.requireNonNull(request.getCustomerReference(), "Customer reference is required");
-        Objects.requireNonNull(request.getAssessmentRequest(), "Assessment request is required");
-        Objects.requireNonNull(request.getMethodology(), "Methodology is required");
-        Objects.requireNonNull(request.getInitiatedBy(), "Initiated by is required");
+        Objects.requireNonNull(request.customerReference(), "Customer reference is required");
+        Objects.requireNonNull(request.assessmentRequest(), "Assessment request is required");
+        Objects.requireNonNull(request.methodology(), "Methodology is required");
+        Objects.requireNonNull(request.initiatedBy(), "Initiated by is required");
     }
 
     private void validateUpdateRequest(UpdateCreditRiskAssessmentRequest request) {
         Objects.requireNonNull(request, "Update request cannot be null");
-        Objects.requireNonNull(request.getUpdatedBy(), "Updated by is required");
+        Objects.requireNonNull(request.updatedBy(), "Updated by is required");
     }
 
     private void validateExecuteRequest(ExecuteCreditRiskAssessmentRequest request) {
         Objects.requireNonNull(request, "Execute request cannot be null");
-        Objects.requireNonNull(request.getExecutedBy(), "Executed by is required");
+        Objects.requireNonNull(request.executedBy(), "Executed by is required");
     }
 
     private void validateControlRequest(ControlCreditRiskAssessmentRequest request) {
         Objects.requireNonNull(request, "Control request cannot be null");
-        Objects.requireNonNull(request.getControlAction(), "Control action is required");
-        Objects.requireNonNull(request.getControlledBy(), "Controlled by is required");
+        Objects.requireNonNull(request.controlAction(), "Control action is required");
+        Objects.requireNonNull(request.controlledBy(), "Controlled by is required");
     }
 
     private void validateCaptureRequest(CaptureRiskInformationRequest request) {
         Objects.requireNonNull(request, "Capture request cannot be null");
-        Objects.requireNonNull(request.getCapturedBy(), "Captured by is required");
+        Objects.requireNonNull(request.capturedBy(), "Captured by is required");
     }
 
     @Override

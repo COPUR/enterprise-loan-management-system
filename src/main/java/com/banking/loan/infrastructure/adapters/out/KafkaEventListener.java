@@ -1,8 +1,13 @@
 package com.banking.loan.infrastructure.adapters.out;
 
-import com.banking.loan.application.ports.in.*;
+import com.banking.loan.application.ports.in.LoanApplicationUseCase;
+import com.banking.loan.application.ports.in.PaymentProcessingUseCase;
+import com.banking.loan.application.ports.in.CustomerManagementUseCase;
+import com.banking.loan.application.ports.in.AIServicesUseCase;
+import com.banking.loan.application.ports.in.ComplianceUseCase;
 import com.banking.loan.application.commands.*;
 import com.banking.loan.domain.shared.*;
+import com.banking.loan.domain.events.*;
 import com.banking.loan.resilience.BankingCircuitBreakerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +46,7 @@ public class KafkaEventListener {
     public void handleCustomerLifecycleEvents(
             @Payload String eventData,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-            @Header(KafkaHeaders.RECEIVED_PARTITION_ID) Integer partition,
+            @Header(KafkaHeaders.RECEIVED_PARTITION) Integer partition,
             @Header(KafkaHeaders.OFFSET) Long offset,
             @Header(value = KafkaHeaders.CORRELATION_ID, required = false) String correlationId,
             Acknowledgment ack) {
@@ -55,12 +60,12 @@ public class KafkaEventListener {
             circuitBreakerService.executeAIOperation(
                 () -> {
                     aiServicesUseCase.generateRecommendations(
-                        GenerateRecommendationsCommand.builder()
-                            .customerId(event.getAggregateId())
-                            .recommendationType("WELCOME_LOAN_PRODUCTS")
-                            .context("new_customer_onboarding")
-                            .correlationId(correlationId)
-                            .build()
+                        new GenerateRecommendationsCommand(
+                            event.getAggregateId(),
+                            "WELCOME_LOAN_PRODUCTS",
+                            java.util.Map.of("event_type", "new_customer_onboarding"),
+                            java.util.Map.of("correlationId", correlationId)
+                        )
                     );
                     return null;
                 },
@@ -122,7 +127,7 @@ public class KafkaEventListener {
                 () -> {
                     // This would update the loan aggregate with payment information
                     log.info("Updating loan {} with processed payment of {}", 
-                        event.getLoanId(), event.getPaymentAmount());
+                        event.loanId(), event.paymentAmount());
                     return null;
                 },
                 "update-loan-with-payment"
@@ -150,7 +155,7 @@ public class KafkaEventListener {
             circuitBreakerService.executePaymentOperation(
                 () -> {
                     log.warn("Payment failed for loan {} - amount: {}, reason: {}", 
-                        event.getLoanId(), event.getAttemptedAmount(), event.getFailureReason());
+                        event.loanId(), event.attemptedAmount(), event.failureReason());
                     
                     // Could trigger automatic retry, notification to customer, etc.
                     return null;
@@ -182,7 +187,7 @@ public class KafkaEventListener {
             circuitBreakerService.executeAIOperation(
                 () -> {
                     log.info("Storing AI recommendations for customer: {} - type: {}", 
-                        event.getCustomerId(), event.getRecommendationType());
+                        event.getAggregateId(), event.getRecommendationType());
                     
                     // Implementation would store recommendations and possibly notify customer
                     return null;
@@ -243,12 +248,12 @@ public class KafkaEventListener {
         try {
             ComplianceCheckCompletedEvent event = objectMapper.readValue(eventData, ComplianceCheckCompletedEvent.class);
             
-            if ("loan".equals(event.getEntityType())) {
+            if (event.getLoanId() != null) {
                 // Update loan with compliance check results
                 circuitBreakerService.executeLoanOperation(
                     () -> {
                         log.info("Updating loan {} with compliance check result: {}", 
-                            event.getEntityId(), event.getCheckResult());
+                            event.getLoanId(), event.getComplianceStatus());
                         
                         // Implementation would update loan aggregate with compliance status
                         return null;
@@ -306,7 +311,7 @@ public class KafkaEventListener {
             circuitBreakerService.executeLoanOperation(
                 () -> {
                     log.warn("Saga failed: {} - step: {}, compensation required: {}", 
-                        event.getSagaType(), event.getFailedStep(), event.isCompensationCompleted());
+                        event.getSagaType(), event.getFailedStep(), event.getFailureReason());
                     
                     // Implementation would handle compensation logic
                     return null;

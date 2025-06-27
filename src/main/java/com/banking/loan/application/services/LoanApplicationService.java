@@ -6,16 +6,20 @@ import com.banking.loan.application.ports.out.CustomerRepository;
 import com.banking.loan.application.ports.out.AIRiskAssessmentPort;
 import com.banking.loan.application.ports.out.ComplianceCheckPort;
 import com.banking.loan.domain.loan.*;
+import com.banking.loan.domain.services.PaymentScheduleGenerator;
 import com.banking.loan.domain.shared.DomainEventPublisher;
+import com.banking.loan.domain.shared.Customer;
 import com.banking.loan.application.commands.*;
 import com.banking.loan.application.queries.*;
 import com.banking.loan.application.results.*;
 import com.banking.loan.application.exceptions.*;
+import com.banking.loan.application.mappers.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,13 +48,13 @@ public class LoanApplicationService implements LoanApplicationUseCase {
             Customer customer = customerRepository.findById(new CustomerId(command.customerId()))
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found: " + command.customerId()));
             
-            validateCustomerEligibility(customer);
+            validateCustomerEligibility(customer, command.amount());
             
             // Create loan aggregate
             LoanAggregate loan = LoanAggregate.createApplication(
                 new LoanId(UUID.randomUUID().toString()),
                 new CustomerId(command.customerId()),
-                new LoanAmount(command.amount()),
+                new LoanAmount(command.amount(), "USD"),
                 new LoanTerm(command.termInMonths()),
                 LoanType.valueOf(command.loanType()),
                 command.applicantId(),
@@ -67,20 +71,17 @@ public class LoanApplicationService implements LoanApplicationUseCase {
             // Trigger AI risk assessment asynchronously
             initiateAIRiskAssessment(savedLoan.getId(), command.correlationId());
             
-            log.info("Loan application submitted successfully: {}", savedLoan.getId().getValue());
+            log.info("Loan application submitted successfully: {}", savedLoan.getId().value());
             
-            return LoanApplicationResult.builder()
-                .loanId(savedLoan.getId().getValue())
-                .status(savedLoan.getStatus().name())
-                .applicationReference(generateApplicationReference(savedLoan))
-                .estimatedProcessingTime("2-3 business days")
-                .nextSteps(List.of(
-                    "AI risk assessment will be performed",
-                    "Credit bureau check will be initiated",
-                    "Compliance verification will be completed",
-                    "Decision notification will be sent"
-                ))
-                .build();
+            return new LoanApplicationResult(
+                savedLoan.getId().value(),
+                generateApplicationReference(savedLoan),
+                savedLoan.getCustomerId().value(),
+                savedLoan.getAmount().value(),
+                savedLoan.getStatus().name(),
+                java.time.LocalDateTime.now(),
+                "Loan application submitted successfully"
+            );
                 
         } catch (Exception e) {
             log.error("Failed to submit loan application for customer: {}", command.customerId(), e);
@@ -98,7 +99,7 @@ public class LoanApplicationService implements LoanApplicationUseCase {
             
             // Perform final compliance check
             ComplianceCheckResult complianceResult = complianceCheckPort.performFinalCheck(
-                loan.getId().getValue(), 
+                loan.getId().value(), 
                 command.correlationId()
             );
             
@@ -125,12 +126,12 @@ public class LoanApplicationService implements LoanApplicationUseCase {
             LoanAggregate savedLoan = loanRepository.save(loan);
             eventPublisher.publishEventsFrom(savedLoan);
             
-            log.info("Loan approved successfully: {}", savedLoan.getId().getValue());
+            log.info("Loan approved successfully: {}", savedLoan.getId().value());
             
             return LoanApprovalResult.builder()
-                .loanId(savedLoan.getId().getValue())
-                .approvedAmount(savedLoan.getAmount().getValue())
-                .interestRate(savedLoan.getInterestRate().getValue())
+                .loanId(savedLoan.getId().value())
+                .approvedAmount(savedLoan.getAmount().value())
+                .interestRate(savedLoan.getInterestRate().value())
                 .firstPaymentDate(schedule.getFirstPaymentDate())
                 .monthlyInstallment(schedule.getMonthlyInstallment())
                 .totalPayableAmount(schedule.getTotalPayableAmount())
@@ -152,7 +153,12 @@ public class LoanApplicationService implements LoanApplicationUseCase {
                 .orElseThrow(() -> new LoanNotFoundException("Loan not found: " + command.loanId()));
             
             List<RejectionReason> reasons = command.rejectionReasons().stream()
-                .map(RejectionReason::new)
+                .map(reason -> new RejectionReason(
+                    "MANUAL_REJECTION",
+                    reason,
+                    "MANUAL",
+                    true
+                ))
                 .toList();
             
             loan.reject(reasons, command.rejectedBy(), command.correlationId());
@@ -161,10 +167,10 @@ public class LoanApplicationService implements LoanApplicationUseCase {
             LoanAggregate savedLoan = loanRepository.save(loan);
             eventPublisher.publishEventsFrom(savedLoan);
             
-            log.info("Loan rejected successfully: {}", savedLoan.getId().getValue());
+            log.info("Loan rejected successfully: {}", savedLoan.getId().value());
             
             return LoanRejectionResult.builder()
-                .loanId(savedLoan.getId().getValue())
+                .loanId(savedLoan.getId().value())
                 .rejectionReasons(command.rejectionReasons())
                 .alternativeOptions(generateAlternativeOptions(savedLoan))
                 .appealProcess("Contact customer service within 30 days")
@@ -201,26 +207,26 @@ public class LoanApplicationService implements LoanApplicationUseCase {
     
     // Private helper methods
     
-    private void validateCustomerEligibility(Customer customer) {
-        if (!customer.isEligibleForLoan()) {
-            throw new CustomerNotEligibleException("Customer not eligible for loan");
+    private void validateCustomerEligibility(Customer customer, BigDecimal loanAmount) {
+        if (!customer.isEligibleForLoan(loanAmount)) {
+            throw new CustomerNotEligibleException("Customer not eligible for loan amount: " + loanAmount);
         }
     }
     
     private void initiateAIRiskAssessment(LoanId loanId, String correlationId) {
         // This triggers an asynchronous AI risk assessment
         // The result will be handled by an event handler
-        aiRiskAssessmentPort.initiateAssessment(loanId.getValue(), correlationId);
+        aiRiskAssessmentPort.initiateAssessment(loanId.value(), correlationId);
     }
     
     private String generateApplicationReference(LoanAggregate loan) {
-        return "LA-" + loan.getId().getValue().substring(0, 8).toUpperCase() + 
+        return "LA-" + loan.getId().value().substring(0, 8).toUpperCase() + 
                "-" + System.currentTimeMillis() % 10000;
     }
     
     private String generateLoanAgreementNumber(LoanAggregate loan) {
-        return "AGR-" + loan.getId().getValue().substring(0, 8).toUpperCase() + 
-               "-" + loan.getCustomerId().getValue().substring(0, 4).toUpperCase();
+        return "AGR-" + loan.getId().value().substring(0, 8).toUpperCase() + 
+               "-" + loan.getCustomerId().value().substring(0, 4).toUpperCase();
     }
     
     private List<String> generateAlternativeOptions(LoanAggregate loan) {

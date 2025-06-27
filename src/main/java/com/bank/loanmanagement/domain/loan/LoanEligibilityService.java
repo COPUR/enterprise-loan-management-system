@@ -1,7 +1,7 @@
 package com.bank.loanmanagement.domain.loan;
 
 import com.bank.loanmanagement.customermanagement.domain.model.Customer;
-import com.bank.loanmanagement.domain.shared.Money;
+import com.bank.loanmanagement.sharedkernel.domain.Money;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -13,7 +13,7 @@ public class LoanEligibilityService {
     private static final BigDecimal MAXIMUM_DEBT_TO_INCOME_RATIO = BigDecimal.valueOf(0.43); // 43%
     
     public boolean isEligibleForLoan(Customer customer, Money requestedAmount, LoanType loanType) {
-        if (!customer.isEligibleForLoan()) {
+        if (!customer.isEligibleForLoan(requestedAmount)) {
             return false;
         }
         
@@ -56,12 +56,12 @@ public class LoanEligibilityService {
     
     private Money getMaximumLoanAmountForType(LoanType loanType) {
         return switch (loanType) {
-            case PERSONAL -> Money.of(BigDecimal.valueOf(50000), "USD");
-            case HOME -> Money.of(BigDecimal.valueOf(500000), "USD");
-            case AUTO -> Money.of(BigDecimal.valueOf(100000), "USD");
-            case BUSINESS -> Money.of(BigDecimal.valueOf(1000000), "USD");
-            case STUDENT -> Money.of(BigDecimal.valueOf(200000), "USD");
-            case CREDIT_LINE -> Money.of(BigDecimal.valueOf(25000), "USD");
+            case PERSONAL -> Money.of(BigDecimal.valueOf(50000), java.util.Currency.getInstance("USD"));
+            case HOME -> Money.of(BigDecimal.valueOf(500000), java.util.Currency.getInstance("USD"));
+            case AUTO -> Money.of(BigDecimal.valueOf(100000), java.util.Currency.getInstance("USD"));
+            case BUSINESS -> Money.of(BigDecimal.valueOf(1000000), java.util.Currency.getInstance("USD"));
+            case STUDENT -> Money.of(BigDecimal.valueOf(200000), java.util.Currency.getInstance("USD"));
+            case CREDIT_LINE -> Money.of(BigDecimal.valueOf(25000), java.util.Currency.getInstance("USD"));
         };
     }
     

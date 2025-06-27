@@ -1,7 +1,5 @@
 package com.bank.loanmanagement.domain.shared;
 
-import lombok.Value;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -18,11 +16,10 @@ public final class BerlinGroupTypes {
      * Amount as defined by Berlin Group specification
      * ISO 20022 compliant monetary amount
      */
-    @Value
-    public static class Amount {
-        String currency;  // ISO 4217 currency code
-        String amount;    // Decimal representation as string
-
+    public record Amount(
+        String currency,  // ISO 4217 currency code
+        String amount     // Decimal representation as string
+    ) {
         public static Amount of(BigDecimal value, Currency currency) {
             return new Amount(currency.getCurrencyCode(), value.toPlainString());
         }
@@ -40,16 +37,15 @@ public final class BerlinGroupTypes {
      * Account Reference following Berlin Group specification
      * Supports IBAN, BBAN, PAN, and proprietary account identifiers
      */
-    @Value
-    public static class AccountReference {
-        String iban;           // ISO 13616 IBAN
-        String bban;           // Basic Bank Account Number
-        String pan;            // Primary Account Number
-        String maskedPan;      // Masked Primary Account Number
-        String msisdn;         // Mobile phone number for mobile payments
-        String currency;       // ISO 4217 currency code
-        String cashAccountType; // ExternalCashAccountType1Code
-
+    public record AccountReference(
+        String iban,           // ISO 13616 IBAN
+        String bban,           // Basic Bank Account Number
+        String pan,            // Primary Account Number
+        String maskedPan,      // Masked Primary Account Number
+        String msisdn,         // Mobile phone number for mobile payments
+        String currency,       // ISO 4217 currency code
+        String cashAccountType // ExternalCashAccountType1Code
+    ) {
         public static AccountReference iban(String iban, String currency) {
             return new AccountReference(iban, null, null, null, null, currency, null);
         }
@@ -63,14 +59,13 @@ public final class BerlinGroupTypes {
      * Address following Berlin Group specification
      * ISO 20022 PostalAddress24 compliant
      */
-    @Value
-    public static class Address {
-        String streetName;
-        String buildingNumber;
-        String townName;
-        String postCode;
-        String country;         // ISO 3166 ALPHA2 country code
-
+    public record Address(
+        String streetName,
+        String buildingNumber,
+        String townName,
+        String postCode,
+        String country         // ISO 3166 ALPHA2 country code
+    ) {
         public static Address of(String streetName, String buildingNumber, 
                                String townName, String postCode, String country) {
             return new Address(streetName, buildingNumber, townName, postCode, country);
@@ -81,13 +76,12 @@ public final class BerlinGroupTypes {
      * Creditor/Debtor information following Berlin Group
      * ISO 20022 PartyIdentification135 compliant
      */
-    @Value
-    public static class PartyIdentification {
-        String name;           // Max 70 characters
-        Address postalAddress;
-        String organisationId; // Organisation identifier
-        String privateId;      // Private person identifier
-
+    public record PartyIdentification(
+        String name,           // Max 70 characters
+        Address postalAddress,
+        String organisationId, // Organisation identifier
+        String privateId       // Private person identifier
+    ) {
         public static PartyIdentification person(String name, Address address, String privateId) {
             return new PartyIdentification(name, address, null, privateId);
         }
@@ -121,14 +115,13 @@ public final class BerlinGroupTypes {
      * Authentication Object following Berlin Group SCA
      * Strong Customer Authentication compliant
      */
-    @Value
-    public static class AuthenticationObject {
-        String authenticationType;  // SMS_OTP, CHIP_OTP, PHOTO_OTP, PUSH_OTP
-        String authenticationVersion;
-        String authenticationMethodId;
-        String name;
-        String explanation;
-
+    public record AuthenticationObject(
+        String authenticationType,  // SMS_OTP, CHIP_OTP, PHOTO_OTP, PUSH_OTP
+        String authenticationVersion,
+        String authenticationMethodId,
+        String name,
+        String explanation
+    ) {
         public static AuthenticationObject smsOtp(String methodId, String explanation) {
             return new AuthenticationObject("SMS_OTP", "1.0", methodId, "SMS OTP", explanation);
         }
@@ -171,10 +164,9 @@ public final class BerlinGroupTypes {
      * Day of Execution following Berlin Group
      * Used for standing orders and periodic payments
      */
-    @Value
-    public static class DayOfExecution {
-        String dayOfExecution; // 01-31 for monthly, 1-7 for weekly
-
+    public record DayOfExecution(
+        String dayOfExecution // 01-31 for monthly, 1-7 for weekly
+    ) {
         public static DayOfExecution monthly(int day) {
             if (day < 1 || day > 31) {
                 throw new IllegalArgumentException("Day must be between 1 and 31");
@@ -194,13 +186,12 @@ public final class BerlinGroupTypes {
      * Remittance Information following Berlin Group
      * ISO 20022 RemittanceInformation16 compliant
      */
-    @Value
-    public static class RemittanceInformation {
-        String unstructured;    // Max 140 characters
-        String reference;       // Structured reference
-        String referenceType;   // Reference type
-        String referenceIssuer; // Reference issuer
-
+    public record RemittanceInformation(
+        String unstructured,    // Max 140 characters
+        String reference,       // Structured reference
+        String referenceType,   // Reference type
+        String referenceIssuer  // Reference issuer
+    ) {
         public static RemittanceInformation unstructured(String text) {
             if (text != null && text.length() > 140) {
                 throw new IllegalArgumentException("Unstructured remittance info cannot exceed 140 characters");
@@ -246,20 +237,20 @@ public final class BerlinGroupTypes {
      * Links following Berlin Group HATEOAS
      * Self-referential links for API navigation
      */
-    @Value
-    public static class Links {
-        String self;
-        String status;
-        String scaRedirect;
-        String scaOAuth;
-        String confirmation;
-        String startAuthorisation;
-        String startAuthorisationWithPsuIdentification;
-        String startAuthorisationWithPsuAuthentication;
-        String startAuthorisationWithEncryptedPsuAuthentication;
-        String startAuthorisationWithAuthenticationMethodSelection;
-        String selectAuthenticationMethod;
-        String authoriseTransaction;
+    public record Links(
+        String self,
+        String status,
+        String scaRedirect,
+        String scaOAuth,
+        String confirmation,
+        String startAuthorisation,
+        String startAuthorisationWithPsuIdentification,
+        String startAuthorisationWithPsuAuthentication,
+        String startAuthorisationWithEncryptedPsuAuthentication,
+        String startAuthorisationWithAuthenticationMethodSelection,
+        String selectAuthenticationMethod,
+        String authoriseTransaction
+    ) {
 
         public static LinksBuilder builder() {
             return new LinksBuilder();
@@ -305,22 +296,22 @@ public final class BerlinGroupTypes {
      * PSU Data following Berlin Group
      * Payment Service User identification
      */
-    @Value
-    public static class PsuData {
-        String psuId;                    // PSU identifier
-        String psuIdType;                // Type of PSU identifier
-        String psuCorporateId;           // Corporate PSU identifier
-        String psuCorporateIdType;       // Type of corporate PSU identifier
-        String psuIpAddress;             // PSU IP address (mandatory)
-        String psuIpPort;                // PSU IP port
-        String psuUserAgent;             // PSU user agent
-        String psuGeoLocation;           // PSU geographic location
-        OffsetDateTime psuHttpMethod;    // PSU HTTP method timestamp
-        String psuDeviceId;              // PSU device identifier
-        OffsetDateTime psuAccept;        // PSU accept timestamp
-        String psuAcceptCharset;         // PSU accept charset
-        String psuAcceptEncoding;        // PSU accept encoding
-        String psuAcceptLanguage;        // PSU accept language
+    public record PsuData(
+        String psuId,                    // PSU identifier
+        String psuIdType,                // Type of PSU identifier
+        String psuCorporateId,           // Corporate PSU identifier
+        String psuCorporateIdType,       // Type of corporate PSU identifier
+        String psuIpAddress,             // PSU IP address (mandatory)
+        String psuIpPort,                // PSU IP port
+        String psuUserAgent,             // PSU user agent
+        String psuGeoLocation,           // PSU geographic location
+        OffsetDateTime psuHttpMethod,    // PSU HTTP method timestamp
+        String psuDeviceId,              // PSU device identifier
+        OffsetDateTime psuAccept,        // PSU accept timestamp
+        String psuAcceptCharset,         // PSU accept charset
+        String psuAcceptEncoding,        // PSU accept encoding
+        String psuAcceptLanguage         // PSU accept language
+    ) {
 
         public static PsuDataBuilder builder() {
             return new PsuDataBuilder();
@@ -369,15 +360,15 @@ public final class BerlinGroupTypes {
      * Tpp Info following Berlin Group
      * Third Party Provider information
      */
-    @Value
-    public static class TppInfo {
-        String tppId;                    // TPP identifier
-        String tppName;                  // TPP name
-        String tppRole;                  // TPP role (AISP, PISP, CBPII)
-        String tppNationalCompetentAuthority; // National Competent Authority
-        String tppRedirectUri;           // TPP redirect URI
-        String tppNokRedirectUri;        // TPP Nok redirect URI
-        boolean tppExplicitAuthorisationPreferred; // Explicit authorisation preferred
+    public record TppInfo(
+        String tppId,                    // TPP identifier
+        String tppName,                  // TPP name
+        String tppRole,                  // TPP role (AISP, PISP, CBPII)
+        String tppNationalCompetentAuthority, // National Competent Authority
+        String tppRedirectUri,           // TPP redirect URI
+        String tppNokRedirectUri,        // TPP Nok redirect URI
+        boolean tppExplicitAuthorisationPreferred // Explicit authorisation preferred
+    ) {
 
         public static TppInfoBuilder builder() {
             return new TppInfoBuilder();

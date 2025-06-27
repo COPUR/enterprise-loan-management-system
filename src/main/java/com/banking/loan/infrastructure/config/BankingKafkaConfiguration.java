@@ -1,6 +1,6 @@
 package com.banking.loan.infrastructure.config;
 
-import com.banking.loan.infrastructure.messaging.BankingMessage;
+// import com.banking.loan.infrastructure.messaging.BankingMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -144,7 +144,7 @@ public class BankingKafkaConfiguration {
         configProps.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
         configProps.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
         configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "com.banking.loan.infrastructure.messaging");
-        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, BankingMessage.class);
+        // configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, com.banking.loan.infrastructure.messaging.BankingMessage.class);
         
         return new DefaultKafkaConsumerFactory<>(configProps);
     }
@@ -171,8 +171,8 @@ public class BankingKafkaConfiguration {
         factory.setCommonErrorHandler(bankingErrorHandler());
         
         // Consumer Configuration
-        factory.getContainerProperties().setPollTimeout(Duration.ofSeconds(3));
-        factory.getContainerProperties().setIdleEventInterval(Duration.ofSeconds(60));
+        factory.getContainerProperties().setPollTimeout(3000L);
+        factory.getContainerProperties().setIdleEventInterval(60000L);
         
         // Monitoring and Observability
         factory.getContainerProperties().setLogContainerConfig(true);
@@ -200,7 +200,7 @@ public class BankingKafkaConfiguration {
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.BATCH);
         
         // Faster polling for real-time transaction processing
-        factory.getContainerProperties().setPollTimeout(Duration.ofMillis(100));
+        factory.getContainerProperties().setPollTimeout(100L);
         
         factory.setCommonErrorHandler(transactionErrorHandler());
         
@@ -299,17 +299,17 @@ public class BankingKafkaConfiguration {
         return errorHandler;
     }
 
-    private void sendToBankingDLQ(org.apache.kafka.clients.consumer.ConsumerRecord<Object, Object> record, Exception exception) {
+    private void sendToBankingDLQ(org.apache.kafka.clients.consumer.ConsumerRecord<?, ?> record, Exception exception) {
         // Implementation for banking DLQ
         log.info("Sending banking event to DLQ: {}", record.key());
     }
 
-    private void sendToTransactionDLQ(org.apache.kafka.clients.consumer.ConsumerRecord<Object, Object> record, Exception exception) {
+    private void sendToTransactionDLQ(org.apache.kafka.clients.consumer.ConsumerRecord<?, ?> record, Exception exception) {
         // Implementation for transaction DLQ
         log.info("Sending transaction event to DLQ: {}", record.key());
     }
 
-    private void sendToComplianceDLQ(org.apache.kafka.clients.consumer.ConsumerRecord<Object, Object> record, Exception exception) {
+    private void sendToComplianceDLQ(org.apache.kafka.clients.consumer.ConsumerRecord<?, ?> record, Exception exception) {
         // Implementation for compliance investigation DLQ
         log.error("Sending compliance event to investigation DLQ: {}", record.key());
     }

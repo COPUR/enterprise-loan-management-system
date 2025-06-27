@@ -1,6 +1,6 @@
 package com.bank.loanmanagement.domain.model.bian;
 
-import com.bank.loanmanagement.domain.model.berlingroup.BerlinGroupAmount;
+import com.bank.loanmanagement.domain.model.bian.BerlinGroupAmount;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
@@ -557,11 +557,14 @@ public class BIANLoanService implements BIANServiceDomain {
     }
     
     @Override
+    public String getServiceDomainType() {
+        return "ConsumerLoan";
+    }
+    
     public String getBIANFunctionalPattern() {
         return "Fulfill"; // Consumer Loan follows the Fulfill pattern
     }
     
-    @Override
     public String getBIANBusinessArea() {
         return "Customer Products & Services";
     }

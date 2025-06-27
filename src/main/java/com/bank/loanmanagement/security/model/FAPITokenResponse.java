@@ -11,4 +11,6 @@ public class FAPITokenResponse {
     private Long expiresIn;
     private String refreshToken;
     private String scope;
+    private TokenBinding tokenBinding;
+    private java.util.Map<String, Object> cnf;
 }

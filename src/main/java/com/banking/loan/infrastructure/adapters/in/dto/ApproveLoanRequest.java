@@ -7,5 +7,6 @@ public record ApproveLoanRequest(
     String approverId,
     String approvalNotes,
     BigDecimal approvedAmount,
+    BigDecimal approvedInterestRate,
     List<String> conditions
 ) {}
