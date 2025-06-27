@@ -12,24 +12,12 @@ public class FAPITokenRequest {
     private String codeVerifier;
     private String code;
     private String dpopJkt;
-}
-
-@Data
-@Builder
-class FAPITokenRefreshRequest {
-    private String refreshToken;
-    private String clientId;
-    private String scope;
-}
-
-@Data
-@Builder
-class FAPITokenValidationRequest {
-    private String accessToken;
+    private String grantType;
     private String dpopProof;
-    private String httpMethod;
-    private String httpUri;
+    private String userId;
 }
+
+// FAPITokenRefreshRequest and FAPITokenValidationRequest are defined as records in separate files
 
 @Data
 @Builder
@@ -64,32 +52,7 @@ class TemporaryTokenResponse {
     private String purpose;
 }
 
-@Data
-@Builder
-class TokenAnalytics {
-    private Long totalTokensIssued;
-    private Long activeTokens;
-    private Double averageTokenLifetime;
-}
-
-@Data
-@Builder
-class TokenBinding {
-    private String bindingType;
-    private String bindingValue;
-    private String algorithm;
-}
-
-@Data
-@Builder
-class StoredTokenData {
-    private String tokenId;
-    private String clientId;
-    private Long issuedAt;
-    private Long expiresAt;
-    private String scope;
-    private TokenBinding binding;
-}
+// TokenAnalytics, TokenBinding and StoredTokenData are now in separate files
 
 @Data
 @Builder

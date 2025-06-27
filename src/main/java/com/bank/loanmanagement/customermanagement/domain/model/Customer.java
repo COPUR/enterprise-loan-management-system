@@ -7,6 +7,7 @@ import com.bank.loanmanagement.customermanagement.domain.event.CreditReservedEve
 import com.bank.loanmanagement.customermanagement.domain.event.CreditReleasedEvent;
 import com.bank.loanmanagement.customermanagement.domain.event.CustomerActivatedEvent;
 import com.bank.loanmanagement.customermanagement.domain.event.CustomerSuspendedEvent;
+import com.banking.loan.domain.valueobjects.CreditScore;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -24,6 +25,7 @@ public class Customer extends AggregateRoot<CustomerId> {
     private CreditLimit creditLimit;
     private Money usedCredit;
     private CustomerStatus status;
+    private CreditScore creditScore;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -200,6 +202,10 @@ public class Customer extends AggregateRoot<CustomerId> {
     
     public CustomerStatus getStatus() {
         return status;
+    }
+    
+    public CreditScore getCreditScore() {
+        return creditScore;
     }
     
     public LocalDateTime getCreatedAt() {

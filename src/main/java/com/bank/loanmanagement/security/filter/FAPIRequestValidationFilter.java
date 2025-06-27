@@ -4,7 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,8 +21,9 @@ import java.util.regex.Pattern;
  * Following OpenID Foundation FAPI specifications
  */
 @Component
-@Slf4j
 public class FAPIRequestValidationFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(FAPIRequestValidationFilter.class);
 
     private static final String FAPI_INTERACTION_ID_HEADER = "X-FAPI-Interaction-ID";
     private static final String FAPI_AUTH_DATE_HEADER = "X-FAPI-Auth-Date";

@@ -20,6 +20,23 @@ public class SecurityProperties {
     private Cors cors = new Cors();
     private RateLimit rateLimit = new RateLimit();
 
+    // Explicit getters to ensure they exist for compilation
+    public Jwt getJwt() {
+        return jwt;
+    }
+
+    public Password getPassword() {
+        return password;
+    }
+
+    public Cors getCors() {
+        return cors;
+    }
+
+    public RateLimit getRateLimit() {
+        return rateLimit;
+    }
+
     @Data
     public static class Jwt {
         private String secret = "banking-jwt-secret-key-should-be-very-long-and-secure";

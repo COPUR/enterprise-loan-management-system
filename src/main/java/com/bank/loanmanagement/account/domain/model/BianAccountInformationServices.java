@@ -68,6 +68,7 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
                                          PsuData psuData,
                                          TppInfo tppInfo,
                                          List<AuthenticationObject> scaMethods) {
+        super(id);
         this.id = id;
         this.serviceDomainInstanceReference = serviceDomainInstanceReference;
         this.accountReference = accountReference;
@@ -109,18 +110,18 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
         BianAccountInformationServices ais = new BianAccountInformationServices(
             instanceRef,
             serviceDomainRef,
-            request.getAccountReference(),
+            request.accountReference(),
             consentId,
-            request.getAvailableAccounts(),
-            request.getAllPsd2(),
-            request.isBalances(),
-            request.isTransactions(),
-            request.getValidUntil(),
-            request.getFrequencyPerDay(),
-            request.getCustomerReference(),
-            request.getPsuData(),
-            request.getTppInfo(),
-            request.getScaMethods()
+            request.availableAccounts(),
+            request.allPsd2(),
+            request.balances(),
+            request.transactions(),
+            request.validUntil(),
+            request.frequencyPerDay(),
+            request.customerReference(),
+            request.psuData(),
+            request.tppInfo(),
+            request.scaMethods()
         );
 
         // Generate initial HATEOAS links
@@ -136,7 +137,7 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
                 "INITIATE",
                 "INIT-" + instanceRef.getValue(),
                 OffsetDateTime.now(),
-                request.getInitiatedBy(),
+                request.initiatedBy(),
                 "Account information consent initiated",
                 "COMPLETED"
             )
@@ -154,20 +155,20 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
 
         ConsentStatus previousStatus = this.consentStatus;
 
-        if (request.getNewConsentStatus() != null) {
-            this.consentStatus = request.getNewConsentStatus();
+        if (request.newConsentStatus() != null) {
+            this.consentStatus = request.newConsentStatus();
         }
 
-        if (request.getNewScaStatus() != null) {
-            this.scaStatus = request.getNewScaStatus();
+        if (request.newScaStatus() != null) {
+            this.scaStatus = request.newScaStatus();
         }
 
-        if (request.getAuthorisationId() != null) {
-            this.authorisationId = request.getAuthorisationId();
+        if (request.authorisationId() != null) {
+            this.authorisationId = request.authorisationId();
         }
 
         this.lastUpdated = OffsetDateTime.now();
-        this.lastUpdatedBy = request.getUpdatedBy();
+        this.lastUpdatedBy = request.updatedBy();
 
         // Add status change action
         if (previousStatus != this.consentStatus) {
@@ -176,7 +177,7 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
                 String.format("Consent status changed from %s to %s", previousStatus, this.consentStatus),
                 "COMPLETED",
                 OffsetDateTime.now(),
-                request.getUpdatedBy()
+                request.updatedBy()
             );
             this.accountActions.add(statusChangeAction);
         }
@@ -187,7 +188,7 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
                 "UPDATE",
                 "UPD-" + id.getValue(),
                 OffsetDateTime.now(),
-                request.getUpdatedBy(),
+                request.updatedBy(),
                 "Account information consent updated",
                 "COMPLETED"
             )
@@ -214,15 +215,15 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
 
         this.lastAccessDate = LocalDate.now();
         this.lastUpdated = OffsetDateTime.now();
-        this.lastUpdatedBy = request.getRetrievedBy();
+        this.lastUpdatedBy = request.retrievedBy();
 
         // Create retrieval action
         Action retrievalAction = Action.of(
             "RETRIEVAL",
-            String.format("Account information retrieved: %s", request.getInformationType()),
+            String.format("Account information retrieved: %s", request.informationType()),
             "COMPLETED",
             OffsetDateTime.now(),
-            request.getRetrievedBy()
+            request.retrievedBy()
         );
         this.accountActions.add(retrievalAction);
 
@@ -232,8 +233,8 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
                 "RETRIEVE",
                 "RET-" + id.getValue(),
                 OffsetDateTime.now(),
-                request.getRetrievedBy(),
-                String.format("Account information %s retrieved", request.getInformationType()),
+                request.retrievedBy(),
+                String.format("Account information %s retrieved", request.informationType()),
                 "COMPLETED"
             )
         );
@@ -241,7 +242,7 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
         return AccountInformationRetrievalResult.builder()
             .accountInformationInstanceReference(this.id)
             .consentId(this.consentId)
-            .informationType(request.getInformationType())
+            .informationType(request.informationType())
             .retrievalDateTime(OffsetDateTime.now())
             .accountReference(this.accountReference)
             .retrievalAction(retrievalAction)
@@ -257,7 +258,7 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
 
         ConsentStatus previousStatus = this.consentStatus;
 
-        switch (request.getControlAction()) {
+        switch (request.controlAction()) {
             case REVOKE -> {
                 if (this.consentStatus == ConsentStatus.VALID || 
                     this.consentStatus == ConsentStatus.RECEIVED) {
@@ -276,20 +277,20 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
             case EXPIRE -> {
                 this.consentStatus = ConsentStatus.EXPIRED;
             }
-            default -> throw new IllegalArgumentException("Unsupported control action: " + request.getControlAction());
+            default -> throw new IllegalArgumentException("Unsupported control action: " + request.controlAction());
         }
 
         this.lastUpdated = OffsetDateTime.now();
-        this.lastUpdatedBy = request.getControlledBy();
+        this.lastUpdatedBy = request.controlledBy();
 
         // Add control action
         Action controlAction = Action.of(
             "CONTROL",
             String.format("Consent control action %s: status changed from %s to %s", 
-                         request.getControlAction(), previousStatus, this.consentStatus),
+                         request.controlAction(), previousStatus, this.consentStatus),
             "COMPLETED",
             OffsetDateTime.now(),
-            request.getControlledBy()
+            request.controlledBy()
         );
         this.accountActions.add(controlAction);
 
@@ -299,8 +300,8 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
                 "CONTROL",
                 "CTL-" + id.getValue(),
                 OffsetDateTime.now(),
-                request.getControlledBy(),
-                String.format("Control action %s executed", request.getControlAction()),
+                request.controlledBy(),
+                String.format("Control action %s executed", request.controlAction()),
                 "COMPLETED"
             )
         );
@@ -316,11 +317,11 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
         ScaStatus previousScaStatus = this.scaStatus;
 
         // Update SCA status based on exchange
-        switch (request.getScaAction()) {
+        switch (request.scaAction()) {
             case START_AUTHORISATION -> {
                 if (this.scaStatus == ScaStatus.RECEIVED) {
                     this.scaStatus = ScaStatus.STARTED;
-                    this.authorisationId = request.getAuthorisationId();
+                    this.authorisationId = request.authorisationId();
                 }
             }
             case SELECT_SCA_METHOD -> {
@@ -341,16 +342,16 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
         }
 
         this.lastUpdated = OffsetDateTime.now();
-        this.lastUpdatedBy = request.getExchangedBy();
+        this.lastUpdatedBy = request.exchangedBy();
 
         // Add SCA action
         Action scaAction = Action.of(
             "SCA_EXCHANGE",
             String.format("SCA action %s: status changed from %s to %s", 
-                         request.getScaAction(), previousScaStatus, this.scaStatus),
+                         request.scaAction(), previousScaStatus, this.scaStatus),
             "COMPLETED",
             OffsetDateTime.now(),
-            request.getExchangedBy()
+            request.exchangedBy()
         );
         this.accountActions.add(scaAction);
 
@@ -360,8 +361,8 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
                 "EXCHANGE",
                 "EXC-" + id.getValue(),
                 OffsetDateTime.now(),
-                request.getExchangedBy(),
-                String.format("SCA exchange action %s executed", request.getScaAction()),
+                request.exchangedBy(),
+                String.format("SCA exchange action %s executed", request.scaAction()),
                 "COMPLETED"
             )
         );
@@ -394,38 +395,38 @@ public class BianAccountInformationServices extends AggregateRoot<AccountInforma
     // Validation methods following DDD invariants
     private static void validateInitiateRequest(InitiateAccountInformationConsentRequest request) {
         Objects.requireNonNull(request, "Initiate consent request cannot be null");
-        Objects.requireNonNull(request.getAccountReference(), "Account reference is required");
-        Objects.requireNonNull(request.getValidUntil(), "Valid until date is required");
-        Objects.requireNonNull(request.getPsuData(), "PSU data is required");
-        Objects.requireNonNull(request.getTppInfo(), "TPP info is required");
-        Objects.requireNonNull(request.getInitiatedBy(), "Initiated by is required");
+        Objects.requireNonNull(request.accountReference(), "Account reference is required");
+        Objects.requireNonNull(request.validUntil(), "Valid until date is required");
+        Objects.requireNonNull(request.psuData(), "PSU data is required");
+        Objects.requireNonNull(request.tppInfo(), "TPP info is required");
+        Objects.requireNonNull(request.initiatedBy(), "Initiated by is required");
         
-        if (request.getFrequencyPerDay() <= 0) {
+        if (request.frequencyPerDay() <= 0) {
             throw new IllegalArgumentException("Frequency per day must be positive");
         }
     }
 
     private void validateUpdateRequest(UpdateAccountInformationConsentRequest request) {
         Objects.requireNonNull(request, "Update consent request cannot be null");
-        Objects.requireNonNull(request.getUpdatedBy(), "Updated by is required");
+        Objects.requireNonNull(request.updatedBy(), "Updated by is required");
     }
 
     private void validateRetrieveRequest(RetrieveAccountInformationRequest request) {
         Objects.requireNonNull(request, "Retrieve request cannot be null");
-        Objects.requireNonNull(request.getInformationType(), "Information type is required");
-        Objects.requireNonNull(request.getRetrievedBy(), "Retrieved by is required");
+        Objects.requireNonNull(request.informationType(), "Information type is required");
+        Objects.requireNonNull(request.retrievedBy(), "Retrieved by is required");
     }
 
     private void validateControlRequest(ControlAccountInformationConsentRequest request) {
         Objects.requireNonNull(request, "Control request cannot be null");
-        Objects.requireNonNull(request.getControlAction(), "Control action is required");
-        Objects.requireNonNull(request.getControlledBy(), "Controlled by is required");
+        Objects.requireNonNull(request.controlAction(), "Control action is required");
+        Objects.requireNonNull(request.controlledBy(), "Controlled by is required");
     }
 
     private void validateScaExchangeRequest(ExchangeConsentScaInformationRequest request) {
         Objects.requireNonNull(request, "SCA exchange request cannot be null");
-        Objects.requireNonNull(request.getScaAction(), "SCA action is required");
-        Objects.requireNonNull(request.getExchangedBy(), "Exchanged by is required");
+        Objects.requireNonNull(request.scaAction(), "SCA action is required");
+        Objects.requireNonNull(request.exchangedBy(), "Exchanged by is required");
     }
 
     @Override

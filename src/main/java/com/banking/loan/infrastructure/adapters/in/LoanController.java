@@ -18,7 +18,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -65,18 +67,18 @@ public class LoanController {
         // Execute with circuit breaker protection
         LoanApplicationResult result = circuitBreakerService.executeLoanOperation(
             () -> loanApplicationUseCase.submitLoanApplication(
-                SubmitLoanApplicationCommand.builder()
-                    .customerId(request.customerId())
-                    .amount(request.amount())
-                    .termInMonths(request.termInMonths())
-                    .loanType(request.loanType())
-                    .purpose(request.purpose())
-                    .collateralType(request.collateralType())
-                    .applicantId(securityContext.getCurrentUserId())
-                    .correlationId(correlationId)
-                    .tenantId(securityContext.getTenantId())
-                    .clientId(securityContext.getClientId())
-                    .build()
+                new SubmitLoanApplicationCommand(
+                    request.customerId(),
+                    request.amount(),
+                    request.termInMonths(),
+                    request.loanType(),
+                    request.purpose(),
+                    request.collateralDescription(),
+                    request.monthlyIncome(),
+                    securityContext.getCurrentUserId().orElse("anonymous"),
+                    correlationId,
+                    securityContext.getTenantId()
+                )
             ),
             "submit-loan-application"
         );
@@ -96,15 +98,16 @@ public class LoanController {
         
         LoanApprovalResult result = circuitBreakerService.executeLoanOperation(
             () -> loanApplicationUseCase.approveLoan(
-                ApproveLoanCommand.builder()
-                    .loanId(loanId)
-                    .approvedInterestRate(request.approvedInterestRate())
-                    .approvedAmount(request.approvedAmount())
-                    .conditions(request.conditions())
-                    .approvedBy(securityContext.getCurrentUserId())
-                    .correlationId(correlationId)
-                    .approvalNotes(request.approvalNotes())
-                    .build()
+                new ApproveLoanCommand(
+                    loanId,
+                    request.approverId(),
+                    request.approvalNotes(),
+                    request.approvedAmount(),
+                    request.approvedInterestRate(),
+                    securityContext.getCurrentUserId().orElse("anonymous"),
+                    correlationId,
+                    request.conditions()
+                )
             ),
             "approve-loan"
         );
@@ -124,13 +127,15 @@ public class LoanController {
         
         LoanRejectionResult result = circuitBreakerService.executeLoanOperation(
             () -> loanApplicationUseCase.rejectLoan(
-                RejectLoanCommand.builder()
-                    .loanId(loanId)
-                    .rejectionReasons(request.rejectionReasons())
-                    .rejectedBy(securityContext.getCurrentUserId())
-                    .correlationId(correlationId)
-                    .rejectionNotes(request.rejectionNotes())
-                    .build()
+                new RejectLoanCommand(
+                    loanId,
+                    request.rejecterId(),
+                    request.rejectionReason(),
+                    request.additionalNotes(),
+                    request.rejectionReasons(),
+                    securityContext.getCurrentUserId().orElse("anonymous"),
+                    correlationId
+                )
             ),
             "reject-loan"
         );
@@ -141,14 +146,14 @@ public class LoanController {
     @GetMapping("/{loanId}")
     @Operation(summary = "Get loan details", description = "Retrieve detailed information about a loan")
     @PreAuthorize("hasRole('CUSTOMER') or hasRole('LOAN_OFFICER') or hasRole('CUSTOMER_SERVICE')")
-    public ResponseEntity<LoanDetails> getLoanDetails(@PathVariable String loanId) {
+    public ResponseEntity<LoanDetails> getLoanDetails(@PathVariable String loanId, HttpServletRequest request) {
         
         log.debug("Retrieving loan details for: {}", loanId);
         
         // Check rate limiting for queries
         var rateLimitResult = rateLimitingService.checkRateLimit(
             "loan:query", 
-            securityContext.getCurrentUserId(), 
+            securityContext.getCurrentUserId().orElse("anonymous"), 
             securityContext.getClientId()
         );
         
@@ -160,12 +165,13 @@ public class LoanController {
         
         LoanDetails result = circuitBreakerService.executeLoanOperation(
             () -> loanApplicationUseCase.getLoanDetails(
-                GetLoanDetailsQuery.builder()
-                    .loanId(loanId)
-                    .requestedBy(securityContext.getCurrentUserId())
-                    .includeAIAnalysis(request.getParameter("includeAI") != null)
-                    .includeComplianceData(request.getParameter("includeCompliance") != null)
-                    .build()
+                new GetLoanDetailsQuery(
+                    loanId,
+                    null, // customerId - could be extracted from loan or security context
+                    securityContext.getCurrentUserId().orElse("anonymous"),
+                    request.getParameter("includeAI") != null,
+                    request.getParameter("includeCompliance") != null
+                )
             ),
             "get-loan-details"
         );
@@ -186,13 +192,13 @@ public class LoanController {
         
         List<LoanSummary> result = circuitBreakerService.executeLoanOperation(
             () -> loanApplicationUseCase.getCustomerLoans(
-                GetCustomerLoansQuery.builder()
-                    .customerId(customerId)
-                    .status(status)
-                    .page(page)
-                    .size(size)
-                    .requestedBy(securityContext.getCurrentUserId())
-                    .build()
+                new GetCustomerLoansQuery(
+                    customerId,
+                    page,
+                    size,
+                    status,
+                    securityContext.getCurrentUserId().orElse("anonymous")
+                )
             ),
             "get-customer-loans"
         );
@@ -213,7 +219,7 @@ public class LoanController {
         // Check payment rate limiting (stricter)
         var rateLimitResult = rateLimitingService.checkRateLimit(
             "payment:transfer", 
-            securityContext.getCurrentUserId(), 
+            securityContext.getCurrentUserId().orElse("anonymous"), 
             securityContext.getClientId()
         );
         
@@ -225,16 +231,18 @@ public class LoanController {
         
         PaymentResult result = circuitBreakerService.executePaymentOperation(
             () -> paymentProcessingUseCase.processPayment(
-                ProcessPaymentCommand.builder()
-                    .loanId(loanId)
-                    .paymentAmount(request.amount())
-                    .paymentMethod(request.paymentMethod())
-                    .paymentReference(request.paymentReference())
-                    .paymentChannel(request.paymentChannel())
-                    .paidBy(securityContext.getCurrentUserId())
-                    .correlationId(correlationId)
-                    .fraudCheckRequired(true)
-                    .build()
+                new ProcessPaymentCommand(
+                    loanId,
+                    request.amount(),
+                    request.paymentMethod(),
+                    request.paymentReference(),
+                    request.notes(),
+                    null, // customerId - could be extracted from loan
+                    request.paymentChannel(),
+                    securityContext.getCurrentUserId().orElse("anonymous"),
+                    correlationId,
+                    true // fraudCheckRequired
+                )
             ),
             "process-payment"
         );
@@ -252,14 +260,17 @@ public class LoanController {
         
         log.debug("Retrieving payment history for loan: {}", loanId);
         
-        List<PaymentHistory> result = circuitBreakerService.executeLoanOperation(
+        List<PaymentHistory> result = circuitBreakerService.executePaymentOperation(
             () -> paymentProcessingUseCase.getPaymentHistory(
-                GetPaymentHistoryQuery.builder()
-                    .loanId(loanId)
-                    .page(page)
-                    .size(size)
-                    .requestedBy(securityContext.getCurrentUserId())
-                    .build()
+                new GetPaymentHistoryQuery(
+                    loanId,
+                    null, // customerId
+                    null, // fromDate
+                    null, // toDate
+                    page,
+                    size,
+                    securityContext.getCurrentUserId().orElse("anonymous")
+                )
             ),
             "get-payment-history"
         );
@@ -276,11 +287,14 @@ public class LoanController {
         
         EarlyPaymentOptions result = circuitBreakerService.executeLoanOperation(
             () -> paymentProcessingUseCase.calculateEarlyPayment(
-                CalculateEarlyPaymentQuery.builder()
-                    .loanId(loanId)
-                    .calculationDate(LocalDate.now())
-                    .requestedBy(securityContext.getCurrentUserId())
-                    .build()
+                new CalculateEarlyPaymentQuery(
+                    loanId,
+                    null, // paymentAmount
+                    null, // paymentDate
+                    "STANDARD", // calculationMethod
+                    java.time.LocalDate.now(),
+                    securityContext.getCurrentUserId().orElse("anonymous")
+                )
             ),
             "calculate-early-payment"
         );

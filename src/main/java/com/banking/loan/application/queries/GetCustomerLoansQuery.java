@@ -4,5 +4,6 @@ public record GetCustomerLoansQuery(
     String customerId,
     Integer page,
     Integer size,
-    String status
+    String status,
+    String requestedBy
 ) {}

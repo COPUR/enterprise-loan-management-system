@@ -459,11 +459,14 @@ public class BerlinGroupAccount implements BIANServiceDomain {
     }
     
     @Override
+    public String getServiceDomainType() {
+        return "AccountInformationServices";
+    }
+    
     public String getBIANFunctionalPattern() {
         return "Fulfill"; // Current Account follows the Fulfill pattern
     }
     
-    @Override
     public String getBIANBusinessArea() {
         return "Customer Products & Services";
     }

@@ -6,5 +6,6 @@ public record ProcessPaymentRequest(
     BigDecimal amount,
     String paymentMethod,
     String paymentReference,
-    String notes
+    String notes,
+    String paymentChannel
 ) {}

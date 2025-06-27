@@ -1,7 +1,11 @@
 package com.banking.loan.infrastructure.adapters.in.dto;
 
+import java.util.List;
+
 public record RejectLoanRequest(
     String rejecterId,
     String rejectionReason,
-    String additionalNotes
+    String additionalNotes,
+    List<String> rejectionReasons,
+    String rejectionNotes
 ) {}

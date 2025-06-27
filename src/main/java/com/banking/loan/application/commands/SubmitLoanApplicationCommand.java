@@ -9,5 +9,8 @@ public record SubmitLoanApplicationCommand(
     String loanType,
     String purpose,
     String collateralDescription,
-    BigDecimal monthlyIncome
+    BigDecimal monthlyIncome,
+    String applicantId,
+    String correlationId,
+    String tenantId
 ) {}

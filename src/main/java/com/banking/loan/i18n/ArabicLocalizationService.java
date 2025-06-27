@@ -50,9 +50,9 @@ public class ArabicLocalizationService {
         try {
             HijrahDate hijrahDate = HijrahChronology.INSTANCE.date(gregorianDate);
             
-            int day = hijrahDate.getDayOfMonth();
-            int month = hijrahDate.getMonthValue();
-            int year = hijrahDate.get(hijrahDate.chronology().era().range());
+            int day = hijrahDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH);
+            int month = hijrahDate.get(java.time.temporal.ChronoField.MONTH_OF_YEAR);
+            int year = hijrahDate.get(java.time.temporal.ChronoField.YEAR);
             
             String dayArabic = convertToArabicNumerals(String.valueOf(day));
             String monthName = HIJRI_MONTHS[month - 1];
@@ -201,8 +201,8 @@ public class ArabicLocalizationService {
      */
     public boolean isIslamicHoliday(LocalDate date) {
         HijrahDate hijrahDate = HijrahChronology.INSTANCE.date(date);
-        int month = hijrahDate.getMonthValue();
-        int day = hijrahDate.getDayOfMonth();
+        int month = hijrahDate.get(java.time.temporal.ChronoField.MONTH_OF_YEAR);
+        int day = hijrahDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH);
         
         // Major Islamic holidays
         return (month == 1 && day == 1) ||  // Islamic New Year
