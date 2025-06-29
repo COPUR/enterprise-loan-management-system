@@ -653,6 +653,47 @@ graph TB
 
 ### Architecture Decision Records (ADRs)
 
+Our architecture documentation includes **14 comprehensive ADRs** covering all major architectural decisions:
+
+| ADR | Title | Status | Category |
+|-----|-------|--------|----------|
+| [ADR-001](../decisions/ADR-001-hexagonal-architecture.md) | Hexagonal Architecture Pattern | Accepted | Architecture |
+| [ADR-002](../decisions/ADR-002-oauth2-keycloak-security.md) | OAuth 2.1 with Keycloak Security | Accepted | Security |
+| [ADR-003](../decisions/ADR-003-microservices-spring-boot.md) | Microservices with Spring Boot | Accepted | Technology |
+| [ADR-004](../decisions/ADR-004-database-postgresql-strategy.md) | PostgreSQL Database Strategy | Accepted | Data |
+| [ADR-005](../decisions/ADR-005-api-design-standards.md) | API Design Standards | Accepted | Integration |
+| [ADR-006](../decisions/ADR-006-monitoring-observability.md) | Monitoring and Observability | Accepted | Operations |
+| [ADR-007](../decisions/ADR-007-docker-multi-stage-architecture.md) | Docker Multi-Stage Architecture | Accepted | Deployment |
+| [ADR-008](../decisions/ADR-008-kubernetes-production-deployment.md) | Kubernetes Production Deployment | Accepted | Infrastructure |
+| [ADR-009](../decisions/ADR-009-aws-eks-infrastructure-design.md) | AWS EKS Infrastructure Design | Accepted | Cloud |
+| [ADR-010](../decisions/ADR-010-active-active-architecture.md) | Active-Active Multi-Region Architecture | Accepted | Availability |
+| [ADR-011](../decisions/ADR-011-multi-entity-banking-architecture.md) | Multi-Entity Banking Architecture | Accepted | Business |
+| [ADR-012](../decisions/ADR-012-international-compliance-framework.md) | International Compliance Framework | Accepted | Compliance |
+| [ADR-013](../decisions/ADR-013-non-functional-requirements-architecture.md) | Non-Functional Requirements Architecture | Accepted | Quality |
+| [ADR-014](../decisions/ADR-014-ai-ml-architecture.md) | AI/ML Architecture | Accepted | Intelligence |
+
+#### Recent Architectural Enhancements
+
+**✅ Clean Code & DDD Implementation**
+- **Event-Driven Communication**: Complete domain event system with publishers and handlers
+- **Hexagonal Architecture**: Clear separation between domain, application, and infrastructure layers
+- **Domain-Rich Models**: Business logic properly encapsulated in domain entities
+- **Value Objects**: Rich domain modeling with proper validation
+- **Aggregate Roots**: Proper event management and business rule enforcement
+
+**✅ Architecture Guardrails Applied**
+- **Type Safety**: BigDecimal for financial calculations, strong typing throughout
+- **Validation**: Jakarta Bean Validation with business rule methods
+- **Request Parsing**: Type-safe command objects with comprehensive validation
+- **Response Types**: Structured result objects with business context
+- **Dependency Inversion**: Interface-based dependencies and clean architecture
+
+**✅ Event-Driven Architecture**
+- **Domain Events**: `LoanApplicationSubmittedEvent`, `LoanApplicationApprovedEvent`, `UnderwriterAssignedEvent`
+- **Event Publishers**: Infrastructure for reliable event publishing and sourcing
+- **Event Handlers**: Async processing with proper error handling and compensation
+- **Event Store**: Complete audit trail for compliance and debugging
+
 #### ADR Template
 
 ```markdown
