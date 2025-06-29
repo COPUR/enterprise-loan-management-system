@@ -1,3 +1,282 @@
 package com.bank.loanmanagement.application.eventhandlers;
 
-import com.bank.loanmanagement.domain.application.events.*;\nimport lombok.RequiredArgsConstructor;\nimport lombok.extern.slf4j.Slf4j;\nimport org.springframework.context.event.EventListener;\nimport org.springframework.scheduling.annotation.Async;\nimport org.springframework.stereotype.Component;\nimport org.springframework.transaction.annotation.Propagation;\nimport org.springframework.transaction.annotation.Transactional;\n\n/**\n * Event handler for loan application domain events.\n * \n * Implements Event-Driven Communication by reacting to domain events\n * and triggering appropriate business processes.\n * \n * Architecture Compliance:\n * ✅ Clean Code: Single responsibility for application event handling\n * ✅ Hexagonal: Application service responding to domain events\n * ✅ Event-Driven: Decoupled event handling for business workflows\n * ✅ DDD: Application service orchestrating domain operations\n */\n@Component\n@RequiredArgsConstructor\n@Slf4j\npublic class LoanApplicationEventHandler {\n    \n    // Dependency injection of required services\n    // Note: These would be actual service implementations in a complete system\n    private final NotificationService notificationService;\n    private final RiskAssessmentService riskAssessmentService;\n    private final AuditService auditService;\n    private final LoanCreationService loanCreationService;\n    private final UnderwriterWorkloadService underwriterWorkloadService;\n    \n    /**\n     * Handle loan application submitted events\n     * Triggers risk assessment and customer notification\n     */\n    @EventListener\n    @Async\n    @Transactional(propagation = Propagation.REQUIRES_NEW)\n    public void handleLoanApplicationSubmitted(LoanApplicationSubmittedEvent event) {\n        log.info(\"Processing loan application submitted event: {}\", event.getApplicationId());\n        \n        try {\n            // 1. Trigger automated risk assessment\n            if (event.requiresImmediateProcessing()) {\n                log.info(\"High-priority application detected, initiating immediate risk assessment: {}\", \n                        event.getApplicationId());\n                riskAssessmentService.initiateUrgentRiskAssessment(\n                    event.getApplicationId(), \n                    event.getCustomerId(),\n                    event.getLoanType(),\n                    event.getRequestedAmount()\n                );\n            } else {\n                riskAssessmentService.initiateStandardRiskAssessment(\n                    event.getApplicationId(), \n                    event.getCustomerId(),\n                    event.getLoanType(),\n                    event.getRequestedAmount()\n                );\n            }\n            \n            // 2. Send application confirmation to customer\n            notificationService.sendApplicationConfirmation(\n                event.getCustomerId(),\n                event.getApplicationId(),\n                event.getLoanType(),\n                event.getRequestedAmount()\n            );\n            \n            // 3. Create comprehensive audit log\n            auditService.logApplicationSubmission(\n                event.getApplicationId(),\n                event.getCustomerId(),\n                event.getSubmittedBy(),\n                event.getLoanType(),\n                event.getRequestedAmount(),\n                event.getOccurredOn()\n            );\n            \n            // 4. Update business metrics\n            updateApplicationMetrics(event);\n            \n            log.info(\"Successfully processed loan application submitted event: {}\", \n                    event.getApplicationId());\n                    \n        } catch (Exception e) {\n            log.error(\"Failed to process loan application submitted event: {}\", \n                     event.getApplicationId(), e);\n            // In a real system, this might trigger a compensation action\n            // or dead letter queue processing\n            throw new EventProcessingException(\n                \"Failed to process LoanApplicationSubmittedEvent\", e);\n        }\n    }\n    \n    /**\n     * Handle loan application approved events\n     * Triggers loan creation and approval notifications\n     */\n    @EventListener\n    @Async\n    @Transactional(propagation = Propagation.REQUIRES_NEW)\n    public void handleLoanApplicationApproved(LoanApplicationApprovedEvent event) {\n        log.info(\"Processing loan application approved event: {}\", event.getApplicationId());\n        \n        try {\n            // 1. Create the approved loan record\n            String loanId = loanCreationService.createLoanFromApprovedApplication(\n                event.getApplicationId(),\n                event.getCustomerId(),\n                event.getApprovedAmount(),\n                event.getApprovedRate()\n            );\n            \n            log.info(\"Created loan {} from approved application {}\", \n                    loanId, event.getApplicationId());\n            \n            // 2. Send approval notification to customer\n            notificationService.sendApprovalNotification(\n                event.getCustomerId(),\n                event.getApplicationId(),\n                loanId,\n                event.getApprovedAmount(),\n                event.getApprovedRate()\n            );\n            \n            // 3. Send notification to loan officer (if applicable)\n            notificationService.sendLoanOfficerApprovalNotification(\n                event.getApplicationId(),\n                loanId,\n                event.getApprovedAmount()\n            );\n            \n            // 4. Update underwriter workload and performance metrics\n            underwriterWorkloadService.recordApproval(\n                event.getUnderwriterId(),\n                event.getApprovedAmount()\n            );\n            \n            // 5. Check if executive notification is required\n            if (event.requiresExecutiveNotification()) {\n                notificationService.sendExecutiveNotification(\n                    event.getApplicationId(),\n                    event.getApprovedAmount(),\n                    event.getUnderwriterId(),\n                    \"High-value loan approval requiring executive attention\"\n                );\n            }\n            \n            // 6. Audit the approval decision\n            auditService.logLoanApproval(\n                event.getApplicationId(),\n                loanId,\n                event.getUnderwriterId(),\n                event.getApproverId(),\n                event.getApprovedAmount(),\n                event.getApprovalReason(),\n                event.getOccurredOn()\n            );\n            \n            log.info(\"Successfully processed loan application approved event: {}\", \n                    event.getApplicationId());\n                    \n        } catch (Exception e) {\n            log.error(\"Failed to process loan application approved event: {}\", \n                     event.getApplicationId(), e);\n            throw new EventProcessingException(\n                \"Failed to process LoanApplicationApprovedEvent\", e);\n        }\n    }\n    \n    /**\n     * Handle underwriter assigned events\n     * Triggers workload updates and notifications\n     */\n    @EventListener\n    @Async\n    @Transactional(propagation = Propagation.REQUIRES_NEW)\n    public void handleUnderwriterAssigned(UnderwriterAssignedEvent event) {\n        log.info(\"Processing underwriter assigned event: {} -> {}\", \n                 event.getApplicationId(), event.getUnderwriterId());\n        \n        try {\n            // 1. Update underwriter workload metrics\n            underwriterWorkloadService.incrementWorkload(\n                event.getUnderwriterId(),\n                event.getPriority()\n            );\n            \n            // 2. Send assignment notification to underwriter\n            if (event.requiresImmediateNotification()) {\n                notificationService.sendUrgentAssignmentNotification(\n                    event.getUnderwriterId(),\n                    event.getApplicationId(),\n                    event.getPriority(),\n                    \"Urgent loan application requires immediate attention\"\n                );\n            } else {\n                notificationService.sendAssignmentNotification(\n                    event.getUnderwriterId(),\n                    event.getApplicationId(),\n                    event.getPriority()\n                );\n            }\n            \n            // 3. Update application processing timeline\n            auditService.logUnderwriterAssignment(\n                event.getApplicationId(),\n                event.getUnderwriterId(),\n                event.getAssignedBy(),\n                event.getAssignmentReason(),\n                event.getAssignedAt()\n            );\n            \n            // 4. Check for workload balancing\n            if (underwriterWorkloadService.isOverloaded(event.getUnderwriterId())) {\n                log.warn(\"Underwriter {} may be overloaded after assignment of {}\", \n                        event.getUnderwriterId(), event.getApplicationId());\n                notificationService.sendWorkloadAlert(\n                    event.getUnderwriterId(),\n                    \"Workload capacity approaching maximum\"\n                );\n            }\n            \n            log.info(\"Successfully processed underwriter assigned event: {}\", \n                    event.getApplicationId());\n                    \n        } catch (Exception e) {\n            log.error(\"Failed to process underwriter assigned event: {}\", \n                     event.getApplicationId(), e);\n            throw new EventProcessingException(\n                \"Failed to process UnderwriterAssignedEvent\", e);\n        }\n    }\n    \n    /**\n     * Business method to update application submission metrics\n     */\n    private void updateApplicationMetrics(LoanApplicationSubmittedEvent event) {\n        try {\n            // Update daily application counts\n            // Update loan type distribution\n            // Update average application amounts\n            // This would integrate with a metrics/analytics service\n            log.debug(\"Updated application metrics for loan type: {}, amount: {}\", \n                     event.getLoanType(), event.getRequestedAmount());\n        } catch (Exception e) {\n            log.warn(\"Failed to update application metrics for {}\", event.getApplicationId(), e);\n            // Don't fail the entire event processing for metrics issues\n        }\n    }\n}\n\n/**\n * Exception thrown when event processing fails\n */\nclass EventProcessingException extends RuntimeException {\n    public EventProcessingException(String message, Throwable cause) {\n        super(message, cause);\n    }\n}\n\n/**\n * Service interfaces for dependency injection\n * In a real system, these would be implemented in their respective bounded contexts\n */\ninterface NotificationService {\n    void sendApplicationConfirmation(String customerId, String applicationId, LoanType loanType, Money amount);\n    void sendApprovalNotification(String customerId, String applicationId, String loanId, Money amount, BigDecimal rate);\n    void sendLoanOfficerApprovalNotification(String applicationId, String loanId, Money amount);\n    void sendExecutiveNotification(String applicationId, Money amount, String underwriterId, String reason);\n    void sendAssignmentNotification(String underwriterId, String applicationId, ApplicationPriority priority);\n    void sendUrgentAssignmentNotification(String underwriterId, String applicationId, ApplicationPriority priority, String message);\n    void sendWorkloadAlert(String underwriterId, String message);\n}\n\ninterface RiskAssessmentService {\n    void initiateStandardRiskAssessment(String applicationId, String customerId, LoanType loanType, Money amount);\n    void initiateUrgentRiskAssessment(String applicationId, String customerId, LoanType loanType, Money amount);\n}\n\ninterface AuditService {\n    void logApplicationSubmission(String applicationId, String customerId, String submittedBy, \n                                LoanType loanType, Money amount, LocalDateTime timestamp);\n    void logLoanApproval(String applicationId, String loanId, String underwriterId, String approverId,\n                        Money amount, String reason, LocalDateTime timestamp);\n    void logUnderwriterAssignment(String applicationId, String underwriterId, String assignedBy,\n                                String reason, LocalDateTime timestamp);\n}\n\ninterface LoanCreationService {\n    String createLoanFromApprovedApplication(String applicationId, String customerId, Money amount, BigDecimal rate);\n}\n\ninterface UnderwriterWorkloadService {\n    void incrementWorkload(String underwriterId, ApplicationPriority priority);\n    void recordApproval(String underwriterId, Money approvedAmount);\n    boolean isOverloaded(String underwriterId);\n}
+import com.bank.loanmanagement.domain.application.events.LoanApplicationApprovedEvent;
+import com.bank.loanmanagement.domain.application.events.LoanApplicationSubmittedEvent;
+import com.bank.loanmanagement.domain.application.events.UnderwriterAssignedEvent;
+import com.bank.loanmanagement.domain.application.ApplicationPriority;
+import com.bank.loanmanagement.domain.application.LoanType;
+import com.bank.loanmanagement.sharedkernel.domain.Money;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Event handler for loan application domain events.
+ * <p>
+ * Implements Event-Driven Communication by reacting to domain events and
+ * triggering appropriate business processes.
+ * <p>
+ * Architecture Compliance:
+ * <ul>
+ *   <li>Clean Code – single responsibility for application event handling</li>
+ *   <li>Hexagonal – application service responding to domain events</li>
+ *   <li>Event-Driven – decoupled event handling for business workflows</li>
+ *   <li>DDD – application service orchestrating domain operations</li>
+ * </ul>
+ */
+@Component
+public class LoanApplicationEventHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(LoanApplicationEventHandler.class);
+
+    /* -------------------------------------------------- Dependencies */
+
+    private final NotificationService       notificationService;
+    private final RiskAssessmentService     riskAssessmentService;
+    private final AuditService              auditService;
+    private final LoanCreationService       loanCreationService;
+    private final UnderwriterWorkloadService underwriterWorkloadService;
+
+    /* -------------------------------------------------- Constructor */
+
+    public LoanApplicationEventHandler(
+            NotificationService notificationService,
+            RiskAssessmentService riskAssessmentService,
+            AuditService auditService,
+            LoanCreationService loanCreationService,
+            UnderwriterWorkloadService underwriterWorkloadService) {
+        this.notificationService = notificationService;
+        this.riskAssessmentService = riskAssessmentService;
+        this.auditService = auditService;
+        this.loanCreationService = loanCreationService;
+        this.underwriterWorkloadService = underwriterWorkloadService;
+    }
+
+    /* -------------------------------------------------- Event handlers */
+
+    /**
+     * Trigger risk assessment, customer confirmation and audit logging when a loan application is submitted.
+     */
+    @EventListener
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handle(LoanApplicationSubmittedEvent event) {
+        log.info("Processing LoanApplicationSubmittedEvent – applicationId={}", event.getApplicationId());
+
+        try {
+            /* 1. Risk assessment */
+            if (event.requiresImmediateProcessing()) {
+                riskAssessmentService.initiateUrgentRiskAssessment(
+                        event.getApplicationId(),
+                        event.getCustomerId(),
+                        event.getLoanType(),
+                        event.getRequestedAmount());
+            } else {
+                riskAssessmentService.initiateStandardRiskAssessment(
+                        event.getApplicationId(),
+                        event.getCustomerId(),
+                        event.getLoanType(),
+                        event.getRequestedAmount());
+            }
+
+            /* 2. Customer confirmation */
+            notificationService.sendApplicationConfirmation(
+                    event.getCustomerId(),
+                    event.getApplicationId(),
+                    event.getLoanType(),
+                    event.getRequestedAmount());
+
+            /* 3. Audit log */
+            auditService.logApplicationSubmission(
+                    event.getApplicationId(),
+                    event.getCustomerId(),
+                    event.getSubmittedBy(),
+                    event.getLoanType(),
+                    event.getRequestedAmount(),
+                    event.getOccurredOn());
+
+            /* 4. Metrics (best-effort) */
+            updateApplicationMetrics(event);
+        } catch (Exception ex) {
+            log.error("Unable to process LoanApplicationSubmittedEvent – applicationId={}", event.getApplicationId(), ex);
+            throw new EventProcessingException("Failed to process LoanApplicationSubmittedEvent", ex);
+        }
+    }
+
+    /**
+     * Persist the loan record when the application is approved and notify stakeholders.
+     */
+    @EventListener
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handle(LoanApplicationApprovedEvent event) {
+        log.info("Processing LoanApplicationApprovedEvent – applicationId={}", event.getApplicationId());
+
+        try {
+            /* 1. Create loan */
+            String loanId = loanCreationService.createLoanFromApprovedApplication(
+                    event.getApplicationId(),
+                    event.getCustomerId(),
+                    event.getApprovedAmount(),
+                    event.getApprovedRate());
+
+            /* 2. Notify customer */
+            notificationService.sendApprovalNotification(
+                    event.getCustomerId(),
+                    event.getApplicationId(),
+                    loanId,
+                    event.getApprovedAmount(),
+                    event.getApprovedRate());
+
+            /* 3. Notify loan officer (optional) */
+            notificationService.sendLoanOfficerApprovalNotification(
+                    event.getApplicationId(),
+                    loanId,
+                    event.getApprovedAmount());
+
+            /* 4. Update underwriter metrics */
+            underwriterWorkloadService.recordApproval(
+                    event.getUnderwriterId(),
+                    event.getApprovedAmount());
+
+            /* 5. Executive notification if threshold exceeded */
+            if (event.requiresExecutiveNotification()) {
+                notificationService.sendExecutiveNotification(
+                        event.getApplicationId(),
+                        event.getApprovedAmount(),
+                        event.getUnderwriterId(),
+                        "High-value loan approved – executive notification required");
+            }
+
+            /* 6. Audit log */
+            auditService.logLoanApproval(
+                    event.getApplicationId(),
+                    loanId,
+                    event.getUnderwriterId(),
+                    event.getApproverId(),
+                    event.getApprovedAmount(),
+                    event.getApprovalReason(),
+                    event.getOccurredOn());
+
+        } catch (Exception ex) {
+            log.error("Unable to process LoanApplicationApprovedEvent – applicationId={}", event.getApplicationId(), ex);
+            throw new EventProcessingException("Failed to process LoanApplicationApprovedEvent", ex);
+        }
+    }
+
+    /**
+     * Update underwriter workload and inform them when they are assigned to a new application.
+     */
+    @EventListener
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handle(UnderwriterAssignedEvent event) {
+        log.info("Processing UnderwriterAssignedEvent – applicationId={}, underwriterId={}",
+                 event.getApplicationId(), event.getUnderwriterId());
+
+        try {
+            /* 1. Workload metrics */
+            underwriterWorkloadService.incrementWorkload(event.getUnderwriterId(), event.getPriority());
+
+            /* 2. Notify underwriter */
+            if (event.requiresImmediateNotification()) {
+                notificationService.sendUrgentAssignmentNotification(
+                        event.getUnderwriterId(),
+                        event.getApplicationId(),
+                        event.getPriority(),
+                        "Urgent loan application – immediate attention required");
+            } else {
+                notificationService.sendAssignmentNotification(
+                        event.getUnderwriterId(),
+                        event.getApplicationId(),
+                        event.getPriority());
+            }
+
+            /* 3. Audit log */
+            auditService.logUnderwriterAssignment(
+                    event.getApplicationId(),
+                    event.getUnderwriterId(),
+                    event.getAssignedBy(),
+                    event.getAssignmentReason(),
+                    event.getAssignedAt());
+
+            /* 4. Balance workload */
+            if (underwriterWorkloadService.isOverloaded(event.getUnderwriterId())) {
+                log.warn("Underwriter {} may be overloaded after assignment of application {}",
+                         event.getUnderwriterId(), event.getApplicationId());
+                notificationService.sendWorkloadAlert(
+                        event.getUnderwriterId(),
+                        "Workload capacity approaching maximum");
+            }
+
+        } catch (Exception ex) {
+            log.error("Unable to process UnderwriterAssignedEvent – applicationId={}", event.getApplicationId(), ex);
+            throw new EventProcessingException("Failed to process UnderwriterAssignedEvent", ex);
+        }
+    }
+
+    /* -------------------------------------------------- Helper methods */
+
+    private void updateApplicationMetrics(LoanApplicationSubmittedEvent event) {
+        try {
+            // Integrate with metrics/analytics service
+            log.debug("Metrics updated – loanType={}, amount={}", event.getLoanType(), event.getRequestedAmount());
+        } catch (Exception ex) {
+            log.warn("Metrics update failed – applicationId={}", event.getApplicationId(), ex);
+            // Best-effort: do not fail business transaction if metrics are unavailable
+        }
+    }
+
+    /* -------------------------------------------------- Internal types */
+
+    /** Raised when an unrecoverable error occurs while processing a domain event. */
+    static class EventProcessingException extends RuntimeException {
+        EventProcessingException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    /* -------------------------------------------------- SPI Definitions (ports) */
+
+    interface NotificationService {
+        void sendApplicationConfirmation(String customerId, String applicationId, LoanType loanType, Money amount);
+        void sendApprovalNotification(String customerId, String applicationId, String loanId, Money amount, BigDecimal rate);
+        void sendLoanOfficerApprovalNotification(String applicationId, String loanId, Money amount);
+        void sendExecutiveNotification(String applicationId, Money amount, String underwriterId, String reason);
+        void sendAssignmentNotification(String underwriterId, String applicationId, ApplicationPriority priority);
+        void sendUrgentAssignmentNotification(String underwriterId, String applicationId, ApplicationPriority priority, String message);
+        void sendWorkloadAlert(String underwriterId, String message);
+    }
+
+    interface RiskAssessmentService {
+        void initiateStandardRiskAssessment(String applicationId, String customerId, LoanType loanType, Money amount);
+        void initiateUrgentRiskAssessment(String applicationId, String customerId, LoanType loanType, Money amount);
+    }
+
+    interface AuditService {
+        void logApplicationSubmission(String applicationId, String customerId, String submittedBy,
+                                      LoanType loanType, Money amount, LocalDateTime timestamp);
+        void logLoanApproval(String applicationId, String loanId, String underwriterId, String approverId,
+                              Money amount, String reason, LocalDateTime timestamp);
+        void logUnderwriterAssignment(String applicationId, String underwriterId, String assignedBy,
+                                      String reason, LocalDateTime timestamp);
+    }
+
+    interface LoanCreationService {
+        String createLoanFromApprovedApplication(String applicationId, String customerId, Money amount, BigDecimal rate);
+    }
+
+    interface UnderwriterWorkloadService {
+        void incrementWorkload(String underwriterId, ApplicationPriority priority);
+        void recordApproval(String underwriterId, Money approvedAmount);
+        boolean isOverloaded(String underwriterId);
+    }
+}

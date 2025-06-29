@@ -34,25 +34,18 @@ configurations {
     }
 }
 
-// Enterprise architecture - restored with working simple loan controller + core business domain
+// Enterprise architecture - compile all domain and infrastructure components
 sourceSets {
     main {
         java {
-            // Include working components and core business domain 
-            exclude '**/saga/**'
-            exclude '**/ai/**'
-            exclude '**/microservices/**'
-            exclude '**/messaging/**'
-            exclude '**/infrastructure/persistence/**'
-            // All exclusions removed - now compiling full application
+            // Include all components for complete enterprise architecture
+            exclude '**/microservices/**'  // Keep only problematic microservices excluded
         }
     }
     test {
         java {
-            // Include only unit tests that don't require full Spring context
-            include '**/api/SimpleLoanControllerUnitTest*'
-            // Exclude integration tests that need excluded components
-            exclude '**/api/SimpleLoanControllerTest*'
+            // Include all tests for comprehensive TDD validation
+            include '**/*Test*'
         }
     }
 }
@@ -344,16 +337,14 @@ test {
     // Configure test categories
     systemProperty 'spring.profiles.active', 'test'
     
-    // Include all functional tests
-    include '**/SimpleLoanControllerTest*'
-    include '**/SimpleLoanControllerUnitTest*'
-    include '**/LoanControllerTest*'
+    // Include TDD test suite
+    include '**/*Test*'
+    include '**/*Tests*'
     
-    // Exclude problematic source patterns from compilation
+    // Exclude only problematic AI/NLP tests that may have dependency issues
     exclude '**/NLP*'
     exclude '**/MCP*'
     exclude '**/SpringAI*'
-    exclude 'com/bank/loanmanagement/infrastructure/graphql/**'
     
     // Test execution settings
     maxHeapSize = '4g'
