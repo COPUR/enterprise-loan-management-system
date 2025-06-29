@@ -3,169 +3,77 @@ package com.bank.loanmanagement.domain.application;
 import com.bank.loanmanagement.domain.shared.AggregateRoot;
 import com.bank.loanmanagement.domain.application.events.*;
 import com.bank.loanmanagement.sharedkernel.domain.Money;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Currency;
+import java.util.Objects;
 
 /**
- * Loan Application Domain Entity
+ * Loan Application Domain Entity (Pure Domain Model)
  * 
  * Represents loan applications throughout the underwriting workflow.
  * Follows DDD principles with proper business rules and state management.
  * 
- * Architecture Guardrails Compliance:
- * ✅ Request Parsing: N/A (Domain Entity)
- * ✅ Validation: Jakarta Bean Validation with business rules
- * ✅ Response Types: N/A (Domain Entity)
+ * Architecture Compliance:
+ * ✅ Clean Code: Intention-revealing names and business methods
+ * ✅ Hexagonal Architecture: Pure domain model without infrastructure concerns
+ * ✅ DDD: Rich domain entity with business logic and event publishing
+ * ✅ Event-Driven: Domain event publishing for workflow coordination
  * ✅ Type Safety: Strong typing with BigDecimal for financial amounts
- * ✅ Dependency Inversion: Pure domain entity
+ * 
+ * This is a PURE DOMAIN MODEL - no infrastructure annotations.
+ * Infrastructure mapping is handled by separate JPA entities.
  */
-@Entity
-@Table(name = "loan_applications", indexes = {
-    @Index(name = "idx_loan_applications_customer_id", columnList = "customer_id"),
-    @Index(name = "idx_loan_applications_status", columnList = "status"),
-    @Index(name = "idx_loan_applications_loan_type", columnList = "loan_type"),
-    @Index(name = "idx_loan_applications_assigned_underwriter", columnList = "assigned_underwriter"),
-    @Index(name = "idx_loan_applications_application_date", columnList = "application_date"),
-    @Index(name = "idx_loan_applications_priority", columnList = "priority"),
-    @Index(name = "idx_loan_applications_status_underwriter", columnList = "status, assigned_underwriter")
-})
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
 @Builder
 public class LoanApplication extends AggregateRoot<String> {
     
-    // ⚠️ ARCHITECTURAL NOTE: This class currently violates Hexagonal Architecture
-    // by mixing JPA annotations with domain logic. In a pure implementation,
-    // this should be separated into:
-    // 1. Pure domain model (this class without JPA annotations)
-    // 2. Infrastructure JPA entity (separate class with mappings)
-    // 3. Mapper between domain and infrastructure layers
+    // ✅ PURE DOMAIN MODEL - No infrastructure annotations
+    // Infrastructure mapping handled by separate JPA entities
     
-    @Id
-    @Column(name = "application_id", length = 20)
-    @NotBlank(message = "Application ID is required")
-    @Pattern(regexp = "^APP\\d{7}$", message = "Application ID must follow pattern APP#######")
-    private String applicationId;
-    
-    @Column(name = "customer_id", nullable = false)
-    @NotNull(message = "Customer ID is required")
-    @Positive(message = "Customer ID must be positive")
-    private Long customerId;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "loan_type", nullable = false, length = 20)
-    @NotNull(message = "Loan type is required")
-    private LoanType loanType;
-    
-    @Column(name = "requested_amount", nullable = false, precision = 15, scale = 2)
-    @NotNull(message = "Requested amount is required")
-    @DecimalMin(value = "1000.00", message = "Requested amount must be at least $1,000")
-    @DecimalMax(value = "10000000.00", message = "Requested amount cannot exceed $10,000,000")
-    private BigDecimal requestedAmount;
-    
-    @Column(name = "requested_term_months", nullable = false)
-    @NotNull(message = "Requested term is required")
-    @Min(value = 6, message = "Loan term must be at least 6 months")
-    @Max(value = 480, message = "Loan term cannot exceed 480 months")
-    private Integer requestedTermMonths;
-    
-    @Column(name = "purpose", length = 255)
-    @Size(max = 255, message = "Purpose must not exceed 255 characters")
-    private String purpose;
-    
-    @Column(name = "application_date", nullable = false)
-    @NotNull(message = "Application date is required")
-    @PastOrPresent(message = "Application date cannot be in the future")
-    private LocalDate applicationDate;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
-    @NotNull(message = "Status is required")
-    private ApplicationStatus status = ApplicationStatus.PENDING;
-    
-    @Column(name = "assigned_underwriter", length = 20)
+    private final String applicationId;
+    private final Long customerId;
+    private final LoanType loanType;
+    private final BigDecimal requestedAmount;
+    private final Integer requestedTermMonths;
+    private final String purpose;
+    private final LocalDate applicationDate;
+    private ApplicationStatus status;
     private String assignedUnderwriter;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "priority", length = 20)
-    @NotNull(message = "Priority is required")
-    private ApplicationPriority priority = ApplicationPriority.STANDARD;
-    
-    @Column(name = "monthly_income", precision = 15, scale = 2)
-    @DecimalMin(value = "0.00", message = "Monthly income cannot be negative")
-    private BigDecimal monthlyIncome;
-    
-    @Column(name = "employment_years")
-    @Min(value = 0, message = "Employment years cannot be negative")
-    @Max(value = 50, message = "Employment years cannot exceed 50")
-    private Integer employmentYears;
-    
-    @Column(name = "collateral_value", precision = 15, scale = 2)
-    @DecimalMin(value = "0.00", message = "Collateral value cannot be negative")
-    private BigDecimal collateralValue;
-    
-    @Column(name = "business_revenue", precision = 15, scale = 2)
-    @DecimalMin(value = "0.00", message = "Business revenue cannot be negative")
-    private BigDecimal businessRevenue;
-    
-    @Column(name = "property_value", precision = 15, scale = 2)
-    @DecimalMin(value = "0.00", message = "Property value cannot be negative")
-    private BigDecimal propertyValue;
-    
-    @Column(name = "down_payment", precision = 15, scale = 2)
-    @DecimalMin(value = "0.00", message = "Down payment cannot be negative")
-    private BigDecimal downPayment;
-    
-    @Column(name = "decision_date")
+    private ApplicationPriority priority;
+    private final BigDecimal monthlyIncome;
+    private final Integer employmentYears;
+    private final BigDecimal collateralValue;
+    private final BigDecimal businessRevenue;
+    private final BigDecimal propertyValue;
+    private final BigDecimal downPayment;
     private LocalDate decisionDate;
-    
-    @Column(name = "decision_reason", columnDefinition = "TEXT")
     private String decisionReason;
-    
-    @Column(name = "approved_amount", precision = 15, scale = 2)
-    @DecimalMin(value = "0.00", message = "Approved amount cannot be negative")
     private BigDecimal approvedAmount;
-    
-    @Column(name = "approved_rate", precision = 5, scale = 3)
-    @DecimalMin(value = "0.000", message = "Approved rate cannot be negative")
-    @DecimalMax(value = "99.999", message = "Approved rate cannot exceed 99.999%")
     private BigDecimal approvedRate;
-    
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-    
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
+    private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
-    @Version
-    @Column(name = "version")
-    private Integer version = 0;
+    private Integer version;
     
     /**
      * Business method to assign an underwriter
-     * Now includes domain event publishing for Event-Driven Communication
+     * Includes domain event publishing for Event-Driven Communication
      */
     public void assignUnderwriter(String underwriterId, String assignedBy, String reason) {
+        Objects.requireNonNull(underwriterId, "Underwriter ID is required");
+        Objects.requireNonNull(assignedBy, "Assigned by is required");
+        
         if (status != ApplicationStatus.PENDING) {
             throw new IllegalStateException("Can only assign underwriter to pending applications");
         }
         
         this.assignedUnderwriter = underwriterId;
         this.status = ApplicationStatus.UNDER_REVIEW;
+        this.updatedAt = LocalDateTime.now();
         
         // Publish domain event for Event-Driven Communication
         addDomainEvent(new UnderwriterAssignedEvent(
@@ -176,14 +84,25 @@ public class LoanApplication extends AggregateRoot<String> {
     
     /**
      * Business method to approve the application
-     * Now includes domain event publishing for Event-Driven Communication
+     * Includes domain event publishing for Event-Driven Communication
      */
     public void approve(BigDecimal approvedAmount, BigDecimal approvedRate, String reason, String approverId) {
+        Objects.requireNonNull(approvedAmount, "Approved amount is required");
+        Objects.requireNonNull(approvedRate, "Approved rate is required");
+        Objects.requireNonNull(reason, "Approval reason is required");
+        Objects.requireNonNull(approverId, "Approver ID is required");
+        
         if (status != ApplicationStatus.UNDER_REVIEW) {
             throw new IllegalStateException("Can only approve applications under review");
         }
         if (approvedAmount.compareTo(requestedAmount) > 0) {
             throw new IllegalArgumentException("Approved amount cannot exceed requested amount");
+        }
+        if (approvedAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Approved amount must be positive");
+        }
+        if (approvedRate.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Approved rate cannot be negative");
         }
         
         this.status = ApplicationStatus.APPROVED;
@@ -191,6 +110,7 @@ public class LoanApplication extends AggregateRoot<String> {
         this.approvedRate = approvedRate;
         this.decisionDate = LocalDate.now();
         this.decisionReason = reason;
+        this.updatedAt = LocalDateTime.now();
         
         // Publish domain event for Event-Driven Communication
         addDomainEvent(new LoanApplicationApprovedEvent(
@@ -204,6 +124,8 @@ public class LoanApplication extends AggregateRoot<String> {
      * Business method to reject the application
      */
     public void reject(String reason) {
+        Objects.requireNonNull(reason, "Rejection reason is required");
+        
         if (status == ApplicationStatus.APPROVED) {
             throw new IllegalStateException("Cannot reject an approved application");
         }
@@ -211,18 +133,22 @@ public class LoanApplication extends AggregateRoot<String> {
         this.status = ApplicationStatus.REJECTED;
         this.decisionDate = LocalDate.now();
         this.decisionReason = reason;
+        this.updatedAt = LocalDateTime.now();
     }
     
     /**
      * Business method to request additional documents
      */
     public void requestDocuments(String reason) {
+        Objects.requireNonNull(reason, "Document request reason is required");
+        
         if (status != ApplicationStatus.UNDER_REVIEW) {
             throw new IllegalStateException("Can only request documents for applications under review");
         }
         
         this.status = ApplicationStatus.PENDING_DOCUMENTS;
         this.decisionReason = reason;
+        this.updatedAt = LocalDateTime.now();
     }
     
     /**
@@ -234,6 +160,7 @@ public class LoanApplication extends AggregateRoot<String> {
         }
         
         this.status = ApplicationStatus.UNDER_REVIEW;
+        this.updatedAt = LocalDateTime.now();
     }
     
     /**
@@ -315,12 +242,54 @@ public class LoanApplication extends AggregateRoot<String> {
      * Business method to escalate priority
      */
     public void escalatePriority() {
-        this.priority = switch (priority) {
+        ApplicationPriority newPriority = switch (priority) {
             case LOW -> ApplicationPriority.STANDARD;
             case STANDARD -> ApplicationPriority.HIGH;
             case HIGH -> ApplicationPriority.URGENT;
             case URGENT -> ApplicationPriority.URGENT; // Already at highest
         };
+        
+        if (newPriority != priority) {
+            this.priority = newPriority;
+            this.updatedAt = LocalDateTime.now();
+        }
+    }
+    
+    /**
+     * Private constructor to enforce factory method usage
+     */
+    private LoanApplication(String applicationId, Long customerId, LoanType loanType,
+                           BigDecimal requestedAmount, Integer requestedTermMonths, String purpose,
+                           LocalDate applicationDate, ApplicationStatus status, ApplicationPriority priority,
+                           BigDecimal monthlyIncome, Integer employmentYears, BigDecimal collateralValue,
+                           BigDecimal businessRevenue, BigDecimal propertyValue, BigDecimal downPayment,
+                           LocalDate decisionDate, String decisionReason, BigDecimal approvedAmount,
+                           BigDecimal approvedRate, LocalDateTime createdAt, LocalDateTime updatedAt,
+                           Integer version) {
+        
+        // Validate required business rules
+        this.applicationId = validateApplicationId(applicationId);
+        this.customerId = validateCustomerId(customerId);
+        this.loanType = Objects.requireNonNull(loanType, "Loan type is required");
+        this.requestedAmount = validateRequestedAmount(requestedAmount);
+        this.requestedTermMonths = validateRequestedTerm(requestedTermMonths);
+        this.purpose = purpose;
+        this.applicationDate = Objects.requireNonNull(applicationDate, "Application date is required");
+        this.status = Objects.requireNonNull(status, "Status is required");
+        this.priority = Objects.requireNonNull(priority, "Priority is required");
+        this.monthlyIncome = monthlyIncome;
+        this.employmentYears = employmentYears;
+        this.collateralValue = collateralValue;
+        this.businessRevenue = businessRevenue;
+        this.propertyValue = propertyValue;
+        this.downPayment = downPayment;
+        this.decisionDate = decisionDate;
+        this.decisionReason = decisionReason;
+        this.approvedAmount = approvedAmount;
+        this.approvedRate = approvedRate;
+        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+        this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
+        this.version = version != null ? version : 0;
     }
     
     /**
@@ -329,17 +298,13 @@ public class LoanApplication extends AggregateRoot<String> {
     public static LoanApplication create(String applicationId, Long customerId, LoanType loanType,
                                        BigDecimal requestedAmount, Integer requestedTermMonths,
                                        String purpose, String submittedBy) {
-        LoanApplication application = LoanApplication.builder()
-            .applicationId(applicationId)
-            .customerId(customerId)
-            .loanType(loanType)
-            .requestedAmount(requestedAmount)
-            .requestedTermMonths(requestedTermMonths)
-            .purpose(purpose)
-            .applicationDate(LocalDate.now())
-            .status(ApplicationStatus.PENDING)
-            .priority(ApplicationPriority.STANDARD)
-            .build();
+        
+        LoanApplication application = new LoanApplication(
+            applicationId, customerId, loanType, requestedAmount, requestedTermMonths,
+            purpose, LocalDate.now(), ApplicationStatus.PENDING, ApplicationPriority.STANDARD,
+            null, null, null, null, null, null, null, null, null, null,
+            LocalDateTime.now(), LocalDateTime.now(), 0
+        );
         
         // Publish domain event for Event-Driven Communication
         application.addDomainEvent(new LoanApplicationSubmittedEvent(
@@ -348,6 +313,29 @@ public class LoanApplication extends AggregateRoot<String> {
             requestedTermMonths, purpose, LocalDate.now(), submittedBy
         ));
         
+        return application;
+    }
+    
+    /**
+     * Factory method for reconstruction from infrastructure
+     */
+    public static LoanApplication reconstruct(String applicationId, Long customerId, LoanType loanType,
+                                            BigDecimal requestedAmount, Integer requestedTermMonths, String purpose,
+                                            LocalDate applicationDate, ApplicationStatus status, ApplicationPriority priority,
+                                            BigDecimal monthlyIncome, Integer employmentYears, BigDecimal collateralValue,
+                                            BigDecimal businessRevenue, BigDecimal propertyValue, BigDecimal downPayment,
+                                            LocalDate decisionDate, String decisionReason, BigDecimal approvedAmount,
+                                            BigDecimal approvedRate, String assignedUnderwriter, LocalDateTime createdAt,
+                                            LocalDateTime updatedAt, Integer version) {
+        
+        LoanApplication application = new LoanApplication(
+            applicationId, customerId, loanType, requestedAmount, requestedTermMonths, purpose,
+            applicationDate, status, priority, monthlyIncome, employmentYears, collateralValue,
+            businessRevenue, propertyValue, downPayment, decisionDate, decisionReason,
+            approvedAmount, approvedRate, createdAt, updatedAt, version
+        );
+        
+        application.assignedUnderwriter = assignedUnderwriter;
         return application;
     }
     
@@ -372,6 +360,47 @@ public class LoanApplication extends AggregateRoot<String> {
         return getClass().hashCode();
     }
     
+    /**
+     * Domain validation methods
+     */
+    private static String validateApplicationId(String applicationId) {
+        Objects.requireNonNull(applicationId, "Application ID is required");
+        if (!applicationId.matches("^APP\\d{7}$")) {
+            throw new IllegalArgumentException("Application ID must follow pattern APP#######");
+        }
+        return applicationId;
+    }
+    
+    private static Long validateCustomerId(Long customerId) {
+        Objects.requireNonNull(customerId, "Customer ID is required");
+        if (customerId <= 0) {
+            throw new IllegalArgumentException("Customer ID must be positive");
+        }
+        return customerId;
+    }
+    
+    private static BigDecimal validateRequestedAmount(BigDecimal amount) {
+        Objects.requireNonNull(amount, "Requested amount is required");
+        if (amount.compareTo(new BigDecimal("1000")) < 0) {
+            throw new IllegalArgumentException("Requested amount must be at least $1,000");
+        }
+        if (amount.compareTo(new BigDecimal("10000000")) > 0) {
+            throw new IllegalArgumentException("Requested amount cannot exceed $10,000,000");
+        }
+        return amount;
+    }
+    
+    private static Integer validateRequestedTerm(Integer termMonths) {
+        Objects.requireNonNull(termMonths, "Requested term is required");
+        if (termMonths < 6) {
+            throw new IllegalArgumentException("Loan term must be at least 6 months");
+        }
+        if (termMonths > 480) {
+            throw new IllegalArgumentException("Loan term cannot exceed 480 months");
+        }
+        return termMonths;
+    }
+    
     @Override
     public String toString() {
         return String.format("LoanApplication{applicationId='%s', customerId=%d, loanType=%s, " +
@@ -381,12 +410,10 @@ public class LoanApplication extends AggregateRoot<String> {
     }
 }
 
-}
-
 /**
  * Loan type enumeration
  */
-enum LoanType {
+public enum LoanType {
     PERSONAL("Personal Loan"),
     BUSINESS("Business Loan"),
     MORTGAGE("Mortgage"),
@@ -406,7 +433,7 @@ enum LoanType {
 /**
  * Application status enumeration
  */
-enum ApplicationStatus {
+public enum ApplicationStatus {
     PENDING("Pending"),
     UNDER_REVIEW("Under Review"),
     APPROVED("Approved"),
@@ -428,7 +455,7 @@ enum ApplicationStatus {
 /**
  * Application priority enumeration
  */
-enum ApplicationPriority {
+public enum ApplicationPriority {
     LOW("Low"),
     STANDARD("Standard"),
     HIGH("High"),

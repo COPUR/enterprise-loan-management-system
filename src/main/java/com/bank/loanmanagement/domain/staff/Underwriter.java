@@ -1,108 +1,98 @@
 package com.bank.loanmanagement.domain.staff;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import com.bank.loanmanagement.domain.shared.AggregateRoot;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
- * Underwriter Domain Entity
+ * Underwriter Domain Entity (Pure Domain Model)
  * 
  * Represents underwriting staff with specialization and approval authority.
  * Follows DDD principles with proper business rules and validation.
  * 
- * Architecture Guardrails Compliance:
- * ✅ Request Parsing: N/A (Domain Entity)
- * ✅ Validation: Jakarta Bean Validation with business rules
- * ✅ Response Types: N/A (Domain Entity)
+ * Architecture Compliance:
+ * ✅ Clean Code: Intention-revealing names and business methods
+ * ✅ Hexagonal Architecture: Pure domain model without infrastructure concerns
+ * ✅ DDD: Rich domain entity with business logic and validation
  * ✅ Type Safety: Strong typing with BigDecimal for financial amounts
- * ✅ Dependency Inversion: Pure domain entity
+ * 
+ * This is a PURE DOMAIN MODEL - no infrastructure annotations.
+ * Infrastructure mapping is handled by separate JPA entities.
  */
-@Entity
-@Table(name = "underwriters", indexes = {
-    @Index(name = "idx_underwriters_specialization", columnList = "specialization"),
-    @Index(name = "idx_underwriters_status", columnList = "status"),
-    @Index(name = "idx_underwriters_approval_limit", columnList = "approval_limit"),
-    @Index(name = "idx_underwriters_email", columnList = "email")
-})
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Underwriter {
+@Getter
+public class Underwriter extends AggregateRoot<String> {
     
-    @Id
-    @Column(name = "underwriter_id", length = 20)
-    @NotBlank(message = "Underwriter ID is required")
-    @Pattern(regexp = "^UW\\d{3}$", message = "Underwriter ID must follow pattern UW###")
-    private String underwriterId;
+    // ✅ PURE DOMAIN MODEL - No infrastructure annotations
+    // Infrastructure mapping handled by separate JPA entities
     
-    @Column(name = "first_name", nullable = false, length = 100)
-    @NotBlank(message = "First name is required")
-    @Size(max = 100, message = "First name must not exceed 100 characters")
-    private String firstName;
-    
-    @Column(name = "last_name", nullable = false, length = 100)
-    @NotBlank(message = "Last name is required")
-    @Size(max = 100, message = "Last name must not exceed 100 characters")
-    private String lastName;
-    
-    @Column(name = "email", nullable = false, unique = true, length = 255)
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email must be valid")
-    @Size(max = 255, message = "Email must not exceed 255 characters")
-    private String email;
-    
-    @Column(name = "phone", length = 20)
-    @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Phone number must be valid")
-    private String phone;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "specialization", nullable = false, length = 50)
-    @NotNull(message = "Specialization is required")
-    private UnderwriterSpecialization specialization;
-    
-    @Column(name = "years_experience", nullable = false)
-    @NotNull(message = "Years of experience is required")
-    @Min(value = 0, message = "Years of experience cannot be negative")
-    @Max(value = 50, message = "Years of experience cannot exceed 50")
-    private Integer yearsExperience;
-    
-    @Column(name = "approval_limit", nullable = false, precision = 15, scale = 2)
-    @NotNull(message = "Approval limit is required")
-    @DecimalMin(value = "1000.00", message = "Approval limit must be at least $1,000")
-    @DecimalMax(value = "10000000.00", message = "Approval limit cannot exceed $10,000,000")
-    private BigDecimal approvalLimit;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 20)
-    @NotNull(message = "Status is required")
-    private EmployeeStatus status = EmployeeStatus.ACTIVE;
-    
-    @Column(name = "hire_date", nullable = false)
-    @NotNull(message = "Hire date is required")
-    @PastOrPresent(message = "Hire date cannot be in the future")
-    private LocalDate hireDate;
-    
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-    
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
+    private final String underwriterId;
+    private final String firstName;
+    private final String lastName;
+    private final String email;
+    private final String phone;
+    private final UnderwriterSpecialization specialization;
+    private final Integer yearsExperience;
+    private final BigDecimal approvalLimit;
+    private EmployeeStatus status;
+    private final LocalDate hireDate;
+    private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Integer version;
     
-    @Version
-    @Column(name = "version")
-    private Integer version = 0;
+    /**
+     * Private constructor to enforce factory method usage
+     */
+    private Underwriter(String underwriterId, String firstName, String lastName, String email,
+                       String phone, UnderwriterSpecialization specialization, Integer yearsExperience,
+                       BigDecimal approvalLimit, EmployeeStatus status, LocalDate hireDate,
+                       LocalDateTime createdAt, LocalDateTime updatedAt, Integer version) {
+        
+        // Validate required business rules
+        this.underwriterId = validateUnderwriterId(underwriterId);
+        this.firstName = validateFirstName(firstName);
+        this.lastName = validateLastName(lastName);
+        this.email = validateEmail(email);
+        this.phone = phone; // Optional field
+        this.specialization = Objects.requireNonNull(specialization, "Specialization is required");
+        this.yearsExperience = validateYearsExperience(yearsExperience);
+        this.approvalLimit = validateApprovalLimit(approvalLimit);
+        this.status = Objects.requireNonNull(status, "Status is required");
+        this.hireDate = validateHireDate(hireDate);
+        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+        this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
+        this.version = version != null ? version : 0;
+    }
+    
+    /**
+     * Factory method to create a new underwriter
+     */
+    public static Underwriter create(String underwriterId, String firstName, String lastName,
+                                   String email, String phone, UnderwriterSpecialization specialization,
+                                   Integer yearsExperience, BigDecimal approvalLimit, LocalDate hireDate) {
+        
+        return new Underwriter(underwriterId, firstName, lastName, email, phone,
+                             specialization, yearsExperience, approvalLimit,
+                             EmployeeStatus.ACTIVE, hireDate, LocalDateTime.now(),
+                             LocalDateTime.now(), 0);
+    }
+    
+    /**
+     * Factory method for reconstruction from infrastructure
+     */
+    public static Underwriter reconstruct(String underwriterId, String firstName, String lastName,
+                                        String email, String phone, UnderwriterSpecialization specialization,
+                                        Integer yearsExperience, BigDecimal approvalLimit, EmployeeStatus status,
+                                        LocalDate hireDate, LocalDateTime createdAt, LocalDateTime updatedAt,
+                                        Integer version) {
+        
+        return new Underwriter(underwriterId, firstName, lastName, email, phone,
+                             specialization, yearsExperience, approvalLimit, status,
+                             hireDate, createdAt, updatedAt, version);
+    }
     
     /**
      * Business method to check if underwriter can approve a loan amount
@@ -127,6 +117,13 @@ public class Underwriter {
             case BUSINESS_LOANS -> "BUSINESS".equalsIgnoreCase(loanType);
             case MORTGAGES -> "MORTGAGE".equalsIgnoreCase(loanType);
         };
+    }
+    
+    /**
+     * Business method to check if available for new loans
+     */
+    public boolean isAvailableForNewLoans() {
+        return status == EmployeeStatus.ACTIVE;
     }
     
     /**
@@ -177,6 +174,25 @@ public class Underwriter {
         };
     }
     
+    /**
+     * Business method to update status
+     */
+    public void updateStatus(EmployeeStatus newStatus) {
+        Objects.requireNonNull(newStatus, "Status is required");
+        
+        if (this.status != newStatus) {
+            this.status = newStatus;
+            this.updatedAt = LocalDateTime.now();
+        }
+    }
+    
+    /**
+     * Business method to check if underwriter can handle urgent cases
+     */
+    public boolean canHandleUrgentCases() {
+        return isSenior() && status == EmployeeStatus.ACTIVE;
+    }
+    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -188,6 +204,88 @@ public class Underwriter {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+    
+    /**
+     * Domain validation methods
+     */
+    private static String validateUnderwriterId(String underwriterId) {
+        Objects.requireNonNull(underwriterId, "Underwriter ID is required");
+        if (!underwriterId.matches("^UW\\d{3}$")) {
+            throw new IllegalArgumentException("Underwriter ID must follow pattern UW###");
+        }
+        return underwriterId;
+    }
+    
+    private static String validateFirstName(String firstName) {
+        Objects.requireNonNull(firstName, "First name is required");
+        if (firstName.trim().isEmpty()) {
+            throw new IllegalArgumentException("First name cannot be blank");
+        }
+        if (firstName.length() > 100) {
+            throw new IllegalArgumentException("First name must not exceed 100 characters");
+        }
+        return firstName.trim();
+    }
+    
+    private static String validateLastName(String lastName) {
+        Objects.requireNonNull(lastName, "Last name is required");
+        if (lastName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Last name cannot be blank");
+        }
+        if (lastName.length() > 100) {
+            throw new IllegalArgumentException("Last name must not exceed 100 characters");
+        }
+        return lastName.trim();
+    }
+    
+    private static String validateEmail(String email) {
+        Objects.requireNonNull(email, "Email is required");
+        if (!email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
+            throw new IllegalArgumentException("Email must be valid");
+        }
+        if (email.length() > 255) {
+            throw new IllegalArgumentException("Email must not exceed 255 characters");
+        }
+        return email.toLowerCase();
+    }
+    
+    private static Integer validateYearsExperience(Integer yearsExperience) {
+        Objects.requireNonNull(yearsExperience, "Years of experience is required");
+        if (yearsExperience < 0) {
+            throw new IllegalArgumentException("Years of experience cannot be negative");
+        }
+        if (yearsExperience > 50) {
+            throw new IllegalArgumentException("Years of experience cannot exceed 50");
+        }
+        return yearsExperience;
+    }
+    
+    private static BigDecimal validateApprovalLimit(BigDecimal approvalLimit) {
+        Objects.requireNonNull(approvalLimit, "Approval limit is required");
+        if (approvalLimit.compareTo(new BigDecimal("1000")) < 0) {
+            throw new IllegalArgumentException("Approval limit must be at least $1,000");
+        }
+        if (approvalLimit.compareTo(new BigDecimal("10000000")) > 0) {
+            throw new IllegalArgumentException("Approval limit cannot exceed $10,000,000");
+        }
+        return approvalLimit;
+    }
+    
+    private static LocalDate validateHireDate(LocalDate hireDate) {
+        Objects.requireNonNull(hireDate, "Hire date is required");
+        if (hireDate.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Hire date cannot be in the future");
+        }
+        return hireDate;
+    }
+    
+    /**
+     * Implement AggregateRoot's getId() method
+     */
+    @Override
+    public String getId() {
+        return underwriterId;
     }
     
     @Override
