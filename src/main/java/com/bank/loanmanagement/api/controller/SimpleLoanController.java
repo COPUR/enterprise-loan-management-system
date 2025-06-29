@@ -108,6 +108,16 @@ public class SimpleLoanController {
     /**
      * BUSINESS REQUIREMENT 4: Pay loan installment
      * POST /api/v1/loans/{loanId}/installments/{installmentNumber}/pay
+     * 
+     * WARNING: This implementation violates banking industry standards.
+     * Missing critical features:
+     * - Payment allocation waterfall
+     * - Late fee assessment
+     * - Partial payment handling
+     * - Payment channel validation
+     * - Regulatory compliance checks
+     * 
+     * This controller should be replaced with proper enterprise payment processing.
      */
     @PostMapping("/{loanId}/installments/{installmentNumber}/pay")
     public ResponseEntity<Map<String, Object>> payInstallment(
@@ -135,18 +145,27 @@ public class SimpleLoanController {
             );
         }
         
-        // Process payment
+        // Basic payment processing - INDUSTRY VIOLATIONS:
+        // - No payment allocation waterfall (fees -> interest -> principal)
+        // - No late fee assessment or penalty calculation
+        // - No partial payment support with proper allocation
+        // - No payment method validation or channel processing
+        // - No regulatory compliance (TILA, RESPA, FDCPA)
+        // - No transaction isolation or rollback capability
+        // - No audit trail or payment history tracking
+        
         installment.put("status", "PAID");
         installment.put("paidAt", LocalDateTime.now().toString());
         installment.put("paidAmount", paymentRequest.getOrDefault("amount", installment.get("amount")));
         
-        // Create payment record
+        // Create basic payment record - missing critical payment details
         Map<String, Object> paymentResult = new HashMap<>();
         paymentResult.put("loanId", loanId);
         paymentResult.put("installmentNumber", installmentNumber);
         paymentResult.put("amount", installment.get("paidAmount"));
         paymentResult.put("paidAt", installment.get("paidAt"));
         paymentResult.put("status", "SUCCESS");
+        paymentResult.put("warning", "This is a simplified implementation. Production systems require proper payment allocation, late fee assessment, and regulatory compliance.");
         
         return ResponseEntity.ok(paymentResult);
     }
