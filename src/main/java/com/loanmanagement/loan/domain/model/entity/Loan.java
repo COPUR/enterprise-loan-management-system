@@ -1,9 +1,17 @@
 package com.loanmanagement.loan.domain.model.entity;
 
 import com.loanmanagement.domain.event.DomainEvent;
-import com.loanmanagement.domain.model.value.*;
+import com.loanmanagement.sharedkernel.domain.value.Money;
+import com.loanmanagement.sharedkernel.InterestRate;
+import com.loanmanagement.sharedkernel.InstallmentCount;
+import com.loanmanagement.loan.domain.model.value.PaymentResult;
+import com.loanmanagement.loan.domain.model.value.PaymentCalculation;
+import com.loanmanagement.loan.domain.model.value.LoanId;
+import com.loanmanagement.loan.domain.model.value.InstallmentId;
+import com.loanmanagement.loan.exception.NoPayableInstallmentsException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.math.BigDecimal;
 
 public class Loan {
@@ -16,8 +24,8 @@ public class Loan {
     private final LocalDate createDate;
     private boolean isPaid;
     private final List<LoanInstallment> installments;
-
     private final List<DomainEvent> domainEvents = new ArrayList<>();
+
     public static Loan create(
             Long id,
             Long customerId,
@@ -51,7 +59,9 @@ public class Loan {
     }
 
     private static Money calculateTotalAmount(Money principal, InterestRate rate) {
-        Money interest = rate.calculateInterest(principal);
+        // Simple interest calculation - in real scenario this would be more sophisticated
+        BigDecimal interestAmount = principal.getAmount().multiply(rate.getValue());
+        Money interest = Money.of(interestAmount);
         return principal.add(interest);
     }
 
@@ -59,19 +69,16 @@ public class Loan {
             Long loanId, Money totalAmount, InstallmentCount count
     ) {
         List<LoanInstallment> installments = new ArrayList<>();
-        Money installmentAmount = new Money(
-                totalAmount.getValue().divide(
-                        BigDecimal.valueOf(count.getValue()), 2, RoundingMode.HALF_UP
-                )
-        );
+        Money installmentAmount = totalAmount.divide(count.getValue());
 
         LocalDate nextMonth = LocalDate.now().plusMonths(1);
         LocalDate dueDate = nextMonth.withDayOfMonth(1);
 
         for (int i = 0; i < count.getValue(); i++) {
-            installments.add(new LoanInstallment(
-                    null, // ID will be assigned by persistence layer
-                    loanId,
+            installments.add(LoanInstallment.create(
+                    InstallmentId.generate(),
+                    LoanId.of(loanId.toString()),
+                    i + 1,
                     installmentAmount,
                     dueDate.plusMonths(i)
             ));
@@ -92,47 +99,66 @@ public class Loan {
 
         Money remainingAmount = paymentAmount;
         int installmentsPaid = 0;
-        Money totalSpent = new Money(BigDecimal.ZERO);
+        Money totalSpent = Money.of(BigDecimal.ZERO);
 
         for (LoanInstallment installment : unpaidInstallments) {
-            Money paymentRequired = installment.calculatePaymentAmount(paymentDate);
+            PaymentCalculation calculation = installment.calculatePaymentAmount(paymentDate);
+            Money paymentRequired = calculation.getTotalAmount();
 
-            if (remainingAmount.isGreaterThanOrEqual(paymentRequired)) {
-                installment.pay(paymentDate);
+            if (remainingAmount.isGreaterThanOrEqualTo(paymentRequired)) {
+                installment.markAsPaid(paymentDate, calculation);
                 remainingAmount = remainingAmount.subtract(paymentRequired);
                 totalSpent = totalSpent.add(paymentRequired);
                 installmentsPaid++;
+
+                if (remainingAmount.equals(Money.of(BigDecimal.ZERO))) {
+                    break;
+                }
             } else {
-                break; // Cannot pay partial installments
+                break;
             }
         }
 
         updateLoanStatus();
 
-        return new PaymentResult(installmentsPaid, totalSpent, isPaid);
+        // Create a simple payment calculation for the result
+        PaymentCalculation resultCalculation = PaymentCalculation.onTime(totalSpent);
+        return PaymentResult.successful(resultCalculation);
     }
 
     private List<LoanInstallment> getPayableInstallments(LocalDate paymentDate) {
-        LocalDate maxPayableDate = paymentDate.plusMonths(3);
-
         return installments.stream()
-                .filter(i -> !i.isPaid())
-                .filter(i -> !i.getDueDate().isAfter(maxPayableDate))
+                .filter(installment -> !installment.isPaid())
+                .filter(installment -> !installment.getDueDate().isAfter(paymentDate.plusDays(30)))
                 .sorted(Comparator.comparing(LoanInstallment::getDueDate))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private void updateLoanStatus() {
         this.isPaid = installments.stream().allMatch(LoanInstallment::isPaid);
     }
 
-    // Getters
+    // Getters following DDD principles - expose only necessary data
     public Long getId() { return id; }
     public Long getCustomerId() { return customerId; }
     public Money getLoanAmount() { return loanAmount; }
     public Money getPrincipalAmount() { return principalAmount; }
+    public InterestRate getInterestRate() { return interestRate; }
+    public InstallmentCount getNumberOfInstallments() { return numberOfInstallments; }
+    public LocalDate getCreateDate() { return createDate; }
     public boolean isPaid() { return isPaid; }
-    public List<LoanInstallment> getInstallments() {
-        return Collections.unmodifiableList(installments);
+    public List<LoanInstallment> getInstallments() { return new ArrayList<>(installments); }
+
+    // Domain events support for eventual consistency
+    public List<DomainEvent> getDomainEvents() {
+        return new ArrayList<>(domainEvents);
+    }
+
+    public void clearDomainEvents() {
+        domainEvents.clear();
+    }
+
+    private void addDomainEvent(DomainEvent event) {
+        domainEvents.add(event);
     }
 }
