@@ -1,3 +1,6 @@
 rootProject.name = 'loan-management-system'
 
 include 'shared-kernel'
+include 'bank-wide-services'
+include 'loan-service'
+include 'payment-service'
