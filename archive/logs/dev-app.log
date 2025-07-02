@@ -1,0 +1,296 @@
+Configuration on demand is an incubating feature.
+Type-safe project accessors is an incubating feature.
+
+> Task :compileJava FAILED
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:26: error: class, interface, enum, or record expected
+package com.bank.loanmanagement.handlers;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:28: error: class, interface, enum, or record expected
+import com.sun.net.httpserver.HttpExchange;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:29: error: class, interface, enum, or record expected
+import com.sun.net.httpserver.HttpHandler;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:30: error: class, interface, enum, or record expected
+import com.bank.loanmanagement.DatabaseConnectedApplication;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:31: error: class, interface, enum, or record expected
+import com.bank.loanmanagement.utils.ResponseUtils;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:33: error: class, interface, enum, or record expected
+import java.io.IOException;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:34: error: class, interface, enum, or record expected
+import java.time.LocalDateTime;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:91: error: class, interface, enum, or record expected
+package com.bank.loanmanagement.handlers;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:93: error: class, interface, enum, or record expected
+import com.sun.net.httpserver.HttpExchange;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:94: error: class, interface, enum, or record expected
+import com.sun.net.httpserver.HttpHandler;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:95: error: class, interface, enum, or record expected
+import com.bank.loanmanagement.DatabaseConnectedApplication;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:96: error: class, interface, enum, or record expected
+import com.bank.loanmanagement.utils.ResponseUtils;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:98: error: class, interface, enum, or record expected
+import java.io.IOException;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:99: error: class, interface, enum, or record expected
+import java.sql.Connection;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:100: error: class, interface, enum, or record expected
+import java.sql.PreparedStatement;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:101: error: class, interface, enum, or record expected
+import java.sql.ResultSet;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:102: error: class, interface, enum, or record expected
+import java.sql.SQLException;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:97: error: class, interface, enum, or record expected
+package com.bank.loanmanagement.handlers;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:99: error: class, interface, enum, or record expected
+import com.sun.net.httpserver.HttpExchange;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:100: error: class, interface, enum, or record expected
+import com.sun.net.httpserver.HttpHandler;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:101: error: class, interface, enum, or record expected
+import com.bank.loanmanagement.DatabaseConnectedApplication;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:102: error: class, interface, enum, or record expected
+import com.bank.loanmanagement.utils.ResponseUtils;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:104: error: class, interface, enum, or record expected
+import java.io.IOException;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:105: error: class, interface, enum, or record expected
+import java.sql.Connection;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:106: error: class, interface, enum, or record expected
+import java.sql.PreparedStatement;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:107: error: class, interface, enum, or record expected
+import java.sql.ResultSet;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:108: error: class, interface, enum, or record expected
+import java.sql.SQLException;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:94: error: class, interface, enum, or record expected
+package com.bank.loanmanagement.handlers;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:96: error: class, interface, enum, or record expected
+import com.sun.net.httpserver.HttpExchange;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:97: error: class, interface, enum, or record expected
+import com.sun.net.httpserver.HttpHandler;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:98: error: class, interface, enum, or record expected
+import com.bank.loanmanagement.DatabaseConnectedApplication;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:99: error: class, interface, enum, or record expected
+import com.bank.loanmanagement.utils.ResponseUtils;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:101: error: class, interface, enum, or record expected
+import java.io.IOException;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:102: error: class, interface, enum, or record expected
+import java.sql.Connection;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:103: error: class, interface, enum, or record expected
+import java.sql.PreparedStatement;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:104: error: class, interface, enum, or record expected
+import java.sql.ResultSet;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:105: error: class, interface, enum, or record expected
+import java.sql.SQLException;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:184: error: reached end of file while parsing
+Ω
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:48: error: class, interface, enum, or record expected
+package com.bank.loanmanagement.handlers;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:50: error: class, interface, enum, or record expected
+import com.sun.net.httpserver.HttpExchange;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:51: error: class, interface, enum, or record expected
+import com.sun.net.httpserver.HttpHandler;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:52: error: class, interface, enum, or record expected
+import com.bank.loanmanagement.DatabaseConnectedApplication;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:53: error: class, interface, enum, or record expected
+import com.bank.loanmanagement.utils.ResponseUtils;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:55: error: class, interface, enum, or record expected
+import java.io.IOException;
+^
+/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:56: error: class, interface, enum, or record expected
+import java.time.LocalDateTime;
+^
+45 errors
+[Incubating] Problems report is available at: file:///Users/alicopur/Documents/GitHub/enterprise-loan-management-system/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:26: error: class, interface, enum, or record expected
+  package com.bank.loanmanagement.handlers;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:28: error: class, interface, enum, or record expected
+  import com.sun.net.httpserver.HttpExchange;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:29: error: class, interface, enum, or record expected
+  import com.sun.net.httpserver.HttpHandler;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:30: error: class, interface, enum, or record expected
+  import com.bank.loanmanagement.DatabaseConnectedApplication;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:31: error: class, interface, enum, or record expected
+  import com.bank.loanmanagement.utils.ResponseUtils;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:33: error: class, interface, enum, or record expected
+  import java.io.IOException;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/HealthHandler.java:34: error: class, interface, enum, or record expected
+  import java.time.LocalDateTime;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:91: error: class, interface, enum, or record expected
+  package com.bank.loanmanagement.handlers;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:93: error: class, interface, enum, or record expected
+  import com.sun.net.httpserver.HttpExchange;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:94: error: class, interface, enum, or record expected
+  import com.sun.net.httpserver.HttpHandler;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:95: error: class, interface, enum, or record expected
+  import com.bank.loanmanagement.DatabaseConnectedApplication;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:96: error: class, interface, enum, or record expected
+  import com.bank.loanmanagement.utils.ResponseUtils;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:98: error: class, interface, enum, or record expected
+  import java.io.IOException;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:99: error: class, interface, enum, or record expected
+  import java.sql.Connection;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:100: error: class, interface, enum, or record expected
+  import java.sql.PreparedStatement;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:101: error: class, interface, enum, or record expected
+  import java.sql.ResultSet;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/CustomerHandler.java:102: error: class, interface, enum, or record expected
+  import java.sql.SQLException;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:97: error: class, interface, enum, or record expected
+  package com.bank.loanmanagement.handlers;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:99: error: class, interface, enum, or record expected
+  import com.sun.net.httpserver.HttpExchange;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:100: error: class, interface, enum, or record expected
+  import com.sun.net.httpserver.HttpHandler;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:101: error: class, interface, enum, or record expected
+  import com.bank.loanmanagement.DatabaseConnectedApplication;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:102: error: class, interface, enum, or record expected
+  import com.bank.loanmanagement.utils.ResponseUtils;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:104: error: class, interface, enum, or record expected
+  import java.io.IOException;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:105: error: class, interface, enum, or record expected
+  import java.sql.Connection;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:106: error: class, interface, enum, or record expected
+  import java.sql.PreparedStatement;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:107: error: class, interface, enum, or record expected
+  import java.sql.ResultSet;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/PaymentHandler.java:108: error: class, interface, enum, or record expected
+  import java.sql.SQLException;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:94: error: class, interface, enum, or record expected
+  package com.bank.loanmanagement.handlers;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:96: error: class, interface, enum, or record expected
+  import com.sun.net.httpserver.HttpExchange;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:97: error: class, interface, enum, or record expected
+  import com.sun.net.httpserver.HttpHandler;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:98: error: class, interface, enum, or record expected
+  import com.bank.loanmanagement.DatabaseConnectedApplication;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:99: error: class, interface, enum, or record expected
+  import com.bank.loanmanagement.utils.ResponseUtils;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:101: error: class, interface, enum, or record expected
+  import java.io.IOException;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:102: error: class, interface, enum, or record expected
+  import java.sql.Connection;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:103: error: class, interface, enum, or record expected
+  import java.sql.PreparedStatement;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:104: error: class, interface, enum, or record expected
+  import java.sql.ResultSet;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:105: error: class, interface, enum, or record expected
+  import java.sql.SQLException;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:48: error: class, interface, enum, or record expected
+  package com.bank.loanmanagement.handlers;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:50: error: class, interface, enum, or record expected
+  import com.sun.net.httpserver.HttpExchange;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:51: error: class, interface, enum, or record expected
+  import com.sun.net.httpserver.HttpHandler;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:52: error: class, interface, enum, or record expected
+  import com.bank.loanmanagement.DatabaseConnectedApplication;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:53: error: class, interface, enum, or record expected
+  import com.bank.loanmanagement.utils.ResponseUtils;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:55: error: class, interface, enum, or record expected
+  import java.io.IOException;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/SystemInfoHandler.java:56: error: class, interface, enum, or record expected
+  import java.time.LocalDateTime;
+  ^
+  /Users/alicopur/Documents/GitHub/enterprise-loan-management-system/src/main/java/com/bank/loanmanagement/handlers/LoanHandler.java:184: error: reached end of file while parsing
+  Ω
+  ^
+  45 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.11.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 2s
+1 actionable task: 1 executed
