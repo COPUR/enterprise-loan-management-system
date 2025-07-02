@@ -7,7 +7,7 @@ echo "🏦 Starting Banking System Development Environment..."
 
 # Load environment variables
 if [ -f .env.local ]; then
-    export $(cat .env.local | grep -v '^#' | xargs)
+    export "$(cat .env.local | grep -v '^#' | xargs)"
 fi
 
 # Create directories
@@ -15,7 +15,7 @@ mkdir -p logs/dev data/dev
 
 # Start with hot reload
 echo "Starting application with hot reload..."
-./gradlew runDev
+./gradlew bootRun
 
 echo "✅ Development server started!"
 echo "🌐 Application: http://localhost:8080"
