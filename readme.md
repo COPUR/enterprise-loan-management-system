@@ -8,10 +8,12 @@
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.6-green)](https://spring.io/projects/spring-boot)
 [![Compliance](https://img.shields.io/badge/compliance-FAPI%20|%20PCI%20DSS%20|%20GDPR-yellow)](docs/compliance)
+## Disclaimer: This project is a **proof of concept** and not intended for production use. It is designed to demonstrate advanced architectural patterns and security practices in modern banking systems.
+This project may not build or compile out of the box due to its complexity and dependencies on specific configurations. It is recommended to use it as a reference for architectural patterns rather than a ready-to-deploy solution.
+
 
 ## Today's Banking with Tomorrow's needs - business use case driven future proof architecture Implementation
 ## Enterprise Loan Management System
-
 Today's digital banking landscape requires systems that are not only scalable and secure, but also resilient, auditable, and future-proof by design.
 
 This Enterprise Loan Management System is engineered with a pure hexagonal architecture and founded on Domain-Driven Design (DDD) principles. The platform reflects a business use case-driven approach, enabling banking institutions to adapt with agility, maintain regulatory compliance, and accelerate delivery velocity without compromising architectural integrity.
