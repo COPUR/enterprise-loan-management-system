@@ -1,4 +1,6 @@
 rootProject.name = 'loan-management-system'
 
-// Enable Gradle's version catalog feature
-enableFeaturePreview('TYPESAFE_PROJECT_ACCESSORS')
+include 'shared-kernel'
+include 'bank-wide-services'
+include 'loan-service'
+include 'payment-service'
