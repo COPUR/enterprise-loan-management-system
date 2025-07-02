@@ -317,7 +317,7 @@ jacocoTestCoverageVerification {
     violationRules {
         rule {
             limit {
-                minimum = 0.75 // 75% minimum coverage for banking compliance
+                minimum = 0.83 // 83% minimum coverage for banking compliance
             }
         }
     }
