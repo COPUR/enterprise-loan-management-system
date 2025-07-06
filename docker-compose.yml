@@ -121,7 +121,7 @@ services:
   # === IDENTITY & ACCESS MANAGEMENT (OAuth2.1) ===
   
   keycloak:
-    image: quay.io/keycloak/keycloak:23.0.4
+    image: quay.io/keycloak/keycloak:26.3.0
     container_name: banking-keycloak
     command: start-dev --import-realm
     environment:
@@ -145,7 +145,7 @@ services:
       KC_HTTPS_PORT: 8443
       
       # Banking Compliance Features
-      KC_FEATURES: authorization,account-api,admin-fine-grained-authz,declarative-user-profile,dynamic-scopes
+      KC_FEATURES: authorization,account-api,admin-fine-grained-authz,declarative-user-profile,dpop,dynamic-scopes
       KC_LOG_LEVEL: INFO
       KC_METRICS_ENABLED: true
       KC_HEALTH_ENABLED: true
