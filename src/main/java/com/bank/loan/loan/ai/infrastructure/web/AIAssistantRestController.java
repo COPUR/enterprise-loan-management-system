@@ -2,44 +2,90 @@ package com.bank.loan.loan.ai.infrastructure.web;
 
 import com.bank.loan.loan.ai.application.service.AIAssistantApplicationService;
 import com.bank.loan.loan.ai.application.service.AIAssistantApplicationService.*;
+import com.bank.loan.loan.security.dpop.annotation.DPoPSecured;
+import com.bank.loan.loan.security.fapi.annotation.FAPISecured;
+import com.bank.loan.loan.security.fapi.validation.FAPISecurityHeaders;
+import com.bank.loan.loan.service.AuditService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Comprehensive AI Assistant REST Controller
- * Provides enterprise-grade AI capabilities for banking operations
- * Following the archived implementation patterns
+ * FAPI 2.0 + DPoP Compliant AI Assistant REST Controller
+ * 
+ * Provides enterprise-grade AI capabilities for banking operations with:
+ * - FAPI 2.0 security headers validation
+ * - DPoP token binding requirements
+ * - Comprehensive audit logging
+ * - Banking regulatory compliance
  */
 @RestController
 @RequestMapping("/api/v1/ai")
+@DPoPSecured
+@FAPISecured
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "AI Assistant", description = "Comprehensive AI-powered banking assistance")
+@Tag(name = "AI Assistant", description = "FAPI 2.0 + DPoP compliant AI-powered banking assistance")
 public class AIAssistantRestController {
 
     private final AIAssistantApplicationService aiAssistantService;
+    
+    @Autowired
+    private AuditService auditService;
 
     @GetMapping("/health")
     @Operation(summary = "AI service health check", 
                description = "Verify that AI services are available and functioning")
     @PreAuthorize("hasRole('LOAN_OFFICER') or hasRole('UNDERWRITER') or hasRole('ADMIN')")
-    public ResponseEntity<AIServiceHealthResult> healthCheck() {
-        log.debug("Performing AI service health check");
+    public ResponseEntity<AIServiceHealthResult> healthCheck(
+            @RequestHeader("X-FAPI-Interaction-ID") @NotNull String fiapiInteractionId,
+            @RequestHeader(value = "X-FAPI-Auth-Date", required = false) String fapiAuthDate,
+            @RequestHeader(value = "X-FAPI-Customer-IP-Address", required = false) String customerIpAddress,
+            HttpServletRequest httpRequest) {
         
-        AIServiceHealthResult healthResult = aiAssistantService.performHealthCheck();
-        
-        if (healthResult.getOverall() == HealthStatus.HEALTHY) {
-            return ResponseEntity.ok(healthResult);
-        } else {
-            return ResponseEntity.status(503).body(healthResult);
+        try {
+            // Validate FAPI security headers
+            FAPISecurityHeaders.validateHeaders(fiapiInteractionId, fapiAuthDate, customerIpAddress);
+            
+            // Get authenticated user context
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String userId = auth.getName();
+            
+            log.debug("Performing AI service health check for user: {}", userId);
+            
+            AIServiceHealthResult healthResult = aiAssistantService.performHealthCheck();
+            
+            // Audit log the health check
+            auditService.logDataAccess("AI_HEALTH_CHECK", "AI_SERVICE", userId, 
+                                     httpRequest.getRemoteAddr(), fiapiInteractionId);
+            
+            if (healthResult.getOverall() == HealthStatus.HEALTHY) {
+                return ResponseEntity.ok()
+                    .header("X-FAPI-Interaction-ID", fiapiInteractionId)
+                    .body(healthResult);
+            } else {
+                return ResponseEntity.status(503)
+                    .header("X-FAPI-Interaction-ID", fiapiInteractionId)
+                    .body(healthResult);
+            }
+            
+        } catch (Exception e) {
+            auditService.logSecurityViolation("AI_HEALTH_CHECK_FAILED", e.getMessage(), 
+                                             SecurityContextHolder.getContext().getAuthentication().getName(),
+                                             httpRequest.getRemoteAddr(), fiapiInteractionId);
+            throw e;
         }
     }
 
@@ -48,21 +94,50 @@ public class AIAssistantRestController {
                description = "Perform comprehensive AI analysis on loan application with business rules")
     @PreAuthorize("hasRole('LOAN_OFFICER') or hasRole('UNDERWRITER')")
     public ResponseEntity<ComprehensiveLoanAnalysisResult> analyzeLoanApplication(
-            @Valid @RequestBody ComprehensiveLoanAnalysisRequest request) {
-        
-        log.info("Received comprehensive loan analysis request for applicant: {}", request.getApplicantId());
+            @Valid @RequestBody ComprehensiveLoanAnalysisRequest request,
+            @RequestHeader("X-FAPI-Interaction-ID") @NotNull String fiapiInteractionId,
+            @RequestHeader(value = "X-FAPI-Auth-Date", required = false) String fapiAuthDate,
+            @RequestHeader(value = "X-FAPI-Customer-IP-Address", required = false) String customerIpAddress,
+            @RequestHeader("X-Idempotency-Key") @NotNull String idempotencyKey,
+            HttpServletRequest httpRequest) {
         
         try {
+            // Validate FAPI security headers
+            FAPISecurityHeaders.validateHeaders(fiapiInteractionId, fapiAuthDate, customerIpAddress);
+            
+            // Get authenticated user context
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String userId = auth.getName();
+            
+            log.info("Received comprehensive loan analysis request for applicant: {} by user: {}", 
+                    request.getApplicantId(), userId);
+            
+            // TODO: Check idempotency for AI operations
+            
             ComprehensiveLoanAnalysisResult result = aiAssistantService.analyzeLoanApplication(request);
+            
+            // Audit log the AI analysis
+            auditService.logDataAccess("AI_LOAN_ANALYSIS", request.getApplicantId(), userId, 
+                                     httpRequest.getRemoteAddr(), fiapiInteractionId);
             
             log.info("Completed comprehensive loan analysis for applicant: {} with score: {}", 
                     request.getApplicantId(), result.getOverallScore());
             
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok()
+                .header("X-FAPI-Interaction-ID", fiapiInteractionId)
+                .header("X-Idempotency-Key", idempotencyKey)
+                .body(result);
             
         } catch (Exception e) {
             log.error("Failed comprehensive loan analysis for applicant: {}", request.getApplicantId(), e);
-            return ResponseEntity.internalServerError().build();
+            
+            auditService.logSecurityViolation("AI_LOAN_ANALYSIS_FAILED", e.getMessage(), 
+                                             SecurityContextHolder.getContext().getAuthentication().getName(),
+                                             httpRequest.getRemoteAddr(), fiapiInteractionId);
+            
+            return ResponseEntity.internalServerError()
+                .header("X-FAPI-Interaction-ID", fiapiInteractionId)
+                .build();
         }
     }
 

@@ -1,0 +1,207 @@
+groups:
+  - name: fapi2-dpop-alerts
+    rules:
+      # DPoP Validation Alerts
+      - alert: DPoPValidationFailureRate
+        expr: rate(dpop_validation_failure_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: fapi2-dpop
+          component: dpop
+        annotations:
+          summary: "High DPoP validation failure rate"
+          description: "DPoP validation failure rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+
+      - alert: DPoPReplayAttackDetected
+        expr: increase(dpop_replay_attacks_total[1m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          service: fapi2-dpop
+          component: dpop
+        annotations:
+          summary: "DPoP replay attack detected"
+          description: "{{ $value }} DPoP replay attacks detected in the last minute"
+
+      - alert: DPoPValidationLatencyHigh
+        expr: histogram_quantile(0.95, rate(dpop_validation_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: fapi2-dpop
+          component: dpop
+        annotations:
+          summary: "High DPoP validation latency"
+          description: "95th percentile DPoP validation latency is {{ $value }}s"
+
+      - alert: DPoPJTICacheDown
+        expr: up{job="redis-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: fapi2-dpop
+          component: redis
+        annotations:
+          summary: "DPoP JTI cache is down"
+          description: "Redis instance for DPoP JTI cache is not responding"
+
+      # PAR Alerts
+      - alert: PAREndpointDown
+        expr: up{job="banking-app-fapi2"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: fapi2-dpop
+          component: par
+        annotations:
+          summary: "PAR endpoint is down"
+          description: "Banking application PAR endpoint is not responding"
+
+      - alert: PARRequestFailureRate
+        expr: rate(par_request_failure_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          service: fapi2-dpop
+          component: par
+        annotations:
+          summary: "High PAR request failure rate"
+          description: "PAR request failure rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+
+      - alert: PARCacheSizeGrowing
+        expr: par_cache_size > 10000
+        for: 5m
+        labels:
+          severity: warning
+          service: fapi2-dpop
+          component: par
+        annotations:
+          summary: "PAR cache size growing too large"
+          description: "PAR cache size is {{ $value }} items, may indicate memory leak"
+
+      # FAPI Security Alerts
+      - alert: FAPISecurityViolation
+        expr: increase(fapi_security_violations_total[1m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          service: fapi2-dpop
+          component: fapi
+        annotations:
+          summary: "FAPI security violation detected"
+          description: "{{ $value }} FAPI security violations detected in the last minute"
+
+      - alert: FAPIHeaderValidationFailures
+        expr: rate(fapi_header_validation_failures_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: fapi2-dpop
+          component: fapi
+        annotations:
+          summary: "High FAPI header validation failure rate"
+          description: "FAPI header validation failure rate is {{ $value | humanizePercentage }}"
+
+      # OAuth2 Alerts
+      - alert: OAuth2TokenEndpointDown
+        expr: up{job="banking-app-fapi2"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: fapi2-dpop
+          component: oauth2
+        annotations:
+          summary: "OAuth2 token endpoint is down"
+          description: "OAuth2 token endpoint is not responding"
+
+      - alert: OAuth2AuthenticationFailures
+        expr: rate(oauth2_client_authentication_failures_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: fapi2-dpop
+          component: oauth2
+        annotations:
+          summary: "High OAuth2 client authentication failure rate"
+          description: "OAuth2 client authentication failure rate is {{ $value | humanizePercentage }}"
+
+      # Security Alerts
+      - alert: RateLimitingTriggered
+        expr: increase(security_rate_limiting_triggered_total[1m]) > 10
+        for: 1m
+        labels:
+          severity: warning
+          service: fapi2-dpop
+          component: security
+        annotations:
+          summary: "Rate limiting triggered frequently"
+          description: "{{ $value }} rate limiting events in the last minute"
+
+      - alert: SuspiciousActivity
+        expr: increase(security_suspicious_activity_total[1m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          service: fapi2-dpop
+          component: security
+        annotations:
+          summary: "Suspicious security activity detected"
+          description: "{{ $value }} suspicious security events detected"
+
+      # Application Health Alerts
+      - alert: ApplicationDown
+        expr: up{job="banking-app-fapi2"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: fapi2-dpop
+          component: application
+        annotations:
+          summary: "Banking application is down"
+          description: "FAPI 2.0 + DPoP banking application is not responding"
+
+      - alert: ApplicationMemoryHigh
+        expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: fapi2-dpop
+          component: application
+        annotations:
+          summary: "High application memory usage"
+          description: "Application heap memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: ApplicationCPUHigh
+        expr: system_cpu_usage > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: fapi2-dpop
+          component: application
+        annotations:
+          summary: "High application CPU usage"
+          description: "Application CPU usage is {{ $value | humanizePercentage }}"
+
+      # Database Alerts
+      - alert: DatabaseConnectionsHigh
+        expr: hikaricp_connections_active / hikaricp_connections_max > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: fapi2-dpop
+          component: database
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connection pool usage is {{ $value | humanizePercentage }}"
+
+      - alert: DatabaseDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: fapi2-dpop
+          component: database
+        annotations:
+          summary: "Database is down"
+          description: "PostgreSQL database is not responding"
