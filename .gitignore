@@ -40,3 +40,5 @@ out/
 .log
 /.claude/
 *.log
+*.log
+test-extract/
