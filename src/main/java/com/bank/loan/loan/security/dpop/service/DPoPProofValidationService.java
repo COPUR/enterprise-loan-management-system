@@ -6,7 +6,10 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import com.nimbusds.jose.jwk.Curve;
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 import com.nimbusds.jose.jwk.ECKey;
