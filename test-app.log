@@ -1,2 +1,0 @@
-Error: Could not find or load main class com.bank.loanmanagement.TestApplication
-Caused by: java.lang.ClassNotFoundException: com.bank.loanmanagement.TestApplication
