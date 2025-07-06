@@ -1,0 +1,263 @@
+# FAPI 2.0 + DPoP Phased Migration Configuration
+# This configuration manages the gradual rollout from FAPI 1.0 to FAPI 2.0 + DPoP
+
+# Migration Strategy Configuration
+migration:
+  fapi2-dpop:
+    enabled: ${MIGRATION_ENABLED:true}
+    current-phase: ${MIGRATION_CURRENT_PHASE:PHASE_2_PILOT_CLIENTS}
+    phase-start-time: ${MIGRATION_PHASE_START:2024-01-15T00:00:00}
+    phase-end-time: ${MIGRATION_PHASE_END:2024-02-15T00:00:00}
+    rollout-percentage: ${MIGRATION_ROLLOUT_PERCENTAGE:25}
+    allow-rollback: ${MIGRATION_ALLOW_ROLLBACK:true}
+    strict-validation: ${MIGRATION_STRICT_VALIDATION:false}
+    
+    # Pilot client configuration
+    pilot-client-ids:
+      - trusted-partner-1
+      - beta-mobile-app
+      - pilot-corporate-client
+      - internal-testing-app
+    
+    # Exempt clients (not migrated)
+    exempt-client-ids:
+      - legacy-mainframe-system
+      - third-party-readonly-client
+      - emergency-access-client
+    
+    # Phase-specific configuration
+    phase-configuration:
+      phase-0:
+        description: "Infrastructure preparation and tooling setup"
+        duration-days: 30
+        success-criteria:
+          - "All DPoP components deployed"
+          - "Monitoring systems configured"
+          - "Migration tools tested"
+      phase-1:
+        description: "Internal testing with banking employees"
+        duration-days: 14
+        success-criteria:
+          - "Internal clients migrated successfully"
+          - "No critical issues reported"
+          - "Performance within acceptable limits"
+      phase-2:
+        description: "Pilot clients validation"
+        duration-days: 21
+        success-criteria:
+          - "Pilot clients migrated successfully"
+          - "Error rate < 1%"
+          - "Client satisfaction maintained"
+      phase-3:
+        description: "Gradual rollout to all clients"
+        duration-days: 60
+        success-criteria:
+          - "Rollout percentage reaches 100%"
+          - "Error rate < 2%"
+          - "Performance degradation < 10%"
+      phase-4:
+        description: "Full FAPI 2.0 enforcement"
+        duration-days: 30
+        success-criteria:
+          - "All clients using FAPI 2.0"
+          - "Legacy flows blocked"
+          - "Security compliance achieved"
+      phase-5:
+        description: "Legacy system cleanup"
+        duration-days: 14
+        success-criteria:
+          - "FAPI 1.0 code removed"
+          - "Legacy configurations cleaned"
+          - "Documentation updated"
+
+# Feature Flags for Gradual Rollout
+feature-flags:
+  # Core DPoP features
+  dpop:
+    validation-enabled: ${FF_DPOP_VALIDATION:true}
+    token-binding-enabled: ${FF_DPOP_TOKEN_BINDING:true}
+    nonce-required: ${FF_DPOP_NONCE_REQUIRED:false}
+    replay-prevention-enabled: ${FF_DPOP_REPLAY_PREVENTION:true}
+    enhanced-monitoring: ${FF_DPOP_ENHANCED_MONITORING:true}
+  
+  # PAR features
+  par:
+    required: ${FF_PAR_REQUIRED:true}
+    validation-enabled: ${FF_PAR_VALIDATION:true}
+    cache-enabled: ${FF_PAR_CACHE:true}
+    strict-validation: ${FF_PAR_STRICT_VALIDATION:false}
+  
+  # FAPI 2.0 enforcement
+  fapi2:
+    hybrid-flow-blocked: ${FF_HYBRID_FLOW_BLOCKED:true}
+    implicit-flow-blocked: ${FF_IMPLICIT_FLOW_BLOCKED:true}
+    front-channel-blocked: ${FF_FRONT_CHANNEL_BLOCKED:true}
+    mtls-disabled: ${FF_MTLS_DISABLED:true}
+    private-key-jwt-required: ${FF_PRIVATE_KEY_JWT_REQUIRED:true}
+  
+  # Rollout strategy
+  rollout:
+    client-specific-enabled: ${FF_CLIENT_SPECIFIC_ROLLOUT:true}
+    percentage-based-enabled: ${FF_PERCENTAGE_BASED_ROLLOUT:true}
+    time-based-enabled: ${FF_TIME_BASED_ROLLOUT:false}
+    canary-deployment: ${FF_CANARY_DEPLOYMENT:false}
+  
+  # Safety controls
+  safety:
+    fallback-to-legacy: ${FF_FALLBACK_TO_LEGACY:true}
+    strict-error-handling: ${FF_STRICT_ERROR_HANDLING:false}
+    auto-rollback-enabled: ${FF_AUTO_ROLLBACK:true}
+    circuit-breaker-enabled: ${FF_CIRCUIT_BREAKER:true}
+
+# Migration Monitoring Configuration
+migration-monitoring:
+  enabled: true
+  metrics:
+    collection-interval: 30s
+    retention-period: 90d
+    detailed-logging: true
+  
+  alerts:
+    enabled: true
+    error-rate-threshold: 5.0  # percent
+    latency-threshold: 1000    # milliseconds
+    rollback-threshold: 15     # minutes of degraded performance
+  
+  reporting:
+    daily-reports: true
+    weekly-summaries: true
+    stakeholder-notifications: true
+    dashboard-updates: real-time
+
+# Safety Thresholds
+safety-thresholds:
+  performance:
+    max-error-rate-percent: 5
+    max-latency-ms: 1000
+    max-throughput-degradation-percent: 15
+  
+  security:
+    max-invalid-proofs-per-minute: 100
+    max-replay-attempts-per-hour: 50
+    max-suspicious-activities-per-day: 10
+  
+  business:
+    max-client-complaints-per-day: 5
+    max-support-tickets-per-hour: 20
+    min-client-satisfaction-score: 4.0
+
+# Rollback Configuration
+rollback:
+  enabled: ${ROLLBACK_ENABLED:true}
+  automatic: ${ROLLBACK_AUTOMATIC:false}
+  approval-required: ${ROLLBACK_APPROVAL_REQUIRED:true}
+  
+  triggers:
+    error-rate-threshold: 10.0     # percent
+    latency-threshold: 2000        # milliseconds
+    security-incident: true
+    client-escalation: true
+    business-impact: true
+  
+  procedures:
+    immediate:
+      - "Switch traffic to FAPI 1.0 servers"
+      - "Disable DPoP validation"
+      - "Enable legacy authentication"
+    
+    within-1-hour:
+      - "Notify stakeholders"
+      - "Begin root cause analysis"
+      - "Prepare incident report"
+    
+    within-24-hours:
+      - "Complete investigation"
+      - "Plan remediation"
+      - "Schedule retry timeline"
+
+# Client Communication
+client-communication:
+  enabled: true
+  
+  notifications:
+    pre-migration:
+      timing: "14 days before"
+      channels: ["email", "api-announcement", "documentation"]
+      content: "Migration timeline and preparation steps"
+    
+    during-migration:
+      timing: "real-time"
+      channels: ["status-page", "webhooks", "in-app-notifications"]
+      content: "Migration progress and any issues"
+    
+    post-migration:
+      timing: "24 hours after"
+      channels: ["email", "api-announcement"]
+      content: "Migration completion and next steps"
+  
+  support:
+    dedicated-channel: "fapi2-migration@banking.com"
+    escalation-process: "Standard -> Senior Engineer -> Migration Team Lead"
+    business-hours: "24/7 during migration phases"
+    documentation: "https://docs.banking.com/fapi2-migration"
+
+# Testing and Validation
+testing:
+  enabled: true
+  
+  automated:
+    smoke-tests: true
+    regression-tests: true
+    performance-tests: true
+    security-tests: true
+    
+  manual:
+    user-acceptance-testing: true
+    client-integration-testing: true
+    compliance-validation: true
+    
+  environments:
+    development:
+      fapi2-percentage: 100
+      validation-strict: false
+    
+    staging:
+      fapi2-percentage: ${STAGING_FAPI2_PERCENTAGE:50}
+      validation-strict: true
+    
+    production:
+      fapi2-percentage: ${PROD_FAPI2_PERCENTAGE:25}
+      validation-strict: false
+
+# Compliance and Audit
+compliance:
+  enabled: true
+  
+  audit-trail:
+    enabled: true
+    retention-period: 7-years
+    immutable-records: true
+    
+  reporting:
+    regulatory-reports: true
+    compliance-dashboards: true
+    audit-logs: comprehensive
+    
+  validation:
+    fapi2-compliance-checks: true
+    security-assessments: quarterly
+    penetration-testing: annually
+
+# Documentation and Training
+documentation:
+  enabled: true
+  
+  migration-guide:
+    client-integration: "Complete step-by-step guide"
+    api-changes: "Detailed breaking changes documentation" 
+    troubleshooting: "Common issues and solutions"
+    
+  training:
+    internal-teams: "FAPI 2.0 + DPoP training for support staff"
+    client-developers: "Integration workshop sessions"
+    compliance-teams: "Regulatory requirement updates"

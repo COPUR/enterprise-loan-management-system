@@ -9,30 +9,46 @@ import com.bank.loanmanagement.loan.infrastructure.adapters.in.dto.*;
 import com.bank.loanmanagement.loan.infrastructure.config.BankingSecurityContext;
 import com.bank.loanmanagement.loan.resilience.BankingCircuitBreakerService;
 import com.bank.loanmanagement.loan.ratelimit.AdaptiveRateLimitingService;
+import com.bank.loan.loan.security.dpop.annotation.DPoPSecured;
+import com.bank.loan.loan.security.fapi.annotation.FAPISecured;
+import com.bank.loan.loan.security.fapi.validation.FAPISecurityHeaders;
+import com.bank.loan.loan.service.AuditService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * Loan REST Controller - Hexagonal Architecture Adapter
- * Handles HTTP requests and delegates to application services
+ * FAPI 2.0 + DPoP Compliant Hexagonal Loan Controller
+ * 
+ * Handles HTTP requests with enterprise security:
+ * - FAPI 2.0 security headers validation
+ * - DPoP token binding requirements
+ * - Comprehensive audit logging
+ * - Circuit breaker protection
+ * - Rate limiting with security context
  */
 @RestController
-@RequestMapping("/api/v1/loans")
+@RequestMapping("/api/v1/hexagonal/loans")
+@DPoPSecured
+@FAPISecured
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Loan Management", description = "Loan application and management operations")
+@Tag(name = "Hexagonal Loan Management", description = "FAPI 2.0 + DPoP compliant hexagonal architecture loan operations")
 public class LoanController {
     
     private final LoanApplicationUseCase loanApplicationUseCase;
@@ -41,49 +57,84 @@ public class LoanController {
     private final AdaptiveRateLimitingService rateLimitingService;
     private final BankingSecurityContext securityContext;
     
+    @Autowired
+    private AuditService auditService;
+    
     @PostMapping
     @Operation(summary = "Submit loan application", description = "Submit a new loan application with AI-powered risk assessment")
     @PreAuthorize("hasRole('CUSTOMER') or hasRole('LOAN_OFFICER')")
     public ResponseEntity<LoanApplicationResult> submitLoanApplication(
-            @Valid @RequestBody SubmitLoanApplicationRequest request) {
+            @Valid @RequestBody SubmitLoanApplicationRequest request,
+            @RequestHeader("X-FAPI-Interaction-ID") @NotNull String fiapiInteractionId,
+            @RequestHeader(value = "X-FAPI-Auth-Date", required = false) String fapiAuthDate,
+            @RequestHeader(value = "X-FAPI-Customer-IP-Address", required = false) String customerIpAddress,
+            @RequestHeader("X-Idempotency-Key") @NotNull String idempotencyKey,
+            HttpServletRequest httpRequest) {
         
-        String correlationId = UUID.randomUUID().toString();
-        log.info("Received loan application request for customer: {} with correlation: {}", 
-            request.customerId(), correlationId);
-        
-        // Check rate limiting
-        var rateLimitResult = rateLimitingService.checkRateLimit(
-            "loan:create", 
-            request.customerId(), 
-            securityContext.getClientId()
-        );
-        
-        if (!rateLimitResult.allowed) {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .header("Retry-After", String.valueOf(rateLimitResult.retryAfter.getSeconds()))
-                .build();
+        try {
+            // Validate FAPI security headers
+            FAPISecurityHeaders.validateHeaders(fiapiInteractionId, fapiAuthDate, customerIpAddress);
+            
+            // Get authenticated user context
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String userId = auth.getName();
+            
+            String correlationId = UUID.randomUUID().toString();
+            log.info("Received loan application request for customer: {} by user: {} with correlation: {}", 
+                request.customerId(), userId, correlationId);
+            
+            // Check rate limiting with enhanced security context
+            var rateLimitResult = rateLimitingService.checkRateLimit(
+                "loan:create", 
+                request.customerId(), 
+                securityContext.getClientId()
+            );
+            
+            if (!rateLimitResult.allowed) {
+                auditService.logSecurityViolation("RATE_LIMIT_EXCEEDED", 
+                    "Loan application rate limit exceeded for customer: " + request.customerId(),
+                    userId, httpRequest.getRemoteAddr(), fiapiInteractionId);
+                
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .header("Retry-After", String.valueOf(rateLimitResult.retryAfter.getSeconds()))
+                    .header("X-FAPI-Interaction-ID", fiapiInteractionId)
+                    .build();
+            }
+            
+            // Execute with circuit breaker protection
+            LoanApplicationResult result = circuitBreakerService.executeLoanOperation(
+                () -> loanApplicationUseCase.submitLoanApplication(
+                    new SubmitLoanApplicationCommand(
+                        request.customerId(),
+                        request.amount(),
+                        request.termInMonths(),
+                        request.loanType(),
+                        request.purpose(),
+                        request.collateralDescription(),
+                        request.monthlyIncome(),
+                        userId,
+                        correlationId,
+                        securityContext.getTenantId()
+                    )
+                ),
+                "submit-loan-application"
+            );
+            
+            // Audit log the loan application submission
+            auditService.logDataAccess("HEXAGONAL_LOAN_APPLICATION_SUBMITTED", 
+                request.customerId(), userId, httpRequest.getRemoteAddr(), fiapiInteractionId);
+            
+            return ResponseEntity.status(HttpStatus.CREATED)
+                .header("X-FAPI-Interaction-ID", fiapiInteractionId)
+                .header("X-Idempotency-Key", idempotencyKey)
+                .body(result);
+                
+        } catch (Exception e) {
+            auditService.logSecurityViolation("HEXAGONAL_LOAN_APPLICATION_FAILED", e.getMessage(), 
+                                             SecurityContextHolder.getContext().getAuthentication().getName(),
+                                             httpRequest.getRemoteAddr(), fiapiInteractionId);
+            throw e;
         }
-        
-        // Execute with circuit breaker protection
-        LoanApplicationResult result = circuitBreakerService.executeLoanOperation(
-            () -> loanApplicationUseCase.submitLoanApplication(
-                new SubmitLoanApplicationCommand(
-                    request.customerId(),
-                    request.amount(),
-                    request.termInMonths(),
-                    request.loanType(),
-                    request.purpose(),
-                    request.collateralDescription(),
-                    request.monthlyIncome(),
-                    securityContext.getCurrentUserId().orElse("anonymous"),
-                    correlationId,
-                    securityContext.getTenantId()
-                )
-            ),
-            "submit-loan-application"
-        );
-        
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
     
     @PostMapping("/{loanId}/approve")
