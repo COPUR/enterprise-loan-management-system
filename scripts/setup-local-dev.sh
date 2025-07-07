@@ -796,7 +796,7 @@ cd enterprise-loan-management-system
 ./scripts/setup-local-dev.sh
 
 # Start development server
-./dev-start.sh
+./scripts/dev/dev-start.sh
 ```
 
 ## 🔧 Development Commands
@@ -804,13 +804,13 @@ cd enterprise-loan-management-system
 ### Application
 ```bash
 # Start with hot reload
-./dev-start.sh
+./scripts/dev/dev-start.sh
 
 # Start in debug mode
 ./gradlew runDebug
 
 # Run tests
-./dev-test.sh
+./scripts/dev/dev-test.sh
 
 # Reset database
 ./dev-reset-db.sh
@@ -994,8 +994,8 @@ EOF
     echo -e "${NC}"
     
     log "INFO" "Quick Start Commands:"
-    log "INFO" "  • Start Dev Server:    ./dev-start.sh"
-    log "INFO" "  • Run Tests:           ./dev-test.sh"
+    log "INFO" "  • Start Dev Server:    ./scripts/dev/dev-start.sh"
+    log "INFO" "  • Run Tests:           ./scripts/dev/dev-test.sh"
     log "INFO" "  • Reset Database:      ./dev-reset-db.sh"
     log "INFO" "  • Debug Mode:          ./gradlew runDebug"
     
@@ -1015,7 +1015,7 @@ EOF
     log "INFO" "  • Gradle Dev:          gradle/dev-tasks.gradle"
     log "INFO" "  • Dev Guide:           README-DEV.md"
     
-    echo -e "${CYAN}Ready to start developing! Run ./dev-start.sh to begin.${NC}"
+    echo -e "${CYAN}Ready to start developing! Run ./scripts/dev/dev-start.sh to begin.${NC}"
 }
 
 # ===================================================================

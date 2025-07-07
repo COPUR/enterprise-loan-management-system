@@ -1,0 +1,21 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Banking App (Development)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="loan-management-system.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.bank.loanmanagement.LoanManagementApplication" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="SHORTEN_COMMAND_LINE" value="NONE" />
+    <option name="ENABLE_DEBUG_MODE" value="false" />
+    <envs>
+      <env name="SPRING_PROFILES_ACTIVE" value="local,development,h2" />
+      <env name="ENABLE_HOT_RELOAD" value="true" />
+      <env name="ENABLE_DEBUG_MODE" value="true" />
+    </envs>
+    <option name="VM_PARAMETERS" value="-Xmx2g -XX:+UseG1GC -XX:+UseStringDeduplication -Dspring.devtools.restart.enabled=true -Dspring.devtools.livereload.enabled=true" />
+    <option name="PROGRAM_PARAMETERS" value="" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+    <option name="ALTERNATIVE_JRE_PATH" value="" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
