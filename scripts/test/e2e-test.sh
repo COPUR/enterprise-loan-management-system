@@ -152,10 +152,10 @@ start_docker_compose() {
     log_step "Starting Docker Compose test environment..."
     
     # Stop any existing containers
-    docker-compose -f docker-compose.test.yml down -v &> /dev/null || true
+    docker-compose -f docker/compose/docker-compose.test.yml down -v &> /dev/null || true
     
     # Start the test environment
-    docker-compose -f docker-compose.test.yml up -d
+    docker-compose -f docker/compose/docker-compose.test.yml up -d
     
     log_info "Waiting for services to be healthy..."
     
@@ -167,14 +167,14 @@ start_docker_compose() {
         
         local attempts=0
         while [[ $attempts -lt $MAX_HEALTH_CHECKS ]]; do
-            if docker-compose -f docker-compose.test.yml ps "$service" | grep -q "healthy"; then
+            if docker-compose -f docker/compose/docker-compose.test.yml ps "$service" | grep -q "healthy"; then
                 log_success "$service is healthy"
                 break
             fi
             
             if [[ $attempts -eq $((MAX_HEALTH_CHECKS - 1)) ]]; then
                 log_error "$service failed to become healthy within timeout"
-                docker-compose -f docker-compose.test.yml logs "$service"
+                docker-compose -f docker/compose/docker-compose.test.yml logs "$service"
                 return 1
             fi
             
@@ -309,7 +309,7 @@ run_database_tests() {
     
     # Connect directly to PostgreSQL and check tables
     local tables
-    tables=$(docker-compose -f docker-compose.test.yml exec -T postgres-test \
+    tables=$(docker-compose -f docker/compose/docker-compose.test.yml exec -T postgres-test \
         psql -U banking_test -d banking_test -t -c "
         SELECT table_name 
         FROM information_schema.tables 
@@ -421,7 +421,7 @@ cleanup() {
     log_step "Cleaning up test resources..."
     
     # Stop Docker Compose
-    docker-compose -f docker-compose.test.yml down -v &> /dev/null || true
+    docker-compose -f docker/compose/docker-compose.test.yml down -v &> /dev/null || true
     
     # Remove test volumes
     docker volume prune -f &> /dev/null || true

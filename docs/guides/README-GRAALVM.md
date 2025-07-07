@@ -290,7 +290,7 @@ tail -f build/application.log
 ### Custom Native Image Options
 ```bash
 # Edit build configuration
-vim build-native.gradle
+vim gradle/builds/build-native.gradle
 
 # Add custom build arguments
 buildArgs.addAll([

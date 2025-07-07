@@ -130,7 +130,7 @@ setup_environment() {
     export COMPOSE_FILE="${PROJECT_ROOT}/docker-compose.yml"
     
     if [ "$ENVIRONMENT" = "test" ]; then
-        export COMPOSE_FILE="${PROJECT_ROOT}/docker-compose.test.yml"
+        export COMPOSE_FILE="${PROJECT_ROOT}/docker/compose/docker-compose.test.yml"
     fi
     
     # Load environment-specific configuration

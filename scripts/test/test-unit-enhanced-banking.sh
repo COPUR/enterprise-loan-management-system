@@ -74,7 +74,7 @@ test_configuration_files() {
     local config_files=(
         "src/main/resources/application.yml"
         "src/main/resources/application-enhanced-enterprise.yml"
-        "docker-compose.enhanced-enterprise.yml"
+        "docker/compose/docker-compose.enhanced-enterprise.yml"
         "k8s/service-mesh/istio-system.yaml"
         "k8s/kafka/banking-kafka-topics.yaml"
     )
@@ -274,7 +274,7 @@ test_yaml_syntax() {
     log_test "Test 8: Validating YAML Syntax"
     
     local yaml_files=(
-        "docker-compose.enhanced-enterprise.yml"
+        "docker/compose/docker-compose.enhanced-enterprise.yml"
         "k8s/service-mesh/istio-system.yaml"
         "k8s/autoscaling/hpa-banking-services.yaml"
         "k8s/kafka/banking-kafka-topics.yaml"

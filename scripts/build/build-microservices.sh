@@ -111,10 +111,10 @@ main() {
     # Build microservices
     print_status "Building microservice images..."
     
-    build_microservice "customer-service" "Dockerfile.customer-service" "8081"
-    build_microservice "loan-service" "Dockerfile.loan-service" "8082"
-    build_microservice "payment-service" "Dockerfile.payment-service" "8083"
-    build_microservice "party-service" "Dockerfile.party-service" "8084"
+    build_microservice "customer-service" "docker/services/Dockerfile.customer-service" "8081"
+    build_microservice "loan-service" "docker/services/Dockerfile.loan-service" "8082"
+    build_microservice "payment-service" "docker/services/Dockerfile.payment-service" "8083"
+    build_microservice "party-service" "docker/services/Dockerfile.party-service" "8084"
     
     # Display built images
     print_status "Built images:"

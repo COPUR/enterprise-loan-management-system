@@ -7,7 +7,7 @@ set -e
 
 # Script configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-COMPOSE_FILE="docker-compose.enhanced-enterprise.yml"
+COMPOSE_FILE="docker/compose/docker-compose.enhanced-enterprise.yml"
 APP_NAME="Enhanced Enterprise Banking System"
 LOG_FILE="logs/deployment.log"
 
@@ -203,15 +203,15 @@ wait_for_services() {
     
     # Wait for PostgreSQL
     log_info "Waiting for PostgreSQL..."
-    timeout 120 bash -c 'until docker-compose -f docker-compose.enhanced-enterprise.yml exec -T postgres-enhanced pg_isready -U banking_user; do sleep 2; done'
+    timeout 120 bash -c 'until docker-compose -f docker/compose/docker-compose.enhanced-enterprise.yml exec -T postgres-enhanced pg_isready -U banking_user; do sleep 2; done'
     
     # Wait for Redis
     log_info "Waiting for Redis..."
-    timeout 60 bash -c 'until docker-compose -f docker-compose.enhanced-enterprise.yml exec -T redis-cluster-enhanced redis-cli ping; do sleep 2; done'
+    timeout 60 bash -c 'until docker-compose -f docker/compose/docker-compose.enhanced-enterprise.yml exec -T redis-cluster-enhanced redis-cli ping; do sleep 2; done'
     
     # Wait for Kafka
     log_info "Waiting for Kafka..."
-    timeout 120 bash -c 'until docker-compose -f docker-compose.enhanced-enterprise.yml exec -T kafka-enhanced kafka-topics --bootstrap-server localhost:9092 --list &>/dev/null; do sleep 5; done'
+    timeout 120 bash -c 'until docker-compose -f docker/compose/docker-compose.enhanced-enterprise.yml exec -T kafka-enhanced kafka-topics --bootstrap-server localhost:9092 --list &>/dev/null; do sleep 5; done'
     
     # Wait for Keycloak
     log_info "Waiting for Keycloak..."
@@ -483,10 +483,10 @@ curl http://localhost:8080/actuator/metrics
 
 \`\`\`bash
 # Stop all services
-docker-compose -f docker-compose.enhanced-enterprise.yml down
+docker-compose -f docker/compose/docker-compose.enhanced-enterprise.yml down
 
 # Stop and remove volumes
-docker-compose -f docker-compose.enhanced-enterprise.yml down -v
+docker-compose -f docker/compose/docker-compose.enhanced-enterprise.yml down -v
 \`\`\`
 EOF
     

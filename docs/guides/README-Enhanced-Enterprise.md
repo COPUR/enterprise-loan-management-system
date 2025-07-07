@@ -155,10 +155,10 @@ export KEYCLOAK_ADMIN_PASSWORD="admin-password"
 ### 2. Start Enhanced Enterprise Stack
 ```bash
 # Start the complete enhanced enterprise stack
-docker-compose -f docker-compose.enhanced-enterprise.yml up -d
+docker-compose -f docker/compose/docker-compose.enhanced-enterprise.yml up -d
 
 # Monitor startup progress
-docker-compose -f docker-compose.enhanced-enterprise.yml logs -f banking-app-enhanced
+docker-compose -f docker/compose/docker-compose.enhanced-enterprise.yml logs -f banking-app-enhanced
 ```
 
 ### 3. Initialize AI Knowledge Base
