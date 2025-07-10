@@ -1,2 +1,144 @@
-# Remove LFS tracking for essential build files
-# JAR files needed for builds should be stored directly in git
+# =================================================================
+# ENTERPRISE LOAN MANAGEMENT PLATFORM - GITATTRIBUTES CONFIGURATION
+# =================================================================
+# ⚠️  CRITICAL: This file ensures CI/CD compatibility and security
+# ⚠️  Banking Compliance: Ensures consistent builds across platforms
+# ⚠️  Any modifications must be reviewed by DevOps Team
+# =================================================================
+
+# ============================================
+# TEXT FILES - NORMALIZED LINE ENDINGS
+# ============================================
+# Ensure consistent line endings across platforms for CI/CD
+* text=auto
+
+# Java source files - always use LF
+*.java text eol=lf
+*.kt text eol=lf
+*.kts text eol=lf
+*.scala text eol=lf
+*.groovy text eol=lf
+
+# Build files - always use LF for cross-platform compatibility
+*.gradle text eol=lf
+*.gradle.kts text eol=lf
+*.xml text eol=lf
+*.pom text eol=lf
+build.gradle text eol=lf
+settings.gradle text eol=lf
+gradlew text eol=lf
+
+# Configuration files - always use LF
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.properties text eol=lf
+*.conf text eol=lf
+*.config text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+
+# Scripts - always use LF for Unix-like systems
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+*.fish text eol=lf
+
+# Windows batch files - use CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Documentation - use LF
+*.md text eol=lf
+*.txt text eol=lf
+*.rst text eol=lf
+*.adoc text eol=lf
+
+# SQL files - use LF
+*.sql text eol=lf
+
+# ============================================
+# BINARY FILES - NO TEXT PROCESSING
+# ============================================
+# Essential JAR files for CI/CD (not using Git LFS)
+gradle/wrapper/gradle-wrapper.jar binary
+*.jar binary
+*.war binary
+*.ear binary
+*.nar binary
+*.class binary
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.webp binary
+*.bmp binary
+*.tiff binary
+*.tif binary
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+*.bz2 binary
+*.xz binary
+*.7z binary
+*.rar binary
+
+# Certificates and Keys (CRITICAL SECURITY)
+*.p12 binary
+*.pfx binary
+*.jks binary
+*.keystore binary
+*.truststore binary
+*.pem binary
+*.key binary
+*.crt binary
+*.cer binary
+*.der binary
+
+# Database files
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+
+# ============================================
+# BANKING-SPECIFIC FILE FORMATS
+# ============================================
+# Banking message formats (binary - preserve exact format)
+*.ach binary
+*.nacha binary
+*.mt940 binary
+*.mt942 binary
+*.bai binary
+*.swift binary
+*.qif binary
+*.ofx binary
+
+# ============================================
+# WORKING TREE ENCODING
+# ============================================
+# Ensure UTF-8 encoding for international banking compliance
+*.java working-tree-encoding=UTF-8
+*.kt working-tree-encoding=UTF-8
+*.scala working-tree-encoding=UTF-8
+*.js working-tree-encoding=UTF-8
+*.ts working-tree-encoding=UTF-8
+*.jsx working-tree-encoding=UTF-8
+*.tsx working-tree-encoding=UTF-8
+*.json working-tree-encoding=UTF-8
+*.yml working-tree-encoding=UTF-8
+*.yaml working-tree-encoding=UTF-8
+*.xml working-tree-encoding=UTF-8
+*.sql working-tree-encoding=UTF-8
+*.md working-tree-encoding=UTF-8
+*.txt working-tree-encoding=UTF-8
+
+# =================================================================
+# END OF ENTERPRISE GITATTRIBUTES CONFIGURATION
+# =================================================================
