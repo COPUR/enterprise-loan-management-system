@@ -1,2 +1,0 @@
-8a26bbcfaf69a0e8a199e3cb66407d6249311551 31 db_password.txt
-aa3334df9fbdad0c35eea1a78499bcaef919ad96 24 redis_password.txt
