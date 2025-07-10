@@ -1,23 +1,21 @@
 # API Documentation
-## Enterprise Banking System - RESTful APIs with FAPI 2.0 + DPoP Security
+## Enterprise Banking System - RESTful APIs with OAuth2.1 Integration
 
 ### Table of Contents
 1. [API Overview](#api-overview)
-2. [FAPI 2.0 + DPoP Authentication](#fapi-20--dpop-authentication)
-3. [Security Requirements](#security-requirements)
-4. [Core Banking APIs](#core-banking-apis)
-5. [Party Management APIs](#party-management-apis)
-6. [OAuth2.1 Integration APIs](#oauth21-integration-apis)
-7. [Security APIs](#security-apis)
-8. [Error Handling](#error-handling)
-9. [Rate Limiting](#rate-limiting)
-10. [Migration Guide](#migration-guide)
+2. [Authentication & Authorization](#authentication--authorization)
+3. [Core Banking APIs](#core-banking-apis)
+4. [Party Management APIs](#party-management-apis)
+5. [OAuth2.1 Integration APIs](#oauth21-integration-apis)
+6. [Security APIs](#security-apis)
+7. [Error Handling](#error-handling)
+8. [Rate Limiting](#rate-limiting)
 
 ---
 
 ## API Overview
 
-The Enterprise Banking System provides a comprehensive set of RESTful APIs designed for secure banking operations with **FAPI 2.0 Security Profile** and **DPoP (Demonstrating Proof-of-Possession)** authentication. All APIs follow OpenAPI 3.0 specification and implement financial-grade security controls.
+The Enterprise Banking System provides a comprehensive set of RESTful APIs designed for secure banking operations with OAuth2.1 authentication and authorization. All APIs follow OpenAPI 3.0 specification and implement banking-grade security controls.
 
 ### Base URL
 ```
@@ -29,28 +27,17 @@ Development: http://localhost:8080/api/v1
 ### API Design Principles
 
 1. **RESTful Design**: Resource-based URLs with standard HTTP methods
-2. **FAPI 2.0 Security**: Financial-grade API security profile implementation
-3. **DPoP Authentication**: Demonstrating Proof-of-Possession for enhanced security
-4. **PAR Required**: Pushed Authorization Requests mandatory for all flows
-5. **PKCE Required**: Proof Key for Code Exchange for all authorization requests
-6. **Idempotency**: POST/PUT operations support idempotency keys
-7. **Pagination**: Cursor-based pagination for list operations
-8. **Versioning**: URL-based versioning (v1, v2, etc.)
-
-### Security Architecture
-
-- **Authorization Code Flow Only**: Hybrid and implicit flows are not supported
-- **DPoP-bound Tokens**: All access tokens are bound to DPoP keys
-- **Private Key JWT**: Client authentication via private_key_jwt only
-- **Back-channel Delivery**: No front-channel token delivery
-- **JTI Replay Prevention**: Unique JWT identifiers prevent replay attacks
+2. **OAuth2.1 Security**: Bearer token authentication for all endpoints
+3. **FAPI Compliance**: Financial-grade API security headers
+4. **Idempotency**: POST/PUT operations support idempotency keys
+5. **Pagination**: Cursor-based pagination for list operations
+6. **Versioning**: URL-based versioning (v1, v2, etc.)
 
 ### Standard Headers
 
 #### Request Headers
 ```http
-Authorization: DPoP {access_token}
-DPoP: {dpop_proof_jwt}
+Authorization: Bearer {jwt_token}
 Content-Type: application/json
 Accept: application/json
 X-Idempotency-Key: {uuid} (for POST/PUT operations)
@@ -67,251 +54,15 @@ X-Request-ID: {uuid}
 X-FAPI-Interaction-ID: {uuid}
 X-RateLimit-Remaining: {count}
 X-RateLimit-Reset: {unix_timestamp}
-DPoP-Nonce: {nonce} (when required)
-WWW-Authenticate: DPoP (on authentication errors)
 ```
 
 ---
 
-## FAPI 2.0 + DPoP Authentication
-
-### Overview
-
-The Enterprise Banking System implements **FAPI 2.0 Security Profile** with **DPoP (Demonstrating Proof-of-Possession)** as mandated by financial regulations for enhanced security.
-
-### Key Changes from OAuth 2.0
-
-| Feature | FAPI 1.0 | FAPI 2.0 + DPoP |
-|---------|----------|------------------|
-| **Authorization Flows** | Authorization Code + Hybrid | Authorization Code Only |
-| **Token Binding** | mTLS Certificate Binding | DPoP Key Binding |
-| **Client Authentication** | mTLS + private_key_jwt | private_key_jwt Only |
-| **Authorization Requests** | Direct + PAR | PAR Only |
-| **Response Modes** | query, fragment, form_post | query Only |
-| **PKCE** | Recommended | Required |
-| **Token Type** | Bearer | DPoP |
-
-### DPoP Authentication Flow
-
-#### Step 1: Generate DPoP Key Pair
-
-```javascript
-// Generate EC P-256 key pair for DPoP
-const keyPair = await crypto.subtle.generateKey(
-  {
-    name: "ECDSA",
-    namedCurve: "P-256"
-  },
-  true,
-  ["sign", "verify"]
-);
-
-// Calculate JKT (JWK Thumbprint)
-const jwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
-const jkt = await calculateJktThumbprint(jwk);
-```
-
-#### Step 2: Pushed Authorization Request (PAR)
-
-```http
-POST /oauth2/par
-Content-Type: application/x-www-form-urlencoded
-Authorization: Bearer {client_assertion_jwt}
-
-client_id=banking-app
-&redirect_uri=https://app.banking.com/callback
-&response_type=code
-&scope=openid banking-loans banking-payments
-&code_challenge=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
-&code_challenge_method=S256
-&dpop_jkt={jkt_thumbprint}
-&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
-&client_assertion={private_key_jwt}
-```
-
-**PAR Response:**
-```json
-{
-  "request_uri": "urn:ietf:params:oauth:request_uri:6esc_11ACC5bwc014ltc14eY22c",
-  "expires_in": 300
-}
-```
-
-#### Step 3: Authorization Request
-
-```http
-GET /oauth2/authorize?client_id=banking-app&request_uri=urn:ietf:params:oauth:request_uri:6esc_11ACC5bwc014ltc14eY22c
-```
-
-#### Step 4: Token Exchange with DPoP
-
-```http
-POST /oauth2/token
-Content-Type: application/x-www-form-urlencoded
-DPoP: {dpop_proof_jwt}
-
-grant_type=authorization_code
-&code={authorization_code}
-&redirect_uri=https://app.banking.com/callback
-&code_verifier={pkce_verifier}
-&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
-&client_assertion={private_key_jwt}
-```
-
-**DPoP Proof Structure:**
-```json
-{
-  "typ": "dpop+jwt",
-  "alg": "ES256",
-  "jwk": {
-    "kty": "EC",
-    "crv": "P-256",
-    "x": "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
-    "y": "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM"
-  }
-}
-.
-{
-  "jti": "e1j3V_bX5C4NTcU1g74sBHxF",
-  "htm": "POST",
-  "htu": "https://api.banking.com/oauth2/token",
-  "iat": 1640995200
-}
-```
-
-**Token Response:**
-```json
-{
-  "access_token": "eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "DPoP",
-  "expires_in": 300,
-  "refresh_token": "def502002b0f5d...",
-  "scope": "openid banking-loans banking-payments"
-}
-```
-
-#### Step 5: API Calls with DPoP
-
-```http
-GET /api/v1/loans
-Authorization: DPoP eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9...
-DPoP: eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6IkVDIi...
-X-FAPI-Interaction-ID: 12345678-1234-1234-1234-123456789012
-X-FAPI-Auth-Date: Tue, 15 Jan 2024 10:30:00 GMT
-X-FAPI-Customer-IP-Address: 192.168.1.100
-```
-
-**DPoP Proof for API Call:**
-```json
-{
-  "typ": "dpop+jwt",
-  "alg": "ES256",
-  "jwk": { /* same DPoP key */ }
-}
-.
-{
-  "jti": "f2j4W_cY6D5OUdV2h85tCIyG",
-  "htm": "GET",
-  "htu": "https://api.banking.com/api/v1/loans",
-  "iat": 1640995260,
-  "ath": "fUHyO2r2Z3DZ53EsNrWBb3GGh5O6mGVlN1A4B3E2F7A"
-}
-```
-
-### Authentication Error Handling
-
-#### Missing DPoP Proof
-```http
-HTTP/1.1 401 Unauthorized
-WWW-Authenticate: DPoP
-Content-Type: application/json
-
-{
-  "error": "invalid_dpop_proof",
-  "error_description": "DPoP proof is required but missing"
-}
-```
-
-#### Invalid DPoP Proof
-```http
-HTTP/1.1 401 Unauthorized
-WWW-Authenticate: DPoP error="invalid_dpop_proof", error_description="DPoP proof signature verification failed"
-Content-Type: application/json
-
-{
-  "error": "invalid_dpop_proof", 
-  "error_description": "DPoP proof signature verification failed"
-}
-```
-
-#### DPoP Nonce Required
-```http
-HTTP/1.1 401 Unauthorized
-WWW-Authenticate: DPoP
-DPoP-Nonce: 8c5a3b2d-4e6f-1a2b-3c4d-567890abcdef
-Content-Type: application/json
-
-{
-  "error": "use_dpop_nonce",
-  "error_description": "DPoP nonce is required for this client"
-}
-```
-
----
-
-## Security Requirements
-
-### Mandatory Security Features
-
-#### 1. FAPI Headers (Required)
-All API requests must include these headers:
-
-```http
-X-FAPI-Interaction-ID: {uuid_v4}
-X-FAPI-Auth-Date: {rfc7231_date}
-X-FAPI-Customer-IP-Address: {client_ip_address}
-```
-
-#### 2. DPoP Proof Requirements
-- **Algorithm**: ES256, ES384, ES512, RS256, RS384, RS512, PS256, PS384, PS512
-- **Key Type**: EC (P-256, P-384, P-521) or RSA (2048+ bits)
-- **JTI**: Unique identifier preventing replay attacks
-- **HTM**: HTTP method (GET, POST, PUT, DELETE)
-- **HTU**: HTTP URI (scheme, host, port, path - no query/fragment)
-- **ATH**: Access token hash (SHA-256, base64url encoded)
-
-#### 3. Client Authentication
-Only `private_key_jwt` is supported:
-
-```json
-{
-  "iss": "banking-app",
-  "sub": "banking-app", 
-  "aud": "https://api.banking.com/oauth2/token",
-  "jti": "12345678-1234-1234-1234-123456789012",
-  "iat": 1640995200,
-  "exp": 1640995500
-}
-```
-
-#### 4. PKCE Requirements
-- **Code Challenge Method**: S256 only
-- **Code Verifier**: 43-128 characters, base64url-encoded
-- **Code Challenge**: SHA256 hash of verifier, base64url-encoded
-
-### Removed/Unsupported Features
-
-#### ❌ Not Supported in FAPI 2.0
-- **Hybrid Flows**: `response_type=code id_token`, `code token`, `code id_token token`
-- **Implicit Flows**: `response_type=token`, `id_token`
-- **Front-channel Delivery**: `response_mode=fragment`, `form_post`
-- **mTLS Authentication**: `tls_client_auth`, `self_signed_tls_client_auth`
-- **Bearer Tokens**: Only DPoP-bound tokens supported
-- **Direct Authorization**: PAR is mandatory
+## Authentication & Authorization
 
 ### OAuth2.1 Integration
 
-The API uses OAuth2.1 Authorization Code Flow with PKCE and DPoP for authentication:
+The API uses OAuth2.1 Authorization Code Flow with PKCE for authentication:
 
 #### Token Endpoint
 ```http
@@ -1202,146 +953,4 @@ The Enterprise Banking System APIs provide a comprehensive, secure, and complian
 - **Encryption**: All data protected in transit and at rest
 - **Compliance**: SOX, PCI DSS, and GDPR compliance
 
----
-
-## Migration Guide
-
-### Migrating from FAPI 1.0 to FAPI 2.0 + DPoP
-
-#### 1. Client Registration Changes
-
-**Before (FAPI 1.0):**
-```json
-{
-  "client_id": "banking-app",
-  "client_secret": "secret123",
-  "token_endpoint_auth_method": "client_secret_basic",
-  "response_types": ["code", "code id_token"],
-  "response_modes": ["query", "fragment"]
-}
-```
-
-**After (FAPI 2.0 + DPoP):**
-```json
-{
-  "client_id": "banking-app", 
-  "token_endpoint_auth_method": "private_key_jwt",
-  "response_types": ["code"],
-  "response_modes": ["query"],
-  "require_pushed_authorization_requests": true,
-  "dpop_bound_access_tokens": true,
-  "jwks_uri": "https://app.banking.com/.well-known/jwks.json"
-}
-```
-
-#### 2. Client Code Changes
-
-**Before (Bearer Tokens):**
-```javascript
-// Old: Bearer token requests
-const response = await fetch('/api/v1/loans', {
-  headers: {
-    'Authorization': `Bearer ${accessToken}`,
-    'Content-Type': 'application/json'
-  }
-});
-```
-
-**After (DPoP Tokens):**
-```javascript
-// New: DPoP-bound token requests
-const dpopProof = await createDPoPProof('GET', '/api/v1/loans', accessToken);
-
-const response = await fetch('/api/v1/loans', {
-  headers: {
-    'Authorization': `DPoP ${accessToken}`,
-    'DPoP': dpopProof,
-    'Content-Type': 'application/json',
-    'X-FAPI-Interaction-ID': uuidv4(),
-    'X-FAPI-Auth-Date': new Date().toUTCString(),
-    'X-FAPI-Customer-IP-Address': clientIP
-  }
-});
-```
-
-#### 3. Authorization Flow Changes
-
-**Before (Direct Authorization):**
-```javascript
-// Old: Direct authorization request
-const authUrl = `${authEndpoint}?client_id=${clientId}&response_type=code id_token&redirect_uri=${redirectUri}`;
-window.location.href = authUrl;
-```
-
-**After (PAR + Authorization Code):**
-```javascript
-// New: PAR then authorization
-const parResponse = await fetch('/oauth2/par', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'Authorization': `Bearer ${clientAssertion}`
-  },
-  body: new URLSearchParams({
-    client_id: clientId,
-    response_type: 'code',
-    redirect_uri: redirectUri,
-    scope: 'openid banking-loans',
-    code_challenge: codeChallenge,
-    code_challenge_method: 'S256',
-    dpop_jkt: jktThumbprint,
-    client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-    client_assertion: clientAssertion
-  })
-});
-
-const { request_uri } = await parResponse.json();
-const authUrl = `${authEndpoint}?client_id=${clientId}&request_uri=${request_uri}`;
-window.location.href = authUrl;
-```
-
-#### 4. Error Handling Updates
-
-**New DPoP-specific Error Codes:**
-
-| Error Code | Description | Action Required |
-|------------|-------------|-----------------|
-| `invalid_dpop_proof` | DPoP proof missing or invalid | Generate new DPoP proof |
-| `use_dpop_nonce` | Server requires DPoP nonce | Include nonce in next proof |
-| `invalid_request_uri` | PAR request URI invalid/expired | Create new PAR request |
-| `unsupported_response_type` | Non-code response type used | Use `response_type=code` only |
-
-#### 5. Testing Migration
-
-Use the provided migration tool:
-
-```bash
-# Generate DPoP keys and configuration
-java -cp app.jar com.bank.loan.loan.security.migration.DPoPMigrationTool \
-  "banking-app" \
-  "Banking Application" \
-  "EC" \
-  "./migration-output"
-
-# Validate FAPI 2.0 compliance
-curl -X GET https://api.banking.com/oauth2/status \
-  -H "Accept: application/json"
-```
-
-#### 6. Rollback Plan
-
-If migration issues occur:
-
-1. **Immediate**: Switch back to `application-enterprise.yml` profile
-2. **DNS**: Point API endpoints to FAPI 1.0 servers
-3. **Client**: Deploy previous client version with Bearer tokens
-4. **Monitoring**: Alert on authentication failure rate increases
-
-#### 7. Support Resources
-
-- **DPoP Client Library**: Use provided `DPoPClientLibrary.java`
-- **Migration Tool**: `DPoPMigrationTool.java` for automated setup
-- **Configuration**: `application-fapi2-dpop.yml` for reference
-- **Documentation**: This API documentation for complete reference
-
-For additional technical details, refer to the [FAPI 2.0 Migration Guide](FAPI-2.0-Migration-Guide.md) and [DPoP Implementation Guide](DPoP-Implementation-Guide.md).
+For additional technical details, refer to the [OAuth2.1 Architecture Guide](OAuth2.1-Architecture-Guide.md) and [Security Architecture Overview](security-architecture/Security-Architecture-Overview.md).

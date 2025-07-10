@@ -1,158 +1,106 @@
-# Enterprise Architecture Repository
-## Loan Management Platform
+# Enterprise Architecture Documentation Index
 
-### Document Classification: Confidential
-### Version: 2.0 | January 2025
+## Overview
 
----
+This documentation follows TOGAF Enterprise Architecture principles with BDAT (Business, Data, Application, Technology) categorization and Domain Level structure for the Enterprise Loan Management System.
 
-## 1. Architecture Development Method (ADM) Structure
-
-This repository follows TOGAF ADM phases for comprehensive architecture documentation.
-
-### Phase A: Architecture Vision
-- [Architecture Vision Document](ARCHITECTURE_OVERVIEW.md) - Strategic goals and drivers
-- [Executive Summary](../readme.md) - Platform overview and business case
-
-### Phase B: Business Architecture
-- [Business Capability Model](business-architecture/README.md)
-- [Value Streams](business-architecture/scenarios/SHOWCASE_SCENARIOS.md)
-- [Business Process Models](business-architecture/use-cases/TECHNOLOGY_USECASE_MAPPING.md)
-
-### Phase C: Information Systems Architecture
-
-#### Data Architecture
-- [Data Models](data-architecture/README.md)
-- [Entity Relationships](data-architecture/data-models/er-diagram.puml)
-- [Data Governance](data-architecture/data-models/database-isolation-diagram.puml)
-
-#### Application Architecture
-- [Application Portfolio](application-architecture/Application-Architecture-Guide.md)
-- [Service Catalog](application-architecture/microservices/README.md)
-- [Integration Patterns](application-architecture/integration-patterns/saga-workflow-diagram.puml)
-
-### Phase D: Technology Architecture
-- [Infrastructure Architecture](technology-architecture/README.md)
-- [Platform Services](technology-architecture/infrastructure-diagrams/aws-eks-architecture.puml)
-- [Security Architecture](security-architecture/Security-Architecture-Overview.md)
-
-### Phase E: Opportunities & Solutions
-- [Migration Strategy](deployment/local-development.md)
-- [Implementation Roadmap](implementation/IMPLEMENTATION_STATUS_FINAL.md)
-
-### Phase F: Migration Planning
-- [Deployment Guide](deployment-operations/Deployment-Operations-Guide.md)
-- [Release Management](DEPLOYMENT_GUIDE_COMPREHENSIVE.md)
-
-### Phase G: Implementation Governance
-- [Architecture Governance](enterprise-governance/README.md)
-- [Quality Assurance](enterprise-governance/quality-assurance/TESTING.md)
-- [Compliance Framework](enterprise-governance/standards/DOCUMENTATION_STANDARDS_COMPLETE.md)
-
-### Phase H: Architecture Change Management
-- [Change Control Process](enterprise-governance/documentation/DOCUMENTATION_UPDATE_SUMMARY.md)
-- [Architecture Decision Records](architecture/adr/)
-
-## 2. Architecture Artifacts by BDAT Categories
+## Architecture Categories
 
 ### Business Architecture
-| Artifact | Description | Location |
-|----------|-------------|----------|
-| Business Capability Model | Enterprise capabilities map | [View](business-architecture/domain-models/domain-model.puml) |
-| Value Stream Maps | End-to-end business processes | [View](business-architecture/use-cases/banking-workflow.puml) |
-| Organization Structure | Roles and responsibilities | [View](enterprise-governance/README.md) |
-
-### Data Architecture
-| Artifact | Description | Location |
-|----------|-------------|----------|
-| Conceptual Data Model | High-level entity relationships | [View](data-architecture/data-models/er-diagram.puml) |
-| Logical Data Model | Detailed entity attributes | [View](data-architecture/README.md) |
-| Data Flow Diagrams | Information flow between systems | [View](application-architecture/sequence-diagrams/) |
+- **Domain Models**: Core business domain definitions and bounded contexts
+  - [Domain Model](business-architecture/domain-models/domain-model.puml)
+  - [Bounded Contexts](business-architecture/domain-models/bounded-contexts.puml)
+- **Use Cases**: Business scenarios and banking workflows
+  - [Technology Use Case Mapping](business-architecture/use-cases/TECHNOLOGY_USECASE_MAPPING.md)
+  - [Banking Workflow](business-architecture/use-cases/banking-workflow.puml)
+- **Scenarios**: Business case demonstrations and showcase scenarios
+  - [Technology Showcase Summary](business-architecture/scenarios/TECHNOLOGY_SHOWCASE_SUMMARY.md)
+  - [Showcase Scenarios](business-architecture/scenarios/SHOWCASE_SCENARIOS.md)
 
 ### Application Architecture
-| Artifact | Description | Location |
-|----------|-------------|----------|
-| Application Portfolio | System inventory and dependencies | [View](application-architecture/README.md) |
-| Service Contracts | API specifications | [View](API_REFERENCE_GUIDE.md) |
-| Component Models | System decomposition | [View](architecture/component-diagram.puml) |
+- **Microservices**: Service architecture and component designs
+  - [Component Diagram](application-architecture/microservices/component-diagram.puml)
+  - [Microservices Architecture](application-architecture/microservices/microservices-architecture-diagram.puml)
+  - [Hexagonal Architecture](application-architecture/microservices/hexagonal-architecture.puml)
+  - [Simple Architecture](application-architecture/microservices/simple-architecture.puml)
+  - [Gradle 9 Microservices Upgrade Report](application-architecture/microservices/GRADLE_9_MICROSERVICES_UPGRADE_REPORT.md)
+- **API Specifications**: RESTful and GraphQL API documentation
+  - [OpenFinance API Documentation](application-architecture/api-specifications/OPENFINANCE_API_DOCUMENTATION.md)
+- **Integration Patterns**: SAGA patterns and workflow orchestration
+  - [SAGA Workflow Diagram](application-architecture/integration-patterns/saga-workflow-diagram.puml)
+- **Sequence Diagrams**: Process flow visualizations
+  - [Loan Creation Sequence](application-architecture/sequence-diagrams/loan-creation-sequence.puml)
+  - [Payment Processing Sequence](application-architecture/sequence-diagrams/payment-processing-sequence.puml)
+
+### Data Architecture
+- **Data Models**: Database schemas and entity relationships
+  - [ER Diagram](data-architecture/data-models/er-diagram.puml)
+  - [Database Isolation Diagram](data-architecture/data-models/database-isolation-diagram.puml)
 
 ### Technology Architecture
-| Artifact | Description | Location |
-|----------|-------------|----------|
-| Infrastructure Blueprint | Cloud and on-premise layout | [View](technology-architecture/infrastructure-diagrams/aws-eks-architecture.puml) |
-| Security Architecture | Defense-in-depth model | [View](security-architecture/security-models/fapi-security-architecture.puml) |
-| Deployment Architecture | Container and orchestration | [View](architecture/deployment-diagram.puml) |
+- **Infrastructure Diagrams**: Cloud and infrastructure architecture
+  - [AWS EKS Architecture](technology-architecture/infrastructure-diagrams/aws-eks-architecture.puml)
+  - [Cache Performance Architecture](technology-architecture/infrastructure-diagrams/cache-performance-architecture.puml)
+- **Infrastructure**: Technology stack and modernization reports
+  - [Gradle Modernization Report](technology-architecture/infrastructure/GRADLE_MODERNIZATION_REPORT.md)
+  - [Redis ElastiCache Documentation](technology-architecture/infrastructure/REDIS_ELASTICACHE_DOCUMENTATION.md)
+  - [Cache Performance Tests](technology-architecture/infrastructure/CACHE_PERFORMANCE_TESTS.md)
+- **Deployment**: Deployment guides and infrastructure setup
+  - [AWS EKS Deployment Complete](technology-architecture/deployment/AWS_EKS_DEPLOYMENT_COMPLETE.md)
+  - [Gitpod Deployment](technology-architecture/deployment/GITPOD_DEPLOYMENT.md)
+  - [CI/CD Pipeline](technology-architecture/deployment/ci-cd-pipeline.puml)
+- **Monitoring**: System monitoring and observability
+  - [System Status Report](technology-architecture/monitoring/SYSTEM_STATUS_REPORT.md)
+  - [Monitoring Documentation](technology-architecture/monitoring/MONITORING_DOCUMENTATION.md)
+  - [Monitoring Observability](technology-architecture/monitoring/monitoring-observability.puml)
 
-## 3. Architecture Views
+### Security Architecture
+- **Compliance**: FAPI and regulatory compliance documentation
+  - [FAPI MCP LLM Interface Summary](security-architecture/compliance/FAPI_MCP_LLM_INTERFACE_SUMMARY.md)
+- **Security Models**: Security architecture and authentication patterns
+  - [FAPI Security Architecture](security-architecture/security-models/fapi-security-architecture.puml)
+  - [Security Architecture Diagram](security-architecture/security-models/security-architecture-diagram.puml)
 
-### Zachman Framework Alignment
+### Enterprise Governance
+- **Standards**: Development and documentation standards
+  - [Competitive Technology Analysis](enterprise-governance/standards/COMPETITIVE_TECHNOLOGY_ANALYSIS.md)
+  - [Documentation Standards Complete](enterprise-governance/standards/DOCUMENTATION_STANDARDS_COMPLETE.md)
+- **Documentation**: Project documentation and artifact summaries
+  - [Repository Summary](enterprise-governance/documentation/REPOSITORY_SUMMARY.md)
+  - [Documentation Update Summary](enterprise-governance/documentation/DOCUMENTATION_UPDATE_SUMMARY.md)
+  - [Updated Artifacts Summary](enterprise-governance/documentation/UPDATED_ARTIFACTS_SUMMARY.md)
+  - [Git Setup](enterprise-governance/documentation/GIT_SETUP.md)
+- **Quality Assurance**: Testing frameworks and validation reports
+  - [Testing Documentation](enterprise-governance/quality-assurance/TESTING.md)
+  - [Regression Test Report](enterprise-governance/quality-assurance/REGRESSION_TEST_REPORT.md)
+  - [Gitpod Validation Report](enterprise-governance/quality-assurance/GITPOD_VALIDATION_REPORT.md)
+  - [TDD Coverage Visualization](enterprise-governance/quality-assurance/tdd-coverage-visualization.puml)
 
-| | What (Data) | How (Function) | Where (Network) | Who (People) | When (Time) | Why (Motivation) |
-|---|-------------|----------------|-----------------|--------------|-------------|------------------|
-| **Contextual** | [Data Context](data-architecture/README.md) | [Business Processes](business-architecture/README.md) | [System Context](architecture/system-context.puml) | [Stakeholders](ARCHITECTURE_OVERVIEW.md#stakeholders) | [Events](application-architecture/sequence-diagrams/) | [Vision](ARCHITECTURE_OVERVIEW.md#vision) |
-| **Conceptual** | [Domain Model](business-architecture/domain-models/domain-model.puml) | [Use Cases](business-architecture/use-cases/) | [Integration](application-architecture/integration-patterns/) | [Roles](security-architecture/README.md) | [Workflows](business-architecture/use-cases/banking-workflow.puml) | [Principles](ARCHITECTURE_OVERVIEW.md#principles) |
-| **Logical** | [ER Diagram](data-architecture/data-models/er-diagram.puml) | [Services](application-architecture/microservices/) | [API Design](API_REFERENCE_GUIDE.md) | [Security Model](security-architecture/security-models/) | [State Machines](application-architecture/integration-patterns/) | [Requirements](BUSINESS_REQUIREMENTS_VALIDATION_REPORT.md) |
-| **Physical** | [Database Schema](data-architecture/data-models/) | [Code Structure](DEVELOPER_GUIDE.md) | [Deployment](technology-architecture/deployment/) | [Access Control](security-architecture/compliance/) | [Scheduling](technology-architecture/monitoring/) | [Metrics](technology-architecture/monitoring/METRICS_AND_MONITORING.md) |
+## Generated Diagrams
 
-## 4. Key Architecture Decisions
+All PlantUML diagrams are automatically compiled to SVG and PNG formats for technical documentation and presentation purposes.
 
-### ADR Registry
-1. [ADR-001: Domain-Driven Design](architecture/adr/ADR-001-domain-driven-design.md)
-2. [ADR-002: Hexagonal Architecture](architecture/adr/ADR-002-hexagonal-architecture.md)
-3. [ADR-003: Saga Pattern](architecture/adr/ADR-003-saga-pattern.md)
+### Architecture Visualization Categories:
+- **Business Domain Models**: Domain boundaries and business contexts
+- **Application Sequences**: Process flows and service interactions  
+- **Data Relationships**: Database schemas and data flow patterns
+- **Technology Infrastructure**: Cloud architecture and deployment models
+- **Security Compliance**: Authentication and authorization patterns
 
-### Technology Standards
-- **Language**: Java 21 LTS
-- **Framework**: Spring Boot 3.4.3
-- **Architecture**: Hexagonal (Ports & Adapters)
-- **Security**: OAuth 2.1 + FAPI 2.0 + DPoP
-- **Deployment**: Kubernetes + Istio
+## Navigation
 
-## 5. Governance & Compliance
+- [Business Architecture](business-architecture/)
+- [Application Architecture](application-architecture/)
+- [Data Architecture](data-architecture/)
+- [Technology Architecture](technology-architecture/)
+- [Security Architecture](security-architecture/)
+- [Enterprise Governance](enterprise-governance/)
 
-### Architecture Principles
-1. **Business Alignment** - Technology serves business objectives
-2. **Security by Design** - Built-in security, not bolted on
-3. **Cloud Native** - Designed for elastic scale
-4. **API First** - All capabilities exposed as services
-5. **Event Driven** - Loosely coupled, highly cohesive
+## Enterprise Architecture Compliance
 
-### Compliance Frameworks
-- **FAPI 2.0** - Financial-grade API security
-- **PCI DSS** - Payment card data protection
-- **SOC 2** - Service organization controls
-- **ISO 27001** - Information security management
-
-### Review Processes
-- Monthly Architecture Review Board
-- Quarterly compliance assessments
-- Continuous security monitoring
-- Automated policy enforcement
-
-## 6. Quick Links
-
-### For Developers
-- [Getting Started](DEVELOPER_GUIDE.md)
-- [API Documentation](API_REFERENCE_GUIDE.md)
-- [Local Setup](deployment/local-development.md)
-
-### For Architects
-- [Architecture Overview](ARCHITECTURE_OVERVIEW.md)
-- [Design Patterns](architecture/README.md)
-- [Integration Guide](application-architecture/README.md)
-
-### For Operations
-- [Deployment Guide](deployment-operations/Deployment-Operations-Guide.md)
-- [Monitoring Setup](technology-architecture/monitoring/README.md)
-- [Security Operations](security-architecture/README.md)
-
-### For Management
-- [Executive Summary](../readme.md)
-- [Business Requirements](BUSINESS_REQUIREMENTS_VALIDATION_REPORT.md)
-- [Implementation Status](implementation/IMPLEMENTATION_STATUS_FINAL.md)
-
----
-
-**Document Owner**: Enterprise Architecture Team  
-**Review Cycle**: Quarterly  
-**Next Review**: April 2025
+This documentation structure follows:
+- **TOGAF 9.2** Enterprise Architecture Framework
+- **BDAT** categorization (Business, Data, Application, Technology)
+- **Banking Industry Standards** for financial services architecture
+- **Domain-Driven Design** principles for bounded context separation
+- **Formal Banking Language** without emojis as per enterprise standards

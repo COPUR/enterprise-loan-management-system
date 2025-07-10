@@ -1,0 +1,660 @@
+# Enhanced Enterprise Banking System - Full Architecture
+# Complete implementation with all features:
+# - Spring AI with MCP implementation
+# - Event-driven architecture with SAGA pattern
+# - FAPI-compliant OAuth2.1 security
+# - Berlin Group/BIAN data standards
+# - Distributed Redis token management
+# - Service mesh ready with Envoy proxies
+# - Comprehensive observability stack
+
+networks:
+  banking-enterprise:
+    driver: bridge
+    name: banking-enterprise-network
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+volumes:
+  # Database volumes
+  postgres_enterprise_data:
+    driver: local
+  redis_enterprise_data:
+    driver: local
+  redis_cluster_1_data:
+    driver: local
+  redis_cluster_2_data:
+    driver: local
+  redis_cluster_3_data:
+    driver: local
+  
+  # Identity and security
+  keycloak_enterprise_data:
+    driver: local
+  vault_enterprise_data:
+    driver: local
+  
+  # Message streaming
+  kafka_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  schema_registry_data:
+    driver: local
+  
+  # AI and vector storage
+  qdrant_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  
+  # Monitoring and observability
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  jaeger_data:
+    driver: local
+  
+  # Application logs
+  banking_enterprise_logs:
+    driver: local
+
+services:
+  # ===== INFRASTRUCTURE LAYER =====
+  
+  # PostgreSQL Enterprise Database Cluster
+  postgres-primary:
+    image: postgres:16-alpine
+    container_name: banking-postgres-primary
+    environment:
+      POSTGRES_DB: banking_enterprise
+      POSTGRES_USER: banking_enterprise
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-enterprise_banking_pass_2024}
+      POSTGRES_REPLICATION_USER: replicator
+      POSTGRES_REPLICATION_PASSWORD: ${POSTGRES_REPLICATION_PASSWORD:-repl_pass_2024}
+      PGUSER: banking_enterprise
+    volumes:
+      - postgres_enterprise_data:/var/lib/postgresql/data
+      - ./scripts/db-init:/docker-entrypoint-initdb.d
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    ports:
+      - "5432:5432"
+    command: >
+      postgres
+      -c config_file=/etc/postgresql/postgresql.conf
+      -c hba_file=/etc/postgresql/pg_hba.conf
+      -c wal_level=replica
+      -c max_wal_senders=3
+      -c max_replication_slots=3
+      -c hot_standby=on
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U banking_enterprise -d banking_enterprise"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.10
+
+  # Redis Enterprise Cluster for Distributed Token Management
+  redis-cluster-1:
+    image: redis:7-alpine
+    container_name: banking-redis-cluster-1
+    command: >
+      redis-server
+      --port 7001
+      --cluster-enabled yes
+      --cluster-config-file nodes-7001.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    ports:
+      - "7001:7001"
+      - "17001:17001"
+    volumes:
+      - redis_cluster_1_data:/data
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.21
+
+  redis-cluster-2:
+    image: redis:7-alpine
+    container_name: banking-redis-cluster-2
+    command: >
+      redis-server
+      --port 7002
+      --cluster-enabled yes
+      --cluster-config-file nodes-7002.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    ports:
+      - "7002:7002"
+      - "17002:17002"
+    volumes:
+      - redis_cluster_2_data:/data
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.22
+
+  redis-cluster-3:
+    image: redis:7-alpine
+    container_name: banking-redis-cluster-3
+    command: >
+      redis-server
+      --port 7003
+      --cluster-enabled yes
+      --cluster-config-file nodes-7003.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    ports:
+      - "7003:7003"
+      - "17003:17003"
+    volumes:
+      - redis_cluster_3_data:/data
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.23
+
+  # Redis Cluster Initialization
+  redis-cluster-init:
+    image: redis:7-alpine
+    container_name: banking-redis-cluster-init
+    command: >
+      sh -c "sleep 10 && redis-cli --cluster create
+      172.21.0.21:7001 172.21.0.22:7002 172.21.0.23:7003
+      --cluster-replicas 0 --cluster-yes"
+    depends_on:
+      - redis-cluster-1
+      - redis-cluster-2
+      - redis-cluster-3
+    networks:
+      - banking-enterprise
+
+  # ===== IDENTITY & SECURITY LAYER =====
+  
+  # Keycloak Enterprise Identity Provider
+  keycloak-enterprise:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: banking-keycloak-enterprise
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin123}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-primary:5432/banking_enterprise
+      KC_DB_USERNAME: banking_enterprise
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-enterprise_banking_pass_2024}
+      KC_HOSTNAME: keycloak-enterprise
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+      KC_LOG_LEVEL: INFO
+      # FAPI compliance settings
+      KC_FEATURES: token-exchange,admin-fine-grained-authz,fapi,dpop
+      KC_SPI_CONNECTIONS_JPA_QUARKUS_INITIALIZE_EMPTY: false
+    ports:
+      - "8090:8080"
+    volumes:
+      - keycloak_enterprise_data:/opt/keycloak/data
+      - ./keycloak/realm-config.json:/opt/keycloak/data/import/realm-config.json
+      - ./keycloak/themes:/opt/keycloak/themes
+    command: start --optimized --import-realm
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.30
+
+  # HashiCorp Vault for Secrets Management
+  vault-enterprise:
+    image: hashicorp/vault:latest
+    container_name: banking-vault-enterprise
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_ROOT_TOKEN:-dev-only-token}
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+      VAULT_ADDR: http://0.0.0.0:8200
+    ports:
+      - "8200:8200"
+    volumes:
+      - vault_enterprise_data:/vault/data
+      - ./vault/config.hcl:/vault/config/config.hcl
+    cap_add:
+      - IPC_LOCK
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.31
+
+  # ===== MESSAGE STREAMING LAYER =====
+  
+  # Zookeeper for Kafka
+  zookeeper-enterprise:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: banking-zookeeper-enterprise
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_MAX_CLIENT_CNXNS: 60
+      ZOOKEEPER_AUTOPURGE_SNAP_RETAIN_COUNT: 3
+      ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: 24
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - ./kafka/zookeeper-logs:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.40
+
+  # Kafka Enterprise Event Streaming
+  kafka-enterprise:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: banking-kafka-enterprise
+    depends_on:
+      - zookeeper-enterprise
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-enterprise:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-enterprise:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_DELETE_TOPIC_ENABLE: true
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      # Enterprise performance tuning
+      KAFKA_NUM_NETWORK_THREADS: 8
+      KAFKA_NUM_IO_THREADS: 16
+      KAFKA_SOCKET_SEND_BUFFER_BYTES: 102400
+      KAFKA_SOCKET_RECEIVE_BUFFER_BYTES: 102400
+      KAFKA_SOCKET_REQUEST_MAX_BYTES: 104857600
+    ports:
+      - "9093:9093"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.41
+
+  # Schema Registry for Event Schema Management
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    container_name: banking-schema-registry
+    depends_on:
+      - kafka-enterprise
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka-enterprise:9092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_AVRO_COMPATIBILITY_LEVEL: backward
+    ports:
+      - "8081:8081"
+    volumes:
+      - schema_registry_data:/var/lib/schema-registry
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.42
+
+  # ===== AI & VECTOR STORAGE LAYER =====
+  
+  # Qdrant Vector Database for AI/RAG
+  qdrant-enterprise:
+    image: qdrant/qdrant:latest
+    container_name: banking-qdrant-enterprise
+    environment:
+      QDRANT__SERVICE__HTTP_PORT: 6333
+      QDRANT__SERVICE__GRPC_PORT: 6334
+      QDRANT__LOG_LEVEL: INFO
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+      - ./qdrant/config.yaml:/qdrant/config/production.yaml
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.50
+
+  # Elasticsearch for Search and Analytics
+  elasticsearch-enterprise:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: banking-elasticsearch-enterprise
+    environment:
+      - node.name=elasticsearch-enterprise
+      - cluster.name=banking-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.51
+
+  # ===== OBSERVABILITY LAYER =====
+  
+  # Prometheus Enterprise Monitoring
+  prometheus-enterprise:
+    image: prom/prometheus:v2.47.0
+    container_name: banking-prometheus-enterprise
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--storage.tsdb.wal-compression'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus-enterprise.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.60
+
+  # Grafana Enterprise Dashboards
+  grafana-enterprise:
+    image: grafana/grafana:10.2.0
+    container_name: banking-grafana-enterprise
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin123}
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_INSTALL_PLUGINS: grafana-piechart-panel,grafana-clock-panel,grafana-simple-json-datasource
+      GF_SECURITY_ALLOW_EMBEDDING: true
+      GF_AUTH_ANONYMOUS_ENABLED: false
+      GF_SMTP_ENABLED: true
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus-enterprise
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.61
+
+  # Jaeger Distributed Tracing
+  jaeger-enterprise:
+    image: jaegertracing/all-in-one:1.51
+    container_name: banking-jaeger-enterprise
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+      QUERY_BASE_PATH: /jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - jaeger_data:/tmp
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.62
+
+  # ===== SERVICE MESH LAYER =====
+  
+  # Envoy Proxy for Service Mesh
+  envoy-proxy:
+    image: envoyproxy/envoy:v1.28-latest
+    container_name: banking-envoy-proxy
+    ports:
+      - "10000:10000"
+      - "9901:9901"
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml
+      - ./envoy/certs:/etc/envoy/certs
+    command: /usr/local/bin/envoy -c /etc/envoy/envoy.yaml --service-cluster banking-proxy
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.70
+
+  # ===== BANKING APPLICATION LAYER =====
+  
+  # Enhanced Banking Application with Full Features
+  banking-app-enhanced:
+    build:
+      context: .
+      dockerfile: Dockerfile.enhanced
+      target: runtime
+      args:
+        - BUILD_VERSION=1.0.0-enhanced-enterprise
+        - ENABLE_AI_FEATURES=true
+        - ENABLE_FAPI_COMPLIANCE=true
+    image: enterprise-loan-system:enhanced
+    container_name: banking-loan-management-enhanced
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+      redis-cluster-1:
+        condition: service_started
+      redis-cluster-2:
+        condition: service_started
+      redis-cluster-3:
+        condition: service_started
+      keycloak-enterprise:
+        condition: service_healthy
+      kafka-enterprise:
+        condition: service_healthy
+      qdrant-enterprise:
+        condition: service_started
+    environment:
+      # Spring Profiles for Enhanced Features
+      SPRING_PROFILES_ACTIVE: enhanced-enterprise,docker,fapi,ai-enabled,saga-enabled
+      SERVER_PORT: 8080
+      
+      # Database Configuration
+      DATABASE_URL: jdbc:postgresql://postgres-primary:5432/banking_enterprise
+      DATABASE_USERNAME: banking_enterprise
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-enterprise_banking_pass_2024}
+      
+      # Redis Cluster Configuration
+      REDIS_CLUSTER_NODES: redis-cluster-1:7001,redis-cluster-2:7002,redis-cluster-3:7003
+      REDIS_CLUSTER_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_CLUSTER_MAX_REDIRECTS: 3
+      REDIS_CLUSTER_MAX_TOTAL: 20
+      REDIS_CLUSTER_MAX_IDLE: 10
+      
+      # OAuth2.1 and FAPI Configuration
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak-enterprise:8080/realms/banking-enterprise
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak-enterprise:8080/realms/banking-enterprise/protocol/openid_connect/certs
+      FAPI_COMPLIANCE_ENABLED: true
+      FAPI_DPOP_REQUIRED: true
+      FAPI_PKCE_REQUIRED: true
+      
+      # Kafka Configuration
+      KAFKA_BOOTSTRAP_SERVERS: kafka-enterprise:9092
+      KAFKA_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      KAFKA_GROUP_ID: banking-enhanced-enterprise
+      KAFKA_AUTO_OFFSET_RESET: earliest
+      
+      # AI and Vector Database Configuration
+      SPRING_AI_OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-your-key-here}
+      SPRING_AI_OPENAI_BASE_URL: https://api.openai.com
+      SPRING_AI_VECTORSTORE_QDRANT_HOST: qdrant-enterprise
+      SPRING_AI_VECTORSTORE_QDRANT_PORT: 6333
+      SPRING_AI_VECTORSTORE_QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+      
+      # SAGA Configuration
+      SAGA_ORCHESTRATOR_ENABLED: true
+      SAGA_COMPENSATION_ENABLED: true
+      SAGA_TIMEOUT_SECONDS: 300
+      
+      # Monitoring and Observability
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus,jaeger
+      MANAGEMENT_TRACING_SAMPLING_PROBABILITY: 1.0
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://jaeger-enterprise:9411/api/v2/spans
+      
+      # Banking Business Configuration
+      LOAN_MAX_AMOUNT: 50000000
+      LOAN_MIN_AMOUNT: 1000
+      LOAN_MAX_INSTALLMENTS: 360
+      TRANSACTION_DAILY_LIMIT: 1000000
+      
+      # Security Configuration
+      VAULT_URI: http://vault-enterprise:8200
+      VAULT_TOKEN: ${VAULT_ROOT_TOKEN:-dev-only-token}
+      
+      # JVM Configuration for Enhanced Features
+      JAVA_OPTS: >-
+        -server
+        -XX:+UseG1GC
+        -XX:MaxGCPauseMillis=200
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=70.0
+        -XX:+HeapDumpOnOutOfMemoryError
+        -XX:HeapDumpPath=/app/logs/
+        -Djava.security.egd=file:/dev/./urandom
+        -Dspring.profiles.active=enhanced-enterprise,docker,fapi,ai-enabled,saga-enabled
+        -Dfile.encoding=UTF-8
+        -Duser.timezone=UTC
+        --add-opens=java.base/java.lang=ALL-UNNAMED
+        --add-opens=java.base/java.util=ALL-UNNAMED
+        
+    ports:
+      - "8080:8080"
+    volumes:
+      - banking_enterprise_logs:/app/logs
+      - ./config/application-enhanced-enterprise.yml:/app/config/application-enhanced-enterprise.yml
+      - ./ai/models:/app/ai/models
+      - ./berlin-group/schemas:/app/schemas/berlin-group
+      - ./bian/schemas:/app/schemas/bian
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/actuator/health"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 180s
+    restart: unless-stopped
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.100
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # ===== DEVELOPMENT & MANAGEMENT TOOLS =====
+  
+  # Kafka UI for Event Stream Management
+  kafka-ui-enterprise:
+    image: provectuslabs/kafka-ui:latest
+    container_name: banking-kafka-ui-enterprise
+    environment:
+      KAFKA_CLUSTERS_0_NAME: banking-enterprise-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-enterprise:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper-enterprise:2181
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+      DYNAMIC_CONFIG_ENABLED: true
+    ports:
+      - "8082:8080"
+    depends_on:
+      - kafka-enterprise
+      - schema-registry
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.110
+
+  # pgAdmin for Database Management
+  pgadmin-enterprise:
+    image: dpage/pgadmin4:7.8
+    container_name: banking-pgadmin-enterprise
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@banking.com
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+    depends_on:
+      - postgres-primary
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.111
+
+  # Redis Insight for Redis Cluster Management
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    container_name: banking-redis-insight
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis-cluster-1
+      - redis-cluster-2
+      - redis-cluster-3
+    networks:
+      banking-enterprise:
+        ipv4_address: 172.21.0.112
+
+# Health check for the entire enhanced enterprise stack
+x-healthcheck-enhanced: &healthcheck-enhanced
+  test: ["CMD", "curl", "-f", "http://localhost/api/actuator/health"]
+  interval: 30s
+  timeout: 15s
+  retries: 5
+  start_period: 180s

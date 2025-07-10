@@ -1,0 +1,78 @@
+# Simplified Docker Hardened Image (DHI) for UAT Environment
+# Enterprise Loan Management System - User Acceptance Testing
+
+FROM openjdk:21-jdk-slim AS uat-banking-app
+
+# Security: Create non-root user
+RUN groupadd --gid 10001 banking && \
+    useradd --uid 10001 --gid banking --shell /bin/bash --create-home banking
+
+# Install minimal required packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        wget \
+        ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/* /var/tmp/*
+
+# Security Labels and Metadata
+LABEL maintainer="Enterprise Banking Security Team" \
+      version="1.0.0-uat" \
+      environment="uat" \
+      security.scan="required" \
+      security.level="hardened" \
+      compliance.fapi="enabled" \
+      compliance.banking="enabled" \
+      description="Docker Hardened Image for Enterprise Loan Management System UAT"
+
+# Set working directory
+WORKDIR /app
+
+# Copy pre-built application (we'll build locally first)
+COPY --chown=banking:banking build/libs/*.jar app.jar
+
+# Copy UAT-specific configuration
+COPY --chown=banking:banking src/main/resources/application-uat.yml ./config/
+
+# Security: Set secure environment variables for UAT
+ENV JAVA_OPTS="-server \
+    -XX:+UseG1GC \
+    -XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=75.0 \
+    -XX:+ExitOnOutOfMemoryError \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Djava.awt.headless=true \
+    -Dfile.encoding=UTF-8 \
+    -Duser.timezone=UTC \
+    -Djdk.tls.rejectClientInitiatedRenegotiation=true \
+    -Djdk.tls.ephemeralDHKeySize=2048 \
+    --add-opens java.base/java.lang=ALL-UNNAMED"
+
+# UAT Environment Configuration
+ENV SPRING_PROFILES_ACTIVE=uat \
+    SERVER_PORT=8080 \
+    MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics \
+    MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=when-authorized \
+    LOGGING_LEVEL_COM_BANK_LOANMANAGEMENT=INFO \
+    LOGGING_LEVEL_SECURITY=WARN \
+    SECURITY_REQUIRE_SSL=false \
+    FAPI_COMPLIANCE_ENABLED=true \
+    BANKING_COMPLIANCE_STRICT=true
+
+# Security: Health check with timeout
+HEALTHCHECK --interval=30s \
+    --timeout=10s \
+    --start-period=60s \
+    --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Security: Expose only necessary port
+EXPOSE 8080
+
+# Switch to non-root user
+USER banking:banking
+
+# Entry point
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

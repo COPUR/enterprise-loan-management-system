@@ -1,5 +1,5 @@
-# Enterprise Loan Management System - Comprehensive End-to-End Docker Setup
-# Full feature set with complete monitoring, security, and compliance stack
+# Enterprise Loan Management System - Microservices Docker Compose
+# Following 12-Factor App methodology and banking best practices
 
 services:
   # === DATABASE TIER (12-Factor: Backing Services) ===
@@ -8,18 +8,17 @@ services:
     image: postgres:15-alpine
     container_name: banking-postgres
     environment:
-      POSTGRES_DB: ${DATABASE_NAME:-banking_db}
+      POSTGRES_DB: ${DATABASE_NAME:-banking_system}
       POSTGRES_USER: ${DATABASE_USER:-banking_user}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-banking_password}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-banking_secure_pass}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     ports:
       - "${DATABASE_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/db/init:/docker-entrypoint-initdb.d
-      - ./scripts/db/sample-data:/docker-entrypoint-sample-data.d
+      - ./src/main/resources/db/migration:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-banking_user} -d ${DATABASE_NAME:-banking_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-banking_user} -d ${DATABASE_NAME:-banking_system}"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -37,15 +36,14 @@ services:
   redis:
     image: redis:7-alpine
     container_name: banking-redis
-    command: redis-server --requirepass ${REDIS_PASSWORD:-banking_password} --maxmemory 512mb --maxmemory-policy allkeys-lru
+    command: redis-server --requirepass ${REDIS_PASSWORD:-banking_redis_pass} --maxmemory 512mb --maxmemory-policy allkeys-lru
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
-      - ./scripts/redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./scripts/redis/init:/docker-entrypoint-initdb.d
+      - ./config/redis-uat.conf:/usr/local/etc/redis/redis.conf
     healthcheck:
-      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-banking_password}", "ping"]
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-banking_redis_pass}", "ping"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -107,7 +105,6 @@ services:
       - "9094:9094"
     volumes:
       - kafka_data:/var/lib/kafka/data
-      - ./scripts/kafka/init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 30s
@@ -120,20 +117,6 @@ services:
     labels:
       - "com.banking.service=kafka"
       - "com.banking.tier=infrastructure"
-  
-  # Kafka Topic Initialization
-  kafka-init:
-    image: confluentinc/cp-kafka:7.4.0
-    container_name: banking-kafka-init
-    depends_on:
-      kafka:
-        condition: service_healthy
-    volumes:
-      - ./scripts/kafka/create-topics.sh:/create-topics.sh
-    command: ["/bin/bash", "/create-topics.sh"]
-    networks:
-      - banking-backend
-    restart: "no"
 
   # === IDENTITY & ACCESS MANAGEMENT (OAuth2.1) ===
   
@@ -274,61 +257,15 @@ services:
       - "com.banking.service=ldap-admin"
       - "com.banking.tier=management"
 
-  # === MICROSERVICES ARCHITECTURE ===
+  # === MAIN BANKING APPLICATION (12-Factor: Disposability, Concurrency) ===
   
-  # Party Data Server (IDP)
-  party-data-server:
+  banking-app:
     build:
       context: .
       dockerfile: Dockerfile
       target: runtime
     image: enterprise-loan-system:1.0.0
-    container_name: banking-party-server
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      keycloak:
-        condition: service_healthy
-    environment:
-      SPRING_PROFILES_ACTIVE: party-data-server
-      SERVER_PORT: 8080
-      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-banking_db}
-      DATABASE_USERNAME: ${DATABASE_USER:-banking_user}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-banking_password}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-banking_password}
-      KEYCLOAK_URL: "http://keycloak:8080"
-      KEYCLOAK_REALM: "banking"
-      JAVA_OPTS: "-server -XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
-    ports:
-      - "8081:8080"
-    volumes:
-      - banking_logs:/app/logs
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
-    restart: unless-stopped
-    networks:
-      - banking-frontend
-      - banking-backend
-    labels:
-      - "com.banking.service=party-data-server"
-      - "com.banking.tier=application"
-  
-  # API Gateway
-  api-gateway:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runtime
-    image: enterprise-loan-system:1.0.0
-    container_name: banking-api-gateway
+    container_name: banking-loan-management
     depends_on:
       postgres:
         condition: service_healthy
@@ -339,24 +276,79 @@ services:
       keycloak:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: api-gateway
+      # 12-Factor App: Configuration via Environment Variables
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-production,docker}
       SERVER_PORT: 8080
-      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-banking_db}
+      
+      # Database Configuration (12-Factor: Backing Services)
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-banking_system}
       DATABASE_USERNAME: ${DATABASE_USER:-banking_user}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-banking_password}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-banking_secure_pass}
+      
+      # Cache Configuration (12-Factor: Backing Services)
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-banking_password}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-banking_redis_pass}
+      
+      # Message Streaming Configuration
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      
+      # OAuth2.1 Integration with Keycloak
       KEYCLOAK_URL: "http://keycloak:8080"
-      KEYCLOAK_REALM: "banking"
-      JAVA_OPTS: "-server -XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
+      KEYCLOAK_REALM: "banking-realm"
+      KEYCLOAK_CLIENT_ID: "banking-app"
+      
+      # Service Discovery (disabled for OAuth2.1)
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
+      EUREKA_CLIENT_FETCH_REGISTRY: "false"
+      
+      # Security Configuration
+      JWT_SECRET: ${JWT_SECRET:-secure_banking_jwt_secret_key_256_bit_minimum}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET:-secure_oauth_client_secret}
+      
+      # Banking Compliance Configuration
+      BANKING_COMPLIANCE_STRICT: "true"
+      FAPI_ENABLED: "true"
+      PCI_ENABLED: "true"
+      AUDIT_ENABLED: "true"
+      KYC_REQUIRED: "true"
+      
+      # Performance Configuration
+      LOAN_MAX_AMOUNT: ${LOAN_MAX_AMOUNT:-5000000}
+      TRANSACTION_DAILY_LIMIT: ${TRANSACTION_DAILY_LIMIT:-50000}
+      MAX_CONCURRENT_REQUESTS: ${MAX_CONCURRENT_REQUESTS:-100}
+      
+      # Monitoring Configuration
+      ACTUATOR_ENDPOINTS: health,info,metrics,prometheus
+      PROMETHEUS_ENABLED: "true"
+      
+      # Application Metadata
+      APP_NAME: "Enterprise Loan Management System"
+      APP_VERSION: "1.0.0"
+      
+      # JVM Configuration optimized for containers
+      JAVA_OPTS: >-
+        -server
+        -XX:+UseG1GC
+        -XX:MaxGCPauseMillis=200
+        -XX:G1HeapRegionSize=16m
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=75.0
+        -XX:InitialRAMPercentage=50.0
+        -XX:+ExitOnOutOfMemoryError
+        -XX:+HeapDumpOnOutOfMemoryError
+        -XX:HeapDumpPath=/app/logs/heapdump.hprof
+        -Djava.security.egd=file:/dev/./urandom
+        -Dspring.profiles.active=production,docker
+        -Dfile.encoding=UTF-8
+        -Duser.timezone=UTC
     ports:
-      - "8082:8080"
+      - "${APP_PORT:-8080}:8080"
     volumes:
       - banking_logs:/app/logs
+      - banking_tmp:/app/tmp
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -366,271 +358,13 @@ services:
       - banking-frontend
       - banking-backend
     labels:
-      - "com.banking.service=api-gateway"
+      - "com.banking.service=loan-management"
       - "com.banking.tier=application"
-  
-  # Customer Service
-  customer-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runtime
-    image: enterprise-loan-system:1.0.0
-    container_name: banking-customer-service
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    environment:
-      SPRING_PROFILES_ACTIVE: customer-service
-      SERVER_PORT: 8080
-      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-banking_db}
-      DATABASE_USERNAME: ${DATABASE_USER:-banking_user}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-banking_password}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-banking_password}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      JAVA_OPTS: "-server -XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
-    ports:
-      - "8083:8080"
-    volumes:
-      - banking_logs:/app/logs
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
-    restart: unless-stopped
-    networks:
-      - banking-backend
-    labels:
-      - "com.banking.service=customer-service"
-      - "com.banking.tier=application"
-  
-  # Loan Service
-  loan-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runtime
-    image: enterprise-loan-system:1.0.0
-    container_name: banking-loan-service
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    environment:
-      SPRING_PROFILES_ACTIVE: loan-service
-      SERVER_PORT: 8080
-      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-banking_db}
-      DATABASE_USERNAME: ${DATABASE_USER:-banking_user}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-banking_password}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-banking_password}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      JAVA_OPTS: "-server -XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
-    ports:
-      - "8084:8080"
-    volumes:
-      - banking_logs:/app/logs
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
-    restart: unless-stopped
-    networks:
-      - banking-backend
-    labels:
-      - "com.banking.service=loan-service"
-      - "com.banking.tier=application"
-  
-  # Payment Service
-  payment-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runtime
-    image: enterprise-loan-system:1.0.0
-    container_name: banking-payment-service
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    environment:
-      SPRING_PROFILES_ACTIVE: payment-service
-      SERVER_PORT: 8080
-      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-banking_db}
-      DATABASE_USERNAME: ${DATABASE_USER:-banking_user}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-banking_password}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-banking_password}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      JAVA_OPTS: "-server -XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
-    ports:
-      - "8085:8080"
-    volumes:
-      - banking_logs:/app/logs
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
-    restart: unless-stopped
-    networks:
-      - banking-backend
-    labels:
-      - "com.banking.service=payment-service"
-      - "com.banking.tier=application"
-  
-  # Open Banking Gateway
-  open-banking-gateway:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runtime
-    image: enterprise-loan-system:1.0.0
-    container_name: banking-open-banking-gateway
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    environment:
-      SPRING_PROFILES_ACTIVE: open-banking-gateway
-      SERVER_PORT: 8080
-      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-banking_db}
-      DATABASE_USERNAME: ${DATABASE_USER:-banking_user}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-banking_password}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-banking_password}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      JAVA_OPTS: "-server -XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
-    ports:
-      - "8086:8080"
-    volumes:
-      - banking_logs:/app/logs
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
-    restart: unless-stopped
-    networks:
-      - banking-frontend
-      - banking-backend
-    labels:
-      - "com.banking.service=open-banking-gateway"
-      - "com.banking.tier=application"
-  
-  # ML Anomaly Detection Service
-  ml-anomaly-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runtime
-    image: enterprise-loan-system:1.0.0
-    container_name: banking-ml-anomaly-service
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    environment:
-      SPRING_PROFILES_ACTIVE: ml-anomaly-service
-      SERVER_PORT: 8080
-      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-banking_db}
-      DATABASE_USERNAME: ${DATABASE_USER:-banking_user}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-banking_password}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-banking_password}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      JAVA_OPTS: "-server -XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
-    ports:
-      - "8087:8080"
-    volumes:
-      - banking_logs:/app/logs
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
-    restart: unless-stopped
-    networks:
-      - banking-backend
-    labels:
-      - "com.banking.service=ml-anomaly-service"
-      - "com.banking.tier=application"
-  
-  # Federation Monitoring Service
-  federation-monitoring:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runtime
-    image: enterprise-loan-system:1.0.0
-    container_name: banking-federation-monitoring
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    environment:
-      SPRING_PROFILES_ACTIVE: federation
-      SERVER_PORT: 8080
-      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-banking_db}
-      DATABASE_USERNAME: ${DATABASE_USER:-banking_user}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-banking_password}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-banking_password}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      JAVA_OPTS: "-server -XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
-    ports:
-      - "8088:8080"
-    volumes:
-      - banking_logs:/app/logs
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
-    restart: unless-stopped
-    networks:
-      - banking-backend
-    labels:
-      - "com.banking.service=federation-monitoring"
-      - "com.banking.tier=application"
+      - "com.banking.compliance=banking"
+      - "com.banking.version=1.0.0"
 
   # === MONITORING STACK (12-Factor: Admin Processes) ===
   
-  # Prometheus
   prometheus:
     image: prom/prometheus:v2.45.0
     container_name: banking-prometheus
@@ -639,15 +373,16 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=90d'
+      - '--storage.tsdb.retention.time=15d'
       - '--web.enable-lifecycle'
-      - '--web.enable-admin-api'
     ports:
       - "9090:9090"
     volumes:
-      - ./scripts/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./scripts/prometheus/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
       - prometheus_data:/prometheus
+    depends_on:
+      - banking-app
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
       interval: 30s
@@ -661,13 +396,12 @@ services:
       - "com.banking.service=prometheus"
       - "com.banking.tier=monitoring"
 
-  # Grafana
   grafana:
-    image: grafana/grafana:10.2.2
+    image: grafana/grafana:10.0.0
     container_name: banking-grafana
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-banking_admin_pass}
       GF_INSTALL_PLUGINS: grafana-piechart-panel
       GF_SECURITY_ALLOW_EMBEDDING: "true"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
@@ -676,12 +410,12 @@ services:
       - "3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./scripts/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./scripts/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -692,103 +426,19 @@ services:
       - "com.banking.service=grafana"
       - "com.banking.tier=monitoring"
 
-  # Elasticsearch
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-    container_name: banking-elasticsearch
-    environment:
-      discovery.type: single-node
-      ES_JAVA_OPTS: -Xms1g -Xmx2g
-      xpack.security.enabled: false
-      xpack.monitoring.collection.enabled: true
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    restart: unless-stopped
-    networks:
-      - banking-backend
-    labels:
-      - "com.banking.service=elasticsearch"
-      - "com.banking.tier=monitoring"
-
-  # Kibana
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.11.0
-    container_name: banking-kibana
-    depends_on:
-      - elasticsearch
-    environment:
-      ELASTICSEARCH_URL: http://elasticsearch:9200
-      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
-    ports:
-      - "5601:5601"
-    volumes:
-      - kibana_data:/usr/share/kibana/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    restart: unless-stopped
-    networks:
-      - banking-frontend
-      - banking-backend
-    labels:
-      - "com.banking.service=kibana"
-      - "com.banking.tier=monitoring"
-
-  # Jaeger
-  jaeger:
-    image: jaegertracing/all-in-one:1.52
-    container_name: banking-jaeger
-    depends_on:
-      - elasticsearch
-    environment:
-      SPAN_STORAGE_TYPE: elasticsearch
-      ES_SERVER_URLS: http://elasticsearch:9200
-      COLLECTOR_ZIPKIN_HOST_PORT: 9411
-    ports:
-      - "16686:16686"
-      - "14268:14268"
-      - "14250:14250"
-      - "9411:9411"
-    volumes:
-      - jaeger_data:/tmp
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:16686/"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    restart: unless-stopped
-    networks:
-      - banking-frontend
-      - banking-backend
-    labels:
-      - "com.banking.service=jaeger"
-      - "com.banking.tier=monitoring"
-
   # === REVERSE PROXY / API GATEWAY ===
   
   nginx:
     image: nginx:1.25-alpine
-    container_name: banking-nginx
+    container_name: banking-gateway
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./scripts/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./scripts/nginx/ssl:/etc/nginx/ssl:ro
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/ssl:/etc/nginx/ssl:ro
     depends_on:
-      - api-gateway
-      - party-data-server
-      - open-banking-gateway
+      - banking-app
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
@@ -798,7 +448,7 @@ services:
     networks:
       - banking-frontend
     labels:
-      - "com.banking.service=nginx"
+      - "com.banking.service=gateway"
       - "com.banking.tier=edge"
 
 # === PERSISTENT VOLUMES ===
@@ -827,18 +477,6 @@ volumes:
     driver: local
     labels:
       - "com.banking.persistence=monitoring"
-  elasticsearch_data:
-    driver: local
-    labels:
-      - "com.banking.persistence=search"
-  kibana_data:
-    driver: local
-    labels:
-      - "com.banking.persistence=logging"
-  jaeger_data:
-    driver: local
-    labels:
-      - "com.banking.persistence=tracing"
   banking_logs:
     driver: local
     labels:

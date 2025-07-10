@@ -1,12 +1,12 @@
-@startuml Enterprise Loan Management System - System Context (Java 21)
+@startuml Enterprise Loan Management System - System Context
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
 
 LAYOUT_WITH_LEGEND()
 
-title Enterprise Loan Management System - System Context Diagram (Java 21 + FAPI 2.0)
+title Enterprise Loan Management System - System Context Diagram
 
 ' Main System
-System(loan_system, "Enterprise Loan Management System", "Java 21 hexagonal architecture with Spring Boot 3.4.3, FAPI 2.0 compliance, Zero Trust security, and AI-powered banking operations")
+System(loan_system, "Enterprise Loan Management System", "Hexagonal architecture-based banking system with AI integration for customer management, loan origination, and payment processing")
 
 ' People
 Person(customer, "Bank Customer", "Individual or business customer applying for loans and managing payments")
@@ -22,9 +22,7 @@ System_Ext(fraud_detection, "Fraud Detection System", "Real-time fraud monitorin
 
 ' External Systems - AI & Analytics
 System_Ext(openai, "OpenAI API", "AI/ML services for natural language processing and banking assistance")
-System_Ext(spring_ai, "Spring AI Framework", "AI integration framework for banking domain context")
 System_Ext(analytics_platform, "Analytics Platform", "Business intelligence and reporting system")
-System_Ext(ml_platform, "ML Platform", "Machine learning models for fraud detection and anomaly detection")
 
 ' External Systems - Compliance & Regulatory
 System_Ext(regulatory_reporting, "Regulatory Reporting", "Government and regulatory body reporting systems")
@@ -34,24 +32,20 @@ System_Ext(kyc_system, "KYC/AML System", "Know Your Customer and Anti-Money Laun
 ' External Systems - Infrastructure
 System_Ext(notification_service, "Notification Service", "Email, SMS, and push notification delivery")
 System_Ext(document_management, "Document Management", "Digital document storage and retrieval system")
-System_Ext(keycloak, "Keycloak Identity Provider", "OAuth 2.1 and FAPI 2.0 compliant identity management with DPoP support")
-System_Ext(ldap, "LDAP Directory", "Enterprise directory service for user authentication and authorization")
+System_Ext(identity_provider, "Identity Provider", "Single Sign-On and identity management")
 
 ' External Systems - Monitoring & Operations
-System_Ext(prometheus, "Prometheus", "Metrics collection and monitoring")
-System_Ext(grafana, "Grafana", "Metrics visualization and alerting dashboards")
-System_Ext(elk_stack, "ELK Stack", "Centralized logging with Elasticsearch, Logstash, and Kibana")
+System_Ext(monitoring_system, "Monitoring System", "Application performance monitoring and alerting")
 System_Ext(backup_system, "Backup System", "Data backup and disaster recovery")
-System_Ext(istio, "Istio Service Mesh", "Service mesh for microservices communication and security")
 
 ' Customer Interactions
-Rel(customer, loan_system, "Applies for loans, makes payments, views account status", "HTTPS/REST API/GraphQL")
-Rel(loan_system, customer, "Sends notifications, loan decisions, payment reminders", "Email/SMS/Push/WebSocket")
+Rel(customer, loan_system, "Applies for loans, makes payments, views account status", "HTTPS/Mobile App")
+Rel(loan_system, customer, "Sends notifications, loan decisions, payment reminders", "Email/SMS/Push")
 
 ' Staff Interactions
-Rel(loan_officer, loan_system, "Reviews applications, makes decisions, manages workflows", "HTTPS/REST API/Zero Trust")
-Rel(admin, loan_system, "Configures system, monitors performance, manages users", "HTTPS/Admin API/Zero Trust")
-Rel(compliance_officer, loan_system, "Reviews compliance reports, audit trails", "HTTPS/Compliance API/FAPI 2.0")
+Rel(loan_officer, loan_system, "Reviews applications, makes decisions, manages workflows", "HTTPS/Web Portal")
+Rel(admin, loan_system, "Configures system, monitors performance, manages users", "HTTPS/Admin Portal")
+Rel(compliance_officer, loan_system, "Reviews compliance reports, audit trails", "HTTPS/Compliance Portal")
 
 ' Core Banking Integration
 Rel(loan_system, core_banking, "Retrieves account data, posts transactions", "SOAP/REST API")
@@ -61,9 +55,7 @@ Rel(loan_system, fraud_detection, "Validates transactions for fraud", "REST API"
 
 ' AI & Analytics Integration
 Rel(loan_system, openai, "Natural language processing, AI assistance", "HTTPS/REST API")
-Rel(loan_system, spring_ai, "AI framework integration", "Spring AI Protocol")
 Rel(loan_system, analytics_platform, "Sends business metrics and KPIs", "REST API/ETL")
-Rel(loan_system, ml_platform, "Fraud detection, anomaly detection", "REST API/ML Models")
 
 ' Compliance & Regulatory Integration
 Rel(loan_system, regulatory_reporting, "Submits regulatory reports", "SFTP/API")
@@ -73,15 +65,11 @@ Rel(loan_system, kyc_system, "Validates customer identity", "REST API")
 ' Infrastructure Integration
 Rel(loan_system, notification_service, "Sends customer notifications", "REST API")
 Rel(loan_system, document_management, "Stores loan documents", "REST API")
-Rel(loan_system, keycloak, "Authenticates users with OAuth 2.1/FAPI 2.0", "OAuth 2.1/DPoP")
-Rel(loan_system, ldap, "User directory lookup", "LDAP Protocol")
+Rel(loan_system, identity_provider, "Authenticates users", "SAML/OAuth2")
 
 ' Operations Integration
-Rel(loan_system, prometheus, "Exports metrics", "Prometheus/HTTP")
-Rel(loan_system, grafana, "Metrics visualization", "HTTP/API")
-Rel(loan_system, elk_stack, "Centralized logging", "Logstash/HTTP")
+Rel(loan_system, monitoring_system, "Exports metrics and logs", "Prometheus/HTTP")
 Rel(loan_system, backup_system, "Scheduled data backups", "Database Replication")
-Rel(loan_system, istio, "Service mesh communication", "Envoy Proxy/mTLS")
 
 ' External Dependencies
 Rel(core_banking, loan_system, "Real-time balance updates", "WebHook/Event")

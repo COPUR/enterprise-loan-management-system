@@ -1,0 +1,403 @@
+# Enhanced Enterprise Banking System - Multi-stage Docker Build v2.0
+# Optimized for DDD/Hexagonal Architecture, BIAN Compliance, FAPI Security, and Islamic Banking
+# Supports comprehensive functional testing, AI integration, and cloud-native deployment
+
+# ============================================================================
+# Stage 1: Build Environment with Enhanced Caching and Security
+# ============================================================================
+FROM gradle:8.11.1-jdk21-alpine AS builder
+
+# Enhanced metadata for compliance and tracking
+LABEL maintainer="Enterprise Banking Team <team@banking.com>"
+LABEL version="2.0.0"
+LABEL description="Enhanced Enterprise Banking System - Full Stack Microservice"
+LABEL vendor="Banking Solutions Inc."
+LABEL build-date="2025-06-27"
+LABEL spring-boot-version="3.3.6"
+LABEL java-version="21"
+LABEL architecture="DDD+Hexagonal"
+LABEL compliance="BIAN+FAPI+Islamic-Banking"
+LABEL features="AI-ML+Functional-Tests+Security"
+
+# Security hardening for build environment
+RUN apk update && apk upgrade \
+    && apk add --no-cache \
+        curl \
+        git \
+        ca-certificates \
+        openssl \
+    && update-ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy Gradle configuration for dependency caching
+COPY gradle/ gradle/
+COPY gradlew build.gradle settings.gradle ./
+RUN chmod +x gradlew
+
+# Download dependencies (optimized caching layer)
+RUN ./gradlew dependencies --no-daemon --quiet
+
+# Copy source code and resources
+COPY src/ src/
+COPY docker/ docker/
+
+# Build application (simplified without tests for Docker build)
+RUN ./gradlew clean bootJar \
+    --no-daemon \
+    --build-cache \
+    -x test \
+    && cp build/libs/enterprise-loan-management-system.jar app.jar \
+    && echo "Enhanced Enterprise Banking System Build Complete" \
+    && ls -la build/libs/
+
+# Extract JAR layers for optimal Docker caching
+RUN java -Djarmode=layertools -jar app.jar extract --destination extracted/
+
+# Generate build metadata for deployment tracking
+RUN ./gradlew buildInfo --no-daemon \
+    && cp build/resources/main/build-info.properties . 2>/dev/null || echo "build.version=2.0.0" > build-info.properties
+
+# ============================================================================
+# Stage 2: Enhanced Runtime Environment
+# ============================================================================
+FROM eclipse-temurin:21-jre-alpine AS runtime
+
+# Install security updates and banking compliance tools
+RUN apk update && apk upgrade \
+    && apk add --no-cache \
+        curl \
+        ca-certificates \
+        tzdata \
+        dumb-init \
+        jq \
+        openssl \
+        bash \
+    && update-ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Create banking user with enhanced security
+RUN addgroup -S banking \
+    && adduser -S -G banking -u 1000 -h /app -s /bin/false banking \
+    && mkdir -p /app/logs /app/config /app/tmp /app/keys /app/reports \
+    && chown -R banking:banking /app
+
+WORKDIR /app
+
+# Copy layered JAR for optimal startup
+COPY --from=builder --chown=banking:banking /app/extracted/dependencies/ ./
+COPY --from=builder --chown=banking:banking /app/extracted/spring-boot-loader/ ./
+COPY --from=builder --chown=banking:banking /app/extracted/application-dependencies/ ./
+COPY --from=builder --chown=banking:banking /app/extracted/application/ ./
+
+# Copy build metadata and Docker scripts
+COPY --from=builder --chown=banking:banking /app/build-info.properties ./
+COPY --chown=banking:banking docker/enhanced-entrypoint.sh /app/entrypoint.sh
+COPY --chown=banking:banking docker/enhanced-healthcheck.sh /app/healthcheck.sh
+COPY --chown=banking:banking docker/banking-prestart.sh /app/prestart.sh
+
+# Set executable permissions
+RUN chmod +x /app/entrypoint.sh /app/healthcheck.sh /app/prestart.sh
+
+# Switch to banking user for security
+USER banking
+
+# Expose enhanced ports
+EXPOSE 8080 8081 9090
+
+# Enhanced health check for banking system
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+    CMD /app/healthcheck.sh || exit 1
+
+# Enhanced JVM configuration for Enterprise Banking
+ENV JAVA_OPTS="\
+    -server \
+    -XX:+UseG1GC \
+    -XX:MaxGCPauseMillis=200 \
+    -XX:G1HeapRegionSize=16m \
+    -XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=75.0 \
+    -XX:InitialRAMPercentage=50.0 \
+    -XX:+ExitOnOutOfMemoryError \
+    -XX:+HeapDumpOnOutOfMemoryError \
+    -XX:HeapDumpPath=/app/logs/heapdump.hprof \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Dspring.profiles.active=production \
+    -Dfile.encoding=UTF-8 \
+    -Duser.timezone=UTC \
+    -Djava.awt.headless=true \
+    -XX:+UnlockExperimentalVMOptions \
+    -XX:+EnableJVMCI"
+
+# Enhanced Environment Configuration for Banking System
+ENV SERVER_PORT=8080
+ENV MANAGEMENT_PORT=8081
+ENV METRICS_PORT=9090
+ENV SPRING_PROFILES_ACTIVE=production
+
+# Database Configuration
+ENV DATABASE_URL=jdbc:postgresql://postgres:5432/banking
+ENV DATABASE_USERNAME=banking_user
+ENV DATABASE_PASSWORD=""
+ENV DATABASE_POOL_SIZE=20
+ENV HIBERNATE_DDL_AUTO=validate
+
+# Cache and Messaging Configuration
+ENV REDIS_HOST=redis
+ENV REDIS_PORT=6379
+ENV REDIS_PASSWORD=""
+ENV KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+
+# Security Configuration for FAPI Compliance
+ENV BANKING_JWT_SECRET=""
+ENV BANKING_JWT_ALGORITHM=RS256
+ENV FAPI_ENABLED=true
+ENV BANKING_SECURITY_STRICT=true
+
+# Islamic Banking Configuration
+ENV ISLAMIC_BANKING_ENABLED=true
+ENV SHARIA_COMPLIANCE_STRICT=true
+ENV HIJRI_CALENDAR_ENABLED=true
+
+# AI/ML Configuration
+ENV OPENAI_API_KEY=""
+ENV OPENAI_MODEL=gpt-4
+ENV AI_CREDIT_SCORING_ENABLED=true
+ENV ML_RISK_ASSESSMENT_ENABLED=true
+
+# Monitoring and Observability
+ENV MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics,prometheus,readiness,liveness
+ENV MICROMETER_ENABLED=true
+ENV JAEGER_ENABLED=true
+ENV PROMETHEUS_ENABLED=true
+
+# Business Configuration
+ENV LOAN_MIN_AMOUNT=1000
+ENV LOAN_MAX_AMOUNT=500000
+ENV CUSTOMER_MIN_CREDIT_SCORE=300
+ENV RATE_LIMIT_ENABLED=true
+
+# Compliance and Audit Configuration
+ENV AUDIT_ENABLED=true
+ENV BIAN_COMPLIANCE_ENABLED=true
+ENV PCI_COMPLIANCE_ENABLED=true
+ENV GDPR_COMPLIANCE_ENABLED=true
+
+# Application Metadata
+ENV APP_NAME="Enhanced Enterprise Banking System"
+ENV APP_VERSION="2.0.0"
+ENV APP_DESCRIPTION="DDD/Hexagonal Banking System with BIAN, FAPI & Islamic Banking"
+
+# Volume declarations for logs and configuration
+VOLUME ["/app/logs", "/app/config", "/app/keys", "/app/reports"]
+
+# Start application with enhanced entry point
+ENTRYPOINT ["/usr/bin/dumb-init", "--", "/app/entrypoint.sh"]
+CMD ["java", "-jar", "/app/BOOT-INF/lib/*:/app/BOOT-INF/classes", "com.bank.loanmanagement.LoanManagementApplication"]
+
+# ============================================================================
+# Stage 3: Enhanced Testing Environment with Functional Tests
+# ============================================================================
+FROM builder AS functional-testing
+
+# Install comprehensive testing tools
+RUN apk add --no-cache \
+    postgresql-client \
+    redis \
+    curl \
+    jq \
+    netcat-openbsd \
+    bash \
+    git \
+    wget
+
+# Enhanced test environment configuration
+ENV SPRING_PROFILES_ACTIVE=test,functional,testcontainers
+ENV JAVA_OPTS="-XX:+UseG1GC -Xmx6g -XX:+UseStringDeduplication"
+ENV TESTCONTAINERS_REUSE_ENABLE=true
+ENV TESTCONTAINERS_RYUK_DISABLED=false
+
+# Functional testing specific configuration
+ENV FUNCTIONAL_TESTS_ENABLED=true
+ENV BIAN_TESTS_ENABLED=true
+ENV FAPI_TESTS_ENABLED=true
+ENV ISLAMIC_BANKING_TESTS_ENABLED=true
+ENV AI_INTEGRATION_TESTS_ENABLED=true
+
+# Copy enhanced test configurations
+COPY docker/functional-test-entrypoint.sh /app/functional-test-entrypoint.sh
+COPY docker/test-data/ /app/test-data/
+RUN chmod +x /app/functional-test-entrypoint.sh
+
+# Enhanced health check for testing
+HEALTHCHECK --interval=15s --timeout=10s --start-period=60s --retries=5 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Functional testing entry point
+ENTRYPOINT ["/app/functional-test-entrypoint.sh"]
+CMD ["./gradlew", "fullTestSuite", "--no-daemon", "--continue", "--stacktrace"]
+
+# ============================================================================
+# Stage 4: Development Environment with Enhanced Tools
+# ============================================================================
+FROM builder AS development
+
+# Install comprehensive development tools
+RUN apk add --no-cache \
+    postgresql-client \
+    redis \
+    kafkacat \
+    curl \
+    vim \
+    git \
+    bash \
+    htop \
+    jq \
+    wget
+
+# Development environment configuration
+ENV SPRING_PROFILES_ACTIVE=development,local
+ENV JAVA_OPTS="\
+    -XX:+UseG1GC \
+    -Xmx4g \
+    -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 \
+    -XX:+EnableJVMCI"
+ENV GRADLE_OPTS="-Xmx3g -XX:+UseG1GC"
+
+# Enable development features
+ENV SPRING_DEVTOOLS_RESTART_ENABLED=true
+ENV SPRING_DEVTOOLS_LIVERELOAD_ENABLED=true
+ENV JPA_SHOW_SQL=true
+ENV LOGGING_LEVEL_BANKING=DEBUG
+
+# Expose development and debug ports
+EXPOSE 5005 8080 8081 9090 35729
+
+# Development health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Development entry point with hot reload
+CMD ["./gradlew", "bootRun", "--no-daemon", "--continuous"]
+
+# ============================================================================
+# Stage 5: Kubernetes-Optimized Production Environment
+# ============================================================================
+FROM eclipse-temurin:21-jre-alpine AS kubernetes
+
+# Install Kubernetes-specific tools
+RUN apk update && apk upgrade \
+    && apk add --no-cache \
+        curl \
+        ca-certificates \
+        tzdata \
+        dumb-init \
+        jq \
+        bash \
+        openssl \
+    && update-ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Create application user with Kubernetes-compatible UID/GID
+RUN addgroup -g 1001 -S banking \
+    && adduser -u 1001 -S -G banking -h /app -s /bin/false banking
+
+WORKDIR /app
+
+# Create required directories with proper permissions
+RUN mkdir -p /app/logs /app/config /app/tmp /app/keys \
+    && chown -R banking:banking /app
+
+# Copy layered application from builder
+COPY --from=builder --chown=banking:banking /app/extracted/dependencies/ ./
+COPY --from=builder --chown=banking:banking /app/extracted/spring-boot-loader/ ./
+COPY --from=builder --chown=banking:banking /app/extracted/application-dependencies/ ./
+COPY --from=builder --chown=banking:banking /app/extracted/application/ ./
+
+# Copy Kubernetes-specific scripts and configurations
+COPY --chown=banking:banking docker/k8s-entrypoint.sh /app/entrypoint.sh
+COPY --chown=banking:banking docker/k8s-healthcheck.sh /app/healthcheck.sh
+COPY --chown=banking:banking docker/k8s-readiness.sh /app/readiness.sh
+COPY --chown=banking:banking docker/k8s-liveness.sh /app/liveness.sh
+RUN chmod +x /app/entrypoint.sh /app/healthcheck.sh /app/readiness.sh /app/liveness.sh
+
+# Switch to non-root user
+USER banking
+
+# Kubernetes-optimized JVM settings for Enterprise Banking
+ENV JAVA_OPTS="\
+    -server \
+    -XX:+UseG1GC \
+    -XX:MaxGCPauseMillis=100 \
+    -XX:G1HeapRegionSize=16m \
+    -XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=70.0 \
+    -XX:+ExitOnOutOfMemoryError \
+    -XX:+HeapDumpOnOutOfMemoryError \
+    -XX:HeapDumpPath=/app/logs/heapdump.hprof \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Dspring.profiles.active=kubernetes \
+    -Dmanagement.endpoints.web.exposure.include=health,readiness,liveness,info,metrics,prometheus \
+    -XX:+UnlockExperimentalVMOptions \
+    -XX:+EnableJVMCI"
+
+# Kubernetes-specific environment variables
+ENV KUBERNETES_NAMESPACE="enhanced-banking-system"
+ENV POD_NAME=""
+ENV NODE_NAME=""
+ENV CLUSTER_NAME="enterprise-banking-cluster"
+ENV SERVICE_MESH_ENABLED=true
+
+# Enhanced Banking Configuration for Kubernetes
+ENV BANKING_ENVIRONMENT=kubernetes
+ENV BANKING_CLUSTER_MODE=true
+ENV BANKING_SERVICE_DISCOVERY=kubernetes
+ENV BANKING_CONFIG_SOURCE=kubernetes-configmap
+
+# Expose ports for Kubernetes services
+EXPOSE 8080 8081 9090
+
+# Kubernetes-compatible health checks
+HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=3 \
+    CMD /app/healthcheck.sh
+
+# Volume mounts for Kubernetes persistent storage
+VOLUME ["/app/logs", "/app/config", "/app/keys"]
+
+# Kubernetes entry point with proper signal handling
+ENTRYPOINT ["/usr/bin/dumb-init", "--", "/app/entrypoint.sh"]
+CMD ["java", "-jar", "/app/BOOT-INF/lib/*:/app/BOOT-INF/classes", "com.bank.loanmanagement.LoanManagementApplication"]
+
+# ============================================================================
+# Final Stage Metadata and Security Labels
+# ============================================================================
+
+# Multi-architecture support
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+RUN echo "Enhanced Banking System built for $TARGETPLATFORM on $BUILDPLATFORM" || true
+
+# Comprehensive metadata for Enterprise Banking compliance
+LABEL org.opencontainers.image.title="Enhanced Enterprise Banking System"
+LABEL org.opencontainers.image.description="DDD/Hexagonal Banking System with BIAN, FAPI, Islamic Banking & AI/ML"
+LABEL org.opencontainers.image.version="2.0.0"
+LABEL org.opencontainers.image.authors="Enterprise Banking Team"
+LABEL org.opencontainers.image.vendor="Banking Solutions Inc."
+LABEL org.opencontainers.image.licenses="Proprietary"
+LABEL org.opencontainers.image.source="https://github.com/banking/enhanced-enterprise-banking"
+LABEL org.opencontainers.image.documentation="https://docs.banking.com/enhanced-banking-system"
+
+# Security and compliance labels
+LABEL banking.compliance.fapi="true"
+LABEL banking.compliance.bian="true"
+LABEL banking.compliance.islamic="true"
+LABEL banking.compliance.pci="true"
+LABEL banking.compliance.gdpr="true"
+LABEL banking.security.level="maximum"
+LABEL banking.architecture="ddd-hexagonal"
+LABEL banking.features="ai-ml,functional-tests,microservices"
+LABEL banking.audit.enabled="true"
+LABEL banking.environment="production"
+LABEL banking.version="2.0.0"
