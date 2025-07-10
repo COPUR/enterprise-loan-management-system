@@ -221,9 +221,8 @@ kubectl get pods -n loan-platform
 
 ## Support & Contact
 
-**Enterprise Support**: enterprise-support@loanplatform.com  
-**Technical Documentation**: [docs.loanplatform.com](https://docs.loanplatform.com)  
-**Security Disclosures**: security@loanplatform.com
+**Enterprise Support** **Technical Documentation**: Ali Copur
+
 
 ## License
 
