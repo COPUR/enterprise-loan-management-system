@@ -1,0 +1,46 @@
+[0;34m[2025-06-21 15:23:13][0m Starting comprehensive load testing for Enterprise Loan Management System
+[0;34m[2025-06-21 15:23:13][0m Test ID: load-test-20250621-152313
+[0;34m[2025-06-21 15:23:13][0m Environment: local
+[0;34m[2025-06-21 15:23:13][0m Base URL: http://localhost:8080
+[0;34m[2025-06-21 15:23:13][0m Performing system health check...
+[0;34m[2025-06-21 15:27:36][0m Starting comprehensive load testing for Enterprise Loan Management System
+[0;34m[2025-06-21 15:27:36][0m Test ID: load-test-20250621-152736
+[0;34m[2025-06-21 15:27:36][0m Environment: local
+[0;34m[2025-06-21 15:27:37][0m Base URL: http://localhost:8080
+[0;34m[2025-06-21 15:27:37][0m Performing system health check...
+[0;32m[SUCCESS][0m System health check passed
+[0;34m[2025-06-21 15:27:37][0m Generating JWT token for authentication...
+[0;34m[2025-06-21 15:27:37][0m JWT token generated successfully
+[0;34m[2025-06-21 15:27:37][0m Executing test suites...
+[0;34m[2025-06-21 15:27:37][0m Starting API load testing...
+[0;34m[2025-06-21 15:27:37][0m Testing endpoint: /api/v1/loans/recommendations
+[0;34m[2025-06-21 15:27:42][0m Testing endpoint: /api/v1/customers
+[0;34m[2025-06-21 15:27:48][0m Testing endpoint: /api/v1/loans
+[0;34m[2025-06-21 15:27:53][0m Testing endpoint: /api/v1/payments
+[0;34m[2025-06-21 15:27:58][0m Testing endpoint: /actuator/health
+[0;34m[2025-06-21 15:28:03][0m Testing endpoint: /actuator/metrics
+[0;32m[SUCCESS][0m API load testing completed
+[0;34m[2025-06-21 15:28:08][0m Starting database stress testing...
+[0;32m[SUCCESS][0m Database stress testing completed
+[0;34m[2025-06-21 15:30:11][0m Starting Redis cache performance testing...
+[0;32m[SUCCESS][0m Redis cache performance testing completed
+[0;34m[2025-06-21 15:30:12][0m Starting chaos engineering tests...
+[0;34m[2025-06-21 15:30:33][0m Starting comprehensive load testing for Enterprise Loan Management System
+[0;34m[2025-06-21 15:30:33][0m Test ID: load-test-20250621-153033
+[0;34m[2025-06-21 15:30:33][0m Environment: local
+[0;34m[2025-06-21 15:30:33][0m Base URL: http://localhost:8080
+[0;34m[2025-06-21 15:30:33][0m Performing system health check...
+[0;34m[2025-06-21 15:31:20][0m Starting comprehensive load testing for Enterprise Loan Management System
+[0;34m[2025-06-21 15:31:20][0m Test ID: load-test-20250621-153119
+[0;34m[2025-06-21 15:31:20][0m Environment: local
+[0;34m[2025-06-21 15:31:20][0m Base URL: http://localhost:8080
+[0;34m[2025-06-21 15:31:20][0m Performing system health check...
+[0;32m[SUCCESS][0m System health check passed (HTTP 200)
+[0;34m[2025-06-21 15:31:20][0m Generating JWT token for authentication...
+[0;34m[2025-06-21 15:31:20][0m JWT token generated successfully
+[0;34m[2025-06-21 15:31:20][0m Executing test suites...
+[0;34m[2025-06-21 15:31:20][0m Starting API load testing...
+[0;34m[2025-06-21 15:31:20][0m Testing endpoint: /api/v1/loans/recommendations
+[0;34m[2025-06-21 15:31:25][0m Testing endpoint: /api/v1/customers
+[0;34m[2025-06-21 15:31:30][0m Testing endpoint: /api/v1/loans
+[0;34m[2025-06-21 15:31:36][0m Testing endpoint: /api/v1/payments

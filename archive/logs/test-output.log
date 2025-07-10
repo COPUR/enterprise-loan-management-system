@@ -1,0 +1,7 @@
+[0;34m[2025-06-21 15:23:13][0m Starting comprehensive load testing for Enterprise Loan Management System
+[0;34m[2025-06-21 15:23:13][0m Test ID: load-test-20250621-152313
+[0;34m[2025-06-21 15:23:13][0m Environment: local
+[0;34m[2025-06-21 15:23:13][0m Base URL: http://localhost:8080
+[0;34m[2025-06-21 15:23:13][0m Performing system health check...
+[0;31m[ERROR][0m System health check failed (HTTP 000000)
+[0;31m[ERROR][0m System health check failed. Aborting tests.
