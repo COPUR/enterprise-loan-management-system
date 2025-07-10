@@ -431,7 +431,7 @@ jobs:
     - name: 🐳 Setup Complete Test Environment
       run: |
         # Start full application stack with monitoring
-        docker-compose -f docker-compose.yml -f docker-compose.observability.yml up -d
+        docker-compose -f docker-compose.yml -f docker/compose/docker/compose/docker/compose/docker-compose.observability.yml up -d
         
         # Wait for all services to be ready
         timeout 300 bash -c 'until curl -f http://localhost:8080/actuator/health; do sleep 5; done'
@@ -542,7 +542,7 @@ jobs:
       if: always()
       run: |
         # Cleanup all containers and volumes
-        docker-compose -f docker-compose.yml -f docker-compose.observability.yml down -v --remove-orphans
+        docker-compose -f docker-compose.yml -f docker/compose/docker/compose/docker/compose/docker-compose.observability.yml down -v --remove-orphans
         docker system prune -f
         
         # Clean up test artifacts
