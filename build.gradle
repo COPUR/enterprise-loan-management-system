@@ -1,8 +1,12 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.2.0'
-    id 'io.spring.dependency-management' version '1.1.4'
+    id 'org.springframework.boot' version '3.4.3'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
 }
+
+// Apply Java 21 banking features configuration
+apply from: 'gradle/java21-features.gradle'
 
 // Root project configuration for FAPI 2.0 + DPoP implementation
 group = 'com.loanmanagement'
@@ -13,8 +17,17 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 }
 
+compileJava {
+    options.compilerArgs.addAll(['--enable-preview'])
+}
+
+compileTestJava {
+    options.compilerArgs.addAll(['--enable-preview'])
+}
+
 repositories {
     mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' } // For Spring AI milestone releases
 }
 
 configurations {
@@ -24,17 +37,24 @@ configurations {
 }
 
 dependencies {
-    // Spring Boot starters - complete set
+    // Spring Boot starters - complete set with Java 21 compatibility
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.1.0'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.1.4'
+    
+    // Java 21 Virtual Threads support
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    
+    // Caffeine for L1 caching
+    implementation 'com.github.ben-manes.caffeine:caffeine'
     
     // FAPI 2.0 + DPoP Security Dependencies
     implementation 'org.springframework.boot:spring-boot-starter-webflux' // For reactive security filters
@@ -67,17 +87,40 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310' // For LocalDateTime serialization
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
     
-    // JWT and JOSE dependencies for DPoP
-    implementation 'com.nimbusds:nimbus-jose-jwt:9.40'
-    implementation 'com.nimbusds:oauth2-oidc-sdk:11.19.1'
+    // JWT and JOSE dependencies for DPoP - Updated to latest stable versions
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.47'
+    implementation 'com.nimbusds:oauth2-oidc-sdk:11.20.1'
     
-    // Banking and Financial APIs
-    implementation 'org.apache.commons:commons-lang3:3.14.0' // For utility functions
-    implementation 'commons-codec:commons-codec:1.16.0' // For cryptographic operations
+    // Banking and Financial APIs - Updated to available stable versions
+    implementation 'org.apache.commons:commons-lang3:3.16.0' // For utility functions
+    implementation 'commons-codec:commons-codec:1.17.0' // For cryptographic operations
 
-    // Documentation
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
-    implementation 'io.swagger.core.v3:swagger-annotations:2.2.20'
+    // GraphQL dependencies
+    implementation 'org.springframework.boot:spring-boot-starter-graphql'
+    implementation 'com.graphql-java:graphql-java-extended-scalars:21.0'
+    
+    // Spring AI dependencies - Using latest milestone (1.0.0 not yet available)
+    implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter:1.0.0-M5'
+    implementation 'org.springframework.ai:spring-ai-core:1.0.0-M5'
+    implementation 'org.springframework.ai:spring-ai-spring-boot-autoconfigure:1.0.0-M5'
+    
+    // Resilience4j dependencies - Using stable 2.2.0 version
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
+    implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.2.0'
+    implementation 'io.github.resilience4j:resilience4j-retry:2.2.0'
+    implementation 'io.github.resilience4j:resilience4j-bulkhead:2.2.0'
+    implementation 'io.github.resilience4j:resilience4j-timelimiter:2.2.0'
+
+    // Documentation - Updated to available stable versions
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    implementation 'io.swagger.core.v3:swagger-annotations:2.2.22'
+    
+    // GraphQL dependencies
+    implementation 'org.springframework.boot:spring-boot-starter-graphql'
+    implementation 'com.graphql-java:graphql-java-extended-scalars:21.0'
+    
+    // OAuth2 Client dependencies
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
     // Database
     runtimeOnly 'com.h2database:h2'
@@ -95,11 +138,47 @@ dependencies {
     testImplementation 'org.mockito:mockito-junit-jupiter'
     testImplementation 'org.testcontainers:junit-jupiter' // For integration testing
     testImplementation 'org.testcontainers:postgresql' // For database testing
-    testImplementation 'org.wiremock:wiremock-standalone:3.3.1' // For external service mocking
+    testImplementation 'org.wiremock:wiremock-standalone:3.9.1' // For external service mocking
 }
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+    
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                '**/*Application*',
+                '**/*Config*',
+                '**/*Configuration*',
+                '**/dto/**',
+                '**/config/**'
+            ])
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.83
+            }
+        }
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -116,6 +195,7 @@ allprojects {
 
     repositories {
         mavenCentral()
+        maven { url 'https://repo.spring.io/milestone' } // For Spring AI milestone releases
     }
 }
 
@@ -127,6 +207,14 @@ subprojects {
     java {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
+    }
+    
+    compileJava {
+        options.compilerArgs.addAll(['--enable-preview'])
+    }
+    
+    compileTestJava {
+        options.compilerArgs.addAll(['--enable-preview'])
     }
 
     configurations {
@@ -146,7 +234,10 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter-data-redis'
         implementation 'org.springframework.boot:spring-boot-starter-cache'
         implementation 'org.springframework.kafka:spring-kafka'
-        implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.1.0'
+        implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.1.4'
+        
+        // Caffeine for L1 caching
+        implementation 'com.github.ben-manes.caffeine:caffeine'
 
         // Jakarta EE APIs (critical for fixing compilation errors)
         implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
@@ -169,12 +260,12 @@ subprojects {
         // JSON processing
         implementation 'com.fasterxml.jackson.core:jackson-databind'
         
-        // JWT and JOSE dependencies for DPoP
-        implementation 'com.nimbusds:nimbus-jose-jwt:9.40'
-        implementation 'com.nimbusds:oauth2-oidc-sdk:11.19.1'
+        // JWT and JOSE dependencies for DPoP - Updated to latest stable versions
+        implementation 'com.nimbusds:nimbus-jose-jwt:9.47'
+        implementation 'com.nimbusds:oauth2-oidc-sdk:11.20.1'
 
-        // Documentation
-        implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+        // Documentation - Updated to available stable version
+        implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
         // Database
         runtimeOnly 'com.h2database:h2'

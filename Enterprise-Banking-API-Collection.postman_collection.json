@@ -1,0 +1,945 @@
+{
+    "info": {
+        "name": "Enterprise Banking API Collection",
+        "description": "Comprehensive API collection for Enterprise Loan Management System with OAuth 2.1 + DPoP + FAPI 2.0 security, ML analytics, and complete banking operations",
+        "version": "1.0.0",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "oauth2",
+        "oauth2": [
+            {
+                "key": "tokenName",
+                "value": "Banking Access Token",
+                "type": "string"
+            },
+            {
+                "key": "callBackUrl",
+                "value": "https://localhost/auth/callback",
+                "type": "string"
+            },
+            {
+                "key": "authUrl",
+                "value": "http://localhost:8080/realms/banking/protocol/openid-connect/auth",
+                "type": "string"
+            },
+            {
+                "key": "accessTokenUrl",
+                "value": "http://localhost:8080/realms/banking/protocol/openid-connect/token",
+                "type": "string"
+            },
+            {
+                "key": "clientId",
+                "value": "banking-app",
+                "type": "string"
+            },
+            {
+                "key": "clientSecret",
+                "value": "banking-secret",
+                "type": "string"
+            },
+            {
+                "key": "scope",
+                "value": "openid profile email banking read write admin",
+                "type": "string"
+            },
+            {
+                "key": "grant_type",
+                "value": "authorization_code",
+                "type": "string"
+            }
+        ]
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "https://localhost",
+            "type": "string"
+        },
+        {
+            "key": "auth_url",
+            "value": "http://localhost:8080",
+            "type": "string"
+        },
+        {
+            "key": "access_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "customer_id",
+            "value": "110e8400-e29b-41d4-a716-446655440001",
+            "type": "string"
+        },
+        {
+            "key": "loan_id",
+            "value": "990e8400-e29b-41d4-a716-446655440001",
+            "type": "string"
+        },
+        {
+            "key": "payment_id",
+            "value": "770e8400-e29b-41d4-a716-446655440001",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "🔐 Authentication & Security",
+            "item": [
+                {
+                    "name": "Get OAuth 2.1 Token (Client Credentials)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('access_token', response.access_token);",
+                                    "    pm.test('Token obtained successfully', () => {",
+                                    "        pm.expect(response.access_token).to.exist;",
+                                    "        pm.expect(response.token_type).to.equal('Bearer');",
+                                    "    });",
+                                    "} else {",
+                                    "    pm.test('Token request failed', () => {",
+                                    "        pm.expect.fail('Failed to obtain access token');",
+                                    "    });",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "grant_type",
+                                    "value": "client_credentials"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "banking-app"
+                                },
+                                {
+                                    "key": "client_secret",
+                                    "value": "banking-secret"
+                                },
+                                {
+                                    "key": "scope",
+                                    "value": "banking"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{auth_url}}/realms/banking/protocol/openid-connect/token",
+                            "host": ["{{auth_url}}"],
+                            "path": ["realms", "banking", "protocol", "openid-connect", "token"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "DPoP Token Request",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            },
+                            {
+                                "key": "DPoP",
+                                "value": "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiZUF3VjZfcHBtNXBEemJqcE1WREE4UE0xNHBzUTdDNE5rbVVDYTRsOWQwSSIsInkiOiJ5TzhJOUJOcGt5cE5IMXVraS1kRW1mNVJmdk1iQzk3aXFuRGF0YVZWaGRNIn19.eyJqdGkiOiIxMjM0NTY3OC0xMjM0LTEyMzQtMTIzNC0xMjM0NTY3ODkwYWIiLCJodG0iOiJQT1NUIiwiaHR1IjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9iYW5raW5nL3Byb3RvY29sL29wZW5pZC1jb25uZWN0L3Rva2VuIiwiaWF0IjoxNjg5NzQ1NjAwfQ.dpop_signature_here"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "grant_type",
+                                    "value": "client_credentials"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "banking-app"
+                                },
+                                {
+                                    "key": "client_secret",
+                                    "value": "banking-secret"
+                                },
+                                {
+                                    "key": "scope",
+                                    "value": "banking"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{auth_url}}/realms/banking/protocol/openid-connect/token",
+                            "host": ["{{auth_url}}"],
+                            "path": ["realms", "banking", "protocol", "openid-connect", "token"]
+                        }
+                    }
+                },
+                {
+                    "name": "Validate Token",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{auth_url}}/realms/banking/protocol/openid-connect/userinfo",
+                            "host": ["{{auth_url}}"],
+                            "path": ["realms", "banking", "protocol", "openid-connect", "userinfo"]
+                        }
+                    }
+                },
+                {
+                    "name": "FAPI Security Test",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "x-fapi-auth-date",
+                                "value": "{{$timestamp}}"
+                            },
+                            {
+                                "key": "x-fapi-customer-ip-address",
+                                "value": "192.168.1.100"
+                            },
+                            {
+                                "key": "x-fapi-interaction-id",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/actuator/health",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "actuator", "health"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "👥 Customer Management",
+            "item": [
+                {
+                    "name": "Get All Customers",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', () => {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response has customers array', () => {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response).to.have.property('customers');",
+                                    "    pm.expect(response.customers).to.be.an('array');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customers?page=0&size=20",
+                            "host": ["{{base_url}}"],
+                            "path": ["customers"],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Customer by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customers/{{customer_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["customers", "{{customer_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Individual Customer",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('customer_id', response.customerId);",
+                                    "    pm.test('Customer created successfully', () => {",
+                                    "        pm.expect(response.customerId).to.exist;",
+                                    "    });",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+1-555-0123\",\n    \"dateOfBirth\": \"1985-05-15\",\n    \"ssn\": \"123-45-6789\",\n    \"nationality\": \"US\",\n    \"employmentStatus\": \"EMPLOYED\",\n    \"annualIncome\": 75000.00,\n    \"creditScore\": 750,\n    \"address\": {\n        \"street\": \"123 Main St\",\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"zipCode\": \"10001\",\n        \"country\": \"USA\"\n    },\n    \"complianceLevel\": \"HIGH\",\n    \"kycStatus\": \"VERIFIED\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/customers",
+                            "host": ["{{base_url}}"],
+                            "path": ["customers"]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Corporate Customer",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"companyName\": \"Tech Solutions Inc\",\n    \"legalForm\": \"CORPORATION\",\n    \"registrationNumber\": \"123456789\",\n    \"taxId\": \"12-3456789\",\n    \"industryCode\": \"5411\",\n    \"annualRevenue\": 5000000.00,\n    \"numberOfEmployees\": 150,\n    \"establishedDate\": \"2010-01-01\",\n    \"address\": {\n        \"street\": \"456 Business Ave\",\n        \"city\": \"San Francisco\",\n        \"state\": \"CA\",\n        \"zipCode\": \"94105\",\n        \"country\": \"USA\"\n    },\n    \"primaryContact\": {\n        \"firstName\": \"Jane\",\n        \"lastName\": \"Smith\",\n        \"email\": \"jane.smith@techsolutions.com\",\n        \"phone\": \"+1-555-0124\",\n        \"title\": \"CFO\"\n    },\n    \"complianceLevel\": \"HIGH\",\n    \"kycStatus\": \"VERIFIED\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/customers",
+                            "host": ["{{base_url}}"],
+                            "path": ["customers"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Customer",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"phone\": \"+1-555-0125\",\n    \"annualIncome\": 80000.00,\n    \"creditScore\": 780,\n    \"address\": {\n        \"street\": \"456 Oak Street\",\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"zipCode\": \"10002\",\n        \"country\": \"USA\"\n    }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/customers/{{customer_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["customers", "{{customer_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Check Customer Eligibility",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customers/{{customer_id}}/eligibility?loanType=PERSONAL&amount=25000",
+                            "host": ["{{base_url}}"],
+                            "path": ["customers", "{{customer_id}}", "eligibility"],
+                            "query": [
+                                {
+                                    "key": "loanType",
+                                    "value": "PERSONAL"
+                                },
+                                {
+                                    "key": "amount",
+                                    "value": "25000"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "💰 Loan Management",
+            "item": [
+                {
+                    "name": "Get All Loans",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/loans?page=0&size=20&status=ACTIVE",
+                            "host": ["{{base_url}}"],
+                            "path": ["loans"],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "20"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "ACTIVE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Submit Loan Application",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('loan_id', response.loanId);",
+                                    "    pm.test('Loan application submitted successfully', () => {",
+                                    "        pm.expect(response.loanId).to.exist;",
+                                    "        pm.expect(response.status).to.equal('PENDING');",
+                                    "    });",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"customerId\": \"{{customer_id}}\",\n    \"loanType\": \"PERSONAL\",\n    \"requestedAmount\": 25000.00,\n    \"termMonths\": 60,\n    \"purposeOfLoan\": \"HOME_IMPROVEMENT\",\n    \"interestRate\": 5.5,\n    \"collateral\": {\n        \"type\": \"PROPERTY\",\n        \"description\": \"Primary residence\",\n        \"estimatedValue\": 350000.00\n    },\n    \"applicantInformation\": {\n        \"employmentStatus\": \"EMPLOYED\",\n        \"employer\": \"Tech Corp\",\n        \"monthlyIncome\": 6250.00,\n        \"existingDebts\": 5000.00,\n        \"requestedUseOfFunds\": \"Kitchen renovation and home improvements\"\n    }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/loans/applications",
+                            "host": ["{{base_url}}"],
+                            "path": ["loans", "applications"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Loan Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/loans/{{loan_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["loans", "{{loan_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Approve Loan",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"approvedAmount\": 25000.00,\n    \"approvedTermMonths\": 60,\n    \"approvedInterestRate\": 5.25,\n    \"approverComments\": \"Application approved based on excellent credit score and stable income\",\n    \"conditions\": [\n        \"Proof of income verification completed\",\n        \"Property appraisal confirmed\",\n        \"Insurance requirement verified\"\n    ],\n    \"disbursementMethod\": \"BANK_TRANSFER\",\n    \"disbursementAccount\": \"1234567890\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/loans/{{loan_id}}/approve",
+                            "host": ["{{base_url}}"],
+                            "path": ["loans", "{{loan_id}}", "approve"]
+                        }
+                    }
+                },
+                {
+                    "name": "Reject Loan",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"rejectionReason\": \"INSUFFICIENT_INCOME\",\n    \"rejectionComments\": \"Debt-to-income ratio exceeds acceptable limits\",\n    \"appealProcess\": \"Customer may reapply after 6 months with improved financial standing\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/loans/{{loan_id}}/reject",
+                            "host": ["{{base_url}}"],
+                            "path": ["loans", "{{loan_id}}", "reject"]
+                        }
+                    }
+                },
+                {
+                    "name": "Calculate Loan Payment Schedule",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/loans/{{loan_id}}/payment-schedule",
+                            "host": ["{{base_url}}"],
+                            "path": ["loans", "{{loan_id}}", "payment-schedule"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Loan Recommendations",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"customerId\": \"{{customer_id}}\",\n    \"desiredLoanAmount\": 30000.00,\n    \"preferredTerm\": 60,\n    \"loanPurpose\": \"HOME_IMPROVEMENT\",\n    \"riskTolerance\": \"MODERATE\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/loans/recommendations",
+                            "host": ["{{base_url}}"],
+                            "path": ["loans", "recommendations"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "💳 Payment Processing",
+            "item": [
+                {
+                    "name": "Process Loan Payment",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.collectionVariables.set('payment_id', response.paymentId);",
+                                    "    pm.test('Payment processed successfully', () => {",
+                                    "        pm.expect(response.paymentId).to.exist;",
+                                    "        pm.expect(response.status).to.equal('COMPLETED');",
+                                    "    });",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"loanId\": \"{{loan_id}}\",\n    \"amount\": 486.87,\n    \"paymentMethod\": \"BANK_TRANSFER\",\n    \"paymentDate\": \"2024-05-01\",\n    \"description\": \"Monthly loan payment - May 2024\",\n    \"paymentSource\": {\n        \"accountNumber\": \"1234567890\",\n        \"routingNumber\": \"123456789\",\n        \"accountType\": \"CHECKING\"\n    },\n    \"metadata\": {\n        \"channel\": \"ONLINE_BANKING\",\n        \"deviceId\": \"web-123456\",\n        \"ipAddress\": \"192.168.1.100\"\n    }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/payments",
+                            "host": ["{{base_url}}"],
+                            "path": ["payments"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Payment History",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/payments/history?loanId={{loan_id}}&startDate=2024-01-01&endDate=2024-12-31",
+                            "host": ["{{base_url}}"],
+                            "path": ["payments", "history"],
+                            "query": [
+                                {
+                                    "key": "loanId",
+                                    "value": "{{loan_id}}"
+                                },
+                                {
+                                    "key": "startDate",
+                                    "value": "2024-01-01"
+                                },
+                                {
+                                    "key": "endDate",
+                                    "value": "2024-12-31"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Schedule Future Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"loanId\": \"{{loan_id}}\",\n    \"amount\": 486.87,\n    \"scheduledDate\": \"2024-06-01\",\n    \"paymentMethod\": \"AUTO_DEBIT\",\n    \"recurring\": true,\n    \"frequency\": \"MONTHLY\",\n    \"endDate\": \"2029-05-01\",\n    \"paymentSource\": {\n        \"accountNumber\": \"1234567890\",\n        \"routingNumber\": \"123456789\",\n        \"accountType\": \"CHECKING\"\n    }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/payments/schedule",
+                            "host": ["{{base_url}}"],
+                            "path": ["payments", "schedule"]
+                        }
+                    }
+                },
+                {
+                    "name": "Cancel Scheduled Payment",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/payments/{{payment_id}}/cancel",
+                            "host": ["{{base_url}}"],
+                            "path": ["payments", "{{payment_id}}", "cancel"]
+                        }
+                    }
+                },
+                {
+                    "name": "Calculate Early Payment Options",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/payments/early-payment-options?loanId={{loan_id}}&paymentDate=2024-12-01",
+                            "host": ["{{base_url}}"],
+                            "path": ["payments", "early-payment-options"],
+                            "query": [
+                                {
+                                    "key": "loanId",
+                                    "value": "{{loan_id}}"
+                                },
+                                {
+                                    "key": "paymentDate",
+                                    "value": "2024-12-01"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🏦 Open Banking Gateway",
+            "item": [
+                {
+                    "name": "Account Information Request",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "x-fapi-auth-date",
+                                "value": "{{$timestamp}}"
+                            },
+                            {
+                                "key": "x-fapi-customer-ip-address",
+                                "value": "192.168.1.100"
+                            },
+                            {
+                                "key": "x-fapi-interaction-id",
+                                "value": "{{$guid}}"
+                            },
+                            {
+                                "key": "x-jws-signature",
+                                "value": "eyJhbGciOiJQUzI1NiIsImtpZCI6IktJRF9IRUFERVIifQ..signature"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/open-banking/accounts/{{customer_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["open-banking", "accounts", "{{customer_id}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Account Balance Inquiry",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "x-fapi-auth-date",
+                                "value": "{{$timestamp}}"
+                            },
+                            {
+                                "key": "x-fapi-customer-ip-address",
+                                "value": "192.168.1.100"
+                            },
+                            {
+                                "key": "x-fapi-interaction-id",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/open-banking/accounts/{{customer_id}}/balances",
+                            "host": ["{{base_url}}"],
+                            "path": ["open-banking", "accounts", "{{customer_id}}", "balances"]
+                        }
+                    }
+                },
+                {
+                    "name": "Transaction History",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "x-fapi-auth-date",
+                                "value": "{{$timestamp}}"
+                            },
+                            {
+                                "key": "x-fapi-customer-ip-address",
+                                "value": "192.168.1.100"
+                            },
+                            {
+                                "key": "x-fapi-interaction-id",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/open-banking/accounts/{{customer_id}}/transactions?fromDate=2024-01-01&toDate=2024-12-31",
+                            "host": ["{{base_url}}"],
+                            "path": ["open-banking", "accounts", "{{customer_id}}", "transactions"],
+                            "query": [
+                                {
+                                    "key": "fromDate",
+                                    "value": "2024-01-01"
+                                },
+                                {
+                                    "key": "toDate",
+                                    "value": "2024-12-31"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Payment Initiation",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "x-fapi-auth-date",
+                                "value": "{{$timestamp}}"
+                            },
+                            {
+                                "key": "x-fapi-customer-ip-address",
+                                "value": "192.168.1.100"
+                            },
+                            {
+                                "key": "x-fapi-interaction-id",
+                                "value": "{{$guid}}"
+                            },
+                            {
+                                "key": "x-jws-signature",
+                                "value": "eyJhbGciOiJQUzI1NiIsImtpZCI6IktJRF9IRUFERVIifQ..signature"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"Data\": {\n        \"Initiation\": {\n            \"InstructionIdentification\": \"LOAN_PMT_{{$randomUUID}}\",\n            \"EndToEndIdentification\": \"E2E_{{$randomUUID}}\",\n            \"InstructedAmount\": {\n                \"Amount\": \"486.87\",\n                \"Currency\": \"USD\"\n            },\n            \"DebtorAccount\": {\n                \"SchemeName\": \"UK.OBIE.SortCodeAccountNumber\",\n                \"Identification\": \"08080021325698\",\n                \"Name\": \"John Doe\",\n                \"SecondaryIdentification\": \"0001\"\n            },\n            \"CreditorAccount\": {\n                \"SchemeName\": \"UK.OBIE.SortCodeAccountNumber\",\n                \"Identification\": \"08080021325677\",\n                \"Name\": \"Enterprise Bank Loans\"\n            },\n            \"RemittanceInformation\": {\n                \"Reference\": \"LOAN-{{loan_id}}\",\n                \"Unstructured\": \"Monthly loan payment for loan {{loan_id}}\"\n            }\n        }\n    },\n    \"Risk\": {\n        \"PaymentContextCode\": \"PersonToPerson\",\n        \"MerchantCategoryCode\": \"6012\",\n        \"MerchantCustomerIdentification\": \"{{customer_id}}\",\n        \"DeliveryAddress\": {\n            \"AddressLine\": [\n                \"123 Main St\"\n            ],\n            \"StreetName\": \"Main Street\",\n            \"BuildingNumber\": \"123\",\n            \"PostCode\": \"10001\",\n            \"TownName\": \"New York\",\n            \"CountrySubDivision\": [\n                \"NY\"\n            ],\n            \"Country\": \"US\"\n        }\n    }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/open-banking/payment-initiation",
+                            "host": ["{{base_url}}"],
+                            "path": ["open-banking", "payment-initiation"]
+                        }
+                    }
+                },
+                {
+                    "name": "Payment Consent",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{access_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "x-fapi-auth-date",
+                                "value": "{{$timestamp}}"
+                            },
+                            {
+                                "key": "x-fapi-customer-ip-address",
+                                "value": "192.168.1.100"
+                            },
+                            {
+                                "key": "x-fapi-interaction-id",
+                                "value": "{{$guid}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"Data\": {\n        \"Initiation\": {\n            \"InstructionIdentification\": \"CONSENT_{{$randomUUID}}\",\n            \"EndToEndIdentification\": \"E2E_CONSENT_{{$randomUUID}}\",\n            \"InstructedAmount\": {\n                \"Amount\": \"486.87\",\n                \"Currency\": \"USD\"\n            },\n            \"CreditorAccount\": {\n                \"SchemeName\": \"UK.OBIE.SortCodeAccountNumber\",\n                \"Identification\": \"08080021325677\",\n                \"Name\": \"Enterprise Bank Loans\"\n            }\n        }\n    },\n    \"Risk\": {\n        \"PaymentContextCode\": \"PersonToPerson\",\n        \"MerchantCategoryCode\": \"6012\"\n    }\n}"
+                        },\n        "url": {\n            "raw": "{{base_url}}/open-banking/payment-consents",\n            "host": ["{{base_url}}"],\n            "path": ["open-banking", "payment-consents"]\n        }\n    }\n}\n            ]\n        },\n        {\n            "name": "🤖 AI & Machine Learning",\n            "item": [\n                {\n                    "name": "Fraud Detection Analysis",\n                    "request": {\n                        "method": "POST",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            },\n                            {\n                                "key": "Content-Type",\n                                "value": "application/json"\n                            }\n                        ],\n                        "body": {\n                            "mode": "raw",\n                            "raw": "{\\n    \\"transactionId\\": \\"TXN_{{$randomUUID}}\\",\\n    \\"customerId\\": \\"{{customer_id}}\\",\\n    \\"amount\\": 1000.00,\\n    \\"currency\\": \\"USD\\",\\n    \\"merchantCategory\\": \\"5967\\",\\n    \\"transactionTime\\": \\"{{$isoTimestamp}}\\",\\n    \\"location\\": {\\n        \\"country\\": \\"US\\",\\n        \\"city\\": \\"New York\\",\\n        \\"ipAddress\\": \\"192.168.1.100\\",\\n        \\"geoCoordinates\\": {\\n            \\"latitude\\": 40.7128,\\n            \\"longitude\\": -74.0060\\n        }\\n    },\\n    \\"deviceFingerprint\\": {\\n        \\"deviceId\\": \\"WEB_{{$randomUUID}}\\",\\n        \\"userAgent\\": \\"Mozilla/5.0 (Windows NT 10.0; Win64; x64)\\",\\n        \\"screenResolution\\": \\"1920x1080\\",\\n        \\"timezone\\": \\"America/New_York\\"\\n    },\\n    \\"accountInfo\\": {\\n        \\"accountAge\\": 365,\\n        \\"lastTransactionDate\\": \\"2024-04-30\\",\\n        \\"averageMonthlyTransactions\\": 25,\\n        \\"averageTransactionAmount\\": 125.50\\n    }\\n}"\n                        },\n                        "url": {\n                            "raw": "{{base_url}}/ml/fraud-detection",\n                            "host": ["{{base_url}}"],\n                            "path": ["ml", "fraud-detection"]\n                        }\n                    }\n                },\n                {\n                    "name": "Credit Risk Assessment",\n                    "request": {\n                        "method": "POST",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            },\n                            {\n                                "key": "Content-Type",\n                                "value": "application/json"\n                            }\n                        ],\n                        "body": {\n                            "mode": "raw",\n                            "raw": "{\\n    \\"customerId\\": \\"{{customer_id}}\\",\\n    \\"loanAmount\\": 25000.00,\\n    \\"loanTerm\\": 60,\\n    \\"loanPurpose\\": \\"HOME_IMPROVEMENT\\",\\n    \\"customerData\\": {\\n        \\"annualIncome\\": 75000.00,\\n        \\"employmentStatus\\": \\"EMPLOYED\\",\\n        \\"employmentDuration\\": 36,\\n        \\"creditScore\\": 750,\\n        \\"debtToIncomeRatio\\": 0.25,\\n        \\"existingLoans\\": 2,\\n        \\"paymentHistory\\": {\\n            \\"onTimePayments\\": 95.5,\\n            \\"latePayments\\": 2,\\n            \\"missedPayments\\": 0\\n        }\\n    },\\n    \\"marketConditions\\": {\\n        \\"interestRateEnvironment\\": \\"STABLE\\",\\n        \\"economicIndicators\\": \\"POSITIVE\\",\\n        \\"industryTrends\\": \\"GROWING\\"\\n    }\\n}"\n                        },\n                        "url": {\n                            "raw": "{{base_url}}/ml/risk-assessment",\n                            "host": ["{{base_url}}"],\n                            "path": ["ml", "risk-assessment"]\n                        }\n                    }\n                },\n                {\n                    "name": "Anomaly Detection",\n                    "request": {\n                        "method": "POST",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            },\n                            {\n                                "key": "Content-Type",\n                                "value": "application/json"\n                            }\n                        ],\n                        "body": {\n                            "mode": "raw",\n                            "raw": "{\\n    \\"dataPoints\\": [\\n        {\\n            \\"timestamp\\": \\"{{$isoTimestamp}}\\",\\n            \\"metrics\\": {\\n                \\"transactionVolume\\": 1250,\\n                \\"responseTime\\": 145,\\n                \\"errorRate\\": 0.02,\\n                \\"cpuUsage\\": 78.5,\\n                \\"memoryUsage\\": 65.2\\n            }\\n        }\\n    ],\\n    \\"analysisType\\": \\"REAL_TIME\\",\\n    \\"sensitivity\\": \\"HIGH\\",\\n    \\"includeSystemMetrics\\": true,\\n    \\"includeTransactionPatterns\\": true\\n}"\n                        },\n                        "url": {\n                            "raw": "{{base_url}}/ml/anomaly-detection",\n                            "host": ["{{base_url}}"],\n                            "path": ["ml", "anomaly-detection"]\n                        }\n                    }\n                },\n                {\n                    "name": "Loan Recommendation Engine",\n                    "request": {\n                        "method": "POST",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            },\n                            {\n                                "key": "Content-Type",\n                                "value": "application/json"\n                            }\n                        ],\n                        "body": {\n                            "mode": "raw",\n                            "raw": "{\\n    \\"customerId\\": \\"{{customer_id}}\\",\\n    \\"preferences\\": {\\n        \\"maxLoanAmount\\": 50000.00,\\n        \\"preferredTerm\\": 60,\\n        \\"maxInterestRate\\": 7.0,\\n        \\"loanPurpose\\": \\"HOME_IMPROVEMENT\\",\\n        \\"riskTolerance\\": \\"MODERATE\\"\\n    },\\n    \\"includeAlternatives\\": true,\\n    \\"maxRecommendations\\": 5\\n}"\n                        },\n                        "url": {\n                            "raw": "{{base_url}}/ml/loan-recommendations",\n                            "host": ["{{base_url}}"],\n                            "path": ["ml", "loan-recommendations"]\n                        }\n                    }\n                },\n                {\n                    "name": "Pattern Analysis",\n                    "request": {\n                        "method": "POST",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            },\n                            {\n                                "key": "Content-Type",\n                                "value": "application/json"\n                            }\n                        ],\n                        "body": {\n                            "mode": "raw",\n                            "raw": "{\\n    \\"customerId\\": \\"{{customer_id}}\\",\\n    \\"analysisTimeframe\\": {\\n        \\"startDate\\": \\"2024-01-01\\",\\n        \\"endDate\\": \\"2024-12-31\\"\\n    },\\n    \\"patternTypes\\": [\\n        \\"SPENDING_BEHAVIOR\\",\\n        \\"PAYMENT_PATTERNS\\",\\n        \\"SEASONAL_TRENDS\\",\\n        \\"RISK_INDICATORS\\"\\n    ],\\n    \\"includeComparativeAnalysis\\": true,\\n    \\"benchmarkGroup\\": \\"SIMILAR_CUSTOMERS\\"\\n}"\n                        },\n                        "url": {\n                            "raw": "{{base_url}}/ml/pattern-analysis",\n                            "host": ["{{base_url}}"],\n                            "path": ["ml", "pattern-analysis"]\n                        }\n                    }\n                }\n            ]\n        },\n        {\n            "name": "🌍 Cross-Region Federation",\n            "item": [\n                {\n                    "name": "Federation Status",\n                    "request": {\n                        "method": "GET",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            }\n                        ],\n                        "url": {\n                            "raw": "{{base_url}}/federation/status?regions=us-east-1,eu-west-1,ap-southeast-1",\n                            "host": ["{{base_url}}"],\n                            "path": ["federation", "status"],\n                            "query": [\n                                {\n                                    "key": "regions",\n                                    "value": "us-east-1,eu-west-1,ap-southeast-1"\n                                }\n                            ]\n                        }\n                    }\n                },\n                {\n                    "name": "Global Dashboard",\n                    "request": {\n                        "method": "GET",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            }\n                        ],\n                        "url": {\n                            "raw": "{{base_url}}/federation/dashboard?regions=us-east-1,eu-west-1,ap-southeast-1&timeframe=24h",\n                            "host": ["{{base_url}}"],\n                            "path": ["federation", "dashboard"],\n                            "query": [\n                                {\n                                    "key": "regions",\n                                    "value": "us-east-1,eu-west-1,ap-southeast-1"\n                                },\n                                {\n                                    "key": "timeframe",\n                                    "value": "24h"\n                                }\n                            ]\n                        }\n                    }\n                },\n                {\n                    "name": "Cross-Region Metrics",\n                    "request": {\n                        "method": "GET",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            }\n                        ],\n                        "url": {\n                            "raw": "{{base_url}}/federation/metrics?region=us-east-1&metricType=PERFORMANCE",\n                            "host": ["{{base_url}}"],\n                            "path": ["federation", "metrics"],\n                            "query": [\n                                {\n                                    "key": "region",\n                                    "value": "us-east-1"\n                                },\n                                {\n                                    "key": "metricType",\n                                    "value": "PERFORMANCE"\n                                }\n                            ]\n                        }\n                    }\n                },\n                {\n                    "name": "Alert Correlation",\n                    "request": {\n                        "method": "POST",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            },\n                            {\n                                "key": "Content-Type",\n                                "value": "application/json"\n                            }\n                        ],\n                        "body": {\n                            "mode": "raw",\n                            "raw": "{\\n    \\"timeframe\\": {\\n        \\"startTime\\": \\"2024-05-01T00:00:00Z\\",\\n        \\"endTime\\": \\"2024-05-01T23:59:59Z\\"\\n    },\\n    \\"regions\\": [\\n        \\"us-east-1\\",\\n        \\"eu-west-1\\",\\n        \\"ap-southeast-1\\"\\n    ],\\n    \\"alertTypes\\": [\\n        \\"PERFORMANCE\\",\\n        \\"SECURITY\\",\\n        \\"COMPLIANCE\\"\\n    ],\\n    \\"correlationThreshold\\": 0.7\\n}"\n                        },\n                        "url": {\n                            "raw": "{{base_url}}/federation/alert-correlation",\n                            "host": ["{{base_url}}"],\n                            "path": ["federation", "alert-correlation"]\n                        }\n                    }\n                },\n                {\n                    "name": "Disaster Recovery Status",\n                    "request": {\n                        "method": "GET",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            }\n                        ],\n                        "url": {\n                            "raw": "{{base_url}}/federation/disaster-recovery?primaryRegion=us-east-1",\n                            "host": ["{{base_url}}"],\n                            "path": ["federation", "disaster-recovery"],\n                            "query": [\n                                {\n                                    "key": "primaryRegion",\n                                    "value": "us-east-1"\n                                }\n                            ]\n                        }\n                    }\n                },\n                {\n                    "name": "Regional Failover Test",\n                    "request": {\n                        "method": "POST",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            },\n                            {\n                                "key": "Content-Type",\n                                "value": "application/json"\n                            }\n                        ],\n                        "body": {\n                            "mode": "raw",\n                            "raw": "{\\n    \\"primaryRegion\\": \\"us-east-1\\",\\n    \\"failoverRegion\\": \\"us-west-2\\",\\n    \\"testType\\": \\"SIMULATION\\",\\n    \\"duration\\": \\"PT5M\\",\\n    \\"includeDataSync\\": true,\\n    \\"notifyStakeholders\\": false\\n}"\n                        },\n                        "url": {\n                            "raw": "{{base_url}}/federation/failover-test",\n                            "host": ["{{base_url}}"],\n                            "path": ["federation", "failover-test"]\n                        }\n                    }\n                }\n            ]\n        },\n        {\n            "name": "📊 Compliance & Reporting",\n            "item": [\n                {\n                    "name": "Compliance Check",\n                    "request": {\n                        "method": "POST",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            },\n                            {\n                                "key": "Content-Type",\n                                "value": "application/json"\n                            }\n                        ],\n                        "body": {\n                            "mode": "raw",\n                            "raw": "{\\n    \\"complianceFrameworks\\": [\\n        \\"PCI_DSS\\",\\n        \\"SOX\\",\\n        \\"GDPR\\",\\n        \\"FAPI_2_0\\"\\n    ],\\n    \\"entityId\\": \\"{{customer_id}}\\",\\n    \\"transactionData\\": {\\n        \\"amount\\": 25000.00,\\n        \\"currency\\": \\"USD\\",\\n        \\"purpose\\": \\"HOME_IMPROVEMENT\\",\\n        \\"jurisdiction\\": \\"US\\"\\n    },\\n    \\"checkLevel\\": \\"COMPREHENSIVE\\"\\n}"\n                        },\n                        "url": {\n                            "raw": "{{base_url}}/compliance/check",\n                            "host": ["{{base_url}}"],\n                            "path": ["compliance", "check"]\n                        }\n                    }\n                },\n                {\n                    "name": "Regulatory Report Generation",\n                    "request": {\n                        "method": "POST",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            },\n                            {\n                                "key": "Content-Type",\n                                "value": "application/json"\n                            }\n                        ],\n                        "body": {\n                            "mode": "raw",\n                            "raw": "{\\n    \\"reportType\\": \\"MONTHLY_RISK_ASSESSMENT\\",\\n    \\"reportingPeriod\\": {\\n        \\"startDate\\": \\"2024-04-01\\",\\n        \\"endDate\\": \\"2024-04-30\\"\\n    },\\n    \\"jurisdiction\\": \\"US\\",\\n    \\"includeCustomerData\\": true,\\n    \\"includeLoanData\\": true,\\n    \\"includePaymentData\\": true,\\n    \\"format\\": \\"PDF\\",\\n    \\"deliveryMethod\\": \\"EMAIL\\"\\n}"\n                        },\n                        "url": {\n                            "raw": "{{base_url}}/compliance/reports",\n                            "host": ["{{base_url}}"],\n                            "path": ["compliance", "reports"]\n                        }\n                    }\n                },\n                {\n                    "name": "Audit Trail Query",\n                    "request": {\n                        "method": "GET",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            }\n                        ],\n                        "url": {\n                            "raw": "{{base_url}}/compliance/audit-trail?entityId={{customer_id}}&startDate=2024-01-01&endDate=2024-12-31&eventType=LOAN_APPLICATION",\n                            "host": ["{{base_url}}"],\n                            "path": ["compliance", "audit-trail"],\n                            "query": [\n                                {\n                                    "key": "entityId",\n                                    "value": "{{customer_id}}"\n                                },\n                                {\n                                    "key": "startDate",\n                                    "value": "2024-01-01"\n                                },\n                                {\n                                    "key": "endDate",\n                                    "value": "2024-12-31"\n                                },\n                                {\n                                    "key": "eventType",\n                                    "value": "LOAN_APPLICATION"\n                                }\n                            ]\n                        }\n                    }\n                },\n                {\n                    "name": "KYC Verification",\n                    "request": {\n                        "method": "POST",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            },\n                            {\n                                "key": "Content-Type",\n                                "value": "application/json"\n                            }\n                        ],\n                        "body": {\n                            "mode": "raw",\n                            "raw": "{\\n    \\"customerId\\": \\"{{customer_id}}\\",\\n    \\"verificationType\\": \\"ENHANCED_DUE_DILIGENCE\\",\\n    \\"documents\\": [\\n        {\\n            \\"type\\": \\"GOVERNMENT_ID\\",\\n            \\"documentNumber\\": \\"DL123456789\\",\\n            \\"issuingAuthority\\": \\"NY_DMV\\",\\n            \\"expirationDate\\": \\"2029-05-15\\"\\n        },\\n        {\\n            \\"type\\": \\"PROOF_OF_ADDRESS\\",\\n            \\"documentType\\": \\"UTILITY_BILL\\",\\n            \\"issueDate\\": \\"2024-04-15\\"\\n        }\\n    ],\\n    \\"includeWatchlistCheck\\": true,\\n    \\"includePEPCheck\\": true,\\n    \\"includeSanctionsCheck\\": true\\n}"\n                        },\n                        "url": {\n                            "raw": "{{base_url}}/compliance/kyc-verification",\n                            "host": ["{{base_url}}"],\n                            "path": ["compliance", "kyc-verification"]\n                        }\n                    }\n                }\n            ]\n        },\n        {\n            "name": "📈 Health & Monitoring",\n            "item": [\n                {\n                    "name": "System Health Check",\n                    "request": {\n                        "method": "GET",\n                        "url": {\n                            "raw": "{{base_url}}/api/actuator/health",\n                            "host": ["{{base_url}}"],\n                            "path": ["api", "actuator", "health"]\n                        }\n                    }\n                },\n                {\n                    "name": "Banking Health Indicators",\n                    "request": {\n                        "method": "GET",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            }\n                        ],\n                        "url": {\n                            "raw": "{{base_url}}/api/actuator/health/banking",\n                            "host": ["{{base_url}}"],\n                            "path": ["api", "actuator", "health", "banking"]\n                        }\n                    }\n                },\n                {\n                    "name": "Fraud Detection Health",\n                    "request": {\n                        "method": "GET",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            }\n                        ],\n                        "url": {\n                            "raw": "{{base_url}}/api/actuator/health/fraud-detection",\n                            "host": ["{{base_url}}"],\n                            "path": ["api", "actuator", "health", "fraud-detection"]\n                        }\n                    }\n                },\n                {\n                    "name": "System Metrics",\n                    "request": {\n                        "method": "GET",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            }\n                        ],\n                        "url": {\n                            "raw": "{{base_url}}/api/actuator/metrics",\n                            "host": ["{{base_url}}"],\n                            "path": ["api", "actuator", "metrics"]\n                        }\n                    }\n                },\n                {\n                    "name": "Prometheus Metrics",\n                    "request": {\n                        "method": "GET",\n                        "url": {\n                            "raw": "{{base_url}}/api/actuator/prometheus",\n                            "host": ["{{base_url}}"],\n                            "path": ["api", "actuator", "prometheus"]\n                        }\n                    }\n                },\n                {\n                    "name": "Banking Performance Metrics",\n                    "request": {\n                        "method": "GET",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            }\n                        ],\n                        "url": {\n                            "raw": "{{base_url}}/api/actuator/metrics/banking.loans.processing.time",\n                            "host": ["{{base_url}}"],\n                            "path": ["api", "actuator", "metrics", "banking.loans.processing.time"]\n                        }\n                    }\n                }\n            ]\n        },\n        {\n            "name": "🧪 Test Scenarios",\n            "item": [\n                {\n                    "name": "End-to-End Loan Application Flow",\n                    "event": [\n                        {\n                            "listen": "test",\n                            "script": {\n                                "exec": [\n                                    "// This is a comprehensive test that validates the entire loan application process",\n                                    "pm.test(\\"Complete loan application flow\\", async () => {",\n                                    "    // Step 1: Get OAuth token",\n                                    "    const tokenRequest = {",\n                                    "        url: pm.collectionVariables.get(\\"auth_url\\") + \\"/realms/banking/protocol/openid-connect/token\\",",\n                                    "        method: \\"POST\\",",\n                                    "        header: {\\"Content-Type\\": \\"application/x-www-form-urlencoded\\"},",\n                                    "        body: {",\n                                    "            mode: \\"urlencoded\\",",\n                                    "            urlencoded: [",\n                                    "                {key: \\"grant_type\\", value: \\"client_credentials\\"},",\n                                    "                {key: \\"client_id\\", value: \\"banking-app\\"},",\n                                    "                {key: \\"client_secret\\", value: \\"banking-secret\\"},",\n                                    "                {key: \\"scope\\", value: \\"banking\\"}",\n                                    "            ]",\n                                    "        }",\n                                    "    };",\n                                    "    ",\n                                    "    const tokenResponse = await pm.sendRequest(tokenRequest);",\n                                    "    pm.expect(tokenResponse.code).to.equal(200);",\n                                    "    const token = tokenResponse.json().access_token;",\n                                    "    pm.expect(token).to.exist;",\n                                    "    ",\n                                    "    // Step 2: Create customer",\n                                    "    const customerRequest = {",\n                                    "        url: pm.collectionVariables.get(\\"base_url\\") + \\"/customers\\",",\n                                    "        method: \\"POST\\",",\n                                    "        header: {",\n                                    "            \\"Authorization\\": \\"Bearer \\" + token,",\n                                    "            \\"Content-Type\\": \\"application/json\\"",\n                                    "        },",\n                                    "        body: {",\n                                    "            mode: \\"raw\\",",\n                                    "            raw: JSON.stringify({",\n                                    "                firstName: \\"Test\\",",\n                                    "                lastName: \\"Customer\\",",\n                                    "                email: \\"test.customer@example.com\\",",\n                                    "                phone: \\"+1-555-0199\\",",\n                                    "                dateOfBirth: \\"1985-05-15\\",",\n                                    "                annualIncome: 75000.00,",\n                                    "                creditScore: 750",\n                                    "            })",\n                                    "        }",\n                                    "    };",\n                                    "    ",\n                                    "    const customerResponse = await pm.sendRequest(customerRequest);",\n                                    "    pm.expect(customerResponse.code).to.equal(201);",\n                                    "    const customerId = customerResponse.json().customerId;",\n                                    "    pm.expect(customerId).to.exist;",\n                                    "    ",\n                                    "    // Step 3: Submit loan application",\n                                    "    const loanRequest = {",\n                                    "        url: pm.collectionVariables.get(\\"base_url\\") + \\"/loans/applications\\",",\n                                    "        method: \\"POST\\",",\n                                    "        header: {",\n                                    "            \\"Authorization\\": \\"Bearer \\" + token,",\n                                    "            \\"Content-Type\\": \\"application/json\\"",\n                                    "        },",\n                                    "        body: {",\n                                    "            mode: \\"raw\\",",\n                                    "            raw: JSON.stringify({",\n                                    "                customerId: customerId,",\n                                    "                loanType: \\"PERSONAL\\",",\n                                    "                requestedAmount: 25000.00,",\n                                    "                termMonths: 60,",\n                                    "                purposeOfLoan: \\"HOME_IMPROVEMENT\\"",\n                                    "            })",\n                                    "        }",\n                                    "    };",\n                                    "    ",\n                                    "    const loanResponse = await pm.sendRequest(loanRequest);",\n                                    "    pm.expect(loanResponse.code).to.equal(201);",\n                                    "    const loanId = loanResponse.json().loanId;",\n                                    "    pm.expect(loanId).to.exist;",\n                                    "    ",\n                                    "    console.log(\\"End-to-end test completed successfully\\");",\n                                    "    console.log(\\"Customer ID: \\" + customerId);",\n                                    "    console.log(\\"Loan ID: \\" + loanId);",\n                                    "});"\n                                ],\n                                "type": "text/javascript"\n                            }\n                        }\n                    ],\n                    "request": {\n                        "method": "GET",\n                        "header": [],\n                        "url": {\n                            "raw": "{{base_url}}/api/actuator/health",\n                            "host": ["{{base_url}}"],\n                            "path": ["api", "actuator", "health"]\n                        }\n                    }\n                },\n                {\n                    "name": "Load Test - Multiple Loan Applications",\n                    "event": [\n                        {\n                            "listen": "test",\n                            "script": {\n                                "exec": [\n                                    "// Simulates load testing with multiple concurrent loan applications",\n                                    "pm.test(\\"Load test - multiple loan applications\\", async () => {",\n                                    "    const token = pm.collectionVariables.get(\\"access_token\\");",\n                                    "    const baseUrl = pm.collectionVariables.get(\\"base_url\\");",\n                                    "    ",\n                                    "    if (!token) {",\n                                    "        throw new Error(\\"Access token not available. Please run authentication first.\\");",\n                                    "    }",\n                                    "    ",\n                                    "    const promises = [];",\n                                    "    const numberOfRequests = 5;",\n                                    "    ",\n                                    "    for (let i = 0; i < numberOfRequests; i++) {",\n                                    "        const request = {",\n                                    "            url: baseUrl + \\"/loans/applications\\",",\n                                    "            method: \\"POST\\",",\n                                    "            header: {",\n                                    "                \\"Authorization\\": \\"Bearer \\" + token,",\n                                    "                \\"Content-Type\\": \\"application/json\\"",\n                                    "            },",\n                                    "            body: {",\n                                    "                mode: \\"raw\\",",\n                                    "                raw: JSON.stringify({",\n                                    "                    customerId: pm.collectionVariables.get(\\"customer_id\\"),",\n                                    "                    loanType: \\"PERSONAL\\",",\n                                    "                    requestedAmount: 15000.00 + (i * 1000),",\n                                    "                    termMonths: 36 + (i * 12),",\n                                    "                    purposeOfLoan: \\"PERSONAL_USE\\"",\n                                    "                })",\n                                    "            }",\n                                    "        };",\n                                    "        ",\n                                    "        promises.push(pm.sendRequest(request));",\n                                    "    }",\n                                    "    ",\n                                    "    const responses = await Promise.all(promises);",\n                                    "    ",\n                                    "    responses.forEach((response, index) => {",\n                                    "        pm.expect(response.code).to.be.oneOf([200, 201, 429]); // 429 for rate limiting",\n                                    "        console.log(\`Request ${index + 1}: Status ${response.code}\`);",\n                                    "    });",\n                                    "    ",\n                                    "    console.log(\`Load test completed: ${numberOfRequests} requests processed\`);",\n                                    "});"\n                                ],\n                                "type": "text/javascript"\n                            }\n                        }\n                    ],\n                    "request": {\n                        "method": "GET",\n                        "header": [],\n                        "url": {\n                            "raw": "{{base_url}}/api/actuator/health",\n                            "host": ["{{base_url}}"],\n                            "path": ["api", "actuator", "health"]\n                        }\n                    }\n                },\n                {\n                    "name": "Security Test - FAPI Compliance",\n                    "event": [\n                        {\n                            "listen": "test",\n                            "script": {\n                                "exec": [\n                                    "pm.test(\\"FAPI compliance test\\", () => {",\n                                    "    // Test required FAPI headers",\n                                    "    pm.test(\\"FAPI headers present\\", () => {",\n                                    "        const fapiAuthDate = pm.request.headers.get(\\"x-fapi-auth-date\\");",\n                                    "        const fapiCustomerIp = pm.request.headers.get(\\"x-fapi-customer-ip-address\\");",\n                                    "        const fapiInteractionId = pm.request.headers.get(\\"x-fapi-interaction-id\\");",\n                                    "        ",\n                                    "        pm.expect(fapiAuthDate).to.exist;",\n                                    "        pm.expect(fapiCustomerIp).to.exist;",\n                                    "        pm.expect(fapiInteractionId).to.exist;",\n                                    "    });",\n                                    "    ",\n                                    "    // Test response headers",\n                                    "    pm.test(\\"Security headers present\\", () => {",\n                                    "        pm.expect(pm.response.headers.get(\\"X-Frame-Options\\")).to.exist;",\n                                    "        pm.expect(pm.response.headers.get(\\"X-Content-Type-Options\\")).to.exist;",\n                                    "        pm.expect(pm.response.headers.get(\\"Strict-Transport-Security\\")).to.exist;",\n                                    "    });",\n                                    "    ",\n                                    "    // Test response time for FAPI compliance",\n                                    "    pm.test(\\"Response time acceptable\\", () => {",\n                                    "        pm.expect(pm.response.responseTime).to.be.below(5000);",\n                                    "    });",\n                                    "});"\n                                ],\n                                "type": "text/javascript"\n                            }\n                        }\n                    ],\n                    "request": {\n                        "method": "GET",\n                        "header": [\n                            {\n                                "key": "Authorization",\n                                "value": "Bearer {{access_token}}"\n                            },\n                            {\n                                "key": "x-fapi-auth-date",\n                                "value": "{{$timestamp}}"\n                            },\n                            {\n                                "key": "x-fapi-customer-ip-address",\n                                "value": "192.168.1.100"\n                            },\n                            {\n                                "key": "x-fapi-interaction-id",\n                                "value": "{{$guid}}"\n                            }\n                        ],\n                        "url": {\n                            "raw": "{{base_url}}/customers/{{customer_id}}",\n                            "host": ["{{base_url}}"],\n                            "path": ["customers", "{{customer_id}}"]\n                        }\n                    }\n                }\n            ]\n        }\n    ]\n}

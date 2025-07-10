@@ -1,0 +1,291 @@
+# Keycloak OAuth 2.1 Configuration with FAPI 2.0 and DPoP Support
+# Enterprise Loan Management System
+
+keycloak:
+  # Keycloak server configuration
+  server:
+    base-url: "https://auth.loanmanagement.com"
+    realm: "banking"
+    admin-realm: "master"
+    ssl-required: true
+    connection-timeout: 30000
+    socket-timeout: 30000
+    connection-request-timeout: 30000
+    max-pool-size: 50
+
+  # FAPI 2.0 compliance settings
+  fapi:
+    enabled: true
+    enforce-pkce: true
+    require-signed-request-object: true
+    require-pushed-authorization-requests: true
+    allowed-signature-algorithms:
+      - "RS256"
+      - "ES256" 
+      - "PS256"
+    token-lifetime: 3600        # 1 hour
+    refresh-token-lifetime: 86400 # 24 hours
+    require-mtls: false         # Set to true for highest security
+    mtls-certificate-subject-dn: ""
+    enable-ciba: false          # Client Initiated Backchannel Authentication
+
+  # DPoP (Demonstration of Proof-of-Possession) configuration
+  dpop:
+    enabled: true
+    enforced: false             # Start with non-enforced mode
+    max-age: 300               # 5 minutes
+    allowed-algorithms:
+      - "RS256"
+      - "ES256"
+      - "PS256"
+    require-jti: true
+    clock-skew-tolerance: 60    # 1 minute
+    enable-nonce-validation: true
+    proof-cache-size: 10000
+
+  # Client registration settings
+  client:
+    client-id: "loan-management-system"
+    client-secret: "${KEYCLOAK_CLIENT_SECRET:your-secure-client-secret}"
+    client-type: "CONFIDENTIAL"
+    redirect-uris:
+      - "https://api.loanmanagement.com/login/oauth2/code/keycloak"
+      - "https://app.loanmanagement.com/callback"
+    post-logout-redirect-uris:
+      - "https://api.loanmanagement.com/logout/success"
+      - "https://app.loanmanagement.com/logout"
+    web-origins:
+      - "https://api.loanmanagement.com"
+      - "https://app.loanmanagement.com"
+    default-scopes:
+      - "openid"
+      - "profile"
+      - "email"
+      - "banking"
+    optional-scopes:
+      - "loans"
+      - "payments"
+      - "admin"
+
+  # Security policies
+  security:
+    enable-audit-events: true
+    enable-brute-force-protection: true
+    failure-threshold: 5
+    lockout-duration: 900       # 15 minutes
+    enable-otp: false
+    require-email-verification: true
+    session-timeout: 3600       # 1 hour
+    sso-session-timeout: 28800  # 8 hours
+    enable-password-policy: true
+    password-policy:
+      min-length: 12
+      max-length: 128
+      require-uppercase: true
+      require-lowercase: true
+      require-digits: true
+      require-special-chars: true
+      password-history: 5
+      max-age: 7776000          # 90 days
+      forbid-common-passwords: true
+    
+    # Security filter configuration
+    protected-paths:
+      - "/api/v1/loans"
+      - "/api/v1/loans/**"
+      - "/api/v1/payments"
+      - "/api/v1/payments/**"
+      - "/api/v1/customers"
+      - "/api/v1/customers/**"
+      - "/api/v1/admin/**"
+    
+    excluded-paths:
+      - "/actuator/health"
+      - "/actuator/info"
+      - "/swagger-ui/**"
+      - "/v3/api-docs/**"
+      - "/auth/**"
+      - "/public/**"
+      - "/error"
+    
+    enforce-fapi-compliance: true
+    enforce-dpop-validation: false
+
+# Spring Security OAuth2 Resource Server Configuration
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: "${keycloak.server.base-url}/auth/realms/${keycloak.server.realm}"
+          jwk-set-uri: "${keycloak.server.base-url}/auth/realms/${keycloak.server.realm}/protocol/openid-connect/certs"
+          
+      client:
+        registration:
+          keycloak:
+            client-id: "${keycloak.client.client-id}"
+            client-secret: "${keycloak.client.client-secret}"
+            client-authentication-method: "private_key_jwt"
+            authorization-grant-type: "authorization_code"
+            redirect-uri: "{baseUrl}/login/oauth2/code/keycloak"
+            scope: "openid,profile,email,banking"
+            client-name: "Enterprise Loan Management System"
+        
+        provider:
+          keycloak:
+            issuer-uri: "${keycloak.server.base-url}/auth/realms/${keycloak.server.realm}"
+            authorization-uri: "${keycloak.server.base-url}/auth/realms/${keycloak.server.realm}/protocol/openid-connect/auth"
+            token-uri: "${keycloak.server.base-url}/auth/realms/${keycloak.server.realm}/protocol/openid-connect/token"
+            user-info-uri: "${keycloak.server.base-url}/auth/realms/${keycloak.server.realm}/protocol/openid-connect/userinfo"
+            jwk-set-uri: "${keycloak.server.base-url}/auth/realms/${keycloak.server.realm}/protocol/openid-connect/certs"
+            user-name-attribute: "preferred_username"
+
+# Logging configuration for OAuth2 and security
+logging:
+  level:
+    com.loanmanagement.security.keycloak: DEBUG
+    org.springframework.security: INFO
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG
+  pattern:
+    console: "%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n"
+
+# Management endpoints for monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 
+          - health
+          - info
+          - metrics
+          - oauth2-clients
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: when-authorized
+
+# Cache configuration for OAuth2 tokens and JWKS
+spring:
+  cache:
+    cache-names:
+      - oauth2-tokens
+      - jwks-cache
+      - dpop-proofs
+      - fapi-validation-cache
+    caffeine:
+      spec: "maximumSize=1000,expireAfterWrite=300s"
+
+# CORS configuration for web applications
+spring:
+  web:
+    cors:
+      allowed-origins:
+        - "https://app.loanmanagement.com"
+        - "https://admin.loanmanagement.com"
+      allowed-methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowed-headers:
+        - "*"
+      allow-credentials: true
+      max-age: 3600
+
+---
+# Development profile overrides
+spring:
+  config:
+    activate:
+      on-profile: "dev"
+
+keycloak:
+  server:
+    base-url: "http://localhost:8080"
+    ssl-required: false
+  
+  fapi:
+    enabled: false
+    
+  dpop:
+    enabled: false
+    
+  security:
+    enforce-fapi-compliance: false
+    enforce-dpop-validation: false
+
+logging:
+  level:
+    com.loanmanagement.security: DEBUG
+    org.springframework.security: DEBUG
+
+---
+# Test profile overrides
+spring:
+  config:
+    activate:
+      on-profile: "test"
+
+keycloak:
+  server:
+    base-url: "http://localhost:8080"
+    realm: "test-realm"
+    ssl-required: false
+  
+  client:
+    client-id: "test-client"
+    client-secret: "test-secret"
+    
+  fapi:
+    enabled: true
+    enforce-pkce: false
+    require-signed-request-object: false
+    
+  dpop:
+    enabled: true
+    enforced: false
+    max-age: 60
+    
+  security:
+    enforce-fapi-compliance: false
+    enforce-dpop-validation: false
+
+---
+# Production profile settings
+spring:
+  config:
+    activate:
+      on-profile: "prod"
+
+keycloak:
+  server:
+    ssl-required: true
+    
+  fapi:
+    enabled: true
+    enforce-pkce: true
+    require-signed-request-object: true
+    require-pushed-authorization-requests: true
+    require-mtls: true
+    
+  dpop:
+    enabled: true
+    enforced: true
+    
+  security:
+    enable-brute-force-protection: true
+    enable-otp: true
+    enforce-fapi-compliance: true
+    enforce-dpop-validation: true
+
+logging:
+  level:
+    com.loanmanagement.security.keycloak: INFO
+    org.springframework.security: WARN
+
+management:
+  endpoint:
+    health:
+      show-details: never

@@ -1,4 +1,4 @@
-@startuml Loan Creation Sequence
+@startuml Loan Creation Sequence (Java 21 + FAPI 2.0)
 
 !define ACTOR_COLOR #4A90E2
 !define CONTROLLER_COLOR #F5A623
@@ -7,28 +7,52 @@
 !define INFRASTRUCTURE_COLOR #FF6B6B
 
 participant "Bank Employee" as Employee ACTOR_COLOR
+participant "FAPI 2.0 Gateway" as Gateway CONTROLLER_COLOR
 participant "LoanController" as Controller CONTROLLER_COLOR
+participant "ZeroTrustSecurityService" as ZeroTrust APPLICATION_COLOR
 participant "LoanApplicationService" as LoanService APPLICATION_COLOR
 participant "CustomerApplicationService" as CustomerService APPLICATION_COLOR
+participant "AIRiskAssessmentService" as AIService APPLICATION_COLOR
 participant "Loan" as LoanAggregate DOMAIN_COLOR
 participant "Customer" as CustomerAggregate DOMAIN_COLOR
 participant "LoanRepository" as LoanRepo INFRASTRUCTURE_COLOR
 participant "EventPublisher" as EventPub INFRASTRUCTURE_COLOR
 participant "LoanCreationSaga" as Saga APPLICATION_COLOR
 
-== Loan Creation Request ==
+== FAPI 2.0 Authenticated Request ==
 
-Employee -> Controller : POST /api/v1/loans\n{customerId, amount, rate, installments}
+Employee -> Gateway : POST /api/v1/loans\n{customerId, amount, rate, installments}\nAuthorization: Bearer {jwt}\nDPoP: {dpop_proof}
+activate Gateway
+
+Gateway -> Gateway : Validate FAPI 2.0 headers\n(DPoP, JWT, Interaction-ID)
+
+Gateway -> ZeroTrust : assessThreatLevel(request)
+activate ZeroTrust
+
+ZeroTrust -> ZeroTrust : Analyze behavior pattern\nDevice reputation\nContextual factors
+ZeroTrust --> Gateway : SecurityAssessment\n{threatLevel: LOW}
+deactivate ZeroTrust
+
+Gateway -> Controller : Forward request\n(with security context)
 activate Controller
 
-Controller -> Controller : Validate request\n(amount, rate, installments)
+Controller -> Controller : Validate request\n(amount, rate, installments)\nJava 21 pattern matching
 
 Controller -> LoanService : createLoan(CreateLoanCommand)
 activate LoanService
 
+== AI-Powered Risk Assessment ==
+
+LoanService -> AIService : assessRiskLevel(customerId, amount, purpose)
+activate AIService
+
+AIService -> AIService : ML model evaluation\nFraud pattern detection\nCredit risk scoring
+AIService --> LoanService : RiskAssessment\n{score: 0.85, approved: true}
+deactivate AIService
+
 == Business Rule Validation ==
 
-LoanService -> LoanService : Calculate total amount\n(principal + interest)
+LoanService -> LoanService : Calculate total amount\n(principal + interest)\nJava 21 records and BigDecimal
 
 LoanService -> CustomerService : isEligibleForLoan(customerId, totalAmount)
 activate CustomerService
@@ -36,7 +60,7 @@ activate CustomerService
 CustomerService -> CustomerAggregate : hasSufficientCredit(amount)
 activate CustomerAggregate
 
-CustomerAggregate -> CustomerAggregate : Check available credit\n(creditLimit - usedCredit)
+CustomerAggregate -> CustomerAggregate : Check available credit\n(creditLimit - usedCredit)\nJava 21 virtual threads for concurrent checks
 CustomerAggregate --> CustomerService : eligibility result
 deactivate CustomerAggregate
 
@@ -45,9 +69,11 @@ deactivate CustomerService
 
 alt Customer Not Eligible
     LoanService --> Controller : throw InsufficientCreditException
-    Controller --> Employee : 400 Bad Request\n{errorCode: "INSUFFICIENT_CREDIT"}
+    Controller --> Gateway : 400 Bad Request\n{errorCode: "INSUFFICIENT_CREDIT"}
+    Gateway --> Employee : FAPI 2.0 error response\n{error: "insufficient_credit", interaction_id: "..."}
     deactivate LoanService
     deactivate Controller
+    deactivate Gateway
 else Customer Eligible
 
 == SAGA Initiation ==

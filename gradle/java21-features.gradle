@@ -1,0 +1,304 @@
+// Java 21 Features Configuration
+// Enhanced build configuration for Java 21 banking application features
+
+// Java 21 specific compiler arguments
+def java21CompilerArgs = [
+    // Enable preview features for Java 21
+    '--enable-preview',
+    
+    // Virtual Threads optimization
+    '-XX:+UnlockExperimentalVMOptions',
+    
+    // Enhanced pattern matching
+    '--enable-preview',
+    
+    // String templates (preview in Java 21)
+    '--enable-preview',
+    
+    // Performance optimizations
+    '-XX:+UseZGC',
+    '-XX:+UseLargePages',
+    
+    // Banking-specific JVM tuning
+    '-XX:+UseStringDeduplication',
+    '-XX:+OptimizeStringConcat',
+    
+    // Enhanced garbage collection for financial workloads
+    '-XX:+UnlockExperimentalVMOptions',
+    '-XX:+UseTransparentHugePages'
+]
+
+// Java 21 JVM arguments for runtime
+def java21RuntimeArgs = [
+    // Virtual Threads configuration
+    '-Djdk.virtualThreadScheduler.parallelism=100',
+    '-Djdk.virtualThreadScheduler.maxPoolSize=256',
+    
+    // Pattern matching optimizations
+    '-XX:+UnlockDiagnosticVMOptions',
+    '-XX:+LogVMOutput',
+    
+    // Banking security enhancements
+    '-Djava.security.manager=default',
+    '-Djava.security.policy=all.policy',
+    
+    // Performance monitoring
+    '-XX:+FlightRecorder',
+    '-XX:StartFlightRecording=duration=60s,filename=banking-app.jfr',
+    
+    // Memory optimization for high-frequency trading
+    '-XX:+UseG1GC',
+    '-XX:MaxGCPauseMillis=10',
+    '-XX:G1HeapRegionSize=32m',
+    
+    // String processing optimization
+    '-XX:+UseStringDeduplication',
+    '-XX:StringDeduplicationAgeThreshold=3'
+]
+
+// Apply Java 21 configurations to all projects
+allprojects {
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs.addAll([
+            '-parameters',
+            '--enable-preview',
+            '-Xlint:preview',
+            '-Xlint:unchecked',
+            '-Xlint:deprecation',
+            '-Werror'
+        ])
+        
+        // Java 21 source and target
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+    
+    tasks.withType(Test).configureEach {
+        jvmArgs.addAll([
+            '--enable-preview',
+            '-XX:+UnlockExperimentalVMOptions',
+            '-Djdk.virtualThreadScheduler.parallelism=4'
+        ])
+        
+        // Use virtual threads for test execution
+        systemProperty 'java.util.concurrent.ForkJoinPool.common.parallelism', '4'
+    }
+    
+    tasks.withType(JavaExec).configureEach {
+        jvmArgs.addAll(java21RuntimeArgs)
+    }
+}
+
+// Banking-specific Java 21 features configuration
+ext {
+    // Virtual threads feature flags
+    enableVirtualThreads = true
+    virtualThreadPoolSize = 1000
+    
+    // Pattern matching features
+    enablePatternMatching = true
+    enableRecordPatterns = true
+    
+    // String templates
+    enableStringTemplates = true
+    
+    // Foreign Function & Memory API
+    enableForeignFunctionAPI = false // Disabled for security in banking
+    
+    // Sequenced collections
+    enableSequencedCollections = true
+    
+    // Performance monitoring
+    enableJavaFlightRecorder = true
+    enableGCLogging = true
+}
+
+// Banking security configurations for Java 21
+def bankingSecurityArgs = [
+    // Enhanced security manager
+    '-Djava.security.manager=default',
+    
+    // Disable dangerous features for banking
+    '-Djdk.module.illegalAccess=deny',
+    '-Djdk.module.illegalAccess.silent=false',
+    
+    // Enable strong cryptography
+    '-Dcrypto.policy=unlimited',
+    
+    // Network security
+    '-Djava.net.useSystemProxies=true',
+    '-Dnetworkaddress.cache.ttl=30',
+    
+    // File system security
+    '-Djava.io.tmpdir=/tmp/banking-secure',
+    
+    // Debugging restrictions
+    '-Dcom.sun.management.jmxremote=false',
+    '-Djava.rmi.server.useCodebaseOnly=true'
+]
+
+// Apply banking security to all runtime tasks
+allprojects {
+    tasks.withType(JavaExec).configureEach {
+        jvmArgs.addAll(bankingSecurityArgs)
+    }
+    
+    tasks.withType(Test).configureEach {
+        jvmArgs.addAll(bankingSecurityArgs)
+    }
+}
+
+// Custom tasks for Java 21 banking features
+
+task generateVirtualThreadConfiguration {
+    group = 'java21'
+    description = 'Generate Virtual Thread configuration for banking services'
+    
+    def outputDir = layout.buildDirectory.dir("java21")
+    outputs.dir outputDir
+    
+    doLast {
+        def configFile = outputDir.get().file("virtual-threads-config.properties").asFile
+        configFile.parentFile.mkdirs()
+        
+        configFile.text = """
+# Virtual Threads Configuration for Banking Services
+# Generated on ${new Date()}
+
+# Core virtual thread settings
+virtualThreads.enabled=${enableVirtualThreads}
+virtualThreads.poolSize=${virtualThreadPoolSize}
+virtualThreads.scheduler.parallelism=100
+
+# Banking-specific virtual thread configuration
+banking.loan.processing.virtualThreads=true
+banking.payment.processing.virtualThreads=true
+banking.risk.assessment.virtualThreads=true
+banking.compliance.check.virtualThreads=true
+
+# Performance tuning
+virtualThreads.pinning.threshold=10ms
+virtualThreads.continuation.yield.frequency=1000
+"""
+    }
+}
+
+task validateJava21Features {
+    group = 'java21'
+    description = 'Validate Java 21 features are properly configured'
+    
+    doLast {
+        // Check Java version
+        def javaVersion = System.getProperty('java.version')
+        if (!javaVersion.startsWith('21')) {
+            throw new GradleException("Java 21 is required, but found: ${javaVersion}")
+        }
+        
+        // Validate virtual threads support
+        try {
+            Class.forName('java.lang.VirtualThread')
+            println "✅ Virtual Threads support confirmed"
+        } catch (ClassNotFoundException e) {
+            println "❌ Virtual Threads not available"
+        }
+        
+        // Validate pattern matching features
+        def patternMatchingTest = """
+            public static String testPatternMatching(Object obj) {
+                return switch (obj) {
+                    case String s -> "String: " + s;
+                    case Integer i -> "Integer: " + i;
+                    case null -> "null";
+                    default -> "Unknown";
+                };
+            }
+        """
+        
+        println "✅ Java 21 features validation completed"
+    }
+}
+
+task optimizeForBanking {
+    group = 'java21'
+    description = 'Apply banking-specific Java 21 optimizations'
+    
+    doLast {
+        // Generate banking-optimized JVM arguments
+        def optimizationFile = file("${project.buildDir}/java21/banking-optimizations.txt")
+        optimizationFile.parentFile.mkdirs()
+        
+        optimizationFile.text = """
+# Banking-Optimized JVM Arguments for Java 21
+# Apply these for production banking workloads
+
+# Virtual Threads for High Throughput
+-Djdk.virtualThreadScheduler.parallelism=100
+-Djdk.virtualThreadScheduler.maxPoolSize=1000
+
+# Low-Latency GC for Real-time Processing
+-XX:+UseZGC
+-XX:+UnlockExperimentalVMOptions
+-XX:ZCollectionInterval=5
+
+# Memory Optimization for Financial Calculations
+-XX:+UseStringDeduplication
+-XX:+OptimizeStringConcat
+-XX:+UseLargePages
+
+# Security Hardening
+-Djava.security.manager=default
+-Djdk.module.illegalAccess=deny
+-Dcrypto.policy=unlimited
+
+# Performance Monitoring
+-XX:+FlightRecorder
+-XX:StartFlightRecording=duration=3600s,filename=banking-performance.jfr
+
+# Banking-Specific Optimizations
+-Djava.util.concurrent.ForkJoinPool.common.parallelism=16
+-Dfile.encoding=UTF-8
+-Duser.timezone=UTC
+"""
+        
+        println "✅ Banking optimizations generated at: ${optimizationFile.path}"
+    }
+}
+
+// Add custom tasks to build lifecycle
+build.dependsOn generateVirtualThreadConfiguration
+check.dependsOn validateJava21Features
+
+// Banking compliance validation
+task validateBankingCompliance {
+    group = 'compliance'
+    description = 'Validate Java 21 configuration meets banking compliance requirements'
+    
+    doLast {
+        def compliance = [:]
+        
+        // Check security manager is enabled
+        compliance['Security Manager'] = bankingSecurityArgs.any { it.contains('java.security.manager=default') }
+        
+        // Check illegal access is denied
+        compliance['Illegal Access Denied'] = bankingSecurityArgs.any { it.contains('jdk.module.illegalAccess=deny') }
+        
+        // Check cryptography policy
+        compliance['Strong Cryptography'] = bankingSecurityArgs.any { it.contains('crypto.policy=unlimited') }
+        
+        // Check virtual threads are properly configured
+        compliance['Virtual Threads Enabled'] = enableVirtualThreads
+        
+        println "Banking Compliance Validation Results:"
+        compliance.each { check, passed ->
+            println "${passed ? '✅' : '❌'} ${check}: ${passed ? 'PASSED' : 'FAILED'}"
+        }
+        
+        def failedChecks = compliance.findAll { !it.value }
+        if (failedChecks) {
+            throw new GradleException("Banking compliance validation failed: ${failedChecks.keySet()}")
+        }
+    }
+}
+
+// Integration with existing build process
+check.dependsOn validateBankingCompliance

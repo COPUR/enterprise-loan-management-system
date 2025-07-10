@@ -1,0 +1,514 @@
+# Banking Service Mesh Observability Configuration
+# Comprehensive monitoring, tracing, and logging for enterprise banking
+
+---
+# Banking Jaeger Tracing Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-jaeger-config
+  namespace: istio-system
+  labels:
+    banking-component: tracing
+    compliance-level: fapi-2.0
+data:
+  jaeger.yaml: |
+    strategy: production
+    collector:
+      zipkin:
+        host-port: "0.0.0.0:9411"
+      grpc:
+        host-port: "0.0.0.0:14250"
+      http:
+        host-port: "0.0.0.0:14268"
+    storage:
+      type: elasticsearch
+      elasticsearch:
+        server-urls: http://elasticsearch.istio-system.svc.cluster.local:9200
+        index-prefix: banking-traces
+        use-aliases: true
+    sampling:
+      strategies: |
+        {
+          "default_strategy": {
+            "type": "probabilistic",
+            "param": 0.1
+          },
+          "per_service_strategies": [
+            {
+              "service": "customer-service",
+              "type": "probabilistic",
+              "param": 0.5
+            },
+            {
+              "service": "loan-service", 
+              "type": "probabilistic",
+              "param": 0.8
+            },
+            {
+              "service": "payment-service",
+              "type": "probabilistic", 
+              "param": 1.0
+            },
+            {
+              "service": "ai-assistant-service",
+              "type": "probabilistic",
+              "param": 0.3
+            }
+          ]
+        }
+
+---
+# Banking Prometheus Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-prometheus-config
+  namespace: istio-system
+  labels:
+    banking-component: metrics
+    compliance-level: fapi-2.0
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        banking_cluster: 'enterprise-banking'
+        compliance_level: 'fapi-2.0'
+    
+    rule_files:
+    - "/etc/prometheus/rules/*.yml"
+    
+    scrape_configs:
+    # Istio mesh metrics
+    - job_name: 'istio-mesh'
+      kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names:
+          - istio-system
+          - banking-services
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: istio-proxy;http-monitoring
+      
+    # Banking service metrics
+    - job_name: 'banking-services'
+      kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names:
+          - banking-services
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_annotation_banking_service]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_service_name]
+        target_label: banking_service
+      - source_labels: [__meta_kubernetes_pod_annotation_compliance_level]
+        target_label: compliance_level
+      
+    # Istio pilot metrics
+    - job_name: 'pilot'
+      kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names:
+          - istio-system
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: istiod;http-monitoring
+      
+    # Istio proxy metrics
+    - job_name: 'envoy-stats'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - banking-services
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_container_port_name]
+        action: keep
+        regex: '.*-envoy-prom'
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:15090
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: pod_name
+
+    alerting:
+      alertmanagers:
+      - kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names:
+            - istio-system
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_service_name]
+          regex: alertmanager
+          action: keep
+
+---
+# Banking Alerting Rules
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-alert-rules
+  namespace: istio-system
+  labels:
+    banking-component: alerting
+    compliance-level: fapi-2.0
+data:
+  banking-rules.yml: |
+    groups:
+    - name: banking.rules
+      rules:
+      # FAPI 2.0 Compliance Alerts
+      - alert: BankingHighErrorRate
+        expr: |
+          (
+            sum(rate(istio_requests_total{reporter="destination",destination_service_namespace="banking-services",response_code!~"2.."}[5m]))
+            /
+            sum(rate(istio_requests_total{reporter="destination",destination_service_namespace="banking-services"}[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          compliance: fapi-2.0
+          banking_alert: error_rate
+        annotations:
+          summary: "High error rate in banking services"
+          description: "Banking service {{ $labels.destination_service_name }} has error rate of {{ $value | humanizePercentage }}"
+      
+      - alert: BankingHighLatency
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_service_namespace="banking-services"}[5m]))
+            by (destination_service_name, le)
+          ) > 5000
+        for: 5m
+        labels:
+          severity: warning
+          compliance: fapi-2.0
+          banking_alert: latency
+        annotations:
+          summary: "High latency in banking service"
+          description: "Banking service {{ $labels.destination_service_name }} 99th percentile latency is {{ $value }}ms"
+      
+      # mTLS Security Alerts
+      - alert: BankingmTLSFailure
+        expr: |
+          sum(rate(istio_requests_total{reporter="destination",destination_service_namespace="banking-services",connection_security_policy!="mutual_tls"}[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+          compliance: fapi-2.0
+          banking_alert: security
+        annotations:
+          summary: "mTLS failure detected in banking services"
+          description: "Non-mTLS traffic detected in banking namespace: {{ $value }} requests/sec"
+      
+      # Authentication Alerts
+      - alert: BankingAuthenticationFailure
+        expr: |
+          sum(rate(istio_requests_total{reporter="destination",destination_service_namespace="banking-services",response_code="401"}[5m])) > 10
+        for: 2m
+        labels:
+          severity: warning
+          compliance: fapi-2.0
+          banking_alert: authentication
+        annotations:
+          summary: "High authentication failure rate"
+          description: "Authentication failures: {{ $value }} requests/sec in banking services"
+      
+      # Payment Service Specific Alerts
+      - alert: PaymentServiceDown
+        expr: |
+          sum(up{job="kubernetes-pods",kubernetes_pod_label_banking_service="payment"}) == 0
+        for: 1m
+        labels:
+          severity: critical
+          compliance: fapi-2.0
+          banking_alert: availability
+        annotations:
+          summary: "Payment service is down"
+          description: "All payment service instances are unavailable"
+      
+      # Rate Limiting Alerts
+      - alert: BankingRateLimitExceeded
+        expr: |
+          sum(rate(envoy_http_local_rate_limit_rate_limited_total[5m])) > 100
+        for: 5m
+        labels:
+          severity: warning
+          compliance: fapi-2.0
+          banking_alert: rate_limit
+        annotations:
+          summary: "High rate limiting activity"
+          description: "Rate limiting triggered {{ $value }} times/sec"
+
+---
+# Banking Grafana Dashboard ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-grafana-dashboards
+  namespace: istio-system
+  labels:
+    banking-component: dashboards
+    compliance-level: fapi-2.0
+    grafana_dashboard: "1"
+data:
+  banking-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Banking Services Overview",
+        "tags": ["banking", "fapi-2.0", "istio"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Banking Service Health",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(up{kubernetes_namespace=\"banking-services\"})",
+                "refId": "A"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 1},
+                    {"color": "green", "value": 4}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "FAPI 2.0 Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "sum(rate(istio_requests_total{destination_service_namespace=\"banking-services\"}[5m])) by (destination_service_name)",
+                "refId": "A"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "mTLS Compliance",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(rate(istio_requests_total{destination_service_namespace=\"banking-services\",connection_security_policy=\"mutual_tls\"}[5m])) / sum(rate(istio_requests_total{destination_service_namespace=\"banking-services\"}[5m]))",
+                "refId": "A"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percentunit",
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 0.95},
+                    {"color": "green", "value": 1.0}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+          }
+        ],
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "refresh": "30s"
+      }
+    }
+
+---
+# Banking Telemetry Configuration
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: banking-telemetry-config
+  namespace: banking-services
+  labels:
+    banking-component: telemetry
+    compliance-level: fapi-2.0
+spec:
+  # Enhanced metrics for banking compliance
+  metrics:
+  - providers:
+    - name: prometheus
+  - overrides:
+    - match:
+        metric: ALL_METRICS
+      disabled: false
+    - match:
+        metric: REQUEST_COUNT
+        operation: increment
+      tags:
+        banking_service_name: "destination.labels['banking-service'] | 'unknown'"
+        banking_service_version: "destination.labels['version'] | 'unknown'"
+        fapi_interaction_id: "request.headers['x-fapi-interaction-id'] | 'unknown'"
+        fapi_financial_id: "request.headers['x-fapi-financial-id'] | 'unknown'"
+        oauth_client_id: "request.headers['x-oauth-client-id'] | 'unknown'"
+        compliance_level: "destination.labels['compliance-level'] | 'unknown'"
+        banking_entity_id: "request.headers['x-banking-entity-id'] | 'unknown'"
+        dpop_thumbprint: "request.headers['dpop-jkt'] | 'unknown'"
+        transaction_type: "request.headers['x-banking-transaction-type'] | 'unknown'"
+    - match:
+        metric: REQUEST_DURATION
+        operation: increment
+      tags:
+        banking_service_name: "destination.labels['banking-service'] | 'unknown'"
+        fapi_interaction_id: "request.headers['x-fapi-interaction-id'] | 'unknown'"
+        response_time_bucket: |
+          response.duration | 0 < 100 ? "fast" :
+          response.duration | 100 <= duration < 500 ? "medium" :
+          response.duration | 500 <= duration < 1000 ? "slow" : "very_slow"
+  
+  # Banking access logging
+  accessLogging:
+  - providers:
+    - name: otel
+  - filter:
+      expression: 'has(request.headers["x-fapi-interaction-id"]) || has(request.headers["authorization"])'
+  
+  # Banking distributed tracing
+  tracing:
+  - providers:
+    - name: jaeger
+  - customTags:
+      banking_service:
+        literal:
+          value: "%{DOWNSTREAM_LOCAL_ADDRESS}"
+      fapi_interaction_id:
+        header:
+          name: x-fapi-interaction-id
+      banking_entity_id:
+        header:
+          name: x-banking-entity-id
+      oauth_scope:
+        header:
+          name: x-oauth-scope
+      transaction_amount:
+        header:
+          name: x-banking-transaction-amount
+
+---
+# Banking OpenTelemetry Collector Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-otel-config
+  namespace: istio-system
+  labels:
+    banking-component: telemetry
+    compliance-level: fapi-2.0
+data:
+  otel-collector.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      
+    processors:
+      # Banking-specific attribute processing
+      attributes:
+        actions:
+        - key: banking.service.name
+          from_attribute: service.name
+          action: upsert
+        - key: banking.compliance.level
+          value: "fapi-2.0"
+          action: upsert
+        - key: banking.environment
+          value: "production"
+          action: upsert
+      
+      # Banking resource detection
+      resourcedetection:
+        detectors: [env, system, k8sattributes]
+        system:
+          hostname_sources: ["os"]
+      
+      # Banking batch processing
+      batch:
+        timeout: 1s
+        send_batch_size: 1024
+        send_batch_max_size: 2048
+      
+      # Banking sampling for cost optimization
+      probabilistic_sampler:
+        sampling_percentage: 10
+        hash_seed: 22
+    
+    exporters:
+      # Banking traces to Jaeger
+      jaeger:
+        endpoint: jaeger-collector.istio-system.svc.cluster.local:14250
+        tls:
+          insecure: true
+      
+      # Banking metrics to Prometheus
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        namespace: banking
+        const_labels:
+          compliance_level: "fapi-2.0"
+      
+      # Banking logs to Elasticsearch
+      elasticsearch:
+        endpoints: ["http://elasticsearch.istio-system.svc.cluster.local:9200"]
+        index: "banking-logs"
+        mapping:
+          mode: "ecs"
+    
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [resourcedetection, attributes, probabilistic_sampler, batch]
+          exporters: [jaeger]
+        
+        metrics:
+          receivers: [otlp]
+          processors: [resourcedetection, attributes, batch]
+          exporters: [prometheus]
+        
+        logs:
+          receivers: [otlp]
+          processors: [resourcedetection, attributes, batch]
+          exporters: [elasticsearch]

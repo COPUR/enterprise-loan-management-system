@@ -1,0 +1,419 @@
+# Enterprise Loan Management System - Prometheus Configuration
+# Comprehensive monitoring for banking microservices
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+  external_labels:
+    monitor: 'banking-monitor'
+    environment: 'development'
+    system: 'enterprise-loan-management'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Rules files
+rule_files:
+  - "alert-rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+
+  # Party Data Server (IDP)
+  - job_name: 'party-data-server'
+    static_configs:
+      - targets: ['party-data-server:8080']
+    scrape_interval: 15s
+    metrics_path: '/actuator/prometheus'
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: party-data-server:8080
+      - target_label: service
+        replacement: party-data-server
+      - target_label: tier
+        replacement: identity
+
+  # API Gateway
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:8080']
+    scrape_interval: 15s
+    metrics_path: '/actuator/prometheus'
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: api-gateway:8080
+      - target_label: service
+        replacement: api-gateway
+      - target_label: tier
+        replacement: gateway
+
+  # Customer Service
+  - job_name: 'customer-service'
+    static_configs:
+      - targets: ['customer-service:8080']
+    scrape_interval: 15s
+    metrics_path: '/actuator/prometheus'
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: customer-service:8080
+      - target_label: service
+        replacement: customer-service
+      - target_label: tier
+        replacement: application
+
+  # Loan Service
+  - job_name: 'loan-service'
+    static_configs:
+      - targets: ['loan-service:8080']
+    scrape_interval: 15s
+    metrics_path: '/actuator/prometheus'
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: loan-service:8080
+      - target_label: service
+        replacement: loan-service
+      - target_label: tier
+        replacement: application
+
+  # Payment Service
+  - job_name: 'payment-service'
+    static_configs:
+      - targets: ['payment-service:8080']
+    scrape_interval: 15s
+    metrics_path: '/actuator/prometheus'
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: payment-service:8080
+      - target_label: service
+        replacement: payment-service
+      - target_label: tier
+        replacement: application
+
+  # Open Banking Gateway
+  - job_name: 'open-banking-gateway'
+    static_configs:
+      - targets: ['open-banking-gateway:8080']
+    scrape_interval: 15s
+    metrics_path: '/actuator/prometheus'
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: open-banking-gateway:8080
+      - target_label: service
+        replacement: open-banking-gateway
+      - target_label: tier
+        replacement: gateway
+
+  # ML Anomaly Detection Service
+  - job_name: 'ml-anomaly-service'
+    static_configs:
+      - targets: ['ml-anomaly-service:8080']
+    scrape_interval: 15s
+    metrics_path: '/actuator/prometheus'
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: ml-anomaly-service:8080
+      - target_label: service
+        replacement: ml-anomaly-service
+      - target_label: tier
+        replacement: ml
+
+  # Federation Monitoring Service
+  - job_name: 'federation-monitoring'
+    static_configs:
+      - targets: ['federation-monitoring:8080']
+    scrape_interval: 15s
+    metrics_path: '/actuator/prometheus'
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: federation-monitoring:8080
+      - target_label: service
+        replacement: federation-monitoring
+      - target_label: tier
+        replacement: monitoring
+
+  # PostgreSQL Database
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+    metrics_path: '/metrics'
+    scrape_timeout: 10s
+    relabel_configs:
+      - target_label: service
+        replacement: postgres
+      - target_label: tier
+        replacement: database
+
+  # Redis Cache
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+    metrics_path: '/metrics'
+    scrape_timeout: 10s
+    relabel_configs:
+      - target_label: service
+        replacement: redis
+      - target_label: tier
+        replacement: cache
+
+  # Kafka Message Broker
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka:9092']
+    scrape_interval: 30s
+    metrics_path: '/metrics'
+    scrape_timeout: 10s
+    relabel_configs:
+      - target_label: service
+        replacement: kafka
+      - target_label: tier
+        replacement: messaging
+
+  # Keycloak Identity Provider
+  - job_name: 'keycloak'
+    static_configs:
+      - targets: ['keycloak:8080']
+    scrape_interval: 30s
+    metrics_path: '/auth/realms/master/metrics'
+    scrape_timeout: 10s
+    relabel_configs:
+      - target_label: service
+        replacement: keycloak
+      - target_label: tier
+        replacement: identity
+
+  # Elasticsearch
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['elasticsearch:9200']
+    scrape_interval: 30s
+    metrics_path: '/_prometheus/metrics'
+    scrape_timeout: 10s
+    relabel_configs:
+      - target_label: service
+        replacement: elasticsearch
+      - target_label: tier
+        replacement: search
+
+  # Nginx Load Balancer
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:80']
+    scrape_interval: 30s
+    metrics_path: '/metrics'
+    scrape_timeout: 10s
+    relabel_configs:
+      - target_label: service
+        replacement: nginx
+      - target_label: tier
+        replacement: loadbalancer
+
+  # JVM Metrics for all Java applications
+  - job_name: 'jvm-metrics'
+    static_configs:
+      - targets: 
+        - 'party-data-server:8080'
+        - 'api-gateway:8080'
+        - 'customer-service:8080'
+        - 'loan-service:8080'
+        - 'payment-service:8080'
+        - 'open-banking-gateway:8080'
+        - 'ml-anomaly-service:8080'
+        - 'federation-monitoring:8080'
+    scrape_interval: 30s
+    metrics_path: '/actuator/prometheus'
+    scrape_timeout: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'jvm_.*'
+        target_label: __name__
+        replacement: '${1}'
+      - target_label: application
+        replacement: 'enterprise-loan-management'
+
+  # Business Metrics
+  - job_name: 'business-metrics'
+    static_configs:
+      - targets: 
+        - 'customer-service:8080'
+        - 'loan-service:8080'
+        - 'payment-service:8080'
+    scrape_interval: 60s
+    metrics_path: '/actuator/prometheus'
+    scrape_timeout: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'banking_.*'
+        target_label: __name__
+        replacement: '${1}'
+      - target_label: domain
+        replacement: 'banking'
+
+  # Security Metrics
+  - job_name: 'security-metrics'
+    static_configs:
+      - targets: 
+        - 'party-data-server:8080'
+        - 'api-gateway:8080'
+        - 'keycloak:8080'
+    scrape_interval: 30s
+    metrics_path: '/actuator/prometheus'
+    scrape_timeout: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'security_.*|oauth_.*|dpop_.*|fapi_.*'
+        target_label: __name__
+        replacement: '${1}'
+      - target_label: domain
+        replacement: 'security'
+
+  # Health Check Metrics
+  - job_name: 'health-metrics'
+    static_configs:
+      - targets: 
+        - 'party-data-server:8080'
+        - 'api-gateway:8080'
+        - 'customer-service:8080'
+        - 'loan-service:8080'
+        - 'payment-service:8080'
+        - 'open-banking-gateway:8080'
+        - 'ml-anomaly-service:8080'
+        - 'federation-monitoring:8080'
+    scrape_interval: 15s
+    metrics_path: '/actuator/health'
+    scrape_timeout: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'health_.*'
+        target_label: __name__
+        replacement: '${1}'
+      - target_label: domain
+        replacement: 'health'
+
+  # Custom Banking Metrics
+  - job_name: 'banking-custom-metrics'
+    static_configs:
+      - targets: 
+        - 'customer-service:8080'
+        - 'loan-service:8080'
+        - 'payment-service:8080'
+    scrape_interval: 30s
+    metrics_path: '/actuator/prometheus'
+    scrape_timeout: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'loan_.*|payment_.*|customer_.*|fraud_.*|compliance_.*'
+        target_label: __name__
+        replacement: '${1}'
+      - target_label: domain
+        replacement: 'banking-business'
+
+# Global metric relabeling
+metric_relabel_configs:
+  # Add environment label
+  - target_label: environment
+    replacement: 'development'
+  
+  # Add system label
+  - target_label: system
+    replacement: 'enterprise-loan-management'
+  
+  # Add compliance labels
+  - target_label: compliance
+    replacement: 'pci-dss,fapi-2.0,gdpr'
+
+# Remote write configuration (for long-term storage)
+# remote_write:
+#   - url: "http://thanos-receiver:19291/api/v1/receive"
+#     queue_config:
+#       max_samples_per_send: 1000
+#       max_shards: 200
+#       capacity: 2500
+
+# Remote read configuration (for federation)
+# remote_read:
+#   - url: "http://thanos-store:19291/api/v1/query"
+#     read_recent: true
+
+# Storage configuration
+storage:
+  tsdb:
+    retention.time: 90d
+    retention.size: 10GB
+    wal-compression: true

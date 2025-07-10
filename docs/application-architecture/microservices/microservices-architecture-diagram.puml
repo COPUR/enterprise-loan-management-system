@@ -7,7 +7,7 @@ skinparam componentBackgroundColor #E8F4FD
 skinparam arrowColor #2196F3
 skinparam arrowFontColor #333333
 
-title Enterprise Banking System - Istio Service Mesh Microservices Architecture
+title Enterprise Banking System - Java 21 Microservices with Istio Service Mesh
 
 package "Client Layer" {
     [Web Frontend] as WEB #FFE0B2
@@ -33,7 +33,7 @@ package "OAuth2.1 Identity & Security Layer" {
     component [OWASP Security Filters] as SECURITY #F3E5F5
     component [Party Role Authorization] as PARTY_AUTH #FCE4EC
     
-    note right of KEYCLOAK : Banking Realm\nJWT Token Management\nRole-based Access Control\nOAuth2.1 PKCE Flow\nAudit Event Logging\nSession Management
+    note right of KEYCLOAK : Banking Realm\nJWT Token Management\nRole-based Access Control\nOAuth 2.1 + FAPI 2.0\nDPoP Token Binding\nAudit Event Logging\nSession Management
     note right of LDAP : Enterprise Directory\nUser Authentication\nGroup Membership\nDepartment Mapping\nSecurity Credentials
     note right of SECURITY : SQL Injection Protection\nXSS Prevention\nCSRF Protection\nSecurity Headers\nFAPI Compliance
     note right of PARTY_AUTH : Authoritative Role Source\nTemporal Access Control\nMonetary Limits\nBusiness Unit Scoping\nCompliance Validation
@@ -45,9 +45,9 @@ package "Microservices Layer" {
         [Customer API] as CUSTOMER_API #C8E6C9
         [Envoy Sidecar] as CUSTOMER_ENVOY #E1BEE7
         [Customer Domain] as CUSTOMER_DOMAIN #C8E6C9
-        note right of CUSTOMER_DOMAIN : - Credit Management\n- Account Status\n- Profile Validation
+        note right of CUSTOMER_DOMAIN : - Java 21 Records & Pattern Matching\n- Credit Management with Virtual Threads\n- KYC Validation\n- Customer Status with Domain Events
         [Customer Repository] as CUSTOMER_REPO #C8E6C9
-        note right of CUSTOMER_ENVOY : mTLS Encryption\nTraffic Control\nMetrics Collection\nCircuit Breaking
+        note right of CUSTOMER_ENVOY : mTLS Encryption\nTraffic Control\nMetrics Collection\nCircuit Breaking\nZero Trust Validation
     }
     
     package "Loan Origination Service" {

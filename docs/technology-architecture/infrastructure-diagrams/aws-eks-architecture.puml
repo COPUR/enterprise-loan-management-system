@@ -1,4 +1,4 @@
-@startuml AWS EKS Enterprise Loan Management System Architecture
+@startuml AWS EKS Enterprise Loan Management System Architecture (Java 21)
 
 !define AWS_COLOR #FF9900
 !define KUBERNETES_COLOR #326CE5
@@ -11,7 +11,7 @@ skinparam backgroundColor #FFFFFF
 skinparam defaultFontName Arial
 skinparam defaultFontSize 10
 
-title Enterprise Loan Management System - AWS EKS Production Architecture
+title Enterprise Loan Management System - AWS EKS Production Architecture (Java 21 + Spring Boot 3.4.3)
 
 !define TITLE_SIZE 14
 !define HEADER_SIZE 12
@@ -41,9 +41,11 @@ package "AWS Cloud Infrastructure" <<AWS>> #FFF8DC {
         
         ' Worker Nodes
         package "Worker Nodes (Auto Scaling)" <<EC2>> #B3D9FF {
-            component [Node Group 1\n(t3.medium)] as NodeGroup1 KUBERNETES_COLOR
-            component [Node Group 2\n(t3.large)] as NodeGroup2 KUBERNETES_COLOR
+            component [Node Group 1\n(t3.medium - Java 21)] as NodeGroup1 KUBERNETES_COLOR
+            component [Node Group 2\n(t3.large - Java 21)] as NodeGroup2 KUBERNETES_COLOR
+            component [Node Group 3\n(c5.xlarge - AI/ML)] as NodeGroup3 KUBERNETES_COLOR
             component [Cluster Autoscaler] as ClusterAutoscaler KUBERNETES_COLOR
+            component [Karpenter\n(Advanced Scaling)] as Karpenter KUBERNETES_COLOR
         }
         
         ' Application Pods

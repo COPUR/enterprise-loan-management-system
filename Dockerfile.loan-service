@@ -1,0 +1,133 @@
+# Loan Service - Financial Calculation Optimization
+# Multi-stage Docker build optimized for loan processing and financial calculations
+
+# ========================================
+# Stage 1: Builder
+# ========================================
+FROM eclipse-temurin:21-jdk-alpine AS builder
+
+LABEL stage=builder \
+      com.enterprise.banking.service="loan-service" \
+      com.enterprise.banking.compliance="Financial-Calculations,Basel-III"
+
+# Install build dependencies and mathematical libraries
+RUN apk add --no-cache \
+    curl \
+    git \
+    bash \
+    gmp-dev \
+    && rm -rf /var/cache/apk/*
+
+# Create build user
+RUN addgroup -g 1001 builder && \
+    adduser -D -s /bin/sh -u 1001 -G builder builder
+
+USER builder:builder
+WORKDIR /workspace
+
+# Copy build files (layer caching optimization)
+COPY --chown=builder:builder build.gradle settings.gradle gradle.properties ./
+COPY --chown=builder:builder gradle/ ./gradle/
+COPY --chown=builder:builder gradlew ./
+
+# Download dependencies
+RUN ./gradlew dependencies --no-daemon
+
+# Copy loan service source
+COPY --chown=builder:builder loan-service/src/ ./loan-service/src/
+COPY --chown=builder:builder shared-kernel/src/ ./shared-kernel/src/
+
+# Build loan service with financial calculation optimization
+RUN ./gradlew :loan-service:clean :loan-service:build -x test --no-daemon \
+    && cp loan-service/build/libs/*.jar loan-service.jar
+
+# ========================================
+# Stage 2: Production - Loan Service
+# ========================================
+FROM eclipse-temurin:21-jre-alpine AS production
+
+LABEL maintainer="loan-service-team@banking.com" \
+      version="1.0.0" \
+      com.enterprise.banking.service="loan-service" \
+      com.enterprise.banking.compliance="Basel-III,Financial-Calculations,Interest-Rate-Risk" \
+      com.enterprise.banking.security-profile="financial-processing" \
+      com.enterprise.banking.audit-required="true" \
+      com.enterprise.banking.calculation-precision="high" \
+      com.enterprise.banking.risk-management="enabled"
+
+# Security hardening with mathematical libraries
+RUN apk update && apk upgrade \
+    && apk add --no-cache \
+    curl \
+    ca-certificates \
+    tzdata \
+    gmp \
+    && rm -rf /var/cache/apk/* \
+    && rm -rf /tmp/*
+
+# Create banking user with loan processing privileges
+RUN addgroup -g 1000 banking && \
+    adduser -D -s /bin/sh -u 1000 -G banking banking
+
+# Create secure directories for loan processing
+RUN mkdir -p /app/config /app/logs /app/data /app/calculations /app/risk-models \
+    && chown -R banking:banking /app \
+    && chmod 750 /app \
+    && chmod 700 /app/calculations /app/risk-models
+
+USER banking:banking
+WORKDIR /app
+
+# Copy loan service jar
+COPY --from=builder --chown=banking:banking /workspace/loan-service.jar ./app.jar
+
+# Loan service optimized JVM settings for financial calculations
+ENV JAVA_OPTS="-server \
+    -XX:+UseG1GC \
+    -XX:MaxGCPauseMillis=50 \
+    -XX:+UseStringDeduplication \
+    -XX:+OptimizeStringConcat \
+    -Xms512m \
+    -Xmx3g \
+    -XX:+HeapDumpOnOutOfMemoryError \
+    -XX:HeapDumpPath=/app/logs/ \
+    -XX:+ExitOnOutOfMemoryError \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Dspring.profiles.active=production \
+    -Dlogging.file.path=/app/logs \
+    -Dbanking.loan.precision-mode=high \
+    -Dbanking.loan.calculation-optimization=enabled \
+    -Djava.math.BigDecimal.precision=34"
+
+# Loan service environment
+ENV SPRING_PROFILES_ACTIVE=production \
+    SERVER_PORT=8080 \
+    MANAGEMENT_SERVER_PORT=8081 \
+    SERVICE_NAME=loan-service \
+    TZ=UTC
+
+# Financial calculation settings
+ENV LOAN_CALCULATION_PRECISION=34 \
+    INTEREST_CALCULATION_MODE=COMPOUND \
+    RISK_ASSESSMENT_ENABLED=true \
+    BASEL_III_COMPLIANCE=true \
+    FINANCIAL_AUDIT_TRAIL=true \
+    LOAN_PERFORMANCE_MONITORING=true
+
+# Mathematical and financial libraries configuration
+ENV MATH_PRECISION_MODE=HIGH \
+    CALCULATION_THREAD_POOL_SIZE=10 \
+    RISK_MODEL_CACHE_SIZE=1000
+
+# Expose ports
+EXPOSE 8080 8081
+
+# Volume for loan data, calculations, and risk models
+VOLUME ["/app/data", "/app/logs", "/app/calculations", "/app/risk-models"]
+
+# Health check with loan service validation
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8081/actuator/health/loan-processing || exit 1
+
+ENTRYPOINT ["java"]
+CMD ["-jar", "app.jar"]
