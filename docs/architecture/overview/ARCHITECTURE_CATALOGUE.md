@@ -23,13 +23,13 @@ graph TB
         ES[External Systems]
         RE[Regulators]
     end
-    
+
     subgraph "Enhanced Enterprise Banking System"
         subgraph "Security Perimeter"
             ISG[Istio Service Gateway]
             KC[Keycloak OAuth 2.1]
         end
-        
+
         subgraph "Banking Services"
             CS[Customer Service]
             LS[Loan Service]
@@ -37,32 +37,32 @@ graph TB
             RS[Risk Service]
             AS[Audit Service]
         end
-        
+
         subgraph "Data Layer"
             DB[(PostgreSQL)]
             CACHE[(Redis)]
             MSG[Apache Kafka]
         end
     end
-    
+
     BC --> ISG
     BO --> ISG
     BA --> ISG
     ES --> ISG
-    
+
     ISG --> KC
     KC --> CS
     KC --> LS
     KC --> PS
     KC --> RS
     KC --> AS
-    
+
     CS --> DB
     LS --> DB
     PS --> CACHE
     RS --> MSG
     AS --> DB
-    
+
     AS --> RE
 ```
 
@@ -119,7 +119,7 @@ sequenceDiagram
     participant OP as OAuth2 Proxy
     participant KC as Keycloak
     participant BS as Banking Service
-    
+
     C->>IG: 1. Access Protected Resource
     IG->>OP: 2. Check Authentication
     OP->>KC: 3. Redirect to Login (PKCE)
@@ -163,7 +163,7 @@ public class Loan extends AggregateRoot<LoanId> {
     private Money principalAmount;
     private LoanStatus status;
     private List<DomainEvent> domainEvents;
-    
+
     // Factory method for controlled creation
     public static Loan create(LoanCreationCommand command) {
         validateBusinessRules(command);
@@ -171,7 +171,7 @@ public class Loan extends AggregateRoot<LoanId> {
         loan.addDomainEvent(new LoanApplicationSubmittedEvent(loan));
         return loan;
     }
-    
+
     // Pure business logic
     public void approve(String approvedBy) {
         if (this.status != LoanStatus.PENDING) {
@@ -186,23 +186,23 @@ public class Loan extends AggregateRoot<LoanId> {
 @ApplicationService
 @Transactional
 public class LoanApplicationService {
-    
+
     @Autowired
     private LoanRepository loanRepository; // Port
-    
+
     @Autowired
     private DomainEventPublisher eventPublisher; // Port
-    
+
     public LoanApplicationResult createLoan(CreateLoanCommand command) {
         // Domain validation and creation
         Loan loan = Loan.create(command);
-        
+
         // Persistence through port
         loanRepository.save(loan);
-        
+
         // Event publishing
         eventPublisher.publishEvents(loan.getDomainEvents());
-        
+
         return LoanApplicationResult.success(loan.getId());
     }
 }
@@ -297,37 +297,37 @@ graph TB
         RS[Risk Service]
         AS[Audit Service]
     end
-    
+
     subgraph "Data Persistence Layer"
         subgraph "PostgreSQL Cluster"
             PG1[(Primary PostgreSQL)]
             PG2[(Read Replica 1)]
             PG3[(Read Replica 2)]
         end
-        
+
         subgraph "Caching Layer"
             RC1[(Redis Primary)]
             RC2[(Redis Replica)]
         end
-        
+
         subgraph "Search & Analytics"
             ES[(Elasticsearch)]
             PV[(PGVector)]
         end
-        
+
         subgraph "Event Streaming"
             K1[Kafka Broker 1]
             K2[Kafka Broker 2]
             K3[Kafka Broker 3]
         end
     end
-    
+
     CS --> PG1
     LS --> PG1
     PS --> RC1
     RS --> PV
     AS --> ES
-    
+
     PG1 --> PG2
     PG1 --> PG3
     RC1 --> RC2
@@ -359,18 +359,18 @@ fapi_requirements:
     - PKCE (Proof Key for Code Exchange)
     - Client authentication with mutual TLS
     - Request object signing with RSA-256
-    
+
   security_headers:
     - x-fapi-financial-id: Required for all requests
     - x-fapi-customer-ip-address: Customer IP tracking
     - x-fapi-interaction-id: Request correlation
     - x-fapi-auth-date: Authentication timestamp
-    
+
   encryption:
     - TLS 1.2+ for all communications
     - JWE encryption for sensitive data
     - Certificate pinning for mobile apps
-    
+
   audit:
     - All API calls logged with correlation IDs
     - Risk scoring for transactions
@@ -384,25 +384,25 @@ fapi_requirements:
 pci_dss_controls:
   requirement_1: # Firewall Configuration
     implementation: "Istio network policies and Kubernetes NetworkPolicies"
-    
+
   requirement_2: # Change Default Passwords
     implementation: "Keycloak strong password policies and MFA"
-    
+
   requirement_3: # Protect Stored Data
     implementation: "PostgreSQL TDE and application-level encryption"
-    
+
   requirement_4: # Encrypt Data in Transit
     implementation: "TLS 1.3 and mTLS for all communications"
-    
+
   requirement_6: # Secure Development
     implementation: "OWASP Top 10 protection and security testing"
-    
+
   requirement_8: # Unique User Authentication
     implementation: "OAuth 2.1 with RBAC and audit trails"
-    
+
   requirement_10: # Log and Monitor Access
     implementation: "Comprehensive audit logging and SIEM integration"
-    
+
   requirement_11: # Security Testing
     implementation: "Automated security scanning and penetration testing"
 ```
@@ -526,33 +526,33 @@ banking_metrics:
       type: counter
       labels: [loan_type, approval_status, amount_range]
       description: "Total number of loan applications by type and status"
-      
+
     - name: banking_payments_total
       type: counter
       labels: [payment_method, status, currency]
       description: "Total payment transactions by method and status"
-      
+
     - name: banking_fraud_score
       type: histogram
       labels: [risk_level, detection_method]
       description: "Distribution of fraud scores by risk level"
-      
+
     - name: banking_fapi_compliance_total
       type: counter
       labels: [fapi_version, financial_id]
       description: "FAPI compliance validation metrics"
-      
+
   technical_metrics:
     - name: banking_response_time
       type: histogram
       labels: [service, endpoint, method]
       description: "API response time distribution"
-      
+
     - name: banking_error_rate
       type: gauge
       labels: [service, error_type]
       description: "Error rate by service and error type"
-      
+
     - name: banking_concurrent_users
       type: gauge
       labels: [user_type, channel]
@@ -626,11 +626,11 @@ graph TB
         SEC[Security Tests<br/>OWASP, Penetration Testing]
         PERF[Performance Tests<br/>Load Testing, Stress Testing]
     end
-    
+
     E2E --> INT
     INT --> CONT
     CONT --> UNIT
-    
+
     SEC -.-> E2E
     SEC -.-> INT
     PERF -.-> E2E
@@ -741,13 +741,13 @@ info:
   version: 2.0.0
   description: |
     Secure banking API with OAuth 2.1 authentication and FAPI compliance.
-    
+
     ## Authentication
     All endpoints require OAuth 2.1 Bearer token authentication.
-    
+
     ## Rate Limiting
     API requests are rate-limited per client and user role.
-    
+
     ## Compliance
     This API adheres to FAPI 1.0 Advanced security profile.
 
@@ -830,8 +830,8 @@ security_scan:
 deploy_production:
   stage: deploy-production
   script:
-    - helm upgrade --install banking-system ./helm/banking-system 
-      --namespace $HELM_NAMESPACE 
+    - helm upgrade --install banking-system ./helm/banking-system
+      --namespace $HELM_NAMESPACE
       --set image.tag=$CI_COMMIT_SHA
       --set environment=production
   when: manual
@@ -866,7 +866,7 @@ graph TB
     REMEDIATE[Remediate Vulnerabilities]
     RECOVER[Recover Services]
     LESSONS[Lessons Learned]
-    
+
     DETECT --> ASSESS
     ASSESS --> CONTAIN
     CONTAIN --> INVESTIGATE
@@ -921,26 +921,26 @@ environments:
     cpu_per_node: "4 cores"
     memory_per_node: "16 GB"
     storage_per_node: "100 GB SSD"
-    
+
   staging:
     nodes: 5
     cpu_per_node: "8 cores"
     memory_per_node: "32 GB"
     storage_per_node: "500 GB SSD"
-    
+
   production:
     nodes: 9
     cpu_per_node: "16 cores"
     memory_per_node: "64 GB"
     storage_per_node: "1 TB NVMe SSD"
-    
+
 scaling_policies:
   horizontal_pod_autoscaler:
     min_replicas: 3
     max_replicas: 20
     target_cpu_utilization: 70%
     target_memory_utilization: 80%
-    
+
   vertical_pod_autoscaler:
     enabled: true
     update_policy: "Auto"
@@ -1006,7 +1006,7 @@ graph LR
     IMPLEMENT[Implementation]
     VALIDATE[Validation]
     CLOSE[Close RFC]
-    
+
     RFC --> REVIEW
     REVIEW --> APPROVE
     APPROVE --> IMPLEMENT

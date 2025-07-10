@@ -35,3 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Logs ###
+.log
+/.claude/
+*.log
+*.log
+test-extract/
