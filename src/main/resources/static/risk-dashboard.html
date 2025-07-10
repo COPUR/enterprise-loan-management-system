@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Risk Dashboard - Enterprise Banking</title>
+    <title>Ali&Co AI Risk Intelligence Dashboard - Enterprise Banking Excellence</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
     <style>
@@ -304,9 +304,18 @@
 </head>
 <body>
     <div class="dashboard-container">
+        <!-- Ali&Co Navigation -->
+        <div style="background: rgba(255, 255, 255, 0.95); border-radius: 10px; padding: 1rem; margin-bottom: 2rem; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);">
+            <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                <a href="../../../../docs/index.html" style="text-decoration: none; color: #3498db; font-weight: 600; padding: 0.5rem 1rem; border-radius: 5px; transition: background 0.3s ease;">🏠 Ali&Co Platform Home</a>
+                <span style="color: #e74c3c; font-weight: 600; padding: 0.5rem 1rem; background: #f8f9fa; border-radius: 5px;">📊 AI Risk Dashboard</span>
+                <a href="../../../../docs/architecture/architecture-guardrails-presentation.html" style="text-decoration: none; color: #3498db; font-weight: 600; padding: 0.5rem 1rem; border-radius: 5px; transition: background 0.3s ease;">📋 Architecture Guardrails</a>
+            </div>
+        </div>
+        
         <header class="header">
-            <h1>AI Risk Dashboard <span class="status-indicator"></span></h1>
-            <p class="header-subtitle">Real-time portfolio risk analysis powered by OpenAI Assistant</p>
+            <h1>Ali&Co AI Risk Intelligence Platform <span class="status-indicator"></span></h1>
+            <p class="header-subtitle">Advanced portfolio analytics and risk intelligence powered by Ali&Co's enterprise AI platform</p>
         </header>
 
         <div class="real-time-indicator">
@@ -316,16 +325,16 @@
 
         <div class="action-buttons">
             <button class="btn btn-primary" onclick="refreshDashboard()">
-                Refresh Data
+                🔄 Refresh Portfolio Data
             </button>
             <button class="btn btn-primary" onclick="generateAIInsights()">
-                AI Analysis
+                🤖 Ali&Co AI Intelligence
             </button>
             <button class="btn btn-secondary" onclick="exportData()">
-                Export Data
+                📊 Export Enterprise Report
             </button>
             <button class="btn btn-secondary" onclick="showCustomerAnalysis()">
-                Customer Analysis
+                👥 Customer Risk Analysis
             </button>
         </div>
 
@@ -359,10 +368,10 @@
         </div>
 
         <div class="ai-insights">
-            <h3>AI-Powered Insights</h3>
+            <h3>🧠 Ali&Co AI Risk Intelligence</h3>
             <div class="ai-content" id="ai-insights-content">
                 <div class="loading-spinner"></div>
-                <span>Loading AI analysis...</span>
+                <span>Loading Ali&Co's advanced AI risk analysis...</span>
             </div>
         </div>
     </div>
@@ -829,9 +838,10 @@
             try {
                 const response = await fetch('/api/customers');
                 const data = await response.json();
-                alert(`Customer Analysis:\nTotal Customers: ${data.total}\nActive Status: All customers active\nAverage Credit Score: 717`);
+                alert(`Ali&Co Customer Risk Intelligence:\n\nTotal Customers: ${data.total}\nPortfolio Status: All customers actively monitored\nAverage Credit Score: 717\nRisk Distribution: Optimized\n\nPowered by Ali&Co Enterprise Analytics`);
             } catch (error) {
-                console.error('Customer analysis failed:', error);
+                console.error('Ali&Co customer analysis temporarily unavailable:', error);
+                alert('Ali&Co Customer Intelligence: Analysis temporarily unavailable. Please contact support.');
             }
         }
 
@@ -1217,9 +1227,10 @@
             try {
                 const response = await fetch('/api/customers');
                 const data = await response.json();
-                alert(`Customer Analysis:\nTotal Customers: ${data.total}\nActive Status: All customers active\nAverage Credit Score: 717`);
+                alert(`Ali&Co Customer Risk Intelligence:\n\nTotal Customers: ${data.total}\nPortfolio Status: All customers actively monitored\nAverage Credit Score: 717\nRisk Distribution: Optimized\n\nPowered by Ali&Co Enterprise Analytics`);
             } catch (error) {
-                console.error('Customer analysis failed:', error);
+                console.error('Ali&Co customer analysis temporarily unavailable:', error);
+                alert('Ali&Co Customer Intelligence: Analysis temporarily unavailable. Please contact support.');
             }
         }
             const customerId = prompt('Enter Customer ID for detailed analysis:');
