@@ -1,0 +1,10 @@
+Starting Enterprise Loan Management System
+Java Version: 23.0.2
+Using Virtual Threads: true
+Initializing Redis ElastiCache...
+Connecting to Redis ElastiCache: localhost:6379
+Redis ElastiCache initialized successfully
+Enterprise Loan Management System started on port 8080
+Technology Stack: Java 21 + Spring Boot 3.2 Architecture
+PostgreSQL Database: Connected via system tools
+Access: http://localhost:8080/

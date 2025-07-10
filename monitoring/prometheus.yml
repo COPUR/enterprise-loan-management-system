@@ -3,106 +3,56 @@ global:
   evaluation_interval: 15s
 
 rule_files:
-  - "rules/banking-alerts.yml"
-  - "rules/fapi2-dpop-alerts.yml"
-
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets:
-          - alertmanager:9093
+  # - "first_rules.yml"
+  # - "second_rules.yml"
 
 scrape_configs:
-  # Banking Application - FAPI 2.0 + DPoP
-  - job_name: 'banking-app-fapi2'
-    static_configs:
-      - targets: ['banking-app:8080']
-    metrics_path: '/api/actuator/prometheus'
-    scrape_interval: 15s
-    scrape_timeout: 10s
-
-  # System Metrics
-  - job_name: 'node-exporter'
-    static_configs:
-      - targets: ['node-exporter:9100']
-    scrape_interval: 15s
-
-  # Redis Metrics for DPoP JTI Cache
-  - job_name: 'redis-exporter'
-    static_configs:
-      - targets: ['redis-exporter:9121']
-    scrape_interval: 15s
-
-  # PostgreSQL Metrics
-  - job_name: 'postgres-exporter'
-    static_configs:
-      - targets: ['postgres-exporter:9187']
-    scrape_interval: 15s
-
-  # Prometheus Self-Monitoring
+  # Prometheus self-monitoring
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
-    scrape_interval: 15s
 
-  # Grafana Metrics
-  - job_name: 'grafana'
+  # Banking Application Metrics
+  - job_name: 'banking-app'
+    metrics_path: '/api/actuator/prometheus'
+    scrape_interval: 10s
     static_configs:
-      - targets: ['grafana:3000']
-    metrics_path: '/metrics'
+      - targets: ['banking-app-enterprise:8080']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: banking-app-enterprise:8080
+
+  # PostgreSQL Exporter (if available)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-enterprise:5432']
     scrape_interval: 30s
 
-  # Keycloak Metrics with FAPI 2.0 Support
-  - job_name: 'keycloak-fapi2'
+  # Redis Exporter (if available)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-enterprise:6379']
+    scrape_interval: 30s
+
+  # Kafka Exporter (if available)
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka:9092']
+    scrape_interval: 30s
+
+  # Keycloak Metrics (if available)
+  - job_name: 'keycloak'
+    metrics_path: '/metrics'
     static_configs:
       - targets: ['keycloak:8080']
-    metrics_path: '/metrics'
     scrape_interval: 30s
 
-  # Custom FAPI 2.0 + DPoP Health Checks
-  - job_name: 'fapi-dpop-health'
+  # Nginx Gateway Metrics (if available)
+  - job_name: 'nginx'
     static_configs:
-      - targets: ['banking-app:8080']
-    metrics_path: '/api/actuator/health'
+      - targets: ['api-gateway:80']
     scrape_interval: 30s
-
-  # DPoP Validation Metrics
-  - job_name: 'dpop-metrics'
-    static_configs:
-      - targets: ['banking-app:8080']
-    metrics_path: '/api/actuator/metrics'
-    scrape_interval: 10s
-    params:
-      name: 
-        - 'dpop.validation.duration'
-        - 'dpop.validation.success'
-        - 'dpop.validation.failure'
-        - 'dpop.jti.cache.hits'
-        - 'dpop.jti.cache.misses'
-        - 'dpop.replay.attacks'
-
-  # PAR Metrics
-  - job_name: 'par-metrics'
-    static_configs:
-      - targets: ['banking-app:8080']
-    metrics_path: '/api/actuator/metrics'
-    scrape_interval: 15s
-    params:
-      name:
-        - 'par.request.processing.duration'
-        - 'par.request.success'
-        - 'par.request.failure'
-        - 'par.cache.size'
-
-  # FAPI Security Metrics
-  - job_name: 'fapi-security-metrics'
-    static_configs:
-      - targets: ['banking-app:8080']
-    metrics_path: '/api/actuator/metrics'
-    scrape_interval: 15s
-    params:
-      name:
-        - 'fapi.security.violations'
-        - 'fapi.header.validation.failures'
-        - 'oauth2.token.requests'
-        - 'oauth2.client.authentication.failures'
