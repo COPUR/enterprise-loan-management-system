@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal" created-in="IU-252.23591.19">
+    <data-source name="0@localhost" uuid="6d8d5109-3af3-4984-ace5-3e1d3927e75d">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="testdb" uuid="b12d6279-8768-4516-b743-c80813ebea86">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="testdb" uuid="06020d78-32bf-4664-8abe-3bab3acc8be4">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_enterprise@localhost [2]" uuid="2b1a36bd-7052-406d-b7f0-f073470f35b3">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@redis" uuid="abdfda89-bf18-4766-8e9a-9aef5dbccb4b">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@localhost" uuid="39f3d54c-11d1-496e-aedb-9378e21ff995">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_system@postgres" uuid="15efe8b0-7ab2-4ab6-b23e-3d101dce1f4b">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_sit@sit-db.internal" uuid="e54c4d87-18be-4f86-9722-fd24bab5f1a1">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking" uuid="10501c62-4bcf-49ca-bf5d-2ab773c918f5">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_gateway@localhost" uuid="b6bcd29f-4776-4537-bac8-5aaab0bc3186">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_uat@uat-db.internal" uuid="e9308448-e44b-4824-9c9b-9e5625527bcf">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_enterprise@localhost" uuid="e193da73-1a5a-4460-958a-768f7b8c25ce">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_enterprise@localhost [2]" uuid="6f9f374b-6b7e-4499-976e-fb2fb59fcb85">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@localhost [2]" uuid="d6421592-7146-45d2-9f51-e3f50e9cf9af">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@localhost" uuid="1f6e5fdb-2136-44d1-83ad-649aad22e044">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@sit-redis.internal" uuid="a596736c-2f3d-4596-bb66-5184afa0f477">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking@localhost" uuid="eb5e551f-d38d-4116-835d-09a547d8a040">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@redis" uuid="780729a4-245d-4cea-be1f-ad5c2d995697">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_system@postgres" uuid="bb59aceb-19c8-4fe1-93f5-f27fee292d3d">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_gateway@localhost" uuid="e5adec0b-169a-4847-8955-a872daae44c9">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_uat@uat-db.internal" uuid="69f41716-7653-4f74-b659-085aa492b33c">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking@localhost" uuid="1eb96b8f-9f7c-46ba-9840-54aa2befa1f5">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@banking-redis" uuid="226940b5-f5f4-4fc9-9ff6-54e0830599eb">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@uat-redis.internal" uuid="4270e2f9-f87e-40f1-9f00-6f6fc5f26eba">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@sit-redis.internal" uuid="ce063f4c-f111-4b55-afc3-b76bdfb718f3">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_sit@sit-db.internal" uuid="6aaa2b58-a7f0-411c-88bb-f64ea1926c4e">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@banking-redis" uuid="1fc30594-bd28-4020-a7bb-aa3aa22a703f">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking" uuid="919f8fb8-0f7d-4c06-beb1-d96a196a6e2e">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@uat-redis.internal" uuid="64b44aad-fcc4-44b0-9edf-c58039239488">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_dev@localhost" uuid="24281f52-8965-4126-8e3a-a3c61e15f83b">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@localhost" uuid="3998fec7-555e-4bdd-ae36-0f4b00019e72">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_enterprise@localhost" uuid="450e42d5-7a62-471a-8f90-a70b402596f4">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="0@localhost [2]" uuid="8160677e-7026-4a96-8d5e-7559b6434f3e">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="banking_dev@localhost" uuid="7830b571-d1b6-4b6b-861c-5cfbe173a978">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+      <schema-mapping />
+    </data-source>
+  </component>
+</project>

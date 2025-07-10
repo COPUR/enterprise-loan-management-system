@@ -1,0 +1,1040 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="a2a1e49b-4f51-4216-8955-d3eb660dd24d" name="Changes" comment="prepare for history rewrite">
+      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/checksums/checksums.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/checksums/md5-checksums.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/checksums/sha1-checksums.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/executionHistory/executionHistory.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/executionHistory/executionHistory.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/fileChanges/last-build.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/fileHashes/fileHashes.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/fileHashes/fileHashes.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/fileHashes/resourceHashesCache.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/gc.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.14.2/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.2/checksums/checksums.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.14.2/checksums/md5-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.2/checksums/md5-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.14.2/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.2/checksums/sha1-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.14.2/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.2/executionHistory/executionHistory.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.14.2/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.2/executionHistory/executionHistory.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.14.2/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.2/fileHashes/fileHashes.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.14.2/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.2/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.14.2/fileHashes/resourceHashesCache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.14.2/fileHashes/resourceHashesCache.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/cache.properties" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/cache.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/file-system.probe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/workspace-id.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/workspace-id.txt.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/reports/configuration-cache/cpcfxm7g9gmpx1l6cbnmf0u10/apyjmyck1lalxfvmqxqaaoauy/configuration-cache-report.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/reports/problems/problems-report.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/reports/problems/problems-report.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-ai.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-dev.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-docker.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-enterprise-minimal.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-enterprise.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-fapi2-dpop.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-istio.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-microservices.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-migration.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-minimal.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-postgresql.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-simple.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-sit.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-test.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application-uat.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/application.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V10__Create_underwriters_table.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V11__Create_loan_officers_table.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V12__Create_loan_applications_table.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V13__Create_compliance_reports_table.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V14__Create_credit_reports_table.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V15__Create_risk_assessments_table.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V1__Create_customer_management_schema.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V1__Create_customers_table.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V2__Create_loan_origination_schema.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V2__Create_loans_table.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V3__Create_loan_installments_table.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V3__Create_payment_processing_schema.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V4__Create_payments_table.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/db/migration/V5__Insert_sample_customers.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/graphql/schema.graphqls" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/messages.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/messages_ar.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/messages_de.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/messages_es.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/messages_fr.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/monitoring-fapi2-dpop.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/openapi/enterprise-banking-api.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/sample-data.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/main/static/risk-dashboard.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/resources/test/application-test.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/DOCKER_ARCHITECTURE.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/DOCKER_ARCHITECTURE.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/k8s/helm-charts/enterprise-loan-system/Chart.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s/helm-charts/enterprise-loan-system/Chart.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/k8s/helm-charts/enterprise-loan-system/values.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s/helm-charts/enterprise-loan-system/values.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/build/build-microservices.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/application/service/CustomerAlreadyExistsException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/application/service/CustomerManagementService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/application/service/CustomerNotFoundException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/event/CreditReleasedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/event/CreditReservedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/event/CustomerActivatedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/event/CustomerCreatedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/event/CustomerSuspendedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/model/BianCustomerManagement.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/model/CreditLimit.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/model/CustomerId.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/model/CustomerManagementInstanceReference.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/model/CustomerStatus.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/model/EmailAddress.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/model/InsufficientCreditException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/model/PersonalName.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/model/PhoneNumber.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/in/ActivateCustomerCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/in/CheckLoanEligibilityQuery.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/in/CreateCustomerCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/in/CustomerManagementUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/in/FindCustomerQuery.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/in/GetAllCustomersQuery.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/in/ReleaseCreditCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/in/ReserveCreditCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/in/SuspendCustomerCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/in/UpdateCreditLimitCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/in/UpdateCustomerCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/out/CustomerRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/domain/port/out/DomainEventPublisher.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/in/web/CustomerWebAdapter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/in/web/CustomerWebMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/in/web/dto/CreateCustomerRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/in/web/dto/CustomerResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/in/web/dto/ErrorResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/in/web/dto/LoanEligibilityResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/in/web/dto/ReleaseCreditRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/in/web/dto/ReserveCreditRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/in/web/dto/SuspendCustomerRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/in/web/dto/UpdateCustomerRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/out/event/DomainEventPublisherAdapter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/out/event/EventPublishingException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/out/persistence/CustomerJpaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/out/persistence/CustomerJpaRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/out/persistence/CustomerMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/out/persistence/CustomerRepositoryAdapter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/customer/infrastructure/adapter/out/persistence/CustomerStatusJpa.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/LoanManagementApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/TestApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/account/domain/model/AccountInformationInstanceReference.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/account/domain/model/BianAccountInformationServices.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/account/domain/model/PaymentInitiationInstanceReference.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/application/port/in/AnalyzeLoanRequestCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/application/port/in/AnalyzeLoanRequestUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/application/port/in/ProcessNaturalLanguageRequestCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/application/port/in/ProcessNaturalLanguageRequestUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/application/port/out/AiLoanAnalysisPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/application/port/out/FraudDetectionPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/application/port/out/LoanAnalysisRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/application/port/out/NaturalLanguageProcessingPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/application/service/AIAssistantApplicationService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/application/service/LoanAnalysisService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/application/service/NaturalLanguageProcessingService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/domain/model/AnalysisStatus.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/domain/model/EmploymentType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/domain/model/LoanAnalysisRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/domain/model/LoanAnalysisRequestId.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/domain/model/LoanAnalysisResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/domain/model/LoanAnalysisResultId.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/domain/model/LoanPurpose.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/domain/model/LoanRecommendation.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/domain/model/RiskFactor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/domain/service/LoanAnalysisValidationService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/adapter/ComprehensiveFraudDetectionAdapter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/adapter/SpringAiLoanAnalysisAdapter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/adapter/SpringAiNaturalLanguageProcessingAdapter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/config/SpringAiConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/persistence/JpaLoanAnalysisRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/persistence/SpringDataLoanAnalysisRequestRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/persistence/SpringDataLoanAnalysisResultRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/persistence/entity/LoanAnalysisRequestEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/persistence/entity/LoanAnalysisResultEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/web/AIAssistantRestController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/web/AiLoanAnalysisController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/web/dto/AiLoanAnalysisRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/web/dto/AiLoanAnalysisResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/infrastructure/web/dto/NaturalLanguageAnalysisRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/model/AIModel.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/AIDecisionEngine.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/BankingAIResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/BankingKnowledgeService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/ComplianceCheckRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/ComplianceCheckResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/ComplianceCheckService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/CorrelationAnalysis.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/CreditRiskMLService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/CustomerBehaviorAnalysisService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/CustomerInsightsService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/CustomerSentimentAnalysis.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/DocumentAnalysisRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/DocumentAnalysisResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/FraudDetectionResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/FraudDetectionService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/LoanRecommendationResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/MarketAnalysisService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/MarketConditions.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/MarketIntelligenceService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/PortfolioAnalysisService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/PortfolioRisk.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/SpringAIMCPService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ai/service/TransactionAnalysisRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/analytics/service/RiskAnalyticsService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/api/config/MinimalSecurityConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/api/controller/HealthController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/api/controller/SecureLoanController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/api/controller/SimpleLoanController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/ApproveLoanCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/AuditTransactionCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/BlockCustomerCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/ComplianceCheckCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/CreateCustomerCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/FraudDetectionCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/GenerateRecommendationsCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/GenerateReportCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/PerformKYCCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/ProcessLoanPaymentCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/ProcessPaymentCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/RAGQueryCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/RejectLoanCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/RiskAssessmentCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/SchedulePaymentCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/SubmitLoanApplicationCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/commands/UpdateCustomerCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/exceptions/ComplianceViolationException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/exceptions/CustomerNotEligibleException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/exceptions/CustomerNotFoundException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/exceptions/LoanApplicationException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/exceptions/LoanApprovalException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/exceptions/LoanNotFoundException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/exceptions/LoanRejectionException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/mappers/LoanDetailsMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/mappers/LoanSummaryMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/ports/in/AIServicesUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/ports/in/ComplianceUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/ports/in/CustomerManagementUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/ports/in/LoanApplicationUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/ports/in/PaymentProcessingUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/ports/out/AIRiskAssessmentPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/ports/out/ComplianceCheckPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/ports/out/CustomerRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/ports/out/LoanRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/queries/CalculateEarlyPaymentQuery.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/queries/GetCustomerDetailsQuery.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/queries/GetCustomerLoansQuery.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/queries/GetLoanDetailsQuery.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/queries/GetPaymentHistoryQuery.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/AllocationDetail.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/AuditResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/AuditTrail.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/ComplianceCheckResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/ComplianceInfo.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/CustomerBlockResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/CustomerCreationResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/CustomerDetails.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/CustomerUpdateResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/EarlyPaymentOptions.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/FraudDetectionResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/KYCVerificationResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/LoanApplicationResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/LoanApprovalResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/LoanDetails.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/LoanRecommendationResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/LoanRejectionResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/LoanSummary.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/PaymentAllocationResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/PaymentBreakdown.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/PaymentHistory.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/PaymentResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/PaymentScheduleResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/RAGQueryResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/RecommendationResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/RegulatoryReportResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/results/RiskAssessmentResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/services/LoanApplicationService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/services/LoanPaymentAllocationService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/application/services/ProcessLoanPaymentCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/eventhandlers/LoanApplicationEventHandler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/in/BankingAdvisorUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/in/CustomerCommandPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/in/CustomerQueryPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/in/LoanCommandPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/in/LoanQueryPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/in/PaymentCommandPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/in/PaymentQueryPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/in/SearchKnowledgeBaseQuery.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/out/AIAnalysisPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/out/EmbeddingPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/out/KnowledgeBasePort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/out/MarketDataPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/out/RiskAssessmentPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/port/out/VectorSearchPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/service/LoanService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/application/usecase/GenerateLoanRecommendationsUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/config/EnterpriseMinimalSecurityConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/config/EnterpriseSecurityConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/config/GraphQLConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/config/SimpleSecurityConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/application/ApplicationPriority.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/application/ApplicationStatus.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/application/LoanApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/application/LoanType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/application/events/LoanApplicationApprovedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/application/events/LoanApplicationSubmittedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/application/events/UnderwriterAssignedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/application/ports/LoanApplicationRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/Address.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/AddressClean.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/AddressType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/CreditCustomer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/CreditScore.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/Customer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/CustomerActivatedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/CustomerClean.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/CustomerClosedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/CustomerCreditScoreUpdatedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/CustomerId.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/CustomerRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/CustomerStatus.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/CustomerSuspendedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/customer/CustomerType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/knowledge/BankingKnowledge.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/knowledge/BankingKnowledgeService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/knowledge/KnowledgeQuery.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/knowledge/KnowledgeSearchResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/knowledge/KnowledgeType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/AIRiskAssessment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/ComplianceCheck.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/CreditLoan.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/CreditLoanInstallment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/CreditScore.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/CustomerFinancialProfile.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/EmploymentStatus.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/InstallmentStatus.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/InterestRate.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/Loan.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanAggregate.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanEligibilityService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanId.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanInstallment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanOffer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanOfferId.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanRecommendationUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanStatus.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanTerm.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanTermPreferences.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanTerms.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/LoanType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/RiskAssessment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/RiskLevel.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/event/LoanApplicationSubmittedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/event/LoanApprovedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/event/LoanDefaultedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/event/LoanDisbursedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/event/LoanPaidOffEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/event/LoanPaymentMadeEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/event/LoanRejectedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/loan/event/LoanRestructuredEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/berlingroup/BerlinGroupAccount.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANApplicantDetails.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANApprovalCondition.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANAuditTrail.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANBreachManagement.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANCollateralAllocation.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANComplianceCheck.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANCreditDecision.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANCreditRiskAssessment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANDocumentationRequirement.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANLoanService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANMarketRiskAssessment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANOperationalRiskAssessment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANRegulatoryRequirement.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANReportingObligation.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANServiceDomain.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANStubClasses.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BIANUnderwritingAssessment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/model/bian/BerlinGroupAmount.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/payment/Payment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/payment/PaymentCancelledEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/payment/PaymentFailedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/payment/PaymentId.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/payment/PaymentMethod.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/payment/PaymentProcessedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/payment/PaymentProcessingService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/payment/PaymentRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/payment/PaymentReversedEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/payment/PaymentStatus.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/ports/AIAssistantPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/ports/NaturalLanguageProcessingPort.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/ports/in/CreateCustomerCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/ports/in/CustomerManagementUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/ports/in/UpdateCustomerCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/ports/out/CustomerRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/services/PaymentScheduleGenerator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/shared/AggregateRoot.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/shared/BerlinGroupTypes.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/shared/BianTypes.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/shared/CustomerProfile.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/shared/DomainEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/shared/DomainEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/shared/DomainId.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/shared/EntityId.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/shared/Money.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/staff/EmployeeStatus.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/staff/LoanOfficer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/staff/Underwriter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/staff/UnderwriterSpecialization.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/domain/staff/ports/UnderwriterRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/dto/InstallmentResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/dto/LoanApplicationRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/dto/LoanResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/dto/PaymentRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/dto/PaymentResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/entity/Loan.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/entity/Payment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/exception/BankingErrorResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/exception/BankingExceptionCatalogue.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/exception/InsufficientAuthorizationException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/exception/LoanNotFoundException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/exception/PaymentProcessingException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/i18n/ArabicLocalizationService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/anticorruption/CustomerContextAdapter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/config/OpenApiConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/events/DomainEventPublisher.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/events/DomainEventStore.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/adapters/in/LoanController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/adapters/in/dto/ApproveLoanRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/adapters/in/dto/ProcessPaymentRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/adapters/in/dto/RejectLoanRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/adapters/in/dto/SubmitLoanApplicationRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/adapters/out/KafkaEventListener.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/compliance/FdcpaComplianceValidator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/compliance/FdcpaValidationResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/compliance/RegulatoryComplianceService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/compliance/RespaComplianceValidator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/compliance/RespaValidationResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/compliance/StateRegulatoryValidator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/compliance/StateValidationResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/compliance/TilaComplianceValidator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/compliance/TilaValidationResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/config/BankingKafkaConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/config/BankingSecurityContext.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/messaging/BankingAuditTrail.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/messaging/BankingComplianceData.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/messaging/BankingEventMetadata.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/messaging/BankingMessage.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/messaging/BankingMessageHeader.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/messaging/DeadLetterEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/messaging/EventTopicRouter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/messaging/KafkaEventPublisher.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/persistence/PartyGroupJpaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/persistence/PartyJpaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/infrastructure/persistence/PartyRoleJpaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/CustomerRepositoryImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/JpaCustomerRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/JpaLoanRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/JpaPaymentRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/LoanJpaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/LoanRepositoryImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/PaymentRepositoryImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/jpa/LoanApplicationJpaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/jpa/UnderwriterJpaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/mappers/LoanApplicationMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/mappers/UnderwriterMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/repositories/JpaLoanApplicationRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/persistence/repositories/JpaUnderwriterRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/repository/CreditCustomerRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/repository/CreditLoanRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/repository/UnderwriterRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/web/LoanRecommendationController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/web/dto/ErrorResponseDto.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/web/dto/LoanRecommendationRequestDto.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/infrastructure/web/dto/LoanRecommendationResponseDto.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/messaging/infrastructure/EventProcessor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/messaging/infrastructure/kafka/EventProcessor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/messaging/infrastructure/kafka/EventStore.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/messaging/infrastructure/kafka/KafkaConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/messaging/infrastructure/kafka/KafkaEventConsumer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/messaging/infrastructure/kafka/KafkaEventPublisher.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/messaging/infrastructure/kafka/KafkaSecurityService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/messaging/infrastructure/kafka/KafkaTopicResolver.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/messaging/infrastructure/kafka/SagaStateStore.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/messaging/infrastructure/security/EventSecurityAuditService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/messaging/infrastructure/security/FAPIEventSecurityService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/messaging/infrastructure/security/SecureEventPublisher.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/microservices/client/CustomerServiceClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/microservices/client/CustomerServiceClientFallback.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/microservices/client/PaymentServiceClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/microservices/client/PaymentServiceClientFallback.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/microservices/config/ServiceMeshConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/microservices/config/ServiceMeshHealthIndicator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/microservices/customer/CustomerServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/microservices/loan/LoanServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/microservices/party/PartyServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/microservices/payment/PaymentServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/ratelimit/AdaptiveRateLimitingService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/resilience/BankingCircuitBreakerService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/BackoffStrategy.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/IntelligentLoanOriginationSaga.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/RetryPolicy.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/context/SagaContext.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/definition/SagaDefinition.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/definition/SagaStepDefinition.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/domain/LoanOriginationSaga.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/domain/SagaDefinition.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/domain/SagaExecution.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/domain/SagaOrchestrator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/domain/SagaStep.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/executor/SagaStepExecutor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/infrastructure/KafkaSagaExecution.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/infrastructure/KafkaSagaOrchestrator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/infrastructure/SagaDefinition.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/infrastructure/SagaExecution.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/infrastructure/SagaExecutionImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/infrastructure/SagaOrchestrationException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/infrastructure/SagaStateStore.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/infrastructure/SagaStepExecutor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/infrastructure/SagaStepImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/infrastructure/SpringSagaOrchestrator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/model/SagaExecution.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/model/SagaExecutionImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/model/SagaStepImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/orchestrator/SagaOrchestrator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/orchestrator/SpringSagaOrchestrator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/retry/BackoffStrategy.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/saga/retry/RetryPolicy.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/FAPITokenManagementService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/FAPITokenRefreshRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/FAPITokenRevocationRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/FAPITokenValidationRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/FAPITokenValidationResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/RateLimitingService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/StoredTokenData.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/TemporaryTokenRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/TemporaryTokenResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/TokenAnalytics.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/config/EnhancedFAPISecurityConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/config/FAPI2ComplianceConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/config/FAPISecurityConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/config/LegacySecurityCleanup.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/config/MonitoringConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/config/SecurityInterceptorConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/config/SecurityProperties.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/annotation/DPoPSecured.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/client/DPoPClientLibrary$DPoPHttpClient.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/client/DPoPClientLibrary$DPoPKeyManager.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/client/DPoPClientLibrary$DPoPProofGenerator.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/client/DPoPClientLibrary$Examples.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/client/DPoPClientLibrary.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/client/DPoPClientLibrary.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/config/DPoPSecurityConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/exception/InvalidDPoPProofException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/exception/TokenBindingMismatchException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/filter/DPoPValidationFilter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/health/DPoPValidationHealthIndicator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/model/DPoPBoundToken.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/model/DPoPProof.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/service/DPoPNonceService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/service/DPoPProofValidationService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/service/DPoPTokenBindingService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/dpop/service/DPoPTokenValidationService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/exceptions/FAPISecurityException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/fapi/annotation/FAPISecured.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/fapi/health/FAPIComplianceHealthIndicator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/fapi/validation/FAPISecurityHeaders.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/filter/FAPIRateLimitingFilter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/filter/FAPIRequestValidationFilter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/interceptor/FAPISecurityInterceptor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/migration/DPoPMigrationTool.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/migration/MigrationController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/migration/PhasedMigrationStrategy.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/model/FAPISecurityConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/model/FAPITokenRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/model/FAPITokenResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/model/StoredTokenData.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/model/TemporaryTokenData.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/model/TokenAnalytics.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/model/TokenBinding.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/model/TokenValidationService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/oauth2/controller/AuthorizationController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/oauth2/controller/TokenController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/oauth2/health/OAuth2SecurityHealthIndicator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/par/controller/PARController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/par/exception/PARValidationException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/par/health/PAREndpointHealthIndicator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/par/model/PARRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/par/model/PARResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/security/par/service/PARService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/service/AuditService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/service/IdempotencyService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/service/LoanService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/service/PaymentService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/sharedkernel/application/command/Command.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/sharedkernel/domain/AggregateRoot.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/sharedkernel/domain/DomainEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/sharedkernel/domain/Money.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/sharedkernel/domain/event/DomainEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/sharedkernel/domain/model/AggregateRoot.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/sharedkernel/domain/valueobjects/CreditScore.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/sharedkernel/infrastructure/eventstore/EventStore.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/loan/sharedkernel/infrastructure/eventstore/JpaEventStore.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/sharedkernel/domain/AggregateRoot.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/sharedkernel/domain/Money.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/loan/sharedkernel/domain/valueobjects/CreditScore.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/payment/domain/model/PaymentInitiationInstanceReference.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/risk/domain/model/BianCreditRiskAssessment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/bank/risk/domain/model/CreditRiskAssessmentInstanceReference.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/LoanManagementSystemApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/dto/CreateLoanRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/dto/CreateLoanResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/dto/InstallmentDto.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/dto/LoanDto.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/dto/PayLoanRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/dto/PayLoanResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/event/AuditService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/event/LoanEventHandler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/event/MetricsService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/event/NotificationService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/query/LoanHistoryQueryHandler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/service/LoanApplicationService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/service/MissingServiceStubs.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/usecase/CreateLoanUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/usecase/ListInstallmentsUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/usecase/ListLoansUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/application/usecase/PayLoanUseCase.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/bankwide/domain/model/aggregate/Customer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/bankwide/domain/model/aggregate/CustomerId.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/bankwide/domain/model/aggregate/CustomerName.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/bankwide/domain/model/aggregate/build.gradle" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/event/CreditReleased.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/event/CreditReserved.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/event/DomainEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/event/LoanCreated.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/event/PaymentFailed.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/event/PaymentMade.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/exception/CustomerNotFoundException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/exception/DomainException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/exception/InsufficientCreditException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/exception/LoanNotFoundException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/model/entity/Customer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/model/entity/LoanInstallment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/model/value/InstallmentCount.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/model/value/InterestRate.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/model/value/Money.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/domain/port/DomainEventPublisher.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/infrastructure/config/EventConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/infrastructure/config/SecurityConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/infrastructure/event/SpringDomainEventPublisher.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/infrastructure/persistence/entity/CustomerJpaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/infrastructure/persistence/entity/EventStoreEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/infrastructure/persistence/entity/LoanInstallmentJpaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/infrastructure/persistence/entity/LoanJpaEntity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/infrastructure/persistence/mapper/CustomerMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/infrastructure/persistence/repository/EventStoreRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/infrastructure/persistence/repository/JpaCustomerRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/infrastructure/persistence/repository/SpringDataCustomerRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/infrastructure/web/controller/LoanController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/domain/model/aggregate/Loan.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/domain/model/entity/Loan.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/domain/model/entity/LoanInstallment.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/domain/model/value/InstallmentId.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/domain/model/value/InstallmentStatus.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/domain/model/value/LoanId.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/domain/model/value/PaymentCalculation.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/domain/model/value/PaymentResult.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/domain/service/PaymentPolicyService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/exception/InstallmentAlreadyPaidException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/exception/InsufficientCreditException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/exception/NoPayableInstallmentsException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/port/CustomerRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/port/LoanRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/loan/service/CreditAssessmentService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/sharedkernel/InstallmentCount.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/sharedkernel/InterestRate.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/sharedkernel/Money.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/sharedkernel/build.gradle" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/sharedkernel/domain/event/DomainEvent.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/sharedkernel/domain/model/AggregateRoot.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/sharedkernel/domain/model/Entity.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/sharedkernel/domain/model/ValueObject.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/loanmanagement/sharedkernel/domain/value/Money.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/messages.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/messages.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/messages_es.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/messages_es.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/customer/infrastructure/adapter/out/persistence/CustomerRepositoryAdapterIntegrationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/BankingRegressionTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/BusinessRulesRegressionTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/LoanApiIntegrationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/SimpleRegressionTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/TestConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/api/SimpleLoanControllerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/api/SimpleLoanControllerUnitTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/api/TestConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/api/security/DPoPSecurityFilterTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/application/service/LoanServiceBusinessRulesTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/architecture/ArchitectureTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/architecture/HexagonalArchitectureTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/application/LoanApplicationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/customer/AddressTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/customer/CreditScoreTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/customer/CustomerCleanTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/customer/CustomerIdTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/domain/event/LoanApplicationInitiatedEventTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/loan/InterestRateTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/loan/LoanIdTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/loan/LoanTermsTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/payment/PaymentTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/shared/CustomerProfileTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/shared/MoneyTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/domain/staff/UnderwriterTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/functional/BIANComplianceFunctionalTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/functional/ComprehensiveFunctionalTestSuite.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/functional/DPoPSecurityFunctionalTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/functional/FAPISecurityFunctionalTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/functional/IslamicBankingFunctionalTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/functional/LoanApplicationWorkflowTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/functional/PaymentProcessingWorkflowTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/infrastructure/anticorruption/CustomerContextAdapterTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/infrastructure/persistence/mappers/LoanApplicationMapperTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/infrastructure/persistence/mappers/UnderwriterMapperTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/infrastructure/persistence/repositories/JpaLoanApplicationRepositoryIntegrationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/infrastructure/persistence/repositories/JpaUnderwriterRepositoryIntegrationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/integration/DockerComposeIntegrationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/integration/SecureLoanControllerIntegrationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/messaging/infrastructure/EventProcessorTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/messaging/infrastructure/kafka/KafkaEventConsumerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/messaging/infrastructure/kafka/KafkaEventPublisherTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/messaging/infrastructure/kafka/KafkaSagaOrchestratorTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/messaging/infrastructure/kafka/KafkaSecurityServiceTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/messaging/infrastructure/kafka/KafkaTopicResolverTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/messaging/infrastructure/kafka/SagaStateStoreTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/messaging/integration/CompleteEventFlowIntegrationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/messaging/integration/EventDrivenSAGAIntegrationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/messaging/integration/FAPIEventSecurityIntegrationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/performance/DPoPPerformanceTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/saga/domain/LoanOriginationSagaTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/dpop/DPoPBasicImplementationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/dpop/DPoPProofValidationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/dpop/DPoPSecurityConfigurationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/dpop/DPoPTokenBindingTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/dpop/DPoPTokenValidationServiceTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/dpop/SimpleDPoPTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/dpop/util/DPoPTestKeyGenerator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/integration/DPoPFAPIIntegrationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/validation/BankingUseCaseValidationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/validation/DPoPProofValidationPipelineTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/validation/FAPI2DPoPEndToEndValidationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/validation/FAPI2EndToEndIntegrationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/validation/PARIntegrationValidationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/validation/SimpleDPoPValidationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/security/validation/TokenBindingValidationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/bank/loan/loan/sharedkernel/infrastructure/eventstore/JpaEventStoreTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/banking/validation/ValidationRunner.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/loanmanagement/LoanManagementSystemApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/loanmanagement/loan/model/entity/LoanTest.java" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="loan-management-system" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="loan-management-system" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="loan-management-system" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build" type="c8890929:TasksNode$1" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="loan-management-system" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build setup" type="c8890929:TasksNode$1" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="loan-management-system" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="documentation" type="c8890929:TasksNode$1" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="loan-management-system" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="help" type="c8890929:TasksNode$1" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="loan-management-system" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="other" type="c8890929:TasksNode$1" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="Git.Rebase.Settings">
+    <option name="NEW_BASE" value="origin/main" />
+  </component>
+  <component name="Git.Settings">
+    <option name="PUSH_AUTO_UPDATE" value="true" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;COPUR&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/COPUR/enterprise-loan-management-system.git&quot;,
+    &quot;accountId&quot;: &quot;12a8f10f-4821-437a-beb0-aef63fbcefc5&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/.gitignore" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/build.gradle" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="AISelfReview" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2zDIEcqweqwhMSPP0lUzEIRC4rG" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.enterprise-loan-management-system [buildDependents].executor": "Run",
+    "Gradle.enterprise-loan-management-system [clean].executor": "Run",
+    "Gradle.enterprise-loan-management-system.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ChatTagsLlmMigration": "true",
+    "RunOnceActivity.ClientConfigCleanupMigration": "true",
+    "RunOnceActivity.CodyAccountHistoryMigration": "true",
+    "RunOnceActivity.CodyAccountsIdsRefresh": "true",
+    "RunOnceActivity.CodyAssignOrphanedChatsToActiveAccount": "true",
+    "RunOnceActivity.CodyConvertUrlToCodebaseName": "true",
+    "RunOnceActivity.CodyHistoryLlmMigration": "true",
+    "RunOnceActivity.CodyMigrateChatHistory-v2": "true",
+    "RunOnceActivity.CodyProjectSettingsMigration": "true",
+    "RunOnceActivity.DeprecatedChatLlmMigration": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.ToggleCodyToolWindowAfterMigration": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHELLCHECK.PATH": "/Users/alicopur/Library/Application Support/JetBrains/IntelliJIdea2025.2/plugins/Shell Script/shellcheck",
+    "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/alicopur/Documents/GitHub/enterprise-loan-management-system",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "vcs.Git",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/docs" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Gradle.enterprise-loan-management-system">
+    <configuration name="enterprise-loan-management-system [buildDependents]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="buildDependents" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="enterprise-loan-management-system [clean]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="clean" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="enterprise-loan-management-system" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list />
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Gradle.enterprise-loan-management-system" />
+        <item itemvalue="Gradle.enterprise-loan-management-system [buildDependents]" />
+        <item itemvalue="Gradle.enterprise-loan-management-system [clean]" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.23591.19" />
+        <option value="bundled-js-predefined-d6986cc7102b-6be00b7b0f42-JavaScript-IU-252.23591.19" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="StructureViewState">
+    <option name="selectedTab" value="Logical" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a2a1e49b-4f51-4216-8955-d3eb660dd24d" name="Changes" comment="" />
+      <created>1751259106258</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1751259106258</updated>
+      <workItem from="1751259107396" duration="12000" />
+      <workItem from="1751259283453" duration="70000" />
+      <workItem from="1751259380724" duration="8846000" />
+      <workItem from="1751294165367" duration="1405000" />
+      <workItem from="1751424520956" duration="29000" />
+      <workItem from="1751424566976" duration="1135000" />
+      <workItem from="1751817412216" duration="4634000" />
+      <workItem from="1751836879930" duration="3944000" />
+      <workItem from="1751863117582" duration="32279000" />
+    </task>
+    <task id="LOCAL-00001" summary="namespace restoration">
+      <option name="closed" value="true" />
+      <created>1751268510535</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1751268510535</updated>
+    </task>
+    <task id="LOCAL-00002" summary="namespace restoration">
+      <option name="closed" value="true" />
+      <created>1751832847112</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1751832847112</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="MARK_IGNORED_AS_EXCLUDED" value="true" />
+    <MESSAGE value="namespace restoration" />
+    <MESSAGE value="prepare for history rewrite" />
+    <option name="LAST_COMMIT_MESSAGE" value="prepare for history rewrite" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>
