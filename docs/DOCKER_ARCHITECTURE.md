@@ -40,7 +40,7 @@ security_context:
 
 ### Production Dockerfiles
 
-#### 1. **docker/variants/Dockerfile.enhanced-v2** - Primary Production Image
+#### 1. **Dockerfile.enhanced-v2** - Primary Production Image
 
 ```dockerfile
 # Production-ready multi-stage build for Enhanced Banking System
@@ -78,7 +78,7 @@ ENTRYPOINT ["./entrypoint.sh"]
 - `builder` - Build environment with full JDK
 - `runtime` - Production runtime with JRE only
 
-#### 2. **docker/variants/Dockerfile.enhanced** - Development Image
+#### 2. **Dockerfile.enhanced** - Development Image
 
 ```dockerfile
 # Development image with debugging tools
@@ -99,7 +99,7 @@ CMD ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:50
 - Live reload capabilities
 - Extended logging
 
-#### 3. **docker/environments/Dockerfile.uat** - UAT Environment
+#### 3. **Dockerfile.uat** - UAT Environment
 
 ```dockerfile
 # User Acceptance Testing optimized build
@@ -517,16 +517,16 @@ main "$@"
 
 ```bash
 # Build production image
-docker build -f docker/variants/Dockerfile.enhanced-v2 --target runtime -t banking-system:enhanced-runtime .
+docker build -f Dockerfile.enhanced-v2 --target runtime -t banking-system:enhanced-runtime .
 
 # Build development image
-docker build -f docker/variants/Dockerfile.enhanced --target development -t banking-system:enhanced-dev .
+docker build -f Dockerfile.enhanced --target development -t banking-system:enhanced-dev .
 
 # Build UAT image
-docker build -f docker/environments/Dockerfile.uat -t banking-system:uat .
+docker build -f Dockerfile.uat -t banking-system:uat .
 
 # Build with BuildKit for multi-platform
-docker buildx build --platform linux/amd64,linux/arm64 -f docker/variants/Dockerfile.enhanced-v2 --target runtime -t banking-system:enhanced-runtime .
+docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile.enhanced-v2 --target runtime -t banking-system:enhanced-runtime .
 ```
 
 ### Docker Compose Commands
@@ -723,7 +723,7 @@ environment:
 docker_build:
   stage: build
   script:
-    - docker build -f docker/variants/Dockerfile.enhanced-v2 --target runtime -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker build -f Dockerfile.enhanced-v2 --target runtime -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
 docker_security_scan:
@@ -848,150 +848,9 @@ scrape_configs:
 
 ---
 
----
-
-## 🎯 Recent Updates & Validation Results
-
-### **CI/CD Pipeline Integration** ✅ **VALIDATED**
-
-The Docker architecture has been comprehensively validated as part of our CI/CD pipeline transformation:
-
-| Validation Category | Status | Details |
-|---------------------|--------|---------|
-| **Docker Configuration** | ✅ PASSED | All 9 Docker Compose files validated |
-| **Multi-stage Builds** | ✅ VALIDATED | Production, testing, development stages |
-| **Security Practices** | ✅ CERTIFIED | Non-root users, minimal images |
-| **Banking Compliance** | ✅ COMPLIANT | FAPI, PCI DSS configurations |
-
-### **Production Readiness Certification** 🏆
-
-**Date:** July 7, 2025  
-**Validation Results:**
-- ✅ **9 Docker Compose configurations** validated and production-ready
-- ✅ **Multi-stage Dockerfile** optimized for banking workloads
-- ✅ **Container security** implemented with banking-grade practices
-- ✅ **Health checks** comprehensive and tested
-- ✅ **Resource optimization** for enterprise banking loads
-
-### **Enterprise Banking Features Validated**
-
-| Feature | Implementation | Validation Status |
-|---------|---------------|-------------------|
-| **Banking Compliance** | FAPI 2.0 + PCI DSS | ✅ Certified |
-| **Zero-Trust Security** | mTLS everywhere | ✅ Implemented |
-| **Observability** | Prometheus + Grafana | ✅ Functional |
-| **High Availability** | Multi-replica deployment | ✅ Tested |
-| **Data Protection** | Encryption at rest/transit | ✅ Validated |
-
-### **Docker Compose Configurations Validated**
-
-1. **`docker-compose.enhanced-enterprise.yml`** - Full enterprise stack ✅
-2. **`docker-compose.enhanced-test.yml`** - Comprehensive testing ✅
-3. **`docker-compose.enterprise.yml`** - Production deployment ✅
-4. **`docker-compose.minimal-enterprise.yml`** - Minimal stack ✅
-5. **`docker-compose.observability.yml`** - Monitoring stack ✅
-6. **`docker-compose.simple.yml`** - Development environment ✅
-7. **`docker-compose.test-simple.yml`** - Simple testing ✅
-8. **`docker-compose.test.yml`** - Full test suite ✅
-9. **`docker-compose.uat.yml`** - User acceptance testing ✅
-
-### **Banking-Specific Container Optimizations**
-
-#### **Performance Tuning for Banking Workloads**
-```dockerfile
-# JVM optimizations for financial calculations
-ENV JAVA_OPTS="\
-    -XX:+UseG1GC \
-    -XX:MaxGCPauseMillis=100 \
-    -XX:+UseStringDeduplication \
-    -XX:InitialRAMPercentage=50.0 \
-    -XX:MaxRAMPercentage=80.0 \
-    -Djava.security.egd=file:/dev/./urandom"
-```
-
-#### **Banking Compliance Environment Variables**
-```dockerfile
-# Banking compliance and security settings
-ENV BANKING_COMPLIANCE_STRICT=true
-ENV FAPI_ENABLED=true
-ENV PCI_ENABLED=true
-ENV AUDIT_ENABLED=true
-ENV KYC_REQUIRED=true
-ENV SOX_COMPLIANCE=true
-```
-
-#### **Security Hardening Validated**
-- ✅ **Non-root execution** - All containers run as banking user (UID 1000)
-- ✅ **Minimal attack surface** - Alpine-based images with security updates
-- ✅ **Secret management** - External secret injection, no hardcoded credentials
-- ✅ **Network security** - Encrypted communication between all services
-- ✅ **Resource limits** - Proper CPU and memory constraints for stability
-
-### **Integration with Enterprise Infrastructure**
-
-#### **Service Mesh Integration**
-```yaml
-# Istio sidecar injection for zero-trust networking
-annotations:
-  sidecar.istio.io/inject: "true"
-  sidecar.istio.io/rewriteAppHTTPProbers: "true"
-```
-
-#### **External Secret Management**
-```yaml
-# AWS Secrets Manager integration
-environment:
-  DATABASE_PASSWORD_FILE: /run/secrets/db_password
-  REDIS_PASSWORD_FILE: /run/secrets/redis_password
-secrets:
-  - source: db_password
-    external: true
-    external_name: banking/database/password
-```
-
-### **Monitoring & Observability Enhancements**
-
-#### **Comprehensive Health Checks**
-- **Startup Probe:** 60s initial delay, validates banking system initialization
-- **Liveness Probe:** 30s interval, ensures continuous operation
-- **Readiness Probe:** 10s interval, manages traffic routing
-- **Banking-specific checks:** Database connectivity, external service validation
-
-#### **Metrics Collection**
-```dockerfile
-# Prometheus metrics exposure
-EXPOSE 8080 8081 9090
-ENV MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics,prometheus
-```
-
-### **Deployment Automation Integration**
-
-The Docker architecture seamlessly integrates with our enterprise CI/CD pipeline:
-
-1. **Automated Building** - Multi-platform builds (AMD64, ARM64)
-2. **Security Scanning** - Trivy integration for vulnerability detection
-3. **Registry Management** - Harbor enterprise registry with image signing
-4. **Kubernetes Deployment** - Helm chart integration for orchestration
-5. **Rollback Capability** - Atomic deployments with automatic rollback
-
-### **Performance Benchmarks**
-
-| Metric | Target | Achieved | Status |
-|--------|--------|----------|--------|
-| **Container Startup Time** | < 60s | 45s | ✅ PASSED |
-| **Memory Usage** | < 2GB | 1.8GB | ✅ PASSED |
-| **CPU Efficiency** | > 80% | 85% | ✅ PASSED |
-| **Network Latency** | < 10ms | 8ms | ✅ PASSED |
-
----
-
 **Enhanced Enterprise Banking System - Docker Architecture**  
-*Version 2.1.0 - Last Updated: July 7, 2025*  
+*Version 2.0.0 - Last Updated: December 27, 2024*  
 *Built with ❤️ by the Enterprise Architecture Team*
-
-**🐳 Docker Architecture: PRODUCTION VALIDATED**  
-**🚀 CI/CD Integration: COMPLETE**  
-**🏦 Banking Compliance: CERTIFIED**
 
 ---
 

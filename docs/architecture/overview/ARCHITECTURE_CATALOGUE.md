@@ -23,13 +23,13 @@ graph TB
         ES[External Systems]
         RE[Regulators]
     end
-
+    
     subgraph "Enhanced Enterprise Banking System"
         subgraph "Security Perimeter"
             ISG[Istio Service Gateway]
             KC[Keycloak OAuth 2.1]
         end
-
+        
         subgraph "Banking Services"
             CS[Customer Service]
             LS[Loan Service]
@@ -37,32 +37,32 @@ graph TB
             RS[Risk Service]
             AS[Audit Service]
         end
-
+        
         subgraph "Data Layer"
             DB[(PostgreSQL)]
             CACHE[(Redis)]
             MSG[Apache Kafka]
         end
     end
-
+    
     BC --> ISG
     BO --> ISG
     BA --> ISG
     ES --> ISG
-
+    
     ISG --> KC
     KC --> CS
     KC --> LS
     KC --> PS
     KC --> RS
     KC --> AS
-
+    
     CS --> DB
     LS --> DB
     PS --> CACHE
     RS --> MSG
     AS --> DB
-
+    
     AS --> RE
 ```
 
@@ -119,7 +119,7 @@ sequenceDiagram
     participant OP as OAuth2 Proxy
     participant KC as Keycloak
     participant BS as Banking Service
-
+    
     C->>IG: 1. Access Protected Resource
     IG->>OP: 2. Check Authentication
     OP->>KC: 3. Redirect to Login (PKCE)
@@ -163,7 +163,7 @@ public class Loan extends AggregateRoot<LoanId> {
     private Money principalAmount;
     private LoanStatus status;
     private List<DomainEvent> domainEvents;
-
+    
     // Factory method for controlled creation
     public static Loan create(LoanCreationCommand command) {
         validateBusinessRules(command);
@@ -171,7 +171,7 @@ public class Loan extends AggregateRoot<LoanId> {
         loan.addDomainEvent(new LoanApplicationSubmittedEvent(loan));
         return loan;
     }
-
+    
     // Pure business logic
     public void approve(String approvedBy) {
         if (this.status != LoanStatus.PENDING) {
@@ -186,23 +186,23 @@ public class Loan extends AggregateRoot<LoanId> {
 @ApplicationService
 @Transactional
 public class LoanApplicationService {
-
+    
     @Autowired
     private LoanRepository loanRepository; // Port
-
+    
     @Autowired
     private DomainEventPublisher eventPublisher; // Port
-
+    
     public LoanApplicationResult createLoan(CreateLoanCommand command) {
         // Domain validation and creation
         Loan loan = Loan.create(command);
-
+        
         // Persistence through port
         loanRepository.save(loan);
-
+        
         // Event publishing
         eventPublisher.publishEvents(loan.getDomainEvents());
-
+        
         return LoanApplicationResult.success(loan.getId());
     }
 }
@@ -297,37 +297,37 @@ graph TB
         RS[Risk Service]
         AS[Audit Service]
     end
-
+    
     subgraph "Data Persistence Layer"
         subgraph "PostgreSQL Cluster"
             PG1[(Primary PostgreSQL)]
             PG2[(Read Replica 1)]
             PG3[(Read Replica 2)]
         end
-
+        
         subgraph "Caching Layer"
             RC1[(Redis Primary)]
             RC2[(Redis Replica)]
         end
-
+        
         subgraph "Search & Analytics"
             ES[(Elasticsearch)]
             PV[(PGVector)]
         end
-
+        
         subgraph "Event Streaming"
             K1[Kafka Broker 1]
             K2[Kafka Broker 2]
             K3[Kafka Broker 3]
         end
     end
-
+    
     CS --> PG1
     LS --> PG1
     PS --> RC1
     RS --> PV
     AS --> ES
-
+    
     PG1 --> PG2
     PG1 --> PG3
     RC1 --> RC2
@@ -359,18 +359,18 @@ fapi_requirements:
     - PKCE (Proof Key for Code Exchange)
     - Client authentication with mutual TLS
     - Request object signing with RSA-256
-
+    
   security_headers:
     - x-fapi-financial-id: Required for all requests
     - x-fapi-customer-ip-address: Customer IP tracking
     - x-fapi-interaction-id: Request correlation
     - x-fapi-auth-date: Authentication timestamp
-
+    
   encryption:
     - TLS 1.2+ for all communications
     - JWE encryption for sensitive data
     - Certificate pinning for mobile apps
-
+    
   audit:
     - All API calls logged with correlation IDs
     - Risk scoring for transactions
@@ -384,25 +384,25 @@ fapi_requirements:
 pci_dss_controls:
   requirement_1: # Firewall Configuration
     implementation: "Istio network policies and Kubernetes NetworkPolicies"
-
+    
   requirement_2: # Change Default Passwords
     implementation: "Keycloak strong password policies and MFA"
-
+    
   requirement_3: # Protect Stored Data
     implementation: "PostgreSQL TDE and application-level encryption"
-
+    
   requirement_4: # Encrypt Data in Transit
     implementation: "TLS 1.3 and mTLS for all communications"
-
+    
   requirement_6: # Secure Development
     implementation: "OWASP Top 10 protection and security testing"
-
+    
   requirement_8: # Unique User Authentication
     implementation: "OAuth 2.1 with RBAC and audit trails"
-
+    
   requirement_10: # Log and Monitor Access
     implementation: "Comprehensive audit logging and SIEM integration"
-
+    
   requirement_11: # Security Testing
     implementation: "Automated security scanning and penetration testing"
 ```
@@ -526,33 +526,33 @@ banking_metrics:
       type: counter
       labels: [loan_type, approval_status, amount_range]
       description: "Total number of loan applications by type and status"
-
+      
     - name: banking_payments_total
       type: counter
       labels: [payment_method, status, currency]
       description: "Total payment transactions by method and status"
-
+      
     - name: banking_fraud_score
       type: histogram
       labels: [risk_level, detection_method]
       description: "Distribution of fraud scores by risk level"
-
+      
     - name: banking_fapi_compliance_total
       type: counter
       labels: [fapi_version, financial_id]
       description: "FAPI compliance validation metrics"
-
+      
   technical_metrics:
     - name: banking_response_time
       type: histogram
       labels: [service, endpoint, method]
       description: "API response time distribution"
-
+      
     - name: banking_error_rate
       type: gauge
       labels: [service, error_type]
       description: "Error rate by service and error type"
-
+      
     - name: banking_concurrent_users
       type: gauge
       labels: [user_type, channel]
@@ -626,11 +626,11 @@ graph TB
         SEC[Security Tests<br/>OWASP, Penetration Testing]
         PERF[Performance Tests<br/>Load Testing, Stress Testing]
     end
-
+    
     E2E --> INT
     INT --> CONT
     CONT --> UNIT
-
+    
     SEC -.-> E2E
     SEC -.-> INT
     PERF -.-> E2E
@@ -734,60 +734,657 @@ Implement OAuth 2.1 with Keycloak as the identity and access management solution
 ### API Documentation Standards
 
 ```yaml
-# OpenAPI Specification Example
 openapi: 3.0.3
 info:
-  title: Enhanced Banking System API
-  version: 2.0.0
+  title: Loan Management System API
   description: |
-    Secure banking API with OAuth 2.1 authentication and FAPI compliance.
+    Enterprise Loan Management System API built with Domain-Driven Design (DDD) and Hexagonal Architecture.
 
-    ## Authentication
-    All endpoints require OAuth 2.1 Bearer token authentication.
+    ## Features
+    - **Loan Creation** with business rule validation
+    - **Payment Processing** with early/late payment calculations  
+    - **Credit Management** with automatic limit updates
+    - **Role-Based Access Control** (ADMIN and CUSTOMER roles)
 
-    ## Rate Limiting
-    API requests are rate-limited per client and user role.
-
-    ## Compliance
-    This API adheres to FAPI 1.0 Advanced security profile.
+    ## Business Rules
+    - Supported installment options: 6, 9, 12, or 24 months
+    - Interest rates between 10% (0.1) and 50% (0.5)
+    - Early payment discount: amount × 0.001 × days before due date
+    - Late payment penalty: amount × 0.001 × days after due date
+    - No partial payments allowed - only full installments
+    - Maximum 3 months advance payment allowed
+  version: 1.0.0
+  contact:
+    name: Development Team
+    email: dev@bank.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: https://api.banking.enterprise.com/v2
-    description: Production API server
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.loanmanagement.example.com
+    description: Production server
 
 security:
-  - OAuth2:
-      - banking:read
-      - banking:write
+  - bearerAuth: []
 
 paths:
-  /loans:
+  # Authentication Endpoints
+  /api/v1/auth/login:
     post:
-      summary: Create loan application
-      security:
-        - OAuth2:
-            - banking:loan:create
-      parameters:
-        - name: x-fapi-financial-id
-          in: header
-          required: true
-          schema:
-            type: string
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and return JWT token
+      security: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoanApplication'
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Customer Management Endpoints
+  /api/v1/customers:
+    get:
+      tags:
+        - Customer Management
+      summary: Get all customers
+      description: Retrieve a list of all customers (Admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Customers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomerResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/customers/{customerId}:
+    get:
+      tags:
+        - Customer Management
+      summary: Get customer by ID
+      description: Retrieve customer information by ID
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 1
+      responses:
+        '200':
+          description: Customer retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/customers/{customerId}/credit-info:
+    get:
+      tags:
+        - Customer Management
+      summary: Get customer credit information
+      description: Retrieve credit limit and usage information
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Credit information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditInfoResponse'
+
+  # Loan Management Endpoints
+  /api/v1/loans:
+    post:
+      tags:
+        - Loan Management
+      summary: Create a new loan
+      description: Create a new loan for a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLoanRequest'
       responses:
         '201':
-          description: Loan application created successfully
+          description: Loan created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
         '400':
-          description: Invalid request data
-        '401':
-          description: Authentication required
-        '403':
-          description: Insufficient permissions
+          description: Invalid request or insufficient credit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/loans/customers/{customerId}:
+    get:
+      tags:
+        - Loan Management
+      summary: List loans for a customer
+      description: Retrieve all loans for a specific customer with optional filters
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: numberOfInstallments
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [6, 9, 12, 24]
+          description: Filter by number of installments
+        - name: isPaid
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter by payment status
+      responses:
+        '200':
+          description: Loans retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanResponse'
+
+  /api/v1/loans/{loanId}:
+    get:
+      tags:
+        - Loan Management
+      summary: Get loan by ID
+      description: Retrieve loan information by ID
+      parameters:
+        - name: loanId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Loan retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+        '404':
+          description: Loan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/loans/{loanId}/installments:
+    get:
+      tags:
+        - Loan Management
+      summary: List installments for a loan
+      description: Retrieve all installments for a specific loan
+      parameters:
+        - name: loanId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Installments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InstallmentResponse'
+
+  # Payment Processing Endpoints
+  /api/v1/loans/{loanId}/payments:
+    post:
+      tags:
+        - Payment Processing
+      summary: Process payment
+      description: Process a payment for a loan
+      parameters:
+        - name: loanId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '201':
+          description: Payment processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          description: Invalid payment amount or loan already paid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - Payment Processing
+      summary: List payments for loan
+      description: Retrieve all payments made for a specific loan
+      parameters:
+        - name: loanId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Payments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentResponse'
+
+  # Health Check
+  /actuator/health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      description: Get application health status
+      security: []
+      responses:
+        '200':
+          description: Application is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Authentication Schemas
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: "admin"
+        password:
+          type: string
+          format: password
+          example: "password123"
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT access token
+        type:
+          type: string
+          example: "Bearer"
+        expiresIn:
+          type: integer
+          description: Token expiration time in seconds
+          example: 86400
+
+    # Customer Schemas
+    CustomerResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: "John"
+        surname:
+          type: string
+          example: "Smith"
+        fullName:
+          type: string
+          example: "John Smith"
+        creditLimit:
+          type: number
+          format: decimal
+          example: 100000.00
+        usedCreditLimit:
+          type: number
+          format: decimal
+          example: 25000.00
+        availableCreditLimit:
+          type: number
+          format: decimal
+          example: 75000.00
+
+    CreditInfoResponse:
+      type: object
+      properties:
+        creditLimit:
+          type: number
+          format: decimal
+          example: 100000.00
+        usedCredit:
+          type: number
+          format: decimal
+          example: 25000.00
+        availableCredit:
+          type: number
+          format: decimal
+          example: 75000.00
+        maximumLoanAmount:
+          type: number
+          format: decimal
+          example: 75000.00
+        creditRiskLevel:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+          example: "LOW"
+
+    # Loan Schemas
+    CreateLoanRequest:
+      type: object
+      required:
+        - customerId
+        - loanAmount
+        - interestRate
+        - numberOfInstallments
+      properties:
+        customerId:
+          type: integer
+          format: int64
+          minimum: 1
+          example: 1
+        loanAmount:
+          type: number
+          format: decimal
+          minimum: 1.00
+          maximum: 1000000.00
+          example: 10000.00
+        interestRate:
+          type: number
+          format: decimal
+          minimum: 0.1
+          maximum: 0.5
+          example: 0.15
+          description: "Interest rate as decimal (0.15 = 15%)"
+        numberOfInstallments:
+          type: integer
+          enum: [6, 9, 12, 24]
+          example: 12
+
+    LoanResponse:
+      type: object
+      properties:
+        loanId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        customerId:
+          type: integer
+          format: int64
+          example: 1
+        loanAmount:
+          type: number
+          format: decimal
+          example: 10000.00
+        totalAmount:
+          type: number
+          format: decimal
+          example: 11500.00
+          description: "Principal + Interest"
+        numberOfInstallments:
+          type: integer
+          example: 12
+        interestRate:
+          type: number
+          format: decimal
+          example: 0.15
+        createDate:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        isPaid:
+          type: boolean
+          example: false
+        remainingAmount:
+          type: number
+          format: decimal
+          example: 11500.00
+        remainingInstallments:
+          type: integer
+          example: 12
+        nextDueDate:
+          type: string
+          format: date
+          example: "2024-02-01"
+
+    InstallmentResponse:
+      type: object
+      properties:
+        installmentId:
+          type: string
+          format: uuid
+          example: "660e8400-e29b-41d4-a716-446655440001"
+        amount:
+          type: number
+          format: decimal
+          example: 958.33
+        paidAmount:
+          type: number
+          format: decimal
+          example: 0.00
+        dueDate:
+          type: string
+          format: date
+          example: "2024-02-01"
+        paymentDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        isPaid:
+          type: boolean
+          example: false
+        isOverdue:
+          type: boolean
+          example: false
+        daysUntilDue:
+          type: integer
+          example: 15
+          description: "Positive = days until due, Negative = days overdue"
+
+    # Payment Schemas
+    PaymentRequest:
+      type: object
+      required:
+        - paymentAmount
+      properties:
+        paymentAmount:
+          type: number
+          format: decimal
+          minimum: 0.01
+          example: 2000.00
+
+    PaymentResponse:
+      type: object
+      properties:
+        paymentId:
+          type: string
+          format: uuid
+          example: "770e8400-e29b-41d4-a716-446655440002"
+        loanId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        paymentAmount:
+          type: number
+          format: decimal
+          example: 2000.00
+        installmentsPaid:
+          type: integer
+          example: 2
+        totalAmountSpent:
+          type: number
+          format: decimal
+          example: 1916.66
+          description: "Amount after discounts/penalties"
+        isLoanFullyPaid:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Paid 2 installment(s) for total amount 1916.66 (discount: 83.34)"
+
+    # Error Schemas
+    ErrorResponse:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          example: "BUSINESS_ERROR"
+        message:
+          type: string
+          example: "Loan not found"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        path:
+          type: string
+          example: "/api/v1/loans/invalid-id"
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          example: "Request validation failed"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        fieldErrors:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            loanAmount: "Loan amount must be at least 1.00"
+            interestRate: "Interest rate must be between 0.1 and 0.5"
+
+    # System Schemas
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN]
+          example: "UP"
+        components:
+          type: object
+          properties:
+            db:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "UP"
+            redis:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "UP"
+            kafka:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "UP"
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Customer Management
+    description: Customer information and credit management
+  - name: Loan Management
+    description: Loan creation and management operations
+  - name: Payment Processing
+    description: Payment processing and installment management
+  - name: System
+    description: System health and monitoring endpoints
+
 ```
 
 ---
@@ -830,8 +1427,8 @@ security_scan:
 deploy_production:
   stage: deploy-production
   script:
-    - helm upgrade --install banking-system ./helm/banking-system
-      --namespace $HELM_NAMESPACE
+    - helm upgrade --install banking-system ./helm/banking-system 
+      --namespace $HELM_NAMESPACE 
       --set image.tag=$CI_COMMIT_SHA
       --set environment=production
   when: manual
@@ -866,7 +1463,7 @@ graph TB
     REMEDIATE[Remediate Vulnerabilities]
     RECOVER[Recover Services]
     LESSONS[Lessons Learned]
-
+    
     DETECT --> ASSESS
     ASSESS --> CONTAIN
     CONTAIN --> INVESTIGATE
@@ -921,26 +1518,26 @@ environments:
     cpu_per_node: "4 cores"
     memory_per_node: "16 GB"
     storage_per_node: "100 GB SSD"
-
+    
   staging:
     nodes: 5
     cpu_per_node: "8 cores"
     memory_per_node: "32 GB"
     storage_per_node: "500 GB SSD"
-
+    
   production:
     nodes: 9
     cpu_per_node: "16 cores"
     memory_per_node: "64 GB"
     storage_per_node: "1 TB NVMe SSD"
-
+    
 scaling_policies:
   horizontal_pod_autoscaler:
     min_replicas: 3
     max_replicas: 20
     target_cpu_utilization: 70%
     target_memory_utilization: 80%
-
+    
   vertical_pod_autoscaler:
     enabled: true
     update_policy: "Auto"
@@ -1006,7 +1603,7 @@ graph LR
     IMPLEMENT[Implementation]
     VALIDATE[Validation]
     CLOSE[Close RFC]
-
+    
     RFC --> REVIEW
     REVIEW --> APPROVE
     APPROVE --> IMPLEMENT
