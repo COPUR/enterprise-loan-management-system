@@ -78,10 +78,10 @@ cd enterprise-loan-management-system
 ./gradlew clean bootJar
 
 # 3. Start infrastructure services
-docker-compose -f docker/compose/docker-compose.enhanced-test.yml up -d postgres redis keycloak
+docker-compose -f docker-compose.enhanced-test.yml up -d postgres redis keycloak
 
 # 4. Start the banking application
-docker-compose -f docker/compose/docker-compose.enhanced-test.yml up -d banking-app-enhanced
+docker-compose -f docker-compose.enhanced-test.yml up -d banking-app-enhanced
 
 # 5. Verify deployment
 curl -k https://localhost:8080/actuator/health

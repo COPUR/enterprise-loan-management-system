@@ -1,0 +1,580 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: banking-envoy-mtls
+  namespace: banking
+  labels:
+    app: banking-envoy
+    compliance: fapi-2.0
+spec:
+  selector:
+    matchLabels:
+      app: banking-envoy-gateway
+  mtls:
+    mode: STRICT
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: banking-envoy-rbac
+  namespace: banking
+  labels:
+    app: banking-envoy
+    compliance: fapi-2.0
+spec:
+  selector:
+    matchLabels:
+      app: banking-envoy-gateway
+  rules:
+  # Allow FAPI compliant requests
+  - from:
+    - source:
+        principals: ["cluster.local/ns/banking/sa/banking-api-client"]
+    - source:
+        principals: ["cluster.local/ns/banking/sa/open-banking-client"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/open-banking/v3.1/*", "/api/v1/*"]
+    when:
+    - key: request.headers[x-fapi-interaction-id]
+      notValues: [""]
+    - key: request.headers[authorization]
+      notValues: [""]
+  # Allow health checks
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-proxy"]
+    - source:
+        principals: ["cluster.local/ns/monitoring/sa/prometheus"]
+    to:
+    - operation:
+        methods: ["GET"]
+        paths: ["/health", "/ready", "/stats/*"]
+  # Allow admin access from monitoring
+  - from:
+    - source:
+        principals: ["cluster.local/ns/monitoring/sa/grafana"]
+    to:
+    - operation:
+        methods: ["GET"]
+        paths: ["/stats/*", "/config_dump"]
+    when:
+    - key: source.namespace
+      values: ["monitoring"]
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: banking-envoy-destination-rule
+  namespace: banking
+  labels:
+    app: banking-envoy
+    compliance: fapi-2.0
+spec:
+  host: banking-envoy-gateway.banking.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    connectionPool:
+      tcp:
+        maxConnections: 500
+        connectTimeout: 10s
+        keepAlive:
+          time: 7200s
+          interval: 75s
+          probes: 3
+      http:
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 1000
+        maxRequestsPerConnection: 10
+        maxRetries: 3
+        consecutiveGatewayFailure: 3
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 50
+        minHealthPercent: 50
+    circuitBreaker:
+      consecutiveGatewayErrors: 3
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 50
+    retryPolicy:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: "5xx,reset,connect-failure,refused-stream"
+      retryRemoteLocalities: true
+    outlierDetection:
+      consecutiveGatewayErrors: 3
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 50
+  portLevelSettings:
+  - port:
+      number: 8443
+    tls:
+      mode: ISTIO_MUTUAL
+    connectionPool:
+      tcp:
+        maxConnections: 200
+        connectTimeout: 10s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 500
+        maxRequestsPerConnection: 5
+  - port:
+      number: 9901
+    tls:
+      mode: DISABLE
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: banking-envoy-virtual-service
+  namespace: banking
+  labels:
+    app: banking-envoy
+    compliance: fapi-2.0
+spec:
+  hosts:
+  - api.enterprisebank.com
+  - openbanking.enterprisebank.com
+  - banking-envoy-gateway.banking.svc.cluster.local
+  gateways:
+  - banking-gateway
+  - mesh
+  http:
+  # FAPI Open Banking Routes
+  - match:
+    - uri:
+        prefix: /open-banking/v3.1/aisp
+    - headers:
+        x-fapi-interaction-id:
+          regex: ".*"
+        authorization:
+          regex: "Bearer .*"
+    route:
+    - destination:
+        host: banking-envoy-gateway.banking.svc.cluster.local
+        port:
+          number: 8443
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: "5xx,reset,connect-failure"
+    headers:
+      request:
+        add:
+          x-banking-route: "open-banking-aisp"
+          x-compliance-level: "FAPI-2.0"
+  - match:
+    - uri:
+        prefix: /open-banking/v3.1/pisp
+    - headers:
+        x-fapi-interaction-id:
+          regex: ".*"
+        authorization:
+          regex: "Bearer .*"
+    route:
+    - destination:
+        host: banking-envoy-gateway.banking.svc.cluster.local
+        port:
+          number: 8443
+    timeout: 45s
+    retries:
+      attempts: 2
+      perTryTimeout: 15s
+      retryOn: "5xx,reset,connect-failure"
+    headers:
+      request:
+        add:
+          x-banking-route: "open-banking-pisp"
+          x-compliance-level: "FAPI-2.0"
+  # Core Banking API Routes
+  - match:
+    - uri:
+        prefix: /api/v1/loans
+    - headers:
+        authorization:
+          regex: "Bearer .*"
+    route:
+    - destination:
+        host: banking-envoy-gateway.banking.svc.cluster.local
+        port:
+          number: 8443
+    timeout: 60s
+    retries:
+      attempts: 2
+      perTryTimeout: 20s
+      retryOn: "5xx,reset,connect-failure"
+    headers:
+      request:
+        add:
+          x-banking-route: "loan-management"
+          x-compliance-level: "BANKING-INTERNAL"
+  - match:
+    - uri:
+        prefix: /api/v1/customers
+    - headers:
+        authorization:
+          regex: "Bearer .*"
+    route:
+    - destination:
+        host: banking-envoy-gateway.banking.svc.cluster.local
+        port:
+          number: 8443
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: "5xx,reset,connect-failure"
+    headers:
+      request:
+        add:
+          x-banking-route: "customer-management"
+          x-compliance-level: "BANKING-INTERNAL"
+  - match:
+    - uri:
+        prefix: /api/v1/payments
+    - headers:
+        authorization:
+          regex: "Bearer .*"
+    route:
+    - destination:
+        host: banking-envoy-gateway.banking.svc.cluster.local
+        port:
+          number: 8443
+    timeout: 90s
+    retries:
+      attempts: 2
+      perTryTimeout: 30s
+      retryOn: "5xx,reset,connect-failure"
+    headers:
+      request:
+        add:
+          x-banking-route: "payment-processing"
+          x-compliance-level: "BANKING-INTERNAL"
+  - match:
+    - uri:
+        prefix: /api/v1/ai
+    - headers:
+        authorization:
+          regex: "Bearer .*"
+    route:
+    - destination:
+        host: banking-envoy-gateway.banking.svc.cluster.local
+        port:
+          number: 8443
+    timeout: 180s
+    retries:
+      attempts: 1
+      perTryTimeout: 90s
+      retryOn: "5xx,reset,connect-failure"
+    headers:
+      request:
+        add:
+          x-banking-route: "ai-banking"
+          x-compliance-level: "BANKING-INTERNAL"
+  # Health check routes
+  - match:
+    - uri:
+        exact: /health
+    route:
+    - destination:
+        host: banking-envoy-gateway.banking.svc.cluster.local
+        port:
+          number: 8443
+    timeout: 5s
+  # Default route for HTTP to HTTPS redirect
+  - match:
+    - uri:
+        prefix: /
+    redirect:
+      uri: /
+      scheme: https
+      port: 443
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: banking-gateway
+  namespace: banking
+  labels:
+    app: banking-envoy
+    compliance: fapi-2.0
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  # HTTPS Server (FAPI Compliant)
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: banking-tls-secret
+    hosts:
+    - api.enterprisebank.com
+    - openbanking.enterprisebank.com
+  # HTTP Server (Redirect to HTTPS)
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - api.enterprisebank.com
+    - openbanking.enterprisebank.com
+    redirect:
+      https: 443
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: banking-external-apis
+  namespace: banking
+  labels:
+    app: banking-envoy
+    compliance: fapi-2.0
+spec:
+  hosts:
+  - keycloak.enterprisebank.com
+  - external-banking-apis.com
+  - regulatory-compliance-api.gov
+  ports:
+  - number: 443
+    name: https
+    protocol: HTTPS
+  - number: 80
+    name: http
+    protocol: HTTP
+  location: MESH_EXTERNAL
+  resolution: DNS
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: banking-tls-secret
+  namespace: istio-system
+  labels:
+    app: banking-envoy
+    compliance: fapi-2.0
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0=  # Base64 encoded certificate
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0=  # Base64 encoded private key
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: banking-tls-certs
+  namespace: banking
+  labels:
+    app: banking-envoy
+    compliance: fapi-2.0
+type: Opaque
+data:
+  banking-gateway.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0=  # Base64 encoded gateway certificate
+  banking-api.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0=  # Base64 encoded API certificate
+  ca-certificates.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0=  # Base64 encoded CA bundle
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: banking-tls-private-key
+  namespace: banking
+  labels:
+    app: banking-envoy
+    compliance: fapi-2.0
+type: Opaque
+data:
+  banking-gateway.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0=  # Base64 encoded gateway private key
+  banking-api.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0=  # Base64 encoded API private key
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: banking-fapi-compliance-filter
+  namespace: banking
+  labels:
+    app: banking-envoy
+    compliance: fapi-2.0
+spec:
+  workloadSelector:
+    labels:
+      app: banking-envoy-gateway
+  configPatches:
+  # Add FAPI compliance headers
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.lua
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+          inline_code: |
+            function envoy_on_request(request_handle)
+              -- FAPI Compliance Validation
+              local interaction_id = request_handle:headers():get("x-fapi-interaction-id")
+              local auth_header = request_handle:headers():get("authorization")
+              local content_type = request_handle:headers():get("content-type")
+              
+              -- Validate FAPI required headers for Open Banking
+              local path = request_handle:headers():get(":path")
+              if path and string.match(path, "^/open%-banking/") then
+                if not interaction_id then
+                  request_handle:respond(
+                    {[":status"] = "400",
+                     ["content-type"] = "application/json",
+                     ["x-fapi-interaction-id"] = "missing"},
+                    '{"error":"missing_fapi_interaction_id","error_description":"x-fapi-interaction-id header is required for FAPI compliance"}'
+                  )
+                  return
+                end
+                
+                if not auth_header or not string.match(auth_header, "^Bearer ") then
+                  request_handle:respond(
+                    {[":status"] = "401",
+                     ["content-type"] = "application/json",
+                     ["x-fapi-interaction-id"] = interaction_id},
+                    '{"error":"invalid_token","error_description":"Valid Bearer token is required for FAPI compliance"}'
+                  )
+                  return
+                end
+                
+                -- Add FAPI compliance context
+                request_handle:headers():add("x-fapi-compliance-validated", "true")
+                request_handle:headers():add("x-banking-api-standard", "Open-Banking-v3.1")
+              end
+              
+              -- Banking security context
+              request_handle:headers():add("x-banking-request-time", os.date("!%Y-%m-%dT%H:%M:%SZ"))
+              request_handle:headers():add("x-banking-envoy-filter", "fapi-compliance-v1.0")
+            end
+            
+            function envoy_on_response(response_handle)
+              -- FAPI Response Headers
+              local interaction_id = response_handle:headers():get("x-fapi-interaction-id")
+              if interaction_id then
+                response_handle:headers():add("x-fapi-interaction-id", interaction_id)
+              end
+              
+              -- Banking compliance response headers
+              response_handle:headers():add("x-banking-compliance-validated", "true")
+              response_handle:headers():add("x-content-type-options", "nosniff")
+              response_handle:headers():add("x-frame-options", "DENY")
+              response_handle:headers():add("cache-control", "no-store, no-cache, must-revalidate")
+              response_handle:headers():add("pragma", "no-cache")
+              response_handle:headers():add("strict-transport-security", "max-age=31536000; includeSubDomains")
+            end
+  # Rate limiting enhancement
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.local_ratelimit
+        typed_config:
+          "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+          type_url: type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+          value:
+            stat_prefix: banking_fapi_rate_limit
+            token_bucket:
+              max_tokens: 1000
+              tokens_per_fill: 100
+              fill_interval: 60s
+            filter_enabled:
+              runtime_key: banking_fapi_rate_limit_enabled
+              default_value:
+                numerator: 100
+                denominator: HUNDRED
+            filter_enforced:
+              runtime_key: banking_fapi_rate_limit_enforced
+              default_value:
+                numerator: 100
+                denominator: HUNDRED
+            descriptors:
+            - entries:
+              - key: header_match
+                value: open_banking_api
+              token_bucket:
+                max_tokens: 500
+                tokens_per_fill: 50
+                fill_interval: 60s
+            response_headers_to_add:
+            - append: false
+              header:
+                key: x-banking-ratelimit-applied
+                value: "fapi-compliant"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: envoy-wasm-banking-audit
+  namespace: banking
+  labels:
+    app: banking-envoy
+    compliance: fapi-2.0
+data:
+  banking-audit-filter.wasm: |
+    # Banking Audit WASM Filter
+    # This would contain the compiled WebAssembly binary for banking audit
+    # For production, this should be a proper WASM binary compiled from Rust/Go/C++
+    # Placeholder for base64 encoded WASM binary
+    UEsDBBQAAAAIAAwcaVYAAAAAAAAAAAAAAAAJAAAAYW5ldC1hdWRpdC53YXNtVA==
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: WasmPlugin
+metadata:
+  name: banking-audit-wasm-plugin
+  namespace: banking
+  labels:
+    app: banking-envoy
+    compliance: fapi-2.0
+spec:
+  selector:
+    matchLabels:
+      app: banking-envoy-gateway
+  url: oci://banking-registry.com/wasm/banking-audit:v1.0.0
+  phase: AUTHN
+  pluginConfig:
+    banking_compliance: "FAPI-2.0"
+    audit_level: "full"
+    log_format: "json"
+    include_request_body: false
+    include_response_body: false
+    audit_endpoints:
+    - "/open-banking/"
+    - "/api/v1/loans"
+    - "/api/v1/payments"
+    excluded_paths:
+    - "/health"
+    - "/ready"
+    - "/stats"

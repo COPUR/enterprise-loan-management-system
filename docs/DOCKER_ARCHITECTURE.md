@@ -40,7 +40,7 @@ security_context:
 
 ### Production Dockerfiles
 
-#### 1. **docker/variants/Dockerfile.enhanced-v2** - Primary Production Image
+#### 1. **Dockerfile.enhanced-v2** - Primary Production Image
 
 ```dockerfile
 # Production-ready multi-stage build for Enhanced Banking System
@@ -78,7 +78,7 @@ ENTRYPOINT ["./entrypoint.sh"]
 - `builder` - Build environment with full JDK
 - `runtime` - Production runtime with JRE only
 
-#### 2. **docker/variants/Dockerfile.enhanced** - Development Image
+#### 2. **Dockerfile.enhanced** - Development Image
 
 ```dockerfile
 # Development image with debugging tools
@@ -99,7 +99,7 @@ CMD ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:50
 - Live reload capabilities
 - Extended logging
 
-#### 3. **docker/environments/Dockerfile.uat** - UAT Environment
+#### 3. **Dockerfile.uat** - UAT Environment
 
 ```dockerfile
 # User Acceptance Testing optimized build
@@ -517,16 +517,16 @@ main "$@"
 
 ```bash
 # Build production image
-docker build -f docker/variants/Dockerfile.enhanced-v2 --target runtime -t banking-system:enhanced-runtime .
+docker build -f Dockerfile.enhanced-v2 --target runtime -t banking-system:enhanced-runtime .
 
 # Build development image
-docker build -f docker/variants/Dockerfile.enhanced --target development -t banking-system:enhanced-dev .
+docker build -f Dockerfile.enhanced --target development -t banking-system:enhanced-dev .
 
 # Build UAT image
-docker build -f docker/environments/Dockerfile.uat -t banking-system:uat .
+docker build -f Dockerfile.uat -t banking-system:uat .
 
 # Build with BuildKit for multi-platform
-docker buildx build --platform linux/amd64,linux/arm64 -f docker/variants/Dockerfile.enhanced-v2 --target runtime -t banking-system:enhanced-runtime .
+docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile.enhanced-v2 --target runtime -t banking-system:enhanced-runtime .
 ```
 
 ### Docker Compose Commands
@@ -723,7 +723,7 @@ environment:
 docker_build:
   stage: build
   script:
-    - docker build -f docker/variants/Dockerfile.enhanced-v2 --target runtime -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker build -f Dockerfile.enhanced-v2 --target runtime -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
 docker_security_scan:
