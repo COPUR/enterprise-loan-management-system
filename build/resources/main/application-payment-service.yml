@@ -1,0 +1,76 @@
+# Payment Service Configuration
+server:
+  port: ${PAYMENT_SERVICE_PORT:8083}
+  servlet:
+    context-path: /payment-service
+
+spring:
+  application:
+    name: payment-service
+  
+  # Database Configuration - Payment Service DB
+  datasource:
+    url: ${PAYMENT_DB_URL:jdbc:postgresql://localhost:5432/payment_db}
+    username: ${PAYMENT_DB_USERNAME:payment_user}
+    password: ${PAYMENT_DB_PASSWORD:payment_pass}
+    driver-class-name: org.postgresql.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: ${HIBERNATE_DDL_AUTO:validate}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        
+  # Kafka Configuration for Events
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: payment-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.loanmanagement.*"
+
+# API Documentation
+springdoc:
+  api-docs:
+    path: /payment-service/v3/api-docs
+  swagger-ui:
+    path: /payment-service/swagger-ui.html
+
+# Eureka Client Configuration
+eureka:
+  client:
+    enabled: ${EUREKA_ENABLED:false}
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+    
+# Feign Client Configuration for Loan Service
+feign:
+  client:
+    config:
+      loan-service:
+        url: ${LOAN_SERVICE_URL:http://localhost:8082/loan-service}
+        connectTimeout: 5000
+        readTimeout: 5000
+
+# Management Endpoints
+management:
+  endpoints:
+    web:
+      base-path: /payment-service/actuator
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true

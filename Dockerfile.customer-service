@@ -1,0 +1,123 @@
+# Customer Service - PII Protection & GDPR Compliance
+# Multi-stage Docker build optimized for customer data management
+
+# ========================================
+# Stage 1: Builder
+# ========================================
+FROM eclipse-temurin:21-jdk-alpine AS builder
+
+LABEL stage=builder \
+      com.enterprise.banking.service="customer-service" \
+      com.enterprise.banking.compliance="GDPR,PII-Protection"
+
+# Install build dependencies
+RUN apk add --no-cache \
+    curl \
+    git \
+    bash \
+    && rm -rf /var/cache/apk/*
+
+# Create build user
+RUN addgroup -g 1001 builder && \
+    adduser -D -s /bin/sh -u 1001 -G builder builder
+
+USER builder:builder
+WORKDIR /workspace
+
+# Copy build files (layer caching optimization)
+COPY --chown=builder:builder build.gradle settings.gradle gradle.properties ./
+COPY --chown=builder:builder gradle/ ./gradle/
+COPY --chown=builder:builder gradlew ./
+
+# Download dependencies
+RUN ./gradlew dependencies --no-daemon
+
+# Copy customer service source
+COPY --chown=builder:builder customer-service/src/ ./customer-service/src/
+COPY --chown=builder:builder shared-kernel/src/ ./shared-kernel/src/
+
+# Build customer service
+RUN ./gradlew :customer-service:clean :customer-service:build -x test --no-daemon \
+    && cp customer-service/build/libs/*.jar customer-service.jar
+
+# ========================================
+# Stage 2: Production - Customer Service
+# ========================================
+FROM eclipse-temurin:21-jre-alpine AS production
+
+LABEL maintainer="customer-service-team@banking.com" \
+      version="1.0.0" \
+      com.enterprise.banking.service="customer-service" \
+      com.enterprise.banking.compliance="GDPR,PII-Protection,Data-Sovereignty" \
+      com.enterprise.banking.security-profile="customer-data-protection" \
+      com.enterprise.banking.audit-required="true" \
+      com.enterprise.banking.encryption-required="true" \
+      com.enterprise.banking.pii-handling="enabled"
+
+# Security hardening
+RUN apk update && apk upgrade \
+    && apk add --no-cache \
+    curl \
+    ca-certificates \
+    tzdata \
+    && rm -rf /var/cache/apk/* \
+    && rm -rf /tmp/*
+
+# Create banking user with customer data privileges
+RUN addgroup -g 1000 banking && \
+    adduser -D -s /bin/sh -u 1000 -G banking banking
+
+# Create secure directories
+RUN mkdir -p /app/config /app/logs /app/data /app/pii-vault \
+    && chown -R banking:banking /app \
+    && chmod 750 /app \
+    && chmod 700 /app/pii-vault
+
+USER banking:banking
+WORKDIR /app
+
+# Copy customer service jar
+COPY --from=builder --chown=banking:banking /workspace/customer-service.jar ./app.jar
+
+# Customer service optimized JVM settings
+ENV JAVA_OPTS="-server \
+    -XX:+UseG1GC \
+    -XX:MaxGCPauseMillis=100 \
+    -XX:+UseStringDeduplication \
+    -Xms256m \
+    -Xmx1g \
+    -XX:+HeapDumpOnOutOfMemoryError \
+    -XX:HeapDumpPath=/app/logs/ \
+    -XX:+ExitOnOutOfMemoryError \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Dspring.profiles.active=production \
+    -Dlogging.file.path=/app/logs \
+    -Dbanking.customer.pii-encryption=true \
+    -Dbanking.customer.gdpr-compliance=strict"
+
+# Customer service environment
+ENV SPRING_PROFILES_ACTIVE=production \
+    SERVER_PORT=8080 \
+    MANAGEMENT_SERVER_PORT=8081 \
+    SERVICE_NAME=customer-service \
+    TZ=UTC
+
+# Customer data protection settings
+ENV CUSTOMER_PII_ENCRYPTION=true \
+    CUSTOMER_DATA_RETENTION_DAYS=2555 \
+    GDPR_COMPLIANCE_STRICT=true \
+    DATA_MASKING_ENABLED=true \
+    AUDIT_CUSTOMER_ACCESS=true
+
+# Expose ports
+EXPOSE 8080 8081
+
+# Volume for customer data and logs
+VOLUME ["/app/data", "/app/logs", "/app/pii-vault"]
+
+# Health check with customer service validation
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8081/actuator/health || exit 1
+
+ENTRYPOINT ["java"]
+CMD ["-jar", "app.jar"]

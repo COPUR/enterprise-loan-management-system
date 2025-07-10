@@ -1,0 +1,397 @@
+# Banking Service Mesh Configuration
+# Comprehensive Istio setup for enterprise banking with FAPI 2.0 compliance
+
+---
+# Banking Namespace with Istio Injection
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: banking-services
+  labels:
+    istio-injection: enabled
+    banking-environment: production
+    compliance-level: fapi-2.0
+    data-classification: confidential
+
+---
+# Banking mTLS Policy
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: banking-mtls-policy
+  namespace: banking-services
+  labels:
+    banking-component: security
+    compliance-level: fapi-2.0
+spec:
+  mtls:
+    mode: STRICT
+
+---
+# Banking Authorization Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: banking-authz-policy
+  namespace: banking-services
+  labels:
+    banking-component: security
+    compliance-level: fapi-2.0
+spec:
+  rules:
+  # Allow customer service to access loan service
+  - from:
+    - source:
+        principals: ["cluster.local/ns/banking-services/sa/customer-service"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT"]
+        paths: ["/api/v1/loans/*", "/api/v1/eligibility/*"]
+    when:
+    - key: request.headers[x-fapi-interaction-id]
+      values: ["*"]
+  
+  # Allow loan service to access payment service
+  - from:
+    - source:
+        principals: ["cluster.local/ns/banking-services/sa/loan-service"]
+    to:
+    - operation:
+        methods: ["POST"]
+        paths: ["/api/v1/payments/*"]
+    when:
+    - key: request.headers[authorization]
+      values: ["Bearer *"]
+  
+  # Allow ingress gateway access
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE"]
+
+---
+# Banking Gateway Configuration
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: banking-gateway
+  namespace: banking-services
+  labels:
+    banking-component: gateway
+    compliance-level: fapi-2.0
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  # HTTPS endpoint for banking APIs
+  - port:
+      number: 443
+      name: https-banking
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: banking-tls-cert
+    hosts:
+    - "api.banking.enterprise.local"
+    - "openbanking.enterprise.local"
+    - "fapi.enterprise.local"
+  
+  # mTLS endpoint for partner integrations
+  - port:
+      number: 8443
+      name: mtls-partners
+      protocol: HTTPS
+    tls:
+      mode: MUTUAL
+      credentialName: banking-mtls-cert
+    hosts:
+    - "partners.banking.enterprise.local"
+
+---
+# Banking Virtual Service for API Routing
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: banking-api-routes
+  namespace: banking-services
+  labels:
+    banking-component: routing
+    compliance-level: fapi-2.0
+spec:
+  hosts:
+  - "api.banking.enterprise.local"
+  - "openbanking.enterprise.local"
+  - "fapi.enterprise.local"
+  gateways:
+  - banking-gateway
+  http:
+  # Customer API routes
+  - match:
+    - uri:
+        prefix: /api/v1/customers
+    - headers:
+        x-fapi-interaction-id:
+          regex: "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+    route:
+    - destination:
+        host: customer-service.banking-services.svc.cluster.local
+        port:
+          number: 8080
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: gateway-error,connect-failure,refused-stream
+    headers:
+      request:
+        add:
+          X-Banking-Service: "customer-service"
+          X-Banking-Version: "v1"
+  
+  # Loan API routes
+  - match:
+    - uri:
+        prefix: /api/v1/loans
+    - headers:
+        authorization:
+          regex: "^Bearer .*"
+    route:
+    - destination:
+        host: loan-service.banking-services.svc.cluster.local
+        port:
+          number: 8080
+    timeout: 45s
+    retries:
+      attempts: 2
+      perTryTimeout: 20s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+    headers:
+      request:
+        add:
+          X-Banking-Service: "loan-service"
+          X-Banking-Version: "v1"
+  
+  # Payment Initiation API routes (Open Banking)
+  - match:
+    - uri:
+        prefix: /open-banking/v3.1/pisp
+    - headers:
+        x-fapi-financial-id:
+          regex: "^[a-zA-Z0-9]{1,40}$"
+        authorization:
+          regex: "^Bearer .*"
+    route:
+    - destination:
+        host: payment-service.banking-services.svc.cluster.local
+        port:
+          number: 8080
+    timeout: 60s
+    retries:
+      attempts: 1
+      perTryTimeout: 30s
+    headers:
+      request:
+        add:
+          X-Banking-Service: "payment-service"
+          X-Banking-Version: "v3.1"
+          X-Open-Banking-Version: "v3.1.10"
+  
+  # AI Assistant API routes
+  - match:
+    - uri:
+        prefix: /api/v1/ai
+    route:
+    - destination:
+        host: ai-assistant-service.banking-services.svc.cluster.local
+        port:
+          number: 8080
+    timeout: 120s
+    headers:
+      request:
+        add:
+          X-Banking-Service: "ai-assistant-service"
+          X-Banking-Version: "v1"
+
+---
+# Banking Destination Rules for Load Balancing
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: banking-services-destination-rules
+  namespace: banking-services
+  labels:
+    banking-component: load-balancing
+    compliance-level: fapi-2.0
+spec:
+  host: "*.banking-services.svc.cluster.local"
+  trafficPolicy:
+    # Banking-optimized load balancing
+    loadBalancer:
+      simple: LEAST_CONN
+    
+    # Connection pooling for banking services
+    connectionPool:
+      tcp:
+        maxConnections: 50
+        connectTimeout: 10s
+        keepAlive:
+          time: 7200s
+          interval: 75s
+      http:
+        http1MaxPendingRequests: 10
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 10
+        maxRetries: 3
+        consecutiveGatewayErrors: 5
+        interval: 30s
+        baseEjectionTime: 30s
+        minHealthPercent: 50
+    
+    # Banking circuit breaker
+    outlierDetection:
+      consecutiveGatewayErrors: 3
+      consecutive5xxErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+      splitExternalLocalOriginErrors: true
+  
+  # Banking service-specific policies
+  subsets:
+  - name: customer-service-v1
+    labels:
+      version: v1
+      banking-service: customer
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 30
+        http:
+          http1MaxPendingRequests: 5
+          maxRequestsPerConnection: 5
+  
+  - name: loan-service-v1
+    labels:
+      version: v1
+      banking-service: loan
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 40
+        http:
+          http1MaxPendingRequests: 8
+          maxRequestsPerConnection: 8
+  
+  - name: payment-service-v1
+    labels:
+      version: v1
+      banking-service: payment
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 50
+        http:
+          http1MaxPendingRequests: 10
+          maxRequestsPerConnection: 10
+
+---
+# Banking Service Entries for External Dependencies
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-payment-schemes
+  namespace: banking-services
+  labels:
+    banking-component: external-services
+    compliance-level: fapi-2.0
+spec:
+  hosts:
+  - faster-payments.service.gov.uk
+  - sepa.payments.eu
+  - swift.payments.network
+  ports:
+  - number: 443
+    name: https
+    protocol: HTTPS
+  location: MESH_EXTERNAL
+  resolution: DNS
+
+---
+# Banking Telemetry Configuration
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: banking-telemetry
+  namespace: banking-services
+  labels:
+    banking-component: observability
+    compliance-level: fapi-2.0
+spec:
+  # Banking metrics configuration
+  metrics:
+  - providers:
+    - name: prometheus
+  - overrides:
+    - match:
+        metric: ALL_METRICS
+      disabled: false
+    - match:
+        metric: REQUEST_COUNT
+        operation: increment
+      tags:
+        banking_service: "source.workload.name | 'unknown'"
+        banking_version: "source.labels['version'] | 'unknown'"
+        fapi_interaction_id: "request.headers['x-fapi-interaction-id'] | 'unknown'"
+        oauth_client_id: "request.headers['x-oauth-client-id'] | 'unknown'"
+  
+  # Banking access logging
+  accessLogging:
+  - providers:
+    - name: otel
+  - match:
+      mode: CLIENT
+    providers:
+    - name: otel
+  
+  # Banking tracing
+  tracing:
+  - providers:
+    - name: jaeger
+
+---
+# Banking Request Authentication
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: banking-jwt-auth
+  namespace: banking-services
+  labels:
+    banking-component: authentication
+    compliance-level: fapi-2.0
+spec:
+  selector:
+    matchLabels:
+      banking-service-type: api
+  jwtRules:
+  # FAPI 2.0 JWT validation
+  - issuer: "https://auth.banking.enterprise.local"
+    jwksUri: "https://auth.banking.enterprise.local/.well-known/jwks.json"
+    audiences:
+    - "banking-api"
+    - "open-banking-api"
+    fromHeaders:
+    - name: "Authorization"
+      prefix: "Bearer "
+    forwardOriginalToken: true
+    
+  # DPoP JWT validation (RFC 9449)
+  - issuer: "https://auth.banking.enterprise.local"
+    jwksUri: "https://auth.banking.enterprise.local/.well-known/dpop-jwks.json"
+    audiences:
+    - "banking-api-dpop"
+    fromHeaders:
+    - name: "DPoP"
+    forwardOriginalToken: true

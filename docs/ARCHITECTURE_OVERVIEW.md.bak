@@ -1,0 +1,295 @@
+# Enterprise Loan Management System - Architecture Overview
+
+## Table of Contents
+1. [System Overview](#system-overview)
+2. [Architecture Principles](#architecture-principles)
+3. [Domain Model](#domain-model)
+4. [Technical Architecture](#technical-architecture)
+5. [Security Architecture](#security-architecture)
+6. [Integration Architecture](#integration-architecture)
+7. [Deployment Architecture](#deployment-architecture)
+
+## System Overview
+
+The Enterprise Loan Management System is a comprehensive financial services platform designed to handle the complete lifecycle of loan products, from customer onboarding through loan origination, servicing, and payment processing. Built with modern architectural patterns and enterprise-grade security, the system is designed to scale and adapt to evolving business requirements.
+
+### Key Capabilities
+- **Customer Management**: Complete customer lifecycle management with KYC compliance
+- **Loan Origination**: AI-powered loan application processing with risk assessment
+- **Payment Processing**: Flexible payment handling with multiple payment types
+- **Risk Analytics**: Real-time risk assessment and fraud detection
+- **Open Banking**: FAPI-compliant integration with external financial systems
+- **Event-Driven Architecture**: Real-time event processing and workflow orchestration
+
+
+## Architecture Diagrams
+
+### System Context
+![System Context](architecture/generated-diagrams/Enterprise%20Loan%20Management%20System%20-%20System%20Context%20(Java%2021).svg)
+
+### Hexagonal Architecture
+![Hexagonal Architecture](architecture/generated-diagrams/Enterprise%20Loan%20Management%20System%20-%20Hexagonal%20Architecture%20(Java%2021).svg)
+
+### Microservices Architecture
+![Microservices Architecture](application-architecture/microservices/generated-diagrams/Enterprise%20Loan%20Management%20-%20Microservices%20Architecture.svg)
+
+### Security Architecture
+![Security Architecture](security-architecture/security-models/generated-diagrams/FAPI%202.0%20Security%20Architecture%20(Java%2021).svg)
+
+## Architecture Principles
+
+### 1. Domain-Driven Design (DDD)
+The system is organized around business domains:
+- **Customer Domain**: Customer management and KYC
+- **Loan Domain**: Loan origination and servicing
+- **Payment Domain**: Payment processing and reconciliation
+- **Risk Domain**: Risk assessment and analytics
+
+### 2. Hexagonal Architecture (Ports & Adapters)
+- **Domain Core**: Pure business logic with no external dependencies
+- **Application Services**: Use case orchestration
+- **Ports**: Interfaces defining contracts
+- **Adapters**: Infrastructure implementations
+
+### 3. Event-Driven Architecture
+- **Domain Events**: Business state changes
+- **Event Sourcing**: Complete audit trail
+- **Event Streaming**: Real-time processing
+- **Saga Pattern**: Distributed transaction management
+
+### 4. Security-First Design
+- **Zero Trust Architecture**: Never trust, always verify
+- **FAPI 2.0 Compliance**: Financial-grade API security
+- **DPoP Implementation**: Proof of possession for enhanced security
+- **Continuous Verification**: Runtime security monitoring
+
+## Domain Model
+
+### Customer Domain
+```
+Customer (Aggregate Root)
+├── CustomerProfile
+├── CustomerStatus
+├── CreditScore
+├── KYCInformation
+└── CustomerPreferences
+
+Commands:
+- CreateCustomerCommand
+- UpdateCustomerCommand
+- ActivateCustomerCommand
+- SuspendCustomerCommand
+
+Events:
+- CustomerCreatedEvent
+- CustomerUpdatedEvent
+- CustomerActivatedEvent
+- CustomerSuspendedEvent
+```
+
+### Loan Domain
+```
+Loan (Aggregate Root)
+├── LoanTerms
+├── LoanStatus
+├── InterestRate
+├── PaymentSchedule
+└── LoanInstallments
+
+Commands:
+- CreateLoanCommand
+- ApproveLoanCommand
+- DisburseLoanCommand
+- RestructureLoanCommand
+
+Events:
+- LoanApplicationSubmittedEvent
+- LoanApprovedEvent
+- LoanDisbursedEvent
+- LoanRestructuredEvent
+```
+
+### Payment Domain
+```
+Payment (Aggregate Root)
+├── PaymentAmount
+├── PaymentType
+├── PaymentStatus
+├── PaymentAllocation
+└── PaymentReference
+
+Commands:
+- ProcessPaymentCommand
+- ReversePaymentCommand
+- SchedulePaymentCommand
+
+Events:
+- PaymentProcessedEvent
+- PaymentReversedEvent
+- PaymentFailedEvent
+```
+
+## Technical Architecture
+
+### Application Layers
+
+#### 1. Presentation Layer
+- **REST APIs**: RESTful endpoints with OpenAPI documentation
+- **GraphQL**: Flexible query interface for complex data needs
+- **WebSocket**: Real-time notifications and updates
+
+#### 2. Application Layer
+- **Use Cases**: Business operation orchestration
+- **DTOs**: Data transfer objects for API contracts
+- **Mappers**: Domain to DTO transformations
+- **Validators**: Input validation and sanitization
+
+#### 3. Domain Layer
+- **Entities**: Business entities with invariants
+- **Value Objects**: Immutable domain concepts
+- **Domain Services**: Complex business logic
+- **Repositories**: Abstraction for data persistence
+
+#### 4. Infrastructure Layer
+- **Database**: PostgreSQL with optimized schemas
+- **Cache**: Redis for performance optimization
+- **Message Broker**: Kafka for event streaming
+- **External Services**: Third-party integrations
+
+### Technology Stack
+
+#### Backend
+- **Java 17**: Modern Java with records and enhanced switch
+- **Spring Boot 3.x**: Microservices framework
+- **Spring Data JPA**: ORM and repository abstraction
+- **Spring Security**: Authentication and authorization
+- **Spring Cloud**: Distributed system patterns
+
+#### Infrastructure
+- **PostgreSQL**: Primary data store
+- **Redis**: Distributed caching
+- **Apache Kafka**: Event streaming platform
+- **Elasticsearch**: Search and analytics
+- **Prometheus/Grafana**: Monitoring and alerting
+
+#### DevOps
+- **Docker**: Containerization
+- **Kubernetes**: Container orchestration
+- **Istio**: Service mesh for microservices
+- **GitHub Actions**: CI/CD pipeline
+- **Terraform**: Infrastructure as Code
+
+## Security Architecture
+
+### Authentication & Authorization
+1. **OAuth 2.0 + OIDC**: Standard authentication flow
+2. **JWT Tokens**: Stateless authentication
+3. **DPoP**: Proof of possession for enhanced security
+4. **MFA**: Multi-factor authentication support
+
+### API Security
+1. **FAPI 2.0 Compliance**: Financial-grade API security
+2. **Request Signing**: HMAC-based request signatures
+3. **Rate Limiting**: Adaptive rate limiting
+4. **API Gateway**: Centralized security enforcement
+
+### Data Security
+1. **Encryption at Rest**: AES-256 encryption
+2. **Encryption in Transit**: TLS 1.3
+3. **Key Management**: Vault integration
+4. **Data Masking**: PII protection
+
+### Security Monitoring
+1. **Threat Detection**: Real-time anomaly detection
+2. **Audit Logging**: Comprehensive audit trail
+3. **SIEM Integration**: Security event correlation
+4. **Compliance Reporting**: Automated compliance checks
+
+## Integration Architecture
+
+### Internal Integration
+1. **Service Mesh**: Istio for service-to-service communication
+2. **Event Bus**: Kafka for asynchronous communication
+3. **API Gateway**: Kong for API management
+4. **Service Discovery**: Consul for dynamic service location
+
+### External Integration
+1. **Open Banking APIs**: PSD2/Open Banking compliance
+2. **Credit Bureaus**: Real-time credit checks
+3. **Payment Networks**: ACH, Wire, Card networks
+4. **KYC Providers**: Identity verification services
+
+### Integration Patterns
+1. **Circuit Breaker**: Fault tolerance
+2. **Retry with Backoff**: Transient failure handling
+3. **Bulkhead**: Resource isolation
+4. **Saga Pattern**: Distributed transactions
+
+## Deployment Architecture
+
+### Container Architecture
+```yaml
+Microservices:
+├── customer-service
+├── loan-service
+├── payment-service
+├── risk-service
+├── notification-service
+└── gateway-service
+
+Supporting Services:
+├── config-server
+├── discovery-server
+├── auth-server
+└── admin-server
+```
+
+### Kubernetes Deployment
+1. **Namespaces**: Environment isolation
+2. **ConfigMaps**: Configuration management
+3. **Secrets**: Sensitive data management
+4. **HPA**: Horizontal pod autoscaling
+5. **Service Mesh**: Istio integration
+
+### High Availability
+1. **Multi-AZ Deployment**: Cross availability zones
+2. **Database Replication**: Primary-replica setup
+3. **Cache Clustering**: Redis cluster mode
+4. **Load Balancing**: Application and database level
+
+### Disaster Recovery
+1. **Backup Strategy**: Automated daily backups
+2. **Point-in-Time Recovery**: Database PITR
+3. **Cross-Region Replication**: Geographic redundancy
+4. **RTO/RPO Targets**: 4-hour RTO, 1-hour RPO
+
+## Performance Considerations
+
+### Optimization Strategies
+1. **Database Indexing**: Optimized query performance
+2. **Caching Strategy**: Multi-level caching
+3. **Async Processing**: Non-blocking operations
+4. **Connection Pooling**: Resource optimization
+
+### Scalability
+1. **Horizontal Scaling**: Stateless services
+2. **Database Sharding**: Data partitioning
+3. **Read Replicas**: Read scalability
+4. **CDN Integration**: Static content delivery
+
+### Monitoring
+1. **APM**: Application performance monitoring
+2. **Distributed Tracing**: Request flow tracking
+3. **Metrics Collection**: Prometheus metrics
+4. **Log Aggregation**: Centralized logging
+
+## Conclusion
+
+The Enterprise Loan Management System architecture is designed to be:
+- **Scalable**: Handle growing transaction volumes
+- **Secure**: Financial-grade security implementation
+- **Maintainable**: Clean architecture and separation of concerns
+- **Extensible**: Easy to add new features and integrations
+- **Resilient**: Fault-tolerant with graceful degradation
+
+This architecture provides a solid foundation for a modern financial services platform that can adapt to changing business requirements while maintaining high standards of security and performance.

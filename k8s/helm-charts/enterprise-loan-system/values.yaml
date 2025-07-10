@@ -176,3 +176,122 @@ external:
     enabled: false  # Using external RDS
   redis:
     enabled: false  # Using external ElastiCache
+
+# Global Configuration
+global:
+  namespace: banking-system
+  imageRegistry: harbor.banking.enterprise.com
+  imagePullSecrets:
+    - name: harbor-registry-secret
+  istio:
+    sidecarInjection: true
+    gateway: banking-gateway
+    tls:
+      enabled: true
+      mode: ISTIO_MUTUAL
+
+# Microservices Configuration
+microservices:
+  customerService:
+    enabled: true
+    name: customer-service
+    replicaCount: 2
+    image:
+      repository: banking/customer-service
+      tag: latest
+    port: 8080
+    service:
+      type: ClusterIP
+      port: 8080
+    istio:
+      includeInboundPorts: "8080"
+      excludeOutboundPorts: ""
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+  
+  loanService:
+    enabled: true
+    name: loan-service
+    replicaCount: 3
+    image:
+      repository: banking/loan-service
+      tag: latest
+    port: 8080
+    service:
+      type: ClusterIP
+      port: 8080
+    istio:
+      includeInboundPorts: "8080"
+      excludeOutboundPorts: ""
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+  
+  paymentService:
+    enabled: true
+    name: payment-service
+    replicaCount: 2
+    image:
+      repository: banking/payment-service
+      tag: latest
+    port: 8080
+    service:
+      type: ClusterIP
+      port: 8080
+    istio:
+      includeInboundPorts: "8080"
+      excludeOutboundPorts: ""
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+  
+  partyService:
+    enabled: true
+    name: party-service
+    replicaCount: 2
+    image:
+      repository: banking/party-service
+      tag: latest
+    port: 8080
+    service:
+      type: ClusterIP
+      port: 8080
+    istio:
+      includeInboundPorts: "8080"
+      excludeOutboundPorts: ""
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+
+# PostgreSQL (External)
+postgresql:
+  enabled: false
+
+# Redis (External)  
+redis:
+  enabled: false
+
+# Prometheus (Optional)
+prometheus:
+  enabled: false
+
+# Grafana (Optional)
+grafana:
+  enabled: false

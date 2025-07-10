@@ -69,7 +69,7 @@ This directory contains comprehensive documentation for enterprise governance, s
 
 #### Loan Creation Sequence
 - **Location**: [application-architecture/sequence-diagrams/loan-creation-sequence.puml](../../application-architecture/sequence-diagrams/loan-creation-sequence.puml)
-- **Generated Diagram**: [Loan Creation Sequence.svg](generated-diagrams/Loan%20Creation%20Sequence_v1.0.0.svg)
+- **Generated Diagram**: [Loan Creation Sequence (Java 21 + FAPI 2.0).svg](generated-diagrams/Loan%20Creation%20Sequence_v1.0.0.svg)
 - **Business Process**: Complete loan origination with credit validation and SAGA coordination
 - **Key Participants**: Bank Employee, LoanController, LoanApplicationService, CustomerService, EventPublisher
 - **Business Rules Enforced**:

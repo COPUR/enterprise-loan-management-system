@@ -1,4 +1,4 @@
-@startuml FAPI Security Architecture
+@startuml FAPI 2.0 Security Architecture (Java 21)
 
 !define SECURITY_COLOR #FF6B6B
 !define OAUTH_COLOR #4A90E2
@@ -9,7 +9,7 @@
 skinparam backgroundColor #FFFFFF
 skinparam componentStyle rectangle
 
-package "FAPI 1.0 Advanced Security Framework" {
+package "FAPI 2.0 Advanced Security Framework with Zero Trust" {
     
     package "Client Layer" {
         actor "Bank Employee" as Employee
@@ -25,29 +25,35 @@ package "FAPI 1.0 Advanced Security Framework" {
         
         component [API Gateway\n(Kong/NGINX)] as APIGateway SECURITY_COLOR
         
-        package "FAPI Authentication" {
-            component [OAuth 2.0 Authorization\nServer] as AuthServer OAUTH_COLOR
-            component [JWT Token Provider\n(RS256 Signing)] as JWTProvider JWT_COLOR
+        package "FAPI 2.0 Authentication" {
+            component [OAuth 2.1 Authorization\nServer (Keycloak)] as AuthServer OAUTH_COLOR
+            component [JWT Token Provider\n(RS256/ES256 Signing)] as JWTProvider JWT_COLOR
+            component [DPoP Token Binding\nValidation] as DPoPValidator SECURITY_COLOR
             component [Client Certificate\nValidation (mTLS)] as MTLSValidator MTLS_COLOR
         }
         
-        package "FAPI Request Processing" {
+        package "FAPI 2.0 Request Processing" {
             component [Request Object\nValidation] as RequestValidator SECURITY_COLOR
-            component [Rate Limiting\n(100 req/min)] as RateLimiter RATE_LIMIT_COLOR
+            component [Adaptive Rate Limiting\n(Threat-based)] as RateLimiter RATE_LIMIT_COLOR
             component [Security Headers\nEnforcement] as SecurityHeaders SECURITY_COLOR
+            component [Zero Trust\nContinuous Verification] as ZeroTrust SECURITY_COLOR
         }
         
-        package "FAPI Compliance" {
+        package "FAPI 2.0 Compliance" {
             component [FAPI Interaction ID\nGeneration] as InteractionID SECURITY_COLOR
-            component [Request Signing\nValidation] as RequestSigning SECURITY_COLOR
-            component [Response Encryption] as ResponseEncryption SECURITY_COLOR
+            component [Request Signing\nValidation (JWS)] as RequestSigning SECURITY_COLOR
+            component [Response Encryption\n(JWE)] as ResponseEncryption SECURITY_COLOR
+            component [Behavioral Analysis\nEngine] as BehavioralAnalysis SECURITY_COLOR
+            component [Threat Detection\nML Models] as ThreatDetection SECURITY_COLOR
         }
     }
     
-    package "Application Layer" <<Layer>> {
-        component [Loan Management\nService] as LoanService JWT_COLOR
-        component [Customer Management\nService] as CustomerService JWT_COLOR
-        component [Payment Processing\nService] as PaymentService JWT_COLOR
+    package "Application Layer (Java 21)" <<Layer>> {
+        component [Loan Management\nService (Spring Boot 3.4.3)] as LoanService JWT_COLOR
+        component [Customer Management\nService (Spring Boot 3.4.3)] as CustomerService JWT_COLOR
+        component [Payment Processing\nService (Spring Boot 3.4.3)] as PaymentService JWT_COLOR
+        component [AI Security\nService (Spring AI)] as AISecurityService JWT_COLOR
+        component [Zero Trust\nOrchestrator] as ZeroTrustOrchestrator JWT_COLOR
         
         package "Security Services" {
             component [FAPI Security\nService] as FAPISecurityService SECURITY_COLOR

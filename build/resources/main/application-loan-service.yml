@@ -1,0 +1,76 @@
+# Loan Service Configuration
+server:
+  port: ${LOAN_SERVICE_PORT:8082}
+  servlet:
+    context-path: /loan-service
+
+spring:
+  application:
+    name: loan-service
+  
+  # Database Configuration - Loan Service DB
+  datasource:
+    url: ${LOAN_DB_URL:jdbc:postgresql://localhost:5432/loan_db}
+    username: ${LOAN_DB_USERNAME:loan_user}
+    password: ${LOAN_DB_PASSWORD:loan_pass}
+    driver-class-name: org.postgresql.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: ${HIBERNATE_DDL_AUTO:validate}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        
+  # Kafka Configuration for Events
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: loan-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.loanmanagement.*"
+
+# API Documentation
+springdoc:
+  api-docs:
+    path: /loan-service/v3/api-docs
+  swagger-ui:
+    path: /loan-service/swagger-ui.html
+
+# Eureka Client Configuration
+eureka:
+  client:
+    enabled: ${EUREKA_ENABLED:false}
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+    
+# Feign Client Configuration for Customer Service
+feign:
+  client:
+    config:
+      customer-service:
+        url: ${CUSTOMER_SERVICE_URL:http://localhost:8081/customer-service}
+        connectTimeout: 5000
+        readTimeout: 5000
+
+# Management Endpoints
+management:
+  endpoints:
+    web:
+      base-path: /loan-service/actuator
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true

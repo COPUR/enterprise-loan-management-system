@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "enterprise-loan-system.fullname" . }}
+  labels:
+    {{- include "enterprise-loan-system.labels" . | nindent 4 }}
+data:
+  # Application configuration
+  application.yml: |
+    server:
+      port: {{ .Values.service.targetPort | default 8080 }}
+    
+    spring:
+      profiles:
+        active: {{ .Values.app.env | default "production" }}
+      
+      {{- if .Values.database.external }}
+      datasource:
+        url: jdbc:postgresql://{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}
+        username: {{ .Values.database.username }}
+        driver-class-name: org.postgresql.Driver
+        hikari:
+          maximum-pool-size: 20
+          minimum-idle: 5
+          connection-timeout: 30000
+      {{- end }}
+      
+      {{- if .Values.redis.enabled }}
+      redis:
+        host: {{ .Values.redis.host }}
+        port: {{ .Values.redis.port }}
+        timeout: {{ .Values.redis.timeout | default 2000 }}ms
+        {{- if .Values.redis.ssl }}
+        ssl: true
+        {{- end }}
+      {{- end }}
+    
+    # Banking-specific configuration
+    banking:
+      {{- if .Values.app.banking }}
+      installments:
+        allowed: {{ .Values.app.banking.installments.allowed | quote }}
+      interest-rate:
+        min: {{ .Values.app.banking.interestRate.min }}
+        max: {{ .Values.app.banking.interestRate.max }}
+      compliance:
+        tdd-required: {{ .Values.app.banking.compliance.tddRequired }}
+      fapi:
+        enabled: {{ .Values.app.banking.fapi.enabled }}
+      {{- end }}
+    
+    # Management and monitoring
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: {{ .Values.monitoring.enabled | ternary "health,info,metrics,prometheus" "health,info" }}
+      endpoint:
+        health:
+          show-details: when-authorized
+      health:
+        readiness-state:
+          enabled: true
+        liveness-state:
+          enabled: true
+    
+    # Logging configuration
+    logging:
+      level:
+        com.bank: INFO
+        org.springframework.security: {{ .Values.app.env | eq "development" | ternary "DEBUG" "INFO" }}
+      pattern:
+        console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+        file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

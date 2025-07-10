@@ -1,0 +1,209 @@
+# Banking Health Indicators Configuration
+# Configures custom health indicators for banking-specific services
+
+management:
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      group:
+        # Core banking services health group
+        banking:
+          include: 
+            - loanProcessing
+            - paymentSystem
+            - complianceService
+            - fraudDetection
+            - customerService
+          show-details: always
+          
+        # Core services only (for high-frequency monitoring)
+        core:
+          include:
+            - loanProcessing
+            - paymentSystem
+          show-details: when-authorized
+          
+        # Security services group
+        security:
+          include:
+            - complianceService
+            - fraudDetection
+          show-details: always
+          
+        # Customer-facing services
+        customer:
+          include:
+            - customerService
+            - paymentSystem
+          show-details: when-authorized
+          
+        # Readiness check (all critical services)
+        readiness:
+          include:
+            - loanProcessing
+            - paymentSystem
+            - complianceService
+          show-details: never
+          
+        # Liveness check (minimal services)
+        liveness:
+          include:
+            - db
+            - redis
+          show-details: never
+      
+      # Health indicator specific configurations
+      loan-processing:
+        cache:
+          time-to-live: 30s
+        threshold:
+          pending-loans: 100
+          processing-loans: 20
+          
+      payment-system:
+        cache:
+          time-to-live: 15s
+        threshold:
+          recent-payments: 5
+          queue-size: 100
+          
+      compliance-service:
+        cache:
+          time-to-live: 60s
+        threshold:
+          compliance-checks: 1
+          
+      fraud-detection:
+        cache:
+          time-to-live: 30s
+        threshold:
+          fraud-checks: 1
+          accuracy-threshold: 85.0
+          
+      customer-service:
+        cache:
+          time-to-live: 45s
+        threshold:
+          response-time: 10.0
+          operations: 10
+
+  endpoints:
+    web:
+      exposure:
+        include: 
+          - health
+          - metrics
+          - prometheus
+          - info
+      base-path: /actuator
+      path-mapping:
+        health: health
+
+  health:
+    # Enable all built-in health indicators
+    defaults:
+      enabled: true
+    db:
+      enabled: true
+    redis:
+      enabled: true
+    diskspace:
+      enabled: true
+    ping:
+      enabled: true
+      
+    # Custom banking health indicators
+    banking:
+      loan-processing:
+        enabled: true
+      payment-system:
+        enabled: true
+      compliance-service:
+        enabled: true
+      fraud-detection:
+        enabled: true
+      customer-service:
+        enabled: true
+
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: enterprise-loan-management
+      environment: ${spring.profiles.active:default}
+      service: banking-health
+    enable:
+      banking: true
+      health: true
+
+# Logging configuration for health indicators
+logging:
+  level:
+    com.bank.monitoring.health: INFO
+    org.springframework.boot.actuator.health: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%logger{36}] - %msg%n"
+
+# Banking health specific configuration
+banking:
+  health:
+    # Health check timeouts
+    timeout:
+      database: 5s
+      redis: 3s
+      default: 10s
+      
+    # Retry configuration
+    retry:
+      max-attempts: 3
+      backoff-delay: 500ms
+      
+    # Cache configuration
+    cache:
+      enabled: true
+      default-ttl: 30s
+      max-size: 1000
+      
+    # Alerting thresholds
+    thresholds:
+      loan-processing:
+        pending-loans-warning: 50
+        pending-loans-critical: 100
+        processing-time-warning: 300s
+        processing-time-critical: 600s
+        
+      payment-system:
+        throughput-warning: 5 # payments per minute
+        throughput-critical: 1
+        queue-size-warning: 50
+        queue-size-critical: 100
+        
+      compliance:
+        checks-warning: 5 # per hour
+        checks-critical: 1
+        fapi-violations-warning: 1
+        fapi-violations-critical: 5
+        
+      fraud-detection:
+        accuracy-warning: 90.0 # percentage
+        accuracy-critical: 85.0
+        checks-warning: 10 # per hour
+        checks-critical: 1
+        
+      customer-service:
+        response-time-warning: 5s
+        response-time-critical: 10s
+        operations-warning: 20 # per hour
+        operations-critical: 10
+        satisfaction-warning: 3.5 # out of 5
+        satisfaction-critical: 3.0
+
+# Spring Boot Actuator security
+spring:
+  security:
+    user:
+      name: ${ACTUATOR_USERNAME:health-monitor}
+      password: ${ACTUATOR_PASSWORD:secure-health-password}
+      roles: ACTUATOR
