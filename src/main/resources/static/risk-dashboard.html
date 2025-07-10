@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ali&Co AI Risk Intelligence Dashboard - Enterprise Banking Excellence</title>
+    <title>MasruFi Framework Risk Analytics Dashboard - Enterprise Financial Intelligence</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
     <style>
@@ -307,15 +307,15 @@
         <!-- Ali&Co Navigation -->
         <div style="background: rgba(255, 255, 255, 0.95); border-radius: 10px; padding: 1rem; margin-bottom: 2rem; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);">
             <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-                <a href="../../../../docs/index.html" style="text-decoration: none; color: #3498db; font-weight: 600; padding: 0.5rem 1rem; border-radius: 5px; transition: background 0.3s ease;">🏠 Ali&Co Platform Home</a>
-                <span style="color: #e74c3c; font-weight: 600; padding: 0.5rem 1rem; background: #f8f9fa; border-radius: 5px;">📊 AI Risk Dashboard</span>
-                <a href="../../../../docs/architecture/architecture-guardrails-presentation.html" style="text-decoration: none; color: #3498db; font-weight: 600; padding: 0.5rem 1rem; border-radius: 5px; transition: background 0.3s ease;">📋 Architecture Guardrails</a>
+                <a href="../../../../docs/index.html" style="text-decoration: none; color: #3498db; font-weight: 600; padding: 0.5rem 1rem; border-radius: 5px; transition: background 0.3s ease;">🏠 MasruFi Framework Home</a>
+                <span style="color: #e74c3c; font-weight: 600; padding: 0.5rem 1rem; background: #f8f9fa; border-radius: 5px;">📊 Risk Analytics Dashboard</span>
+                <a href="../../../../docs/architecture/architecture-guardrails-presentation.html" style="text-decoration: none; color: #3498db; font-weight: 600; padding: 0.5rem 1rem; border-radius: 5px; transition: background 0.3s ease;">📋 Architecture Excellence</a>
             </div>
         </div>
         
         <header class="header">
-            <h1>Ali&Co AI Risk Intelligence Platform <span class="status-indicator"></span></h1>
-            <p class="header-subtitle">Advanced portfolio analytics and risk intelligence powered by Ali&Co's enterprise AI platform</p>
+            <h1>MasruFi Framework Risk Analytics Platform <span class="status-indicator"></span></h1>
+            <p class="header-subtitle">Enterprise risk intelligence and portfolio analytics powered by MasruFi Framework's advanced analytics engine</p>
         </header>
 
         <div class="real-time-indicator">
@@ -328,10 +328,10 @@
                 🔄 Refresh Portfolio Data
             </button>
             <button class="btn btn-primary" onclick="generateAIInsights()">
-                🤖 Ali&Co AI Intelligence
+                🤖 MasruFi AI Analytics
             </button>
             <button class="btn btn-secondary" onclick="exportData()">
-                📊 Export Enterprise Report
+                📊 Export Risk Report
             </button>
             <button class="btn btn-secondary" onclick="showCustomerAnalysis()">
                 👥 Customer Risk Analysis
@@ -838,10 +838,10 @@
             try {
                 const response = await fetch('/api/customers');
                 const data = await response.json();
-                alert(`Ali&Co Customer Risk Intelligence:\n\nTotal Customers: ${data.total}\nPortfolio Status: All customers actively monitored\nAverage Credit Score: 717\nRisk Distribution: Optimized\n\nPowered by Ali&Co Enterprise Analytics`);
+                alert(`MasruFi Framework Risk Intelligence:\n\nTotal Customers: ${data.total}\nPortfolio Status: All customers actively monitored\nAverage Credit Score: 717\nRisk Distribution: Optimized\n\nPowered by MasruFi Framework Analytics Engine`);
             } catch (error) {
-                console.error('Ali&Co customer analysis temporarily unavailable:', error);
-                alert('Ali&Co Customer Intelligence: Analysis temporarily unavailable. Please contact support.');
+                console.error('MasruFi customer analysis temporarily unavailable:', error);
+                alert('MasruFi Risk Intelligence: Analysis temporarily unavailable. Please contact support@masrufi.com.');
             }
         }
 
@@ -1227,10 +1227,10 @@
             try {
                 const response = await fetch('/api/customers');
                 const data = await response.json();
-                alert(`Ali&Co Customer Risk Intelligence:\n\nTotal Customers: ${data.total}\nPortfolio Status: All customers actively monitored\nAverage Credit Score: 717\nRisk Distribution: Optimized\n\nPowered by Ali&Co Enterprise Analytics`);
+                alert(`MasruFi Framework Risk Intelligence:\n\nTotal Customers: ${data.total}\nPortfolio Status: All customers actively monitored\nAverage Credit Score: 717\nRisk Distribution: Optimized\n\nPowered by MasruFi Framework Analytics Engine`);
             } catch (error) {
-                console.error('Ali&Co customer analysis temporarily unavailable:', error);
-                alert('Ali&Co Customer Intelligence: Analysis temporarily unavailable. Please contact support.');
+                console.error('MasruFi customer analysis temporarily unavailable:', error);
+                alert('MasruFi Risk Intelligence: Analysis temporarily unavailable. Please contact support@masrufi.com.');
             }
         }
             const customerId = prompt('Enter Customer ID for detailed analysis:');

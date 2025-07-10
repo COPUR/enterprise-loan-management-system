@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasruFi Sharia Platform - Halal Crypto Finance Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-green: #00A86B;
+            --secondary-gold: #FFD700;
+            --dark-green: #004D40;
+            --light-green: #E8F5E9;
+            --text-dark: #1A1A1A;
+            --text-light: #616161;
+            --border-color: #E0E0E0;
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --danger: #F44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--dark-green);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            color: var(--secondary-gold);
+        }
+
+        .logo-text h1 {
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .logo-text p {
+            color: var(--light-green);
+            font-size: 0.9rem;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--secondary-gold);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--light-green);
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .nav-tab:hover {
+            background: var(--light-green);
+        }
+
+        .nav-tab.active {
+            background: var(--primary-green);
+            color: white;
+            border-color: var(--primary-green);
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .card-icon.green {
+            background: var(--light-green);
+            color: var(--primary-green);
+        }
+
+        .card-icon.gold {
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--secondary-gold);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .card-content {
+            color: var(--text-light);
+        }
+
+        /* Product Cards */
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            border-color: var(--primary-green);
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1.5rem;
+        }
+
+        .product-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--dark-green);
+        }
+
+        .product-subtitle {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .term-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .term-ultra-short {
+            background: #FFE0B2;
+            color: #E65100;
+        }
+
+        .term-short {
+            background: #E1F5FE;
+            color: #01579B;
+        }
+
+        .term-medium {
+            background: #F3E5F5;
+            color: #4A148C;
+        }
+
+        .term-long {
+            background: #E8F5E9;
+            color: #1B5E20;
+        }
+
+        .product-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .product-features li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .product-features i {
+            color: var(--primary-green);
+        }
+
+        .product-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--dark-green);
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        /* Apply Button */
+        .apply-button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .apply-button:hover {
+            background: var(--dark-green);
+        }
+
+        /* Payment Schedule */
+        .schedule-table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .schedule-table th {
+            background: var(--dark-green);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .schedule-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .schedule-table tr:hover {
+            background: var(--light-green);
+        }
+
+        /* Compliance Badge */
+        .compliance-section {
+            background: var(--light-green);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .compliance-badges {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .compliance-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .compliance-badge i {
+            font-size: 2.5rem;
+            color: var(--primary-green);
+        }
+
+        .compliance-badge span {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--dark-green);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Calculator */
+        .calculator {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .calculator-form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .calculation-result {
+            background: var(--light-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+        }
+
+        .result-item.total {
+            font-weight: bold;
+            font-size: 1.2rem;
+            border-top: 2px solid var(--primary-green);
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .product-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-mosque"></i>
+                    <div class="logo-text">
+                        <h1>MasruFi Sharia Platform</h1>
+                        <p>Halal Crypto Finance - From Hourly to 10 Years</p>
+                    </div>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">$125M+</div>
+                        <div class="stat-label">Total Financed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">15,000+</div>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">Sharia Compliant</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('products')">
+                <i class="fas fa-cube"></i> Products
+            </button>
+            <button class="nav-tab" onclick="showTab('calculator')">
+                <i class="fas fa-calculator"></i> Calculator
+            </button>
+            <button class="nav-tab" onclick="showTab('payments')">
+                <i class="fas fa-credit-card"></i> Payments
+            </button>
+            <button class="nav-tab" onclick="showTab('compliance')">
+                <i class="fas fa-certificate"></i> Compliance
+            </button>
+        </div>
+
+        <!-- Products Tab -->
+        <div id="products" class="tab-content active">
+            <div class="card-grid">
+                <!-- Ultra-Short Term -->
+                <div class="product-card">
+                    <div class="product-header">
+                        <div>
+                            <h3 class="product-title">Salam Crypto</h3>
+                            <p class="product-subtitle">Advance Purchase Financing</p>
+                        </div>
+                        <span class="term-badge term-ultra-short">1hr - 24hr</span>
+                    </div>
+                    <ul class="product-features">
+                        <li><i class="fas fa-check-circle"></i> Lightning-fast execution</li>
+                        <li><i class="fas fa-check-circle"></i> No collateral for verified users</li>
+                        <li><i class="fas fa-check-circle"></i> Automated smart contracts</li>
+                        <li><i class="fas fa-check-circle"></i> Ideal for arbitrage</li>
+                    </ul>
+                    <div class="product-metrics">
+                        <div class="metric">
+                            <div class="metric-value">0.1%</div>
+                            <div class="metric-label">Hourly Fee</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">$100-50K</div>
+                            <div class="metric-label">Amount Range</div>
+                        </div>
+                    </div>
+                    <button class="apply-button">Apply Now</button>
+                </div>
+
+                <!-- Short Term -->
+                <div class="product-card">
+                    <div class="product-header">
+                        <div>
+                            <h3 class="product-title">Murabaha Crypto</h3>
+                            <p class="product-subtitle">Cost-Plus Financing</p>
+                        </div>
+                        <span class="term-badge term-short">1-30 days</span>
+                    </div>
+                    <ul class="product-features">
+                        <li><i class="fas fa-check-circle"></i> Fixed profit margin</li>
+                        <li><i class="fas fa-check-circle"></i> Daily/weekly payments</li>
+                        <li><i class="fas fa-check-circle"></i> Asset-backed security</li>
+                        <li><i class="fas fa-check-circle"></i> NFT & inventory financing</li>
+                    </ul>
+                    <div class="product-metrics">
+                        <div class="metric">
+                            <div class="metric-value">2-5%</div>
+                            <div class="metric-label">Monthly Profit</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">$1K-500K</div>
+                            <div class="metric-label">Amount Range</div>
+                        </div>
+                    </div>
+                    <button class="apply-button">Apply Now</button>
+                </div>
+
+                <!-- Medium Term -->
+                <div class="product-card">
+                    <div class="product-header">
+                        <div>
+                            <h3 class="product-title">Musharakah Ventures</h3>
+                            <p class="product-subtitle">Partnership Financing</p>
+                        </div>
+                        <span class="term-badge term-medium">1-12 months</span>
+                    </div>
+                    <ul class="product-features">
+                        <li><i class="fas fa-check-circle"></i> Profit & loss sharing</li>
+                        <li><i class="fas fa-check-circle"></i> Flexible payment terms</li>
+                        <li><i class="fas fa-check-circle"></i> Business expansion</li>
+                        <li><i class="fas fa-check-circle"></i> DeFi project funding</li>
+                    </ul>
+                    <div class="product-metrics">
+                        <div class="metric">
+                            <div class="metric-value">70:30</div>
+                            <div class="metric-label">Profit Share</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">$10K-2M</div>
+                            <div class="metric-label">Amount Range</div>
+                        </div>
+                    </div>
+                    <button class="apply-button">Apply Now</button>
+                </div>
+
+                <!-- Long Term -->
+                <div class="product-card">
+                    <div class="product-header">
+                        <div>
+                            <h3 class="product-title">Sukuk Crypto Bonds</h3>
+                            <p class="product-subtitle">Islamic Bonds</p>
+                        </div>
+                        <span class="term-badge term-long">1-10 years</span>
+                    </div>
+                    <ul class="product-features">
+                        <li><i class="fas fa-check-circle"></i> Asset-backed securities</li>
+                        <li><i class="fas fa-check-circle"></i> Tradeable tokens</li>
+                        <li><i class="fas fa-check-circle"></i> Infrastructure projects</li>
+                        <li><i class="fas fa-check-circle"></i> Quarterly distributions</li>
+                    </ul>
+                    <div class="product-metrics">
+                        <div class="metric">
+                            <div class="metric-value">8-12%</div>
+                            <div class="metric-label">Annual Return</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">$100K+</div>
+                            <div class="metric-label">Min Investment</div>
+                        </div>
+                    </div>
+                    <button class="apply-button">Apply Now</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculator Tab -->
+        <div id="calculator" class="tab-content">
+            <div class="calculator">
+                <h2 style="margin-bottom: 1.5rem;">Halal Finance Calculator</h2>
+                <div class="calculator-form">
+                    <div class="form-group">
+                        <label>Finance Type</label>
+                        <select id="financeType" onchange="updateCalculation()">
+                            <option value="murabaha">Murabaha (Cost-Plus)</option>
+                            <option value="musharakah">Musharakah (Partnership)</option>
+                            <option value="ijarah">Ijarah (Lease)</option>
+                            <option value="salam">Salam (Forward Sale)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (USD)</label>
+                        <input type="number" id="amount" value="10000" onchange="updateCalculation()">
+                    </div>
+                    <div class="form-group">
+                        <label>Duration</label>
+                        <select id="duration" onchange="updateCalculation()">
+                            <option value="hourly">Hourly (1-24 hours)</option>
+                            <option value="daily">Daily (1-30 days)</option>
+                            <option value="monthly">Monthly (1-12 months)</option>
+                            <option value="yearly">Yearly (1-10 years)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Frequency</label>
+                        <select id="frequency" onchange="updateCalculation()">
+                            <option value="hourly">Hourly</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="calculation-result">
+                    <h3 style="margin-bottom: 1rem;">Calculation Results</h3>
+                    <div class="result-item">
+                        <span>Principal Amount:</span>
+                        <span id="principalResult">$10,000</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Profit Margin:</span>
+                        <span id="profitResult">$500</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Number of Payments:</span>
+                        <span id="paymentsResult">12</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Payment Amount:</span>
+                        <span id="paymentAmountResult">$875</span>
+                    </div>
+                    <div class="result-item total">
+                        <span>Total Amount:</span>
+                        <span id="totalResult">$10,500</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Tab -->
+        <div id="payments" class="tab-content">
+            <h2 style="margin-bottom: 1.5rem;">Payment Management</h2>
+            
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon green">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3 class="card-title">Payment Schedule</h3>
+                    </div>
+                    <div class="card-content">
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Payment #</th>
+                                    <th>Due Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Jan 15, 2024</td>
+                                    <td>$875</td>
+                                    <td><span style="color: var(--success);">✓ Paid</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Feb 15, 2024</td>
+                                    <td>$875</td>
+                                    <td><span style="color: var(--warning);">Due Soon</span></td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Mar 15, 2024</td>
+                                    <td>$875</td>
+                                    <td><span style="color: var(--text-light);">Upcoming</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon gold">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <h3 class="card-title">Payment Methods</h3>
+                    </div>
+                    <div class="card-content">
+                        <ul style="list-style: none;">
+                            <li style="padding: 0.5rem 0;"><i class="fab fa-bitcoin" style="color: #f7931a; margin-right: 0.5rem;"></i> Bitcoin (BTC)</li>
+                            <li style="padding: 0.5rem 0;"><i class="fab fa-ethereum" style="color: #627eea; margin-right: 0.5rem;"></i> Ethereum (ETH)</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-coins" style="color: #26a17b; margin-right: 0.5rem;"></i> USDT (Tether)</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-coins" style="color: #f0b90b; margin-right: 0.5rem;"></i> Islamic Coin</li>
+                            <li style="padding: 0.5rem 0;"><i class="fas fa-coins" style="color: #d4af37; margin-right: 0.5rem;"></i> Gold-backed Tokens</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compliance Tab -->
+        <div id="compliance" class="tab-content">
+            <div class="compliance-section">
+                <h2>Sharia Compliance Certification</h2>
+                <p style="margin-top: 1rem; color: var(--text-light);">
+                    All our financial products are certified by our esteemed Sharia Supervisory Board
+                </p>
+                
+                <div class="compliance-badges">
+                    <div class="compliance-badge">
+                        <i class="fas fa-certificate"></i>
+                        <span>AAOIFI Compliant</span>
+                    </div>
+                    <div class="compliance-badge">
+                        <i class="fas fa-ban"></i>
+                        <span>No Riba (Interest)</span>
+                    </div>
+                    <div class="compliance-badge">
+                        <i class="fas fa-balance-scale"></i>
+                        <span>Risk Sharing</span>
+                    </div>
+                    <div class="compliance-badge">
+                        <i class="fas fa-building"></i>
+                        <span>Asset-Backed</span>
+                    </div>
+                    <div class="compliance-badge">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>No Gharar</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-grid" style="margin-top: 2rem;">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon green">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="card-title">Sharia Board Members</h3>
+                    </div>
+                    <div class="card-content">
+                        <ul style="list-style: none;">
+                            <li style="padding: 0.5rem 0;">• Dr. Muhammad Al-Gamal - Chairman</li>
+                            <li style="padding: 0.5rem 0;">• Sheikh Yusuf DeLorenzo</li>
+                            <li style="padding: 0.5rem 0;">• Dr. Mohd Daud Bakar</li>
+                            <li style="padding: 0.5rem 0;">• Mufti Taqi Usmani (Advisor)</li>
+                            <li style="padding: 0.5rem 0;">• Dr. Aisha Y. Musa</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon gold">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                        <h3 class="card-title">Prohibited Activities</h3>
+                    </div>
+                    <div class="card-content">
+                        <ul style="list-style: none;">
+                            <li style="padding: 0.5rem 0; color: var(--danger);">✗ Interest-based lending</li>
+                            <li style="padding: 0.5rem 0; color: var(--danger);">✗ Gambling & speculation</li>
+                            <li style="padding: 0.5rem 0; color: var(--danger);">✗ Alcohol & tobacco</li>
+                            <li style="padding: 0.5rem 0; color: var(--danger);">✗ Adult entertainment</li>
+                            <li style="padding: 0.5rem 0; color: var(--danger);">✗ Weapons manufacturing</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active from all nav tabs
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Mark nav tab as active
+            event.target.classList.add('active');
+        }
+
+        function updateCalculation() {
+            const financeType = document.getElementById('financeType').value;
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const duration = document.getElementById('duration').value;
+            const frequency = document.getElementById('frequency').value;
+            
+            let profitRate = 0;
+            let numberOfPayments = 1;
+            
+            // Calculate profit based on finance type and duration
+            switch(financeType) {
+                case 'murabaha':
+                    profitRate = duration === 'hourly' ? 0.001 : 
+                                duration === 'daily' ? 0.01 : 
+                                duration === 'monthly' ? 0.05 : 0.10;
+                    break;
+                case 'musharakah':
+                    profitRate = duration === 'hourly' ? 0.0005 : 
+                                duration === 'daily' ? 0.008 : 
+                                duration === 'monthly' ? 0.04 : 0.08;
+                    break;
+                case 'ijarah':
+                    profitRate = duration === 'hourly' ? 0.0008 : 
+                                duration === 'daily' ? 0.012 : 
+                                duration === 'monthly' ? 0.06 : 0.12;
+                    break;
+                case 'salam':
+                    profitRate = duration === 'hourly' ? 0.0003 : 
+                                duration === 'daily' ? 0.005 : 
+                                duration === 'monthly' ? 0.03 : 0.07;
+                    break;
+            }
+            
+            // Calculate number of payments
+            if (frequency === 'hourly' && duration === 'hourly') numberOfPayments = 1;
+            else if (frequency === 'daily' && duration === 'daily') numberOfPayments = 1;
+            else if (frequency === 'weekly' && duration === 'monthly') numberOfPayments = 4;
+            else if (frequency === 'monthly' && duration === 'yearly') numberOfPayments = 12;
+            else numberOfPayments = 1;
+            
+            const profitAmount = amount * profitRate;
+            const totalAmount = amount + profitAmount;
+            const paymentAmount = totalAmount / numberOfPayments;
+            
+            // Update display
+            document.getElementById('principalResult').textContent = `$${amount.toLocaleString()}`;
+            document.getElementById('profitResult').textContent = `$${profitAmount.toFixed(2)}`;
+            document.getElementById('paymentsResult').textContent = numberOfPayments;
+            document.getElementById('paymentAmountResult').textContent = `$${paymentAmount.toFixed(2)}`;
+            document.getElementById('totalResult').textContent = `$${totalAmount.toFixed(2)}`;
+        }
+
+        // Initialize calculation on load
+        updateCalculation();
+    </script>
+</body>
+</html>

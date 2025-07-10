@@ -1,0 +1,308 @@
+# MasruFi Sharia Platform - UAE Configuration
+# UAE Government-driven crypto Islamic financing platform
+
+spring:
+  application:
+    name: masrufi-sharia-uae-platform
+  profiles:
+    active: uae
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/masrufi_sharia_uae
+    username: ${DB_USERNAME:masrufi_user}
+    password: ${DB_PASSWORD:masrufi_pass}
+    driver-class-name: org.postgresql.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        
+  # Redis for caching UAE crypto rates
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    timeout: 2000ms
+    
+  # RabbitMQ for async processing
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /masrufi-sharia
+  compression:
+    enabled: true
+  http2:
+    enabled: true
+
+# MasruFi UAE Blockchain Configuration
+masrufi:
+  uae:
+    blockchain:
+      government:
+        rpc-url: https://blockchain.uae.gov.ae/rpc
+        network-id: uae-gov-mainnet
+        contract-registry: "0x1234567890123456789012345678901234567890"
+        government-token-address: "0x0987654321098765432109876543210987654321"
+        enabled: true
+        
+      cbdc:
+        gateway-url: https://cbdc.centralbank.ae/api
+        api-key: ${UAE_CBDC_API_KEY:test-api-key}
+        contract-address: "0xabcdef1234567890abcdef1234567890abcdef12"
+        wallet-service-url: https://wallet.cbdc.centralbank.ae
+        enabled: true
+        timeout-seconds: 30
+        
+      banking:
+        adib:
+          api-url: https://api.adib.ae/digital-currency
+          contract-address: "0xadib1234567890123456789012345678901234567890"
+          sharia-compliant: true
+          api-key: ${UAE_ADIB_API_KEY:test-adib-key}
+          timeout-seconds: 30
+          
+        enbd:
+          api-url: https://api.emiratesnbd.com/digital-currency
+          contract-address: "0xenbd1234567890123456789012345678901234567890"
+          sharia-compliant: true
+          api-key: ${UAE_ENBD_API_KEY:test-enbd-key}
+          timeout-seconds: 30
+          
+        fab:
+          api-url: https://api.fab.ae/digital-token
+          contract-address: "0xfab1234567890123456789012345678901234567890"
+          sharia-compliant: true
+          api-key: ${UAE_FAB_API_KEY:test-fab-key}
+          timeout-seconds: 30
+          
+        cbd:
+          api-url: https://api.cbd.ae/digital-dirham
+          contract-address: "0xcbd1234567890123456789012345678901234567890"
+          sharia-compliant: true
+          api-key: ${UAE_CBD_API_KEY:test-cbd-key}
+          timeout-seconds: 30
+          
+        rakbank:
+          api-url: https://api.rakbank.ae/digital-currency
+          contract-address: "0xrak1234567890123456789012345678901234567890"
+          sharia-compliant: true
+          api-key: ${UAE_RAKBANK_API_KEY:test-rakbank-key}
+          timeout-seconds: 30
+          
+        mashreq:
+          api-url: https://api.mashreqbank.com/digital-currency
+          contract-address: "0xmashreq123456789012345678901234567890123456"
+          sharia-compliant: true
+          api-key: ${UAE_MASHREQ_API_KEY:test-mashreq-key}
+          timeout-seconds: 30
+          
+      security:
+        private-key: ${UAE_BLOCKCHAIN_PRIVATE_KEY:test-private-key}
+        wallet-address: ${UAE_BLOCKCHAIN_WALLET_ADDRESS:0x1234567890123456789012345678901234567890}
+        mtls-enabled: true
+        certificate-path: ${UAE_TLS_CERT_PATH:/etc/ssl/uae-cert.pem}
+        key-store-path: ${UAE_KEYSTORE_PATH:/etc/ssl/uae-keystore.p12}
+        key-store-password: ${UAE_KEYSTORE_PASSWORD:secure-password}
+
+# Sharia Compliance Configuration
+sharia:
+  board:
+    members:
+      - name: "Dr. Muhammad Al-Gamal"
+        role: "Chairman"
+        specialization: "Islamic Finance"
+        contact: "chairman@sharia.masrufi.ae"
+      - name: "Sheikh Yusuf DeLorenzo"
+        role: "Senior Scholar"
+        specialization: "Fintech & Blockchain"
+        contact: "delorenzo@sharia.masrufi.ae"
+      - name: "Dr. Mohd Daud Bakar"
+        role: "Scholar"
+        specialization: "Banking & Finance"
+        contact: "bakar@sharia.masrufi.ae"
+      - name: "Mufti Taqi Usmani"
+        role: "Advisory Scholar"
+        specialization: "Islamic Economics"
+        contact: "usmani@sharia.masrufi.ae"
+      - name: "Dr. Aisha Y. Musa"
+        role: "Scholar"
+        specialization: "Islamic Law & Technology"
+        contact: "musa@sharia.masrufi.ae"
+        
+  compliance:
+    auto-approval-limit: 10000  # AED
+    manual-review-limit: 100000 # AED
+    board-approval-limit: 1000000 # AED
+    monitoring:
+      real-time: true
+      batch-processing: true
+      alert-thresholds:
+        suspicious-activity: 50000 # AED
+        high-frequency: 10 # transactions per hour
+        
+  prohibited-activities:
+    - gambling
+    - alcohol
+    - pork
+    - tobacco
+    - adult-content
+    - weapons
+    - interest-bearing-investments
+    - conventional-insurance
+    - speculative-trading
+
+# UAE Government Integration
+uae:
+  government:
+    emirates-id:
+      validation-url: https://api.uae.gov.ae/identity/validate
+      api-key: ${UAE_GOVT_API_KEY:test-govt-key}
+      timeout-seconds: 15
+      
+    business-license:
+      validation-url: https://api.uae.gov.ae/business/validate
+      api-key: ${UAE_BUSINESS_API_KEY:test-business-key}
+      
+    regulatory:
+      central-bank:
+        url: https://api.centralbank.ae/reporting
+        api-key: ${UAE_CB_API_KEY:test-cb-key}
+      securities-authority:
+        url: https://api.sca.gov.ae/reporting
+        api-key: ${UAE_SCA_API_KEY:test-sca-key}
+      financial-intelligence:
+        url: https://api.amlscu.gov.ae/reporting
+        api-key: ${UAE_AMLSCU_API_KEY:test-amlscu-key}
+
+# Payment Configuration
+payment:
+  methods:
+    uae-cbdc:
+      enabled: true
+      min-amount: 10    # AED
+      max-amount: 1000000 # AED
+      fee-percentage: 0.1
+      
+    bank-digital:
+      enabled: true
+      min-amount: 100   # AED
+      max-amount: 500000 # AED
+      fee-percentage: 0.25
+      
+    government-token:
+      enabled: true
+      min-amount: 1000  # AED
+      max-amount: 5000000 # AED
+      fee-percentage: 0.05
+      
+  frequencies:
+    hourly:
+      min-term: 1      # hours
+      max-term: 24     # hours
+      max-amount: 50000 # AED
+    daily:
+      min-term: 1      # days
+      max-term: 30     # days
+      max-amount: 200000 # AED
+    monthly:
+      min-term: 1      # months
+      max-term: 12     # months
+      max-amount: 1000000 # AED
+    yearly:
+      min-term: 1      # years
+      max-term: 10     # years
+      max-amount: 10000000 # AED
+
+# Monitoring and Logging
+logging:
+  level:
+    com.masrufi.sharia: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/masrufi-sharia-uae.log
+    max-size: 100MB
+    max-history: 30
+
+# Metrics and Health
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# API Documentation
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  info:
+    title: MasruFi Sharia UAE Platform API
+    description: UAE Government-driven crypto Islamic financing platform
+    version: 1.0.0
+    contact:
+      name: MasruFi Support
+      email: support@masrufi.ae
+      url: https://masrufi.ae
+    license:
+      name: MasruFi Framework License
+      url: https://masrufi.ae/license
+
+# Caching Configuration
+cache:
+  uae-crypto-rates:
+    ttl: 300  # 5 minutes
+  exchange-rates:
+    ttl: 600  # 10 minutes
+  compliance-status:
+    ttl: 3600 # 1 hour
+  bank-validation:
+    ttl: 1800 # 30 minutes
+
+# Security Configuration
+security:
+  jwt:
+    secret: ${JWT_SECRET:masrufi-sharia-uae-secret-key-2024}
+    expiration: 86400000  # 24 hours
+  rate-limiting:
+    requests-per-minute: 100
+    burst-capacity: 200
+  cors:
+    allowed-origins:
+      - https://masrufi.ae
+      - https://uae.masrufi.ae
+      - https://admin.masrufi.ae
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - Authorization
+      - Content-Type
+      - X-API-Key
