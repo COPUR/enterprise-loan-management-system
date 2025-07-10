@@ -1,5 +1,2 @@
-*.jar filter=lfs diff=lfs merge=lfs -text
-*.war filter=lfs diff=lfs merge=lfs -text
-*.zip filter=lfs diff=lfs merge=lfs -text
-*.log filter=lfs diff=lfs merge=lfs -text
-
+# Remove LFS tracking for essential build files
+# JAR files needed for builds should be stored directly in git
