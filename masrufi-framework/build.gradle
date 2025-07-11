@@ -1,0 +1,239 @@
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot' version '3.2.0'
+    id 'io.spring.dependency-management' version '1.1.4'
+    id 'maven-publish'
+    id 'jacoco'
+}
+
+// MasruFi Framework - Islamic Finance Extension Module
+group = 'com.masrufi.framework'
+version = '1.0.0-SNAPSHOT'
+description = 'MasruFi Framework - Islamic Finance Extension for Enterprise Loan Management Systems'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    withSourcesJar()
+    withJavadocJar()
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
+}
+
+ext {
+    springBootVersion = '3.2.0'
+    springCloudVersion = '2023.0.0'
+    mapstructVersion = '1.5.5.Final'
+    testcontainersVersion = '1.19.3'
+}
+
+dependencies {
+    // Spring Boot Core (for auto-configuration)
+    api 'org.springframework.boot:spring-boot-starter'
+    api 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // Event Sourcing & CQRS
+    implementation 'org.axonframework:axon-spring-boot-starter:4.9.1'
+    implementation 'org.axonframework:axon-messaging:4.9.1'
+    
+    // Business Rules Engine
+    implementation 'org.drools:drools-core:8.44.0.Final'
+    implementation 'org.drools:drools-compiler:8.44.0.Final'
+    implementation 'org.drools:drools-mvel:8.44.0.Final'
+    implementation 'org.kie:kie-spring:8.44.0.Final'
+    
+    // Blockchain & Cryptocurrency Integration
+    implementation 'org.web3j:core:4.10.3'
+    implementation 'org.bitcoinj:bitcoinj-core:0.16.3'
+    
+    // Security & JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+    
+    // Resilience
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
+    implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.2.0'
+    
+    // Monitoring
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.12.0'
+    implementation 'io.micrometer:micrometer-tracing-bridge-brave:1.12.0'
+    
+    // API Documentation
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+    
+    // Financial Standards
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
+    implementation 'org.apache.commons:commons-csv:1.10.0'
+    
+    // Mapping & Code Generation
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    
+    // Configuration
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
+    testImplementation 'org.testcontainers:postgresql:1.19.3'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
+    testImplementation 'org.mockito:mockito-inline'
+    testImplementation 'org.awaitility:awaitility'
+    testImplementation 'io.rest-assured:rest-assured'
+}
+
+// Disable Spring Boot JAR to create a library JAR
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    enabled = false
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        csv.required = true
+        html.required = true
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                '**/config/**',
+                '**/dto/**',
+                '**/entity/**',
+                '**/*Application.*',
+                '**/*Config.*'
+            ])
+        }))
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs = [
+            '-parameters',
+            '-Xlint:unchecked',
+            '-Xlint:deprecation'
+    ]
+}
+
+// Publishing configuration for internal Maven repository
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            
+            pom {
+                name = 'MasruFi Framework'
+                description = 'Islamic Finance Extension Module for Enterprise Loan Management Systems'
+                url = 'https://github.com/COPUR/enterprise-loan-management-system'
+                
+                licenses {
+                    license {
+                        name = 'Proprietary'
+                        url = 'https://masrufi.com/license'
+                    }
+                }
+                
+                developers {
+                    developer {
+                        id = 'masrufi-team'
+                        name = 'MasruFi Development Team'
+                        email = 'dev@masrufi.com'
+                        organization = 'Ali&Co'
+                        organizationUrl = 'https://alico.com'
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Module-specific tasks
+task moduleInfo {
+    description = 'Display MasruFi Framework module information'
+    group = 'masrufi'
+    
+    doLast {
+        println "======================================"
+        println "📚 MasruFi Framework Module"
+        println "======================================"
+        println "Version: ${version}"
+        println "Group: ${group}"
+        println "Description: ${description}"
+        println "Java Version: ${java.sourceCompatibility}"
+        println "Spring Boot Version: ${springBootVersion}"
+        println "======================================"
+        println "🕌 Islamic Finance Capabilities:"
+        println "• Murabaha (Cost-plus financing)"
+        println "• Musharakah (Partnership financing)"
+        println "• Ijarah (Lease financing)"
+        println "• Salam (Forward sale financing)"
+        println "• Istisna (Manufacturing financing)"
+        println "• Qard Hassan (Benevolent loan)"
+        println "======================================"
+        println "🔗 Integration Ready for Enterprise Systems"
+        println "======================================"
+    }
+}
+
+task validateModule {
+    description = 'Validate MasruFi Framework module integrity'
+    group = 'masrufi'
+    
+    doLast {
+        println "🔍 Validating MasruFi Framework module..."
+        
+        // Check required directories
+        def requiredDirs = [
+            'src/main/java/com/masrufi/framework',
+            'src/test/java/com/masrufi/framework',
+            'src/main/resources'
+        ]
+        
+        requiredDirs.each { dir ->
+            def dirFile = file(dir)
+            if (dirFile.exists()) {
+                println "✅ ${dir} - exists"
+            } else {
+                println "❌ ${dir} - missing"
+            }
+        }
+        
+        println "✅ MasruFi Framework module validation complete"
+    }
+}

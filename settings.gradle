@@ -1,6 +1,10 @@
-rootProject.name = 'loan-management-system'
+rootProject.name = 'enterprise-loan-management-system'
 
+// Core Enterprise System Modules
 include 'shared-kernel'
 include 'bank-wide-services'
 include 'loan-service'
 include 'payment-service'
+
+// MasruFi Framework - Islamic Finance Extension Module
+include 'masrufi-framework'

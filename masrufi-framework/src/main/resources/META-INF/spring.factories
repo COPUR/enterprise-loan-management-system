@@ -1,0 +1,3 @@
+# MasruFi Framework Auto-Configuration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.masrufi.framework.MasrufiFrameworkAutoConfiguration

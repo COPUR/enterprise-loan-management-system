@@ -1,0 +1,134 @@
+# MasruFi Framework Default Configuration
+# This configuration file provides default settings for the MasruFi Framework module
+
+masrufi:
+  framework:
+    # Enable the MasruFi Framework module
+    enabled: true
+    version: "1.0.0"
+    integration-mode: EXTENSION
+    
+    # Islamic Finance Module Configuration
+    islamic-finance:
+      enabled: true
+      default-currency: "AED"
+      supported-models:
+        - MURABAHA
+        - MUSHARAKAH
+        - IJARAH
+        - SALAM
+        - ISTISNA
+        - QARD_HASSAN
+      supported-jurisdictions:
+        - UAE
+        - SAUDI_ARABIA
+        - QATAR
+        - KUWAIT
+        - BAHRAIN
+        - OMAN
+        - TURKEY
+        - PAKISTAN
+      business-rules:
+        enabled: true
+        hot-reload-enabled: true
+        validate-on-startup: true
+    
+    # UAE Cryptocurrency Integration
+    uae-cryptocurrency:
+      enabled: true
+      network-type: "UAE_GOVERNMENT_BLOCKCHAIN"
+      supported-currencies:
+        - UAE-CBDC    # UAE Central Bank Digital Currency
+        - ADIB-DD     # Abu Dhabi Islamic Bank Digital Dirham
+        - ENBD-DC     # Emirates NBD Digital Currency
+        - FAB-DT      # First Abu Dhabi Bank Digital Token
+        - CBD-DD      # Commercial Bank of Dubai Digital Dirham
+        - RAK-DC      # RAK Bank Digital Currency
+        - MASHREQ-DC  # Mashreq Bank Digital Currency
+      smart-contract:
+        enabled: true
+        gas-limit: 500000
+        gas-price: 20000000000  # 20 Gwei
+    
+    # Sharia Compliance Configuration
+    sharia-compliance:
+      enabled: true
+      strict-mode: true
+      sharia-board: "UAE_HIGHER_SHARIA_AUTHORITY"
+      rules:
+        validate-riba: true
+        validate-gharar: true
+        validate-asset-backing: true
+        max-profit-margin: 30.0  # 30% maximum profit margin
+    
+    # Monitoring and Observability
+    monitoring:
+      enabled: true
+      metrics-enabled: true
+      health-checks-enabled: true
+      audit-logging-enabled: true
+    
+    # Enterprise System Integration
+    enterprise-integration:
+      host-system-base-url: "http://localhost:8080"
+      authentication-method: JWT
+      event-publishing:
+        enabled: true
+        topic-prefix: "masrufi.events"
+        batch-size: 100
+      data-sync:
+        enabled: true
+        sync-interval-seconds: 300  # 5 minutes
+        conflict-resolution: HOST_WINS
+
+# Spring Boot Integration
+spring:
+  application:
+    name: "masrufi-framework"
+  profiles:
+    active: "masrufi"
+
+# Logging Configuration for MasruFi Framework
+logging:
+  level:
+    com.masrufi.framework: INFO
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  appenders:
+    masrufi-framework:
+      type: Console
+      pattern: "🕌 [MasruFi] %d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"
+
+# Management and Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,masrufi"
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+  metrics:
+    tags:
+      application: "masrufi-framework"
+      module: "islamic-finance"
+
+# Custom MasruFi Framework Information
+info:
+  app:
+    name: "MasruFi Framework"
+    description: "Islamic Finance Extension Module for Enterprise Loan Management Systems"
+    version: "1.0.0"
+    contact:
+      team: "MasruFi Development Team"
+      email: "dev@masrufi.com"
+      organization: "Ali&Co"
+  framework:
+    islamic-finance-models: "6 (Murabaha, Musharakah, Ijarah, Salam, Istisna, Qard Hassan)"
+    sharia-compliance: "UAE Higher Sharia Authority Certified"
+    cryptocurrency-support: "7 UAE Digital Currencies"
+    integration-mode: "High Cohesion Extension Module"
