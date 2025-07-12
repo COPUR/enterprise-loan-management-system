@@ -1,0 +1,825 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-config
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: dashboard-config
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+    - name: 'default'
+      orgId: 1
+      folder: 'AmanahFi Platform'
+      type: file
+      disableDeletion: false
+      updateIntervalSeconds: 30
+      allowUiUpdates: true
+      options:
+        path: /var/lib/grafana/dashboards
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: dashboards
+data:
+  amanahfi-platform-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "AmanahFi Platform Overview",
+        "tags": ["amanahfi", "overview", "islamic-finance", "cbdc"],
+        "style": "dark",
+        "timezone": "Asia/Dubai",
+        "editable": true,
+        "graphTooltip": 1,
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "timepicker": {
+          "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+        },
+        "refresh": "30s",
+        "schemaVersion": 39,
+        "version": 1,
+        "panels": [
+          {
+            "id": 1,
+            "title": "Application Status",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "up{job=\"amanahfi-platform\"}",
+                "legendFormat": "{{ instance }}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "mappings": [
+                  {
+                    "options": {
+                      "0": {
+                        "text": "DOWN",
+                        "color": "red"
+                      },
+                      "1": {
+                        "text": "UP",
+                        "color": "green"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ],
+                "thresholds": {
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 6,
+              "x": 0,
+              "y": 0
+            }
+          },
+          {
+            "id": 2,
+            "title": "Request Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(rate(http_server_requests_seconds_count{job=\"amanahfi-platform\"}[5m]))",
+                "legendFormat": "Requests/sec"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "reqps",
+                "thresholds": {
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 100
+                    },
+                    {
+                      "color": "red",
+                      "value": 500
+                    }
+                  ]
+                }
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 6,
+              "x": 6,
+              "y": 0
+            }
+          },
+          {
+            "id": 3,
+            "title": "Error Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(rate(http_server_requests_seconds_count{job=\"amanahfi-platform\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{job=\"amanahfi-platform\"}[5m])) * 100",
+                "legendFormat": "Error %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "thresholds": {
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 1
+                    },
+                    {
+                      "color": "red",
+                      "value": 5
+                    }
+                  ]
+                }
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 6,
+              "x": 12,
+              "y": 0
+            }
+          },
+          {
+            "id": 4,
+            "title": "Response Time (95th percentile)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=\"amanahfi-platform\"}[5m])) by (le))",
+                "legendFormat": "p95"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s",
+                "thresholds": {
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 0.5
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 6,
+              "x": 18,
+              "y": 0
+            }
+          },
+          {
+            "id": 5,
+            "title": "HTTP Request Rate by Endpoint",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "sum(rate(http_server_requests_seconds_count{job=\"amanahfi-platform\"}[5m])) by (uri)",
+                "legendFormat": "{{ uri }}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "reqps"
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 8
+            }
+          },
+          {
+            "id": 6,
+            "title": "Response Time Distribution",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{job=\"amanahfi-platform\"}[5m])) by (le))",
+                "legendFormat": "p50"
+              },
+              {
+                "expr": "histogram_quantile(0.90, sum(rate(http_server_requests_seconds_bucket{job=\"amanahfi-platform\"}[5m])) by (le))",
+                "legendFormat": "p90"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=\"amanahfi-platform\"}[5m])) by (le))",
+                "legendFormat": "p95"
+              },
+              {
+                "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{job=\"amanahfi-platform\"}[5m])) by (le))",
+                "legendFormat": "p99"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s"
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 8
+            }
+          }
+        ]
+      }
+    }
+
+  islamic-finance-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Islamic Finance Operations",
+        "tags": ["amanahfi", "islamic-finance", "sharia", "murabaha", "musharakah"],
+        "style": "dark",
+        "timezone": "Asia/Dubai",
+        "editable": true,
+        "graphTooltip": 1,
+        "time": {
+          "from": "now-24h",
+          "to": "now"
+        },
+        "refresh": "1m",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Islamic Finance Transaction Volume",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(increase(islamic_finance_transactions_total[24h]))",
+                "legendFormat": "24h Total"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "color": {
+                  "mode": "palette-classic"
+                }
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 6,
+              "x": 0,
+              "y": 0
+            }
+          },
+          {
+            "id": 2,
+            "title": "Sharia Compliance Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "(sum(islamic_finance_transactions_total{status=\"sharia_compliant\"}) / sum(islamic_finance_transactions_total)) * 100",
+                "legendFormat": "Compliance %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "min": 0,
+                "max": 100,
+                "thresholds": {
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 95
+                    },
+                    {
+                      "color": "green",
+                      "value": 99
+                    }
+                  ]
+                }
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 6,
+              "x": 6,
+              "y": 0
+            }
+          },
+          {
+            "id": 3,
+            "title": "Average Murabaha Profit Margin",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "avg(islamic_finance_murabaha_profit_margin)",
+                "legendFormat": "Avg Margin"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percentunit",
+                "thresholds": {
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 0.25
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.30
+                    }
+                  ]
+                }
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 6,
+              "x": 12,
+              "y": 0
+            }
+          },
+          {
+            "id": 4,
+            "title": "Total Islamic Finance Value (24h)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(increase(islamic_finance_transaction_value_aed_total[24h]))",
+                "legendFormat": "AED Value"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "currencyAED",
+                "decimals": 0
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 6,
+              "x": 18,
+              "y": 0
+            }
+          },
+          {
+            "id": 5,
+            "title": "Islamic Finance Products Distribution",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "sum(islamic_finance_transactions_total) by (product_type)",
+                "legendFormat": "{{ product_type }}"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 0,
+              "y": 8
+            }
+          },
+          {
+            "id": 6,
+            "title": "Sharia Compliance Validations",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "sum(rate(islamic_finance_sharia_validations_total[5m])) by (validation_type)",
+                "legendFormat": "{{ validation_type }}"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 8,
+              "y": 8
+            }
+          },
+          {
+            "id": 7,
+            "title": "HSA API Response Times",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_client_requests_seconds_bucket{uri=~\".*hsa.*\"}[5m])) by (le))",
+                "legendFormat": "p95"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s"
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 16,
+              "y": 8
+            }
+          }
+        ]
+      }
+    }
+
+  cbdc-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "CBDC Digital Dirham Operations",
+        "tags": ["amanahfi", "cbdc", "digital-dirham", "corda", "blockchain"],
+        "style": "dark",
+        "timezone": "Asia/Dubai",
+        "editable": true,
+        "graphTooltip": 1,
+        "time": {
+          "from": "now-6h",
+          "to": "now"
+        },
+        "refresh": "30s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "CBDC Network Status",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "cbdc_corda_network_connectivity",
+                "legendFormat": "Network"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "mappings": [
+                  {
+                    "options": {
+                      "0": {
+                        "text": "DISCONNECTED",
+                        "color": "red"
+                      },
+                      "1": {
+                        "text": "CONNECTED",
+                        "color": "green"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 6,
+              "x": 0,
+              "y": 0
+            }
+          },
+          {
+            "id": 2,
+            "title": "Digital Dirham Transactions (1h)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(increase(cbdc_transactions_total[1h]))",
+                "legendFormat": "Transactions"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 6,
+              "x": 6,
+              "y": 0
+            }
+          },
+          {
+            "id": 3,
+            "title": "CBDC Transaction Value (1h)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(increase(cbdc_transaction_value_aed_cbdc_total[1h]))",
+                "legendFormat": "AED-CBDC"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "currencyAED",
+                "decimals": 8
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 6,
+              "x": 12,
+              "y": 0
+            }
+          },
+          {
+            "id": 4,
+            "title": "Average Transaction Processing Time",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.50, sum(rate(cbdc_transaction_processing_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "p50"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s"
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 6,
+              "x": 18,
+              "y": 0
+            }
+          },
+          {
+            "id": 5,
+            "title": "CBDC Transaction Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "sum(rate(cbdc_transactions_total[5m])) by (transaction_type)",
+                "legendFormat": "{{ transaction_type }}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "tps"
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 8
+            }
+          },
+          {
+            "id": 6,
+            "title": "Corda Network Latency",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(corda_network_latency_seconds_bucket[5m])) by (le))",
+                "legendFormat": "p95 Latency"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s"
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 8
+            }
+          },
+          {
+            "id": 7,
+            "title": "CBDC Wallet Activity",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "sum(rate(cbdc_wallet_operations_total[5m])) by (operation_type)",
+                "legendFormat": "{{ operation_type }}"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 0,
+              "y": 16
+            }
+          },
+          {
+            "id": 8,
+            "title": "Digital Dirham Balance Distribution",
+            "type": "histogram",
+            "targets": [
+              {
+                "expr": "sum(cbdc_wallet_balance_aed_cbdc_bucket) by (le)",
+                "legendFormat": "{{ le }}"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 8,
+              "y": 16
+            }
+          },
+          {
+            "id": 9,
+            "title": "CBUAE API Health",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "probe_success{instance=~\".*cbuae.*\"}",
+                "legendFormat": "CBUAE API"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "mappings": [
+                  {
+                    "options": {
+                      "0": {
+                        "text": "DOWN",
+                        "color": "red"
+                      },
+                      "1": {
+                        "text": "UP",
+                        "color": "green"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 16,
+              "y": 16
+            }
+          }
+        ]
+      }
+    }
+
+  infrastructure-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Infrastructure Monitoring",
+        "tags": ["amanahfi", "infrastructure", "jvm", "database", "cache"],
+        "style": "dark",
+        "timezone": "Asia/Dubai",
+        "editable": true,
+        "graphTooltip": 1,
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "refresh": "30s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "JVM Memory Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "jvm_memory_used_bytes{job=\"amanahfi-platform\"} / jvm_memory_max_bytes{job=\"amanahfi-platform\"} * 100",
+                "legendFormat": "{{ area }} - {{ id }}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "min": 0,
+                "max": 100
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 0
+            }
+          },
+          {
+            "id": 2,
+            "title": "JVM Garbage Collection",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(jvm_gc_collection_seconds_sum{job=\"amanahfi-platform\"}[5m])",
+                "legendFormat": "{{ gc }}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s"
+              }
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 0
+            }
+          },
+          {
+            "id": 3,
+            "title": "Database Connection Pool",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "hikaricp_connections_active{pool=\"HikariPool-1\"}",
+                "legendFormat": "Active"
+              },
+              {
+                "expr": "hikaricp_connections_idle{pool=\"HikariPool-1\"}",
+                "legendFormat": "Idle"
+              },
+              {
+                "expr": "hikaricp_connections_max{pool=\"HikariPool-1\"}",
+                "legendFormat": "Max"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 8
+            }
+          },
+          {
+            "id": 4,
+            "title": "Redis Cache Metrics",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(redis_cache_hits_total[5m])",
+                "legendFormat": "Cache Hits/sec"
+              },
+              {
+                "expr": "rate(redis_cache_misses_total[5m])",
+                "legendFormat": "Cache Misses/sec"
+              }
+            ],
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 8
+            }
+          }
+        ]
+      }
+    }

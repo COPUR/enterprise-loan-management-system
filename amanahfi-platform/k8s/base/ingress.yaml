@@ -1,0 +1,235 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: amanahfi-platform-ingress
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/instance: amanahfi-platform
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: amanahfi-ecosystem
+    app.kubernetes.io/managed-by: kustomize
+  annotations:
+    # Ingress controller specific
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    
+    # Security annotations
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/server-tokens: "false"
+    nginx.ingress.kubernetes.io/proxy-hide-headers: "Server,X-Powered-By"
+    nginx.ingress.kubernetes.io/add-base-url: "true"
+    
+    # CORS configuration for Islamic Finance APIs
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://app.amanahfi.ae,https://admin.amanahfi.ae"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,POST,PUT,DELETE,OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,DPoP,X-FAPI-Interaction-ID"
+    nginx.ingress.kubernetes.io/cors-expose-headers: "X-FAPI-Interaction-ID,X-Request-ID"
+    nginx.ingress.kubernetes.io/cors-max-age: "86400"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    
+    # Rate limiting
+    nginx.ingress.kubernetes.io/rate-limit: "1000"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/rate-limit-burst: "2000"
+    nginx.ingress.kubernetes.io/limit-connections: "100"
+    
+    # Request size limits
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/client-max-body-size: "50m"
+    
+    # Timeout configurations
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
+    
+    # Security headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header X-Frame-Options "SAMEORIGIN" always;
+      add_header X-Content-Type-Options "nosniff" always;
+      add_header X-XSS-Protection "1; mode=block" always;
+      add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+      add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.amanahfi.ae; font-src 'self'; frame-ancestors 'self';" always;
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+      add_header X-Permitted-Cross-Domain-Policies "none" always;
+      add_header X-Download-Options "noopen" always;
+      
+      # Islamic Finance compliance headers
+      add_header X-Sharia-Compliant "true" always;
+      add_header X-Islamic-Finance-Certified "HSA-2024-AF-001" always;
+      add_header X-CBDC-Enabled "true" always;
+      add_header X-Regulatory-Compliance "CBUAE,VARA,HSA" always;
+    
+    # Certificate and TLS
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+    nginx.ingress.kubernetes.io/ssl-ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256,ECDHE-RSA-AES128-GCM-SHA256,ECDHE-ECDSA-AES256-GCM-SHA384,ECDHE-RSA-AES256-GCM-SHA384"
+    nginx.ingress.kubernetes.io/ssl-prefer-server-ciphers: "true"
+    
+    # Custom error pages
+    nginx.ingress.kubernetes.io/custom-http-errors: "400,401,403,404,405,408,413,415,500,502,503,504"
+    nginx.ingress.kubernetes.io/default-backend: "amanahfi-platform-error-page"
+    
+    # WAF and DDoS protection
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      SecRuleEngine On
+      SecRequestBodyAccess On
+      SecRequestBodyLimit 52428800
+      SecRule REQUEST_HEADERS:Content-Type "^application/json" "id:1001,phase:1,t:lowercase,pass,nolog,ctl:requestBodyProcessor=JSON"
+      SecRule ARGS "@detectSQLi" "id:1002,phase:2,block,msg:'SQL Injection Attack Detected',logdata:'Matched Data: %{MATCHED_VAR} found within %{MATCHED_VAR_NAME}',tag:'attack-sqli'"
+      SecRule ARGS "@detectXSS" "id:1003,phase:2,block,msg:'XSS Attack Detected',logdata:'Matched Data: %{MATCHED_VAR} found within %{MATCHED_VAR_NAME}',tag:'attack-xss'"
+    
+    # Mutual TLS for high-security endpoints
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "optional"
+    nginx.ingress.kubernetes.io/auth-tls-secret: "amanahfi-platform/amanahfi-platform-ca-secret"
+    nginx.ingress.kubernetes.io/auth-tls-verify-depth: "3"
+    nginx.ingress.kubernetes.io/auth-tls-error-page: "https://docs.amanahfi.ae/errors/mtls-required"
+    
+    # Geolocation restrictions (MENAT region focus)
+    nginx.ingress.kubernetes.io/server-snippet: |
+      # Allow MENAT region and block others (implement as needed)
+      set $allowed_country 0;
+      if ($geoip_country_code = 'AE') { set $allowed_country 1; }
+      if ($geoip_country_code = 'SA') { set $allowed_country 1; }
+      if ($geoip_country_code = 'QA') { set $allowed_country 1; }
+      if ($geoip_country_code = 'KW') { set $allowed_country 1; }
+      if ($geoip_country_code = 'BH') { set $allowed_country 1; }
+      if ($geoip_country_code = 'OM') { set $allowed_country 1; }
+      if ($geoip_country_code = 'TR') { set $allowed_country 1; }
+      if ($allowed_country = 0) {
+        return 403 "Access denied from your location";
+      }
+
+spec:
+  tls:
+  - hosts:
+    - api.amanahfi.ae
+    - api-staging.amanahfi.ae
+    - api-dev.amanahfi.ae
+    secretName: amanahfi-platform-tls-cert
+  
+  rules:
+  # Production API
+  - host: api.amanahfi.ae
+    http:
+      paths:
+      - path: /api/v1/islamic-finance
+        pathType: Prefix
+        backend:
+          service:
+            name: amanahfi-platform-islamic-finance
+            port:
+              number: 8080
+      - path: /api/v1/cbdc
+        pathType: Prefix
+        backend:
+          service:
+            name: amanahfi-platform-cbdc
+            port:
+              number: 8080
+      - path: /api/v1
+        pathType: Prefix
+        backend:
+          service:
+            name: amanahfi-platform
+            port:
+              number: 8080
+      - path: /actuator/health
+        pathType: Exact
+        backend:
+          service:
+            name: amanahfi-platform-management
+            port:
+              number: 8081
+      - path: /docs
+        pathType: Prefix
+        backend:
+          service:
+            name: amanahfi-platform
+            port:
+              number: 8080
+  
+  # Staging API
+  - host: api-staging.amanahfi.ae
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: amanahfi-platform
+            port:
+              number: 8080
+  
+  # Development API
+  - host: api-dev.amanahfi.ae
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: amanahfi-platform
+            port:
+              number: 8080
+
+---
+# Separate ingress for internal management endpoints
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: amanahfi-platform-management-ingress
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/instance: amanahfi-platform
+    app.kubernetes.io/component: management-ingress
+    app.kubernetes.io/part-of: amanahfi-ecosystem
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    
+    # Restrict access to internal networks only
+    nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+    
+    # Authentication for management endpoints
+    nginx.ingress.kubernetes.io/auth-type: "basic"
+    nginx.ingress.kubernetes.io/auth-secret: "amanahfi-platform-management-auth"
+    nginx.ingress.kubernetes.io/auth-realm: "AmanahFi Platform Management"
+    
+    # Mutual TLS required for management endpoints
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+    nginx.ingress.kubernetes.io/auth-tls-secret: "amanahfi-platform/amanahfi-platform-ca-secret"
+    
+    cert-manager.io/cluster-issuer: "internal-ca-issuer"
+
+spec:
+  tls:
+  - hosts:
+    - management.amanahfi.ae
+    secretName: amanahfi-platform-management-tls
+  
+  rules:
+  - host: management.amanahfi.ae
+    http:
+      paths:
+      - path: /actuator
+        pathType: Prefix
+        backend:
+          service:
+            name: amanahfi-platform-management
+            port:
+              number: 8081
+      - path: /admin
+        pathType: Prefix
+        backend:
+          service:
+            name: amanahfi-platform
+            port:
+              number: 8080

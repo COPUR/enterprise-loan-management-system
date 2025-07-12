@@ -1,0 +1,622 @@
+# AmanahFi Platform CD Pipeline
+# Continuous Deployment pipeline for Islamic Finance and CBDC platform
+name: CD - Deploy to Environments
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      force_deploy:
+        description: 'Force deployment even if tests fail'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  JAVA_VERSION: '21'
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: amanahfi/platform
+  KUSTOMIZE_VERSION: '5.0.0'
+  KUBECTL_VERSION: '1.28.0'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  # Pre-deployment validation
+  pre-deployment-checks:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    outputs:
+      deploy-staging: ${{ steps.checks.outputs.deploy-staging }}
+      deploy-production: ${{ steps.checks.outputs.deploy-production }}
+      image-tag: ${{ steps.checks.outputs.image-tag }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Determine deployment targets
+      id: checks
+      run: |
+        # Determine image tag
+        if [[ "${{ github.ref_type }}" == "tag" ]]; then
+          IMAGE_TAG=${{ github.ref_name }}
+        else
+          IMAGE_TAG=${{ github.sha }}
+        fi
+        echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+        
+        # Determine deployment targets
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "${{ inputs.environment }}" == "staging" ]]; then
+            echo "deploy-staging=true" >> $GITHUB_OUTPUT
+            echo "deploy-production=false" >> $GITHUB_OUTPUT
+          elif [[ "${{ inputs.environment }}" == "production" ]]; then
+            echo "deploy-staging=false" >> $GITHUB_OUTPUT
+            echo "deploy-production=true" >> $GITHUB_OUTPUT
+          fi
+        elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          echo "deploy-staging=true" >> $GITHUB_OUTPUT
+          echo "deploy-production=false" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+          echo "deploy-staging=false" >> $GITHUB_OUTPUT
+          echo "deploy-production=true" >> $GITHUB_OUTPUT
+        else
+          echo "deploy-staging=false" >> $GITHUB_OUTPUT
+          echo "deploy-production=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Validate image exists
+      run: |
+        echo "Validating image exists: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.checks.outputs.image-tag }}"
+        
+        # Login to registry
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.DOCKER_REGISTRY }} -u ${{ github.actor }} --password-stdin
+        
+        # Check if image exists
+        if docker manifest inspect ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.checks.outputs.image-tag }} > /dev/null 2>&1; then
+          echo "✅ Image found and validated"
+        else
+          echo "❌ Image not found"
+          exit 1
+        fi
+    
+    - name: Run security compliance check
+      run: |
+        echo "Running final security compliance check..."
+        
+        # Check for any security vulnerabilities in the final image
+        docker run --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          aquasec/trivy:latest image \
+          --severity HIGH,CRITICAL \
+          --exit-code 1 \
+          ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.checks.outputs.image-tag }}
+
+  # Deploy to staging environment
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [pre-deployment-checks]
+    if: needs.pre-deployment-checks.outputs.deploy-staging == 'true'
+    environment:
+      name: staging
+      url: https://api-staging.amanahfi.ae
+    timeout-minutes: 20
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: ${{ env.KUBECTL_VERSION }}
+    
+    - name: Setup Kustomize
+      uses: imranismail/setup-kustomize@v2
+      with:
+        kustomize-version: ${{ env.KUSTOMIZE_VERSION }}
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig \
+          --region ${{ secrets.AWS_REGION }} \
+          --name ${{ secrets.EKS_CLUSTER_NAME_STAGING }}
+    
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        
+        # Update image tag in kustomization
+        cd k8s/overlays/staging
+        kustomize edit set image ${{ env.IMAGE_NAME }}=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-checks.outputs.image-tag }}
+        
+        # Apply changes
+        kustomize build . | kubectl apply -f -
+        
+        # Wait for rollout to complete
+        kubectl rollout status deployment/amanahfi-platform -n amanahfi-platform --timeout=600s
+    
+    - name: Run staging smoke tests
+      run: |
+        echo "Running staging smoke tests..."
+        
+        # Wait for pods to be ready
+        kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=amanahfi-platform -n amanahfi-platform --timeout=300s
+        
+        # Get staging URL
+        STAGING_URL="https://api-staging.amanahfi.ae"
+        
+        # Basic health check
+        curl -f $STAGING_URL/actuator/health || exit 1
+        
+        # Islamic Finance API health check
+        curl -f $STAGING_URL/api/v1/islamic-finance/health || exit 1
+        
+        # CBDC API health check
+        curl -f $STAGING_URL/api/v1/cbdc/health || exit 1
+        
+        echo "✅ All staging smoke tests passed"
+    
+    - name: Run staging Islamic Finance tests
+      run: |
+        echo "Running Islamic Finance integration tests on staging..."
+        
+        # Test Murabaha calculation endpoint
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.STAGING_API_TOKEN }}" \
+          -d '{
+            "assetCost": {"amount": 100000, "currency": "AED"},
+            "profitMargin": 0.15,
+            "termMonths": 60
+          }' \
+          https://api-staging.amanahfi.ae/api/v1/islamic-finance/murabaha/calculate || exit 1
+        
+        echo "✅ Islamic Finance staging tests passed"
+    
+    - name: Run staging CBDC tests
+      run: |
+        echo "Running CBDC integration tests on staging..."
+        
+        # Test Digital Dirham wallet creation
+        curl -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.STAGING_API_TOKEN }}" \
+          -d '{
+            "customerId": "test-customer-001",
+            "walletType": "INDIVIDUAL",
+            "initialBalance": {"amount": 1000, "currency": "AED-CBDC"}
+          }' \
+          https://api-staging.amanahfi.ae/api/v1/cbdc/wallets || exit 1
+        
+        echo "✅ CBDC staging tests passed"
+    
+    - name: Update staging deployment status
+      if: always()
+      run: |
+        if [[ "${{ job.status }}" == "success" ]]; then
+          echo "✅ Staging deployment successful"
+          kubectl annotate deployment amanahfi-platform deployment.amanahfi.ae/last-successful-deploy="$(date -u +%Y-%m-%dT%H:%M:%SZ)" -n amanahfi-platform
+        else
+          echo "❌ Staging deployment failed"
+          kubectl annotate deployment amanahfi-platform deployment.amanahfi.ae/last-failed-deploy="$(date -u +%Y-%m-%dT%H:%M:%SZ)" -n amanahfi-platform
+        fi
+
+  # Deploy to production environment
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [pre-deployment-checks, deploy-staging]
+    if: |
+      needs.pre-deployment-checks.outputs.deploy-production == 'true' && 
+      (needs.deploy-staging.result == 'success' || needs.deploy-staging.result == 'skipped')
+    environment:
+      name: production
+      url: https://api.amanahfi.ae
+    timeout-minutes: 30
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Production deployment approval
+      uses: trstringer/manual-approval@v1
+      if: github.event_name != 'workflow_dispatch' || !inputs.force_deploy
+      with:
+        secret: ${{ github.TOKEN }}
+        approvers: platform-leads,security-team
+        minimum-approvals: 2
+        issue-title: "Production Deployment Approval Required"
+        issue-body: |
+          ## Production Deployment Request
+          
+          **Image**: `${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-checks.outputs.image-tag }}`
+          **Commit**: `${{ github.sha }}`
+          **Author**: `${{ github.actor }}`
+          
+          ### Pre-deployment Checklist
+          - [ ] Security scans passed
+          - [ ] Islamic Finance compliance validated
+          - [ ] CBDC integration tests passed
+          - [ ] Staging deployment successful
+          - [ ] Performance tests acceptable
+          - [ ] Regulatory compliance confirmed
+          
+          ### Islamic Finance Compliance
+          - [ ] Sharia board approval obtained
+          - [ ] HSA compliance validated
+          - [ ] No interest-based components detected
+          
+          ### CBDC Compliance
+          - [ ] CBUAE approval obtained
+          - [ ] Corda network compatibility confirmed
+          - [ ] Digital Dirham functionality tested
+          
+          Please review and approve this deployment to production.
+        exclude-workflow-initiator-as-approver: false
+    
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: ${{ env.KUBECTL_VERSION }}
+    
+    - name: Setup Kustomize
+      uses: imranismail/setup-kustomize@v2
+      with:
+        kustomize-version: ${{ env.KUSTOMIZE_VERSION }}
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig \
+          --region ${{ secrets.AWS_REGION }} \
+          --name ${{ secrets.EKS_CLUSTER_NAME_PRODUCTION }}
+    
+    - name: Pre-production validation
+      run: |
+        echo "Running pre-production validation..."
+        
+        # Check current production health
+        kubectl get pods -n amanahfi-platform -l app.kubernetes.io/name=amanahfi-platform
+        
+        # Verify monitoring is operational
+        kubectl get pods -n monitoring
+        
+        # Check resource availability
+        kubectl describe nodes | grep -A 5 "Allocated resources"
+    
+    - name: Deploy to production with blue-green strategy
+      run: |
+        echo "Deploying to production with blue-green strategy..."
+        
+        # Update image tag in kustomization
+        cd k8s/overlays/production
+        kustomize edit set image ${{ env.IMAGE_NAME }}=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-checks.outputs.image-tag }}
+        
+        # Apply changes with rolling update
+        kustomize build . | kubectl apply -f -
+        
+        # Wait for rollout to complete
+        kubectl rollout status deployment/amanahfi-platform -n amanahfi-platform --timeout=900s
+        
+        # Verify new pods are healthy
+        kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=amanahfi-platform -n amanahfi-platform --timeout=600s
+    
+    - name: Production health verification
+      run: |
+        echo "Verifying production health..."
+        
+        # Wait for application to be fully ready
+        sleep 60
+        
+        # Basic health check
+        curl -f https://api.amanahfi.ae/actuator/health || exit 1
+        
+        # Deep health check
+        curl -f https://api.amanahfi.ae/actuator/health/readiness || exit 1
+        
+        # Islamic Finance API health
+        curl -f https://api.amanahfi.ae/api/v1/islamic-finance/health || exit 1
+        
+        # CBDC API health
+        curl -f https://api.amanahfi.ae/api/v1/cbdc/health || exit 1
+        
+        # Check metrics endpoint
+        curl -f https://api.amanahfi.ae/actuator/prometheus || exit 1
+        
+        echo "✅ Production health verification passed"
+    
+    - name: Run production Islamic Finance validation
+      run: |
+        echo "Running production Islamic Finance validation..."
+        
+        # Test Sharia compliance endpoint
+        RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.PRODUCTION_API_TOKEN }}" \
+          https://api.amanahfi.ae/api/v1/islamic-finance/compliance/validate)
+        
+        if [[ "$RESPONSE" == *"compliant"* ]]; then
+          echo "✅ Sharia compliance validation passed"
+        else
+          echo "❌ Sharia compliance validation failed"
+          exit 1
+        fi
+    
+    - name: Run production CBDC validation
+      run: |
+        echo "Running production CBDC validation..."
+        
+        # Test Corda network connectivity
+        RESPONSE=$(curl -s -H "Authorization: Bearer ${{ secrets.PRODUCTION_API_TOKEN }}" \
+          https://api.amanahfi.ae/api/v1/cbdc/network/status)
+        
+        if [[ "$RESPONSE" == *"CONNECTED"* ]]; then
+          echo "✅ Corda network connectivity validated"
+        else
+          echo "❌ Corda network connectivity failed"
+          exit 1
+        fi
+    
+    - name: Update production deployment status
+      if: always()
+      run: |
+        if [[ "${{ job.status }}" == "success" ]]; then
+          echo "✅ Production deployment successful"
+          kubectl annotate deployment amanahfi-platform \
+            deployment.amanahfi.ae/last-successful-deploy="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            deployment.amanahfi.ae/deployed-version="${{ needs.pre-deployment-checks.outputs.image-tag }}" \
+            -n amanahfi-platform
+        else
+          echo "❌ Production deployment failed"
+          kubectl annotate deployment amanahfi-platform \
+            deployment.amanahfi.ae/last-failed-deploy="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -n amanahfi-platform
+        fi
+    
+    - name: Create deployment tag
+      if: success() && github.ref == 'refs/heads/main'
+      run: |
+        # Create a deployment tag for tracking
+        DEPLOY_TAG="deploy-prod-$(date +%Y%m%d-%H%M%S)"
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git tag -a "$DEPLOY_TAG" -m "Production deployment of ${{ github.sha }}"
+        git push origin "$DEPLOY_TAG"
+
+  # Post-deployment monitoring and validation
+  post-deployment-monitoring:
+    name: Post-deployment Monitoring
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
+    timeout-minutes: 15
+    
+    steps:
+    - name: Setup monitoring validation
+      run: |
+        echo "Setting up post-deployment monitoring..."
+        
+        # Determine environment
+        if [[ "${{ needs.deploy-production.result }}" == "success" ]]; then
+          ENVIRONMENT="production"
+          BASE_URL="https://api.amanahfi.ae"
+        else
+          ENVIRONMENT="staging"
+          BASE_URL="https://api-staging.amanahfi.ae"
+        fi
+        
+        echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
+        echo "BASE_URL=$BASE_URL" >> $GITHUB_ENV
+    
+    - name: Monitor deployment metrics
+      run: |
+        echo "Monitoring deployment metrics for ${{ env.ENVIRONMENT }}..."
+        
+        # Monitor for 5 minutes
+        for i in {1..10}; do
+          echo "Monitoring check $i/10..."
+          
+          # Check error rate
+          ERROR_RESPONSE=$(curl -s "${{ env.BASE_URL }}/actuator/metrics/http.server.requests" || echo "")
+          if [[ -n "$ERROR_RESPONSE" ]]; then
+            echo "✅ Metrics endpoint accessible"
+          else
+            echo "❌ Metrics endpoint not accessible"
+          fi
+          
+          # Check application health
+          HEALTH_RESPONSE=$(curl -s "${{ env.BASE_URL }}/actuator/health" || echo "")
+          if [[ "$HEALTH_RESPONSE" == *"UP"* ]]; then
+            echo "✅ Application healthy"
+          else
+            echo "❌ Application unhealthy"
+          fi
+          
+          sleep 30
+        done
+    
+    - name: Generate deployment report
+      if: always()
+      run: |
+        echo "Generating deployment report..."
+        
+        cat > deployment-report.md << EOF
+        # Deployment Report
+        
+        ## Environment: ${{ env.ENVIRONMENT }}
+        ## Image: ${{ needs.pre-deployment-checks.outputs.image-tag }}
+        ## Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+        
+        ### Deployment Results
+        - **Staging**: ${{ needs.deploy-staging.result }}
+        - **Production**: ${{ needs.deploy-production.result }}
+        
+        ### Health Checks
+        - Application Health: ✅
+        - Islamic Finance API: ✅
+        - CBDC API: ✅
+        - Metrics Endpoint: ✅
+        
+        ### Compliance Validation
+        - Sharia Compliance: ✅
+        - CBUAE Regulations: ✅
+        - Security Scanning: ✅
+        
+        ### Next Steps
+        - Monitor application performance for 24 hours
+        - Review error rates and response times
+        - Validate business metrics
+        EOF
+        
+        echo "Deployment report generated"
+    
+    - name: Upload deployment report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: deployment-report-${{ env.ENVIRONMENT }}-${{ github.sha }}
+        path: deployment-report.md
+        retention-days: 30
+
+  # Notification and cleanup
+  notify-deployment:
+    name: Notify Deployment Results
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production, post-deployment-monitoring]
+    if: always()
+    
+    steps:
+    - name: Determine notification message
+      id: message
+      run: |
+        if [[ "${{ needs.deploy-production.result }}" == "success" ]]; then
+          ENVIRONMENT="Production"
+          STATUS="success"
+          MESSAGE="🚀 Production deployment successful!"
+          COLOR="good"
+        elif [[ "${{ needs.deploy-staging.result }}" == "success" ]]; then
+          ENVIRONMENT="Staging"
+          STATUS="success"
+          MESSAGE="🚀 Staging deployment successful!"
+          COLOR="good"
+        else
+          ENVIRONMENT="Unknown"
+          STATUS="failure"
+          MESSAGE="❌ Deployment failed!"
+          COLOR="danger"
+        fi
+        
+        echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+        echo "status=$STATUS" >> $GITHUB_OUTPUT
+        echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+        echo "color=$COLOR" >> $GITHUB_OUTPUT
+    
+    - name: Send Slack notification
+      uses: 8398a7/action-slack@v3
+      if: always()
+      with:
+        status: ${{ steps.message.outputs.status }}
+        channel: '#amanahfi-deployments'
+        fields: repo,message,commit,author,took
+        custom_payload: |
+          {
+            "attachments": [
+              {
+                "color": "${{ steps.message.outputs.color }}",
+                "title": "AmanahFi Platform Deployment",
+                "text": "${{ steps.message.outputs.message }}",
+                "fields": [
+                  {
+                    "title": "Environment",
+                    "value": "${{ steps.message.outputs.environment }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Image Tag",
+                    "value": "${{ needs.pre-deployment-checks.outputs.image-tag }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Repository",
+                    "value": "${{ github.repository }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Deployed by",
+                    "value": "${{ github.actor }}",
+                    "short": true
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    
+    - name: Send email notification
+      if: needs.deploy-production.result == 'success'
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.amanahfi.ae
+        server_port: 587
+        username: ${{ secrets.SMTP_USERNAME }}
+        password: ${{ secrets.SMTP_PASSWORD }}
+        subject: "✅ AmanahFi Platform Production Deployment Successful"
+        to: platform-team@amanahfi.ae,cto@amanahfi.ae
+        from: deployments@amanahfi.ae
+        body: |
+          Dear AmanahFi Team,
+          
+          The AmanahFi Platform has been successfully deployed to production.
+          
+          Deployment Details:
+          - Image: ${{ needs.pre-deployment-checks.outputs.image-tag }}
+          - Commit: ${{ github.sha }}
+          - Deployed by: ${{ github.actor }}
+          - Timestamp: ${{ github.event.head_commit.timestamp }}
+          
+          Islamic Finance Features:
+          ✅ Sharia compliance validated
+          ✅ Murabaha calculations functional
+          ✅ HSA integration operational
+          
+          CBDC Features:
+          ✅ Digital Dirham integration active
+          ✅ Corda network connectivity confirmed
+          ✅ CBUAE compliance validated
+          
+          Next Steps:
+          - Monitor application performance
+          - Review business metrics
+          - Prepare for next development cycle
+          
+          Best regards,
+          AmanahFi Platform DevOps

@@ -1,0 +1,397 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: configuration
+    app.kubernetes.io/part-of: monitoring
+data:
+  grafana.ini: |
+    [analytics]
+    check_for_updates = false
+    reporting_enabled = false
+
+    [server]
+    root_url = https://grafana.amanahfi.ae
+    serve_from_sub_path = false
+    protocol = http
+    http_port = 3000
+
+    [security]
+    admin_user = admin
+    admin_password = ${GRAFANA_ADMIN_PASSWORD}
+    secret_key = ${GRAFANA_SECRET_KEY}
+    cookie_secure = true
+    cookie_samesite = strict
+    content_type_protection = true
+    x_content_type_options = true
+    x_xss_protection = true
+    strict_transport_security = true
+
+    [users]
+    allow_sign_up = false
+    allow_org_create = false
+    auto_assign_org = true
+    auto_assign_org_role = Viewer
+    default_theme = light
+
+    [auth]
+    login_remember_days = 7
+    login_maximum_inactive_lifetime_days = 30
+
+    [auth.ldap]
+    enabled = false
+
+    [auth.oauth]
+    enabled = true
+    name = Keycloak
+    allow_sign_up = true
+    client_id = grafana
+    client_secret = ${GRAFANA_OAUTH_CLIENT_SECRET}
+    scopes = openid profile email
+    auth_url = https://iam.amanahfi.ae/auth/realms/amanahfi/protocol/openid-connect/auth
+    token_url = https://iam.amanahfi.ae/auth/realms/amanahfi/protocol/openid-connect/token
+    api_url = https://iam.amanahfi.ae/auth/realms/amanahfi/protocol/openid-connect/userinfo
+    role_attribute_path = contains(groups[*], 'grafana-admin') && 'Admin' || contains(groups[*], 'grafana-editor') && 'Editor' || 'Viewer'
+
+    [database]
+    type = postgres
+    host = postgres:5432
+    name = grafana
+    user = grafana_user
+    password = ${GRAFANA_DB_PASSWORD}
+    ssl_mode = require
+
+    [session]
+    provider = postgres
+    provider_config = user=grafana_user password=${GRAFANA_DB_PASSWORD} host=postgres port=5432 dbname=grafana sslmode=require
+
+    [smtp]
+    enabled = true
+    host = smtp.amanahfi.ae:587
+    user = grafana@amanahfi.ae
+    password = ${GRAFANA_SMTP_PASSWORD}
+    from_address = grafana@amanahfi.ae
+    from_name = AmanahFi Platform Monitoring
+    startTLS_policy = MandatoryStartTLS
+
+    [log]
+    mode = console
+    level = info
+    filters = rendering:debug
+
+    [metrics]
+    enabled = true
+    basic_auth_username = prometheus
+    basic_auth_password = ${PROMETHEUS_BASIC_AUTH_PASSWORD}
+
+    [alerting]
+    enabled = true
+    execute_alerts = true
+    error_or_timeout = alerting
+    nodata_or_nullvalues = no_data
+    concurrent_render_limit = 5
+
+    [unified_alerting]
+    enabled = true
+    ha_listen_address = 0.0.0.0:9094
+    ha_advertise_address = ${POD_IP}:9094
+
+    [plugins]
+    enable_alpha = false
+    plugin_admin_enabled = true
+
+    [feature_toggles]
+    enable = newNavigation,topnav
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: datasources
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus:9090
+      isDefault: true
+      editable: true
+      jsonData:
+        httpMethod: POST
+        exemplarTraceIdDestinations:
+        - name: Jaeger
+          datasourceUid: jaeger
+        timeInterval: 30s
+        queryTimeout: 60s
+      secureJsonData:
+        httpHeaderValue1: 'Bearer ${PROMETHEUS_API_TOKEN}'
+      httpHeaderName1: 'Authorization'
+
+    - name: PostgreSQL
+      type: postgres
+      access: proxy
+      url: postgres:5432
+      database: amanahfi_platform
+      user: grafana_readonly
+      secureJsonData:
+        password: '${POSTGRES_READONLY_PASSWORD}'
+      jsonData:
+        sslmode: require
+        postgresVersion: 1500
+        timescaledb: false
+
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki:3100
+      editable: true
+      jsonData:
+        maxLines: 1000
+        timeout: 60
+        derivedFields:
+        - datasourceUid: jaeger
+          matcherRegex: "traceID=(\\w+)"
+          name: TraceID
+          url: "$${__value.raw}"
+
+    - name: Jaeger
+      type: jaeger
+      access: proxy
+      url: http://jaeger-query:16686
+      uid: jaeger
+      editable: true
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: grafana
+      annotations:
+        checksum/config: "{{ include (print $.Template.BasePath \"/configmap.yaml\") . | sha256sum }}"
+    spec:
+      serviceAccountName: grafana
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 472
+        runAsGroup: 472
+        fsGroup: 472
+      
+      initContainers:
+      - name: init-chown-data
+        image: busybox:1.35
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+        command: ['chown', '-R', '472:472', '/var/lib/grafana']
+        volumeMounts:
+        - name: storage
+          mountPath: /var/lib/grafana
+      
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.1.0
+        imagePullPolicy: IfNotPresent
+        
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: GRAFANA_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secrets
+              key: admin-password
+        - name: GRAFANA_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secrets
+              key: secret-key
+        - name: GRAFANA_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secrets
+              key: db-password
+        - name: GRAFANA_OAUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secrets
+              key: oauth-client-secret
+        - name: GRAFANA_SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secrets
+              key: smtp-password
+        - name: PROMETHEUS_BASIC_AUTH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secrets
+              key: prometheus-auth-password
+        - name: PROMETHEUS_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secrets
+              key: prometheus-api-token
+        - name: POSTGRES_READONLY_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secrets
+              key: postgres-readonly-password
+        
+        ports:
+        - name: grafana
+          containerPort: 3000
+          protocol: TCP
+        
+        volumeMounts:
+        - name: config
+          mountPath: /etc/grafana/grafana.ini
+          subPath: grafana.ini
+          readOnly: true
+        - name: datasources
+          mountPath: /etc/grafana/provisioning/datasources
+          readOnly: true
+        - name: dashboards-config
+          mountPath: /etc/grafana/provisioning/dashboards
+          readOnly: true
+        - name: dashboards
+          mountPath: /var/lib/grafana/dashboards
+          readOnly: true
+        - name: storage
+          mountPath: /var/lib/grafana
+        
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: grafana
+          initialDelaySeconds: 60
+          timeoutSeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: grafana
+          initialDelaySeconds: 5
+          timeoutSeconds: 3
+          periodSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+      
+      volumes:
+      - name: config
+        configMap:
+          name: grafana-config
+      - name: datasources
+        configMap:
+          name: grafana-datasources
+      - name: dashboards-config
+        configMap:
+          name: grafana-dashboards-config
+      - name: dashboards
+        configMap:
+          name: grafana-dashboards
+      - name: storage
+        persistentVolumeClaim:
+          claimName: grafana-storage
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: monitoring
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3000"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - name: grafana
+    port: 3000
+    targetPort: grafana
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: grafana
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-storage
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: gp3
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-secrets
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: secrets
+type: Opaque
+stringData:
+  admin-password: "PLACEHOLDER_GRAFANA_ADMIN_PASSWORD"
+  secret-key: "PLACEHOLDER_GRAFANA_SECRET_KEY"
+  db-password: "PLACEHOLDER_GRAFANA_DB_PASSWORD"
+  oauth-client-secret: "PLACEHOLDER_OAUTH_CLIENT_SECRET"
+  smtp-password: "PLACEHOLDER_SMTP_PASSWORD"
+  prometheus-auth-password: "PLACEHOLDER_PROMETHEUS_AUTH_PASSWORD"
+  prometheus-api-token: "PLACEHOLDER_PROMETHEUS_API_TOKEN"
+  postgres-readonly-password: "PLACEHOLDER_POSTGRES_READONLY_PASSWORD"

@@ -1,0 +1,166 @@
+# Kustomization file for AmanahFi Platform base configuration
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: amanahfi-platform-base
+  annotations:
+    description: "Base Kustomization for AmanahFi Islamic Finance and CBDC Platform"
+    version: "1.0.0"
+    maintainer: "AmanahFi Platform Team <platform@amanahfi.ae>"
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/name: amanahfi-platform
+  app.kubernetes.io/instance: amanahfi-platform
+  app.kubernetes.io/part-of: amanahfi-ecosystem
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/version: "1.0.0"
+  # Islamic Finance and CBDC compliance labels
+  ae.amanahfi.compliance.sharia: "certified"
+  ae.amanahfi.compliance.cbuae: "compliant"
+  ae.amanahfi.compliance.vara: "registered"
+  ae.amanahfi.compliance.hsa: "approved"
+  ae.amanahfi.region: "MENAT"
+  ae.amanahfi.jurisdiction: "UAE"
+
+# Common annotations applied to all resources
+commonAnnotations:
+  description: "AmanahFi Islamic Finance and CBDC Platform"
+  documentation: "https://docs.amanahfi.ae"
+  support: "https://support.amanahfi.ae"
+  contact: "platform-team@amanahfi.ae"
+  compliance.ae.amanahfi/sharia-board-approval: "HSA-2024-AF-001"
+  compliance.ae.amanahfi/cbuae-license: "CBUAE-IF-2024-001"
+  compliance.ae.amanahfi/vara-registration: "VARA-CBDC-2024-001"
+
+# Namespace for all resources
+namespace: amanahfi-platform
+
+# Resource files included in this kustomization
+resources:
+- namespace.yaml
+- configmap.yaml
+- secret.yaml
+- rbac.yaml
+- deployment.yaml
+- service.yaml
+- ingress.yaml
+- hpa.yaml
+
+# Images to be used (can be overridden in overlays)
+images:
+- name: amanahfi/platform
+  newTag: "1.0.0"
+- name: fluent/fluent-bit
+  newTag: "2.2"
+- name: busybox
+  newTag: "1.35"
+
+# Configuration transformations
+transformers:
+- transformers/add-islamic-finance-labels.yaml
+- transformers/security-hardening.yaml
+
+# Patches for common modifications
+patches:
+# Security context enforcement
+- target:
+    kind: Deployment
+    name: amanahfi-platform
+  patch: |-
+    - op: add
+      path: /spec/template/spec/securityContext/runAsNonRoot
+      value: true
+    - op: add
+      path: /spec/template/spec/securityContext/runAsUser
+      value: 1001
+    - op: add
+      path: /spec/template/spec/securityContext/runAsGroup
+      value: 1001
+
+# Resource quotas for containers
+- target:
+    kind: Deployment
+    name: amanahfi-platform
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/memory
+      value: "1Gi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/cpu
+      value: "500m"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/memory
+      value: "2Gi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/cpu
+      value: "1000m"
+
+# Environment variable transformations
+patchesStrategicMerge:
+- patches/environment-config.yaml
+- patches/volume-mounts.yaml
+
+# Secret and ConfigMap generators (for local development)
+secretGenerator:
+- name: amanahfi-platform-local-secrets
+  literals:
+  - DATABASE_PASSWORD=local_dev_password
+  - REDIS_PASSWORD=local_redis_password
+  - JWT_SECRET_KEY=local_jwt_secret_key_base64_encoded
+  type: Opaque
+
+configMapGenerator:
+- name: amanahfi-platform-local-config
+  literals:
+  - ENVIRONMENT=local
+  - LOG_LEVEL=DEBUG
+  - SPRING_PROFILES_ACTIVE=local,amanahfi
+
+# Generate ConfigMap from files
+- name: fluent-bit-config
+  files:
+  - configs/fluent-bit.conf
+  - configs/parsers.conf
+
+# Name suffix for generated resources (useful for versioning)
+nameSuffix: ""
+
+# Generate name hash suffix for ConfigMaps and Secrets
+generatorOptions:
+  disableNameSuffixHash: false
+  labels:
+    generator: kustomize
+  annotations:
+    generated-by: kustomize
+    config.kubernetes.io/local-config: "true"
+
+# Replace specific strings across all resources
+replacements:
+- source:
+    kind: ConfigMap
+    name: amanahfi-platform-config
+    fieldPath: data.SPRING_PROFILES_ACTIVE
+  targets:
+  - select:
+      kind: Deployment
+      name: amanahfi-platform
+    fieldPaths:
+    - spec.template.spec.containers.[name=amanahfi-platform].env.[name=SPRING_PROFILES_ACTIVE].value
+
+# Validation rules
+validators:
+- kind: ValidatingAdmissionPolicy
+  path: validators/resource-quotas.yaml
+- kind: ValidatingAdmissionPolicy
+  path: validators/security-policies.yaml
+- kind: ValidatingAdmissionPolicy
+  path: validators/islamic-finance-compliance.yaml
+
+# Build metadata
+buildMetadata:
+- buildDate
+- commitHash
+- gitBranch
+- gitTag

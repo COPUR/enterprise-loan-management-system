@@ -1,0 +1,123 @@
+# Dependabot configuration for AmanahFi Platform
+# Automated dependency updates for security and maintenance
+version: 2
+
+updates:
+  # Java/Gradle dependencies
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:00"
+      timezone: "Asia/Dubai"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "platform-team"
+      - "security-team"
+    assignees:
+      - "platform-leads"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "java"
+      - "security"
+    # Islamic Finance and CBDC specific configurations
+    allow:
+      # Spring Framework (core platform)
+      - dependency-name: "org.springframework*"
+      # Spring Boot (application framework)
+      - dependency-name: "org.springframework.boot*"
+      # Security frameworks
+      - dependency-name: "org.springframework.security*"
+      - dependency-name: "io.jsonwebtoken*"
+      # Database drivers and ORM
+      - dependency-name: "org.postgresql*"
+      - dependency-name: "org.hibernate*"
+      # Cache and messaging
+      - dependency-name: "org.springframework.data*"
+      - dependency-name: "org.apache.kafka*"
+      # Monitoring and observability
+      - dependency-name: "io.micrometer*"
+      - dependency-name: "org.slf4j*"
+      - dependency-name: "ch.qos.logback*"
+      # JSON processing
+      - dependency-name: "com.fasterxml.jackson*"
+      # Validation
+      - dependency-name: "org.hibernate.validator*"
+      - dependency-name: "jakarta.validation*"
+      # Testing frameworks
+      - dependency-name: "org.junit*"
+      - dependency-name: "org.mockito*"
+      - dependency-name: "org.testcontainers*"
+      # OpenAPI/Swagger
+      - dependency-name: "org.springdoc*"
+      - dependency-name: "io.swagger*"
+    ignore:
+      # Ignore patch updates for stable dependencies during Islamic Finance critical periods
+      - dependency-name: "org.springframework*"
+        update-types: ["version-update:semver-patch"]
+        # Only during Ramadan and Hajj seasons when changes should be minimal
+      # Ignore major version updates that might break Islamic Finance compliance
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "02:00"
+      timezone: "Asia/Dubai"
+    reviewers:
+      - "devsecops-team"
+      - "platform-team"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "security"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "02:00"
+      timezone: "Asia/Dubai"
+    reviewers:
+      - "devsecops-team"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci-cd"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+
+  # Kubernetes/Helm dependencies
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "02:00"
+      timezone: "Asia/Dubai"
+    reviewers:
+      - "platform-team"
+      - "devsecops-team"
+    labels:
+      - "dependencies"
+      - "kubernetes"
+      - "infrastructure"
+
+# Global configuration for Islamic Finance and CBDC compliance
+# Note: All dependency updates must maintain Sharia compliance
+# and CBDC regulatory requirements

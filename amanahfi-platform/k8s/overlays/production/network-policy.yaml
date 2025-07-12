@@ -1,0 +1,313 @@
+# Network policies for production security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: amanahfi-platform-default-deny
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/component: network-policy
+    app.kubernetes.io/part-of: amanahfi-ecosystem
+  annotations:
+    description: "Default deny all ingress and egress traffic"
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: amanahfi-platform-ingress
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/component: network-policy
+  annotations:
+    description: "Allow ingress traffic to AmanahFi Platform"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: amanahfi-platform
+  policyTypes:
+  - Ingress
+  ingress:
+  # Allow traffic from ingress controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 8081
+  
+  # Allow traffic from monitoring namespace
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 8081  # Management port for Prometheus scraping
+  
+  # Allow inter-pod communication within namespace
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: amanahfi-platform
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 8081
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: amanahfi-platform-egress
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/component: network-policy
+  annotations:
+    description: "Allow specific egress traffic from AmanahFi Platform"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: amanahfi-platform
+  policyTypes:
+  - Egress
+  egress:
+  # DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  
+  # Database access
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: amanahfi-platform
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: postgresql
+    ports:
+    - protocol: TCP
+      port: 5432
+  
+  # Redis access
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: amanahfi-platform
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  
+  # Kafka access
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: amanahfi-platform
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 9093
+  
+  # External regulatory APIs (CBUAE, VARA, HSA)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+  
+  # Corda network access
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 10002  # Corda P2P port
+    - protocol: TCP
+      port: 10003  # Corda RPC port
+  
+  # HTTPS for external services
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: amanahfi-platform-islamic-finance-isolation
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/component: network-policy
+    ae.amanahfi.policy-type: "islamic-finance-isolation"
+  annotations:
+    description: "Isolate Islamic Finance workloads for compliance"
+spec:
+  podSelector:
+    matchLabels:
+      ae.amanahfi.workload: "islamic-finance"
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Only allow traffic from specific sources for Islamic Finance
+  - from:
+    - podSelector:
+        matchLabels:
+          ae.amanahfi.authorized: "islamic-finance"
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  # Restricted egress for Islamic Finance workloads
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: postgresql
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  # HSA API access only
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+  # DNS
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: amanahfi-platform-cbdc-isolation
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/component: network-policy
+    ae.amanahfi.policy-type: "cbdc-isolation"
+  annotations:
+    description: "Isolate CBDC workloads for regulatory compliance"
+spec:
+  podSelector:
+    matchLabels:
+      ae.amanahfi.workload: "cbdc"
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Only allow traffic from authorized CBDC sources
+  - from:
+    - podSelector:
+        matchLabels:
+          ae.amanahfi.authorized: "cbdc"
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  # Database access
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: postgresql
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Redis access
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  # Corda network access
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 10002
+    - protocol: TCP
+      port: 10003
+  # CBUAE and VARA API access
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+  # DNS
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+
+---
+# Network policy for monitoring access
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: amanahfi-platform-monitoring-access
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/component: network-policy
+  annotations:
+    description: "Allow monitoring tools access to metrics endpoints"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: amanahfi-platform
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: prometheus
+    ports:
+    - protocol: TCP
+      port: 8081
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: grafana
+    ports:
+    - protocol: TCP
+      port: 8081

@@ -1,0 +1,305 @@
+# AmanahFi Platform Configuration
+# UAE & MENAT Islamic Finance Platform
+
+spring:
+  application:
+    name: amanahfi-platform
+  profiles:
+    active: development,islamic-finance
+  
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/amanahfi_db
+    username: ${DB_USERNAME:amanahfi_user}
+    password: ${DB_PASSWORD:secure_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: false
+        jdbc:
+          batch_size: 25
+          fetch_size: 100
+  
+  # Flyway Migration
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+  
+  # Redis Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 5000ms
+      jedis:
+        pool:
+          max-active: 20
+          max-wait: -1ms
+          max-idle: 10
+          min-idle: 5
+  
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    security:
+      protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+    consumer:
+      group-id: amanahfi-platform
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        spring.json.trusted.packages: "com.amanahfi.platform"
+        isolation.level: read_committed
+  
+  # Security Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/amanahfi}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8080/realms/amanahfi/protocol/openid-connect/certs}
+
+# AmanahFi Platform Specific Configuration
+amanahfi:
+  platform:
+    # Islamic Finance Configuration
+    islamic-finance:
+      enabled: true
+      default-jurisdiction: "AE"
+      supported-jurisdictions:
+        - "AE"  # United Arab Emirates
+        - "SA"  # Saudi Arabia
+        - "TR"  # Turkey
+        - "PK"  # Pakistan
+        - "AZ"  # Azerbaijan
+        - "IR"  # Iran
+        - "IL"  # Israel
+      sharia-authority: "UAE_HIGHER_SHARIA_AUTHORITY"
+      compliance:
+        validation-enabled: true
+        audit-trail-enabled: true
+        auto-reporting-enabled: true
+      product-types:
+        murabaha:
+          enabled: true
+          max-profit-margin: 0.30  # 30% cap from MasruFi Framework
+          default-ttl-hours: 12
+        musharakah:
+          enabled: true
+          min-partnership-ratio: 0.01  # 1% minimum
+          default-ttl-hours: 12
+        ijarah:
+          enabled: true
+          max-lease-term-years: 25
+          default-ttl-hours: 12
+        qard-hassan:
+          enabled: true
+          max-admin-fee-ratio: 0.01  # 1% of principal
+          default-ttl-hours: 12
+        salam:
+          enabled: false  # Future implementation
+        istisna:
+          enabled: false  # Future implementation
+    
+    # Idempotence Configuration
+    idempotence:
+      enabled: true
+      store-type: "redis"  # redis, postgresql, memory
+      default-ttl-hours: 12
+      performance:
+        max-latency-ms: 25  # P95 target
+        min-hit-ratio: 0.80  # 80% minimum
+        cleanup-interval-hours: 4
+      ttl-by-operation:
+        payment-operations: 24  # hours
+        islamic-finance-creation: 12
+        product-lifecycle: 6
+        cbdc-operations: 24
+        compliance-checks: 6
+        api-calls: 1
+    
+    # MasruFi Framework Integration
+    masrufi-integration:
+      enabled: true
+      validation-level: "enhanced"  # basic, enhanced, strict
+      business-rules:
+        profit-margin-enforcement: true
+        asset-validation-enhanced: true
+        compliance-synchronization: true
+      performance:
+        conversion-cache-enabled: true
+        cache-ttl-minutes: 30
+    
+    # Regulatory Compliance
+    regulatory:
+      cbuae:
+        enabled: true
+        api-base-url: ${CBUAE_API_URL:https://api.centralbank.ae}
+        reporting-enabled: true
+        open-finance-compliance: true
+      vara:
+        enabled: true
+        api-base-url: ${VARA_API_URL:https://api.vara.ae}
+        cbdc-compliance: true
+        virtual-asset-reporting: true
+      hsa:
+        enabled: true
+        sharia-validation-required: true
+        fatwa-reference-tracking: true
+    
+    # Multi-Currency Support
+    currency:
+      default: "AED"
+      supported:
+        - "AED"  # UAE Dirham
+        - "SAR"  # Saudi Riyal
+        - "TRY"  # Turkish Lira
+        - "PKR"  # Pakistani Rupee
+        - "AZN"  # Azerbaijani Manat
+        - "IRR"  # Iranian Rial
+        - "ILS"  # Israeli Shekel
+        - "USD"  # US Dollar
+        - "EUR"  # Euro
+      exchange-rate:
+        provider: "ECB"  # European Central Bank
+        update-interval-hours: 1
+        cache-enabled: true
+    
+    # CBDC Integration (R3 Corda)
+    cbdc:
+      enabled: false  # Future implementation
+      corda:
+        node-url: ${CORDA_NODE_URL:http://localhost:10200}
+        username: ${CORDA_USERNAME:}
+        password: ${CORDA_PASSWORD:}
+      digital-dirham:
+        enabled: true
+        network: "testnet"  # testnet, mainnet
+        notary: "O=Notary,L=Dubai,C=AE"
+    
+    # Event-Driven Architecture
+    events:
+      publishing:
+        enabled: true
+        async-enabled: true
+        batch-size: 100
+        timeout-ms: 5000
+      outbox:
+        enabled: true
+        cleanup-interval-hours: 24
+        max-retry-attempts: 3
+        retry-delay-ms: 1000
+      topics:
+        islamic-finance: "amanahfi.islamic-finance"
+        compliance: "amanahfi.compliance"
+        regulatory: "amanahfi.regulatory"
+        cbdc: "amanahfi.cbdc"
+    
+    # Monitoring & Observability
+    monitoring:
+      metrics:
+        enabled: true
+        include-business-metrics: true
+        include-technical-metrics: true
+        include-compliance-metrics: true
+      health:
+        sharia-compliance-check: true
+        idempotence-store-check: true
+        regulatory-api-check: true
+      alerting:
+        duplicate-transactions: true
+        compliance-violations: true
+        performance-degradation: true
+
+# Management & Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus,idempotence,islamic-finance"
+      base-path: "/actuator"
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active}
+      jurisdiction: ${amanahfi.platform.islamic-finance.default-jurisdiction}
+
+# Logging Configuration
+logging:
+  level:
+    com.amanahfi.platform: INFO
+    com.amanahfi.platform.islamicfinance: DEBUG
+    com.amanahfi.platform.shared.idempotence: INFO
+    org.springframework.kafka: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/amanahfi-platform.log
+    max-size: 100MB
+    max-history: 30
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api/v1
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+  http2:
+    enabled: true
+
+# Threading Configuration
+spring.task:
+  execution:
+    pool:
+      core-size: 10
+      max-size: 50
+      queue-capacity: 100
+    thread-name-prefix: "amanahfi-async-"
+  scheduling:
+    pool:
+      size: 5
+    thread-name-prefix: "amanahfi-scheduled-"

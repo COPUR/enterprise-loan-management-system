@@ -8,3 +8,6 @@ include 'payment-service'
 
 // MasruFi Framework - Islamic Finance Extension Module
 include 'masrufi-framework'
+
+// AmanahFi Platform - UAE & MENAT Islamic Finance Platform
+include 'amanahfi-platform'

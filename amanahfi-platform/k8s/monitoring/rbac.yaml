@@ -1,0 +1,293 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: service-account
+    app.kubernetes.io/part-of: monitoring
+automountServiceAccountToken: true
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: service-account
+    app.kubernetes.io/part-of: monitoring
+automountServiceAccountToken: true
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alertmanager
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/component: service-account
+    app.kubernetes.io/part-of: monitoring
+automountServiceAccountToken: true
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-monitoring
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: cluster-role
+    app.kubernetes.io/part-of: monitoring
+rules:
+# Core Kubernetes resource access for service discovery
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/metrics
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+
+# ConfigMap access for configuration discovery
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["get"]
+
+# Metrics collection from various sources
+- apiGroups: [""]
+  resources:
+  - nodes/metrics
+  verbs: ["get"]
+
+# Non-resource URLs for metrics collection
+- nonResourceURLs:
+  - /metrics
+  - /metrics/cadvisor
+  verbs: ["get"]
+
+# Extensions API group for ingress metrics
+- apiGroups: ["extensions"]
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+
+# Networking API group for network policies and ingresses
+- apiGroups: ["networking.k8s.io"]
+  resources:
+  - ingresses
+  - networkpolicies
+  verbs: ["get", "list", "watch"]
+
+# Apps API group for deployments, statefulsets, etc.
+- apiGroups: ["apps"]
+  resources:
+  - deployments
+  - statefulsets
+  - daemonsets
+  - replicasets
+  verbs: ["get", "list", "watch"]
+
+# Batch API group for jobs and cronjobs
+- apiGroups: ["batch"]
+  resources:
+  - jobs
+  - cronjobs
+  verbs: ["get", "list", "watch"]
+
+# Custom resource definitions for Islamic Finance and CBDC monitoring
+- apiGroups: ["compliance.amanahfi.ae"]
+  resources:
+  - shariacompliances
+  - regulatoryreports
+  verbs: ["get", "list", "watch"]
+
+- apiGroups: ["cbdc.amanahfi.ae"]
+  resources:
+  - digitaldirhams
+  - cordatransactions
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-monitoring
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: cluster-role-binding
+    app.kubernetes.io/part-of: monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-monitoring
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: amanahfi-platform
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: grafana-role
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: role
+    app.kubernetes.io/part-of: monitoring
+rules:
+# ConfigMap access for dashboard provisioning
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["get", "list", "watch"]
+
+# Secret access for datasource credentials
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch"]
+
+# Pod access for debugging
+- apiGroups: [""]
+  resources:
+  - pods
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: grafana-role-binding
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: role-binding
+    app.kubernetes.io/part-of: monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: grafana-role
+subjects:
+- kind: ServiceAccount
+  name: grafana
+  namespace: amanahfi-platform
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: alertmanager-role
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/component: role
+    app.kubernetes.io/part-of: monitoring
+rules:
+# ConfigMap access for alert rules and templates
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["get", "list", "watch"]
+
+# Secret access for notification credentials
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch"]
+
+# Events for alert status tracking
+- apiGroups: [""]
+  resources:
+  - events
+  verbs: ["create", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: alertmanager-role-binding
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/component: role-binding
+    app.kubernetes.io/part-of: monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: alertmanager-role
+subjects:
+- kind: ServiceAccount
+  name: alertmanager
+  namespace: amanahfi-platform
+
+---
+# Service account for metrics collection from external systems
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: monitoring-external-metrics
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: monitoring
+    app.kubernetes.io/component: external-metrics
+    app.kubernetes.io/part-of: monitoring
+  annotations:
+    description: "Service account for collecting metrics from external regulatory APIs"
+automountServiceAccountToken: true
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: monitoring-external-metrics-role
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: monitoring
+    app.kubernetes.io/component: external-metrics-role
+    app.kubernetes.io/part-of: monitoring
+rules:
+# Secret access for external API credentials
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch"]
+  resourceNames:
+  - "regulatory-api-credentials"
+  - "corda-network-credentials"
+  - "amanahfi-platform-secrets"
+
+# ConfigMap access for external service configuration
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["get", "list", "watch"]
+  resourceNames:
+  - "amanahfi-platform-regulatory-config"
+  - "external-monitoring-config"
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: monitoring-external-metrics-role-binding
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: monitoring
+    app.kubernetes.io/component: external-metrics-role-binding
+    app.kubernetes.io/part-of: monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: monitoring-external-metrics-role
+subjects:
+- kind: ServiceAccount
+  name: monitoring-external-metrics
+  namespace: amanahfi-platform

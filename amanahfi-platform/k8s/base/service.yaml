@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: amanahfi-platform
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/instance: amanahfi-platform
+    app.kubernetes.io/component: service
+    app.kubernetes.io/part-of: amanahfi-ecosystem
+    app.kubernetes.io/managed-by: kustomize
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:us-west-2:123456789012:certificate/12345678-1234-1234-1234-123456789012"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8081"
+    prometheus.io/path: "/actuator/prometheus"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http
+    protocol: TCP
+  - name: https
+    port: 8443
+    targetPort: http
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/instance: amanahfi-platform
+  sessionAffinity: None
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amanahfi-platform-management
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/instance: amanahfi-platform
+    app.kubernetes.io/component: management-service
+    app.kubernetes.io/part-of: amanahfi-ecosystem
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8081"
+    prometheus.io/path: "/actuator/prometheus"
+spec:
+  type: ClusterIP
+  ports:
+  - name: management
+    port: 8081
+    targetPort: management
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/instance: amanahfi-platform
+  sessionAffinity: None
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amanahfi-platform-headless
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/instance: amanahfi-platform
+    app.kubernetes.io/component: headless-service
+    app.kubernetes.io/part-of: amanahfi-ecosystem
+  annotations:
+    description: "Headless service for StatefulSet-like discovery and direct pod access"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http
+    protocol: TCP
+  - name: management
+    port: 8081
+    targetPort: management
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/instance: amanahfi-platform
+  publishNotReadyAddresses: false
+
+---
+# Service for internal Islamic Finance operations
+apiVersion: v1
+kind: Service
+metadata:
+  name: amanahfi-platform-islamic-finance
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/instance: amanahfi-platform
+    app.kubernetes.io/component: islamic-finance-service
+    app.kubernetes.io/part-of: amanahfi-ecosystem
+    ae.amanahfi.service-type: "islamic-finance"
+  annotations:
+    description: "Internal service for Islamic Finance operations"
+    ae.amanahfi.sharia-compliant: "true"
+    ae.amanahfi.regulatory-compliance: "HSA,CBUAE"
+spec:
+  type: ClusterIP
+  ports:
+  - name: islamic-finance
+    port: 8080
+    targetPort: http
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/instance: amanahfi-platform
+    ae.amanahfi.workload: "islamic-finance"
+
+---
+# Service for CBDC operations
+apiVersion: v1
+kind: Service
+metadata:
+  name: amanahfi-platform-cbdc
+  namespace: amanahfi-platform
+  labels:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/instance: amanahfi-platform
+    app.kubernetes.io/component: cbdc-service
+    app.kubernetes.io/part-of: amanahfi-ecosystem
+    ae.amanahfi.service-type: "cbdc"
+  annotations:
+    description: "Internal service for CBDC operations"
+    ae.amanahfi.digital-currency: "dirham"
+    ae.amanahfi.regulatory-compliance: "CBUAE,VARA"
+    ae.amanahfi.network: "corda"
+spec:
+  type: ClusterIP
+  ports:
+  - name: cbdc
+    port: 8080
+    targetPort: http
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: amanahfi-platform
+    app.kubernetes.io/instance: amanahfi-platform
+    ae.amanahfi.workload: "islamic-finance"  # Same pods serve both workloads
