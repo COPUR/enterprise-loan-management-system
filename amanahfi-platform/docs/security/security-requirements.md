@@ -1,10 +1,10 @@
-# 🔒 Security Requirements - AmanahFi Platform
+# Security Requirements - AmanahFi Platform
 
-## 🎯 Overview
+## Overview
 
 This document defines comprehensive security requirements for the AmanahFi Platform, implementing Zero Trust architecture with defense-in-depth strategies, regulatory compliance, and advanced threat protection for Islamic finance operations.
 
-## 📊 Document Information
+## Document Information
 
 | Attribute | Value |
 |-----------|-------|
@@ -15,7 +15,7 @@ This document defines comprehensive security requirements for the AmanahFi Platf
 | **Approval** | Executive Leadership, Risk Committee |
 | **Classification** | Confidential |
 
-## 🛡️ Security Architecture Requirements
+## Security Architecture Requirements
 
 ### SR-ARCH-001: Zero Trust Architecture
 
@@ -66,7 +66,7 @@ Implement multiple layers of security controls to protect against various attack
 5. **Endpoint Security**: EDR, antivirus, device management
 6. **Identity Security**: IAM, privileged access, MFA
 
-## 🔐 Identity and Access Management Requirements
+## Identity and Access Management Requirements
 
 ### SR-IAM-001: Authentication Systems
 

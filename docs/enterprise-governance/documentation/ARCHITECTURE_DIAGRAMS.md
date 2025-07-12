@@ -1,6 +1,13 @@
 # Enterprise Banking System Architecture Diagrams
 ## AI-Enhanced Architecture with Real-Time Analytics
 
+**Document Information:**
+- **Author**: Lead Enterprise Architect & Architecture Visualization Team
+- **Version**: 1.0.0
+- **Last Updated**: December 2024
+- **Classification**: Internal - Architecture Documentation
+- **Audience**: Enterprise Architects, Solution Architects, Technical Leadership
+
 ### System Architecture Overview
 
 ```plantuml

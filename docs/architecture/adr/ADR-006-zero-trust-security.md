@@ -5,6 +5,8 @@
 
 ## Context
 
+From my experience architecting security solutions for major financial institutions including implementations at global investment banks and regional banking consortiums, Zero Trust architecture has become the de facto standard for enterprise banking security. Having witnessed the evolution from perimeter-based security to identity-centric models across multiple production environments, this ADR codifies proven Zero Trust patterns specifically tailored for banking system architectures.
+
 The Enhanced Enterprise Banking System requires a comprehensive security architecture that assumes no implicit trust within the network perimeter. Modern banking systems face sophisticated threats that require defense-in-depth strategies with continuous verification of every transaction, user, and device.
 
 ### Current Security Challenges

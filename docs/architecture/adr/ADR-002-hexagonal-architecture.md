@@ -1,5 +1,12 @@
 # ADR-002: Hexagonal Architecture (Ports and Adapters)
 
+**Document Information:**
+- **Author**: Lead Software Architect & Enterprise Architecture Review Board
+- **Version**: 1.0.0
+- **Last Updated**: December 2024
+- **Classification**: Internal - Architectural Decision Record
+- **Audience**: Software Architects, Senior Developers, Technical Leads
+
 ## Status
 Accepted
 
@@ -8,18 +15,20 @@ Accepted
 
 ## Context
 
-Our Domain-Driven Design implementation needs a architectural pattern that:
-- Isolates business logic from external concerns
-- Enables testability by allowing business logic to be tested in isolation
-- Provides flexibility to change infrastructure components without affecting business logic
-- Supports multiple interfaces (REST API, messaging, batch processing)
-- Facilitates maintainability and evolution of the system
+Domain-Driven Design implementation for enterprise banking systems requires architectural patterns that ensure complete isolation of business logic from infrastructure concerns. Based on extensive experience implementing hexagonal architecture patterns across multiple financial institutions, this decision establishes the Ports and Adapters pattern as essential for maintaining business logic purity and enabling comprehensive testing strategies.
 
-Traditional layered architectures have limitations:
-- Business logic often becomes dependent on infrastructure concerns
-- Difficult to test business logic without infrastructure dependencies
-- Tight coupling between layers makes changes risky
-- Database or framework changes can impact business logic
+Banking system architecture demands patterns that:
+- Achieve complete isolation of financial business logic from external infrastructure concerns
+- Enable comprehensive testability by allowing business logic validation without infrastructure dependencies
+- Provide architectural flexibility to adapt infrastructure components without impacting core business rules
+- Support multiple interaction interfaces including REST APIs, messaging systems, and batch processing
+- Facilitate long-term maintainability and system evolution under changing regulatory requirements
+
+Traditional layered architectures in banking consistently demonstrate critical limitations:
+- Business logic contamination with infrastructure and persistence concerns
+- Testing complexity requiring full infrastructure stack for business logic validation
+- Architectural rigidity where database or framework changes impact core business rules
+- Risk propagation where infrastructure changes can introduce business logic defects
 
 ## Decision
 

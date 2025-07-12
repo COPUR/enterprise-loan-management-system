@@ -1,39 +1,35 @@
-# 👥 AmanahFi Platform - Development Squad Excellence Guide
-
-[![Squad Excellence](https://img.shields.io/badge/Squad-Excellence-green.svg)](https://amanahfi.ae)
-[![Development Guide](https://img.shields.io/badge/Guide-v1.0.0-blue.svg)](https://amanahfi.ae/development)
-[![CBDC Ready](https://img.shields.io/badge/CBDC-Ready-gold.svg)](https://amanahfi.ae/cbdc)
+# AmanahFi Platform - Development Squad Guide
 
 **Document Information:**
-- **Document Type**: Development Squad Excellence Guide
+- **Document Type**: Enterprise Development Team Guide and Technical Standards
 - **Version**: 1.0.0
 - **Last Updated**: December 2024
-- **Lead Developer**: Ali&Co AmanahFi Development Team
-- **Classification**: Internal Development Guide
-- **Audience**: Development Teams, Technical Leads, Software Engineers, Islamic Finance Developers
+- **Author**: Lead Software Architect & Development Team Leads
+- **Classification**: Internal Development Standards - Confidential
+- **Audience**: Software Engineers, Technical Leads, Development Teams, Islamic Finance Developers
 
-## 🎯 AmanahFi Development Squad Mission
+## Development Squad Mission
 
 The **AmanahFi Platform Development Squad** delivers world-class Islamic finance technology solutions with enterprise-grade security, comprehensive regulatory compliance, and cutting-edge CBDC integration across the MENAT region.
 
-### **Squad Vision**
-*"To be the premier development team building the future of Islamic finance technology, empowering ethical finance through innovation, compliance, and technical excellence."*
+### Squad Vision
+"To establish technical excellence as the foundation for delivering enterprise-grade Islamic finance solutions that meet the highest standards of regulatory compliance, security, and performance across the MENAT region."
 
-### **Squad Values**
-1. **🌙 Islamic Finance Excellence**: Deep understanding and implementation of Sharia-compliant solutions
-2. **💎 CBDC Innovation**: Leading the industry in central bank digital currency integration
-3. **🏛️ Regulatory Leadership**: Proactive compliance with multi-jurisdictional requirements
-4. **🔒 Security-First**: Zero Trust security embedded in every development decision
-5. **🌍 Regional Impact**: Building technology that serves 280M+ people across MENAT
-6. **⚡ Performance Excellence**: Delivering sub-2 second response times at enterprise scale
-7. **🤝 Collaborative Growth**: Continuous learning and knowledge sharing
+### Core Development Principles
+1. **Islamic Finance Mastery**: Comprehensive understanding of Sharia-compliant financial engineering
+2. **CBDC Technical Leadership**: Advanced implementation of central bank digital currency protocols
+3. **Regulatory Compliance Excellence**: Proactive adherence to multi-jurisdictional banking regulations
+4. **Security-First Development**: Zero Trust architecture implementation in all code components
+5. **Regional Scale Engineering**: Building solutions for 280M+ users across seven jurisdictions
+6. **Performance Engineering**: Consistent sub-2 second response times under enterprise load
+7. **Technical Collaboration**: Knowledge sharing and peer review as fundamental practices
 
-## 🚀 Comprehensive Onboarding Journey
+## Technical Onboarding Program
 
 ### **Phase 1: Foundation & Context (Week 1-2)**
 
-#### **Islamic Finance Mastery**
-- **📚 Essential Reading**:
+#### Islamic Finance Technical Foundation
+- **Essential Technical Reading**:
   - [AmanahFi Business Requirements](../business/functional-requirements.md)
   - [Strategic Business Case](../business/strategic-business-case.md)
   - [Platform vs Framework Comparison](../architecture/platform-comparison.md)
@@ -41,27 +37,27 @@ The **AmanahFi Platform Development Squad** delivers world-class Islamic finance
   - AAOIFI International Islamic Finance Standards
   - Higher Sharia Authority (HSA) Compliance Framework
 
-- **🎯 Learning Objectives**:
+- **Technical Learning Objectives**:
   - Master all 6 Islamic finance models (Murabaha, Musharakah, Ijarah, Salam, Istisna, Qard Hassan)
   - Understand Riba, Gharar, and Haram asset principles
   - Learn CBDC integration requirements and Digital Dirham specifications
   - Grasp multi-regional compliance across UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman, Turkey
 
-- **✅ Completion Criteria**:
+- **Technical Competency Validation**:
   - Pass comprehensive Islamic Finance assessment (90% minimum)
   - Complete CBDC integration certification
   - Demonstrate understanding of regulatory requirements across 7 jurisdictions
   - Successfully implement sample Islamic finance transaction
 
-#### **Technical Architecture Deep Dive**
-- **🏗️ Platform Architecture**:
+#### Enterprise Architecture Mastery
+- **Core Platform Architecture**:
   - [System Architecture Documentation](../architecture/system-architecture.md)
   - Hexagonal Architecture with Domain-Driven Design
   - Event Sourcing and CQRS implementation
   - Multi-tenant architecture with data sovereignty
   - Zero Trust security model with OAuth 2.1 + DPoP
 
-- **🔧 Technology Stack Mastery**:
+- **Technology Stack Proficiency**:
   ```bash
   # Core Platform Technologies
   Java 21 LTS                    # Primary development language

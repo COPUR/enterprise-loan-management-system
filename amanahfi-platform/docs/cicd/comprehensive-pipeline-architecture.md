@@ -1,32 +1,28 @@
-# 🚀 AmanahFi Platform - Comprehensive CI/CD Pipeline Architecture
-
-[![Pipeline Ready](https://img.shields.io/badge/Pipeline-Ready-green.svg)](https://amanahfi.ae)
-[![DevSecOps](https://img.shields.io/badge/DevSecOps-Advanced-blue.svg)](https://amanahfi.ae/devsecops)
-[![Multi-Region](https://img.shields.io/badge/Multi--Region-Enabled-gold.svg)](https://amanahfi.ae/infrastructure)
+# AmanahFi Platform - CI/CD Pipeline Architecture
 
 **Document Information:**
-- **Document Type**: CI/CD Pipeline Architecture & Implementation Guide
+- **Document Type**: Enterprise CI/CD Pipeline Architecture & DevSecOps Implementation Guide
 - **Version**: 1.0.0
 - **Last Updated**: December 2024
-- **DevOps Team**: Ali&Co Platform Engineering
-- **Classification**: Technical Implementation Guide
-- **Audience**: DevOps Engineers, Platform Engineers, Development Teams
+- **Author**: Lead DevOps Architect & Platform Engineering Team
+- **Classification**: Technical Implementation Guide - Internal
+- **Audience**: DevOps Engineers, Platform Engineers, Development Teams, Security Teams
 
-## 🎯 Pipeline Architecture Overview
+## Pipeline Architecture Overview
 
 The **AmanahFi Platform CI/CD Pipeline** implements a comprehensive DevSecOps approach with Islamic Finance compliance validation, CBDC integration testing, and multi-regional deployment capabilities across the MENAT region.
 
-### **Pipeline Objectives**
+### Pipeline Objectives
 
-1. **🔒 Security-First**: Security and compliance integrated at every stage
-2. **🕌 Islamic Finance Compliance**: Automated Sharia validation throughout the pipeline
-3. **💎 CBDC Integration**: Comprehensive Digital Dirham and multi-CBDC testing
-4. **🌍 Multi-Regional**: Deployment across 7 MENAT jurisdictions
-5. **📊 Regulatory Compliance**: Automated compliance checks for CBUAE, VARA, HSA
-6. **⚡ High Performance**: Sub-10 minute pipeline execution for rapid feedback
-7. **🛡️ Zero Trust**: Security validation at every pipeline stage
+1. **Security-First Architecture**: Implementing shift-left security with automated vulnerability assessment
+2. **Islamic Finance Compliance**: Continuous Sharia validation with HSA-approved testing frameworks
+3. **CBDC Integration Testing**: Comprehensive Digital Dirham transaction validation and multi-CBDC support
+4. **Multi-Regional Deployment**: Automated deployment pipeline supporting seven MENAT jurisdictions
+5. **Regulatory Compliance Automation**: Integrated compliance validation for CBUAE, VARA, and HSA requirements
+6. **Performance Excellence**: Target sub-10 minute pipeline execution with parallel processing optimization
+7. **Zero Trust Security Model**: End-to-end security validation with certificate-based authentication
 
-## 🏗️ Multi-Stage Pipeline Architecture
+## Multi-Stage Pipeline Architecture
 
 ```mermaid
 graph TB
@@ -91,7 +87,7 @@ graph TB
     DD --> EE
 ```
 
-## 📋 Comprehensive GitHub Actions Workflow
+## GitHub Actions Workflow Implementation
 
 ### **Main CI/CD Pipeline Configuration**
 
