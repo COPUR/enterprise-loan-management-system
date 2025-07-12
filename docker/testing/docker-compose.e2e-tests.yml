@@ -1,0 +1,472 @@
+version: '3.8'
+
+# ===============================================================
+# ENTERPRISE BANKING SYSTEM - END-TO-END TESTING ENVIRONMENT
+# ===============================================================
+# Document Information:
+# - Author: Senior DevOps Engineer & Test Automation Lead
+# - Version: 1.0.0
+# - Last Updated: December 2024
+# - Classification: Internal - Test Infrastructure
+# - Purpose: Comprehensive E2E testing with regression capabilities
+# ===============================================================
+
+services:
+  # ============================================
+  # DATABASE SERVICES - TEST ISOLATION
+  # ============================================
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: banking-postgres-test
+    environment:
+      POSTGRES_DB: banking_test
+      POSTGRES_USER: banking_test_user
+      POSTGRES_PASSWORD: test_password_2024
+      POSTGRES_MULTIPLE_DATABASES: customer_test,loan_test,payment_test,gateway_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ../scripts/test-data:/docker-entrypoint-initdb.d
+      - ./test-schemas:/test-schemas
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U banking_test_user -d banking_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - banking-test-network
+
+  # ============================================
+  # REDIS CACHE - TEST ENVIRONMENT
+  # ============================================
+  redis-test:
+    image: redis:7-alpine
+    container_name: banking-redis-test
+    ports:
+      - "6380:6379"
+    command: redis-server --requirepass test_redis_2024 --appendonly yes
+    volumes:
+      - redis_test_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "test_redis_2024", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - banking-test-network
+
+  # ============================================
+  # KAFKA FOR EVENT TESTING
+  # ============================================
+  zookeeper-test:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: banking-zookeeper-test
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2182
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2182:2182"
+    networks:
+      - banking-test-network
+
+  kafka-test:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: banking-kafka-test
+    depends_on:
+      - zookeeper-test
+    ports:
+      - "9093:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-test:2182
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - banking-test-network
+
+  # ============================================
+  # MICROSERVICES - TEST INSTANCES
+  # ============================================
+  customer-service-test:
+    build:
+      context: ../../
+      dockerfile: docker/services/Dockerfile.customer-service
+      target: test
+    container_name: banking-customer-service-test
+    environment:
+      SPRING_PROFILES_ACTIVE: test,docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-test:5432/customer_test
+      SPRING_DATASOURCE_USERNAME: banking_test_user
+      SPRING_DATASOURCE_PASSWORD: test_password_2024
+      SPRING_REDIS_HOST: redis-test
+      SPRING_REDIS_PASSWORD: test_redis_2024
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-test:9092
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+      LOGGING_LEVEL_COM_BANK: DEBUG
+    ports:
+      - "8091:8081"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      kafka-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - banking-test-network
+
+  loan-service-test:
+    build:
+      context: ../../
+      dockerfile: docker/services/Dockerfile.loan-service
+      target: test
+    container_name: banking-loan-service-test
+    environment:
+      SPRING_PROFILES_ACTIVE: test,docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-test:5432/loan_test
+      SPRING_DATASOURCE_USERNAME: banking_test_user
+      SPRING_DATASOURCE_PASSWORD: test_password_2024
+      SPRING_REDIS_HOST: redis-test
+      SPRING_REDIS_PASSWORD: test_redis_2024
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-test:9092
+      CUSTOMER_SERVICE_URL: http://customer-service-test:8081
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+      LOGGING_LEVEL_COM_BANK: DEBUG
+    ports:
+      - "8092:8082"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      kafka-test:
+        condition: service_healthy
+      customer-service-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - banking-test-network
+
+  payment-service-test:
+    build:
+      context: ../../
+      dockerfile: docker/services/Dockerfile.payment-service
+      target: test
+    container_name: banking-payment-service-test
+    environment:
+      SPRING_PROFILES_ACTIVE: test,docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-test:5432/payment_test
+      SPRING_DATASOURCE_USERNAME: banking_test_user
+      SPRING_DATASOURCE_PASSWORD: test_password_2024
+      SPRING_REDIS_HOST: redis-test
+      SPRING_REDIS_PASSWORD: test_redis_2024
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-test:9092
+      LOAN_SERVICE_URL: http://loan-service-test:8082
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+      LOGGING_LEVEL_COM_BANK: DEBUG
+    ports:
+      - "8093:8083"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      kafka-test:
+        condition: service_healthy
+      loan-service-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - banking-test-network
+
+  api-gateway-test:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+      target: test
+    container_name: banking-api-gateway-test
+    environment:
+      SPRING_PROFILES_ACTIVE: test,docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-test:5432/gateway_test
+      SPRING_DATASOURCE_USERNAME: banking_test_user
+      SPRING_DATASOURCE_PASSWORD: test_password_2024
+      SPRING_REDIS_HOST: redis-test
+      SPRING_REDIS_PASSWORD: test_redis_2024
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-test:9092
+      CUSTOMER_SERVICE_URL: http://customer-service-test:8081
+      LOAN_SERVICE_URL: http://loan-service-test:8082
+      PAYMENT_SERVICE_URL: http://payment-service-test:8083
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+      LOGGING_LEVEL_COM_BANK: DEBUG
+      BANKING_SECURITY_JWT_SECRET: test_jwt_secret_key_for_testing_2024
+    ports:
+      - "8090:8080"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      kafka-test:
+        condition: service_healthy
+      customer-service-test:
+        condition: service_healthy
+      loan-service-test:
+        condition: service_healthy
+      payment-service-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - banking-test-network
+
+  # ============================================
+  # TEST AUTOMATION SERVICES
+  # ============================================
+  newman-test-runner:
+    image: postman/newman:6-alpine
+    container_name: banking-newman-test-runner
+    volumes:
+      - ../../postman:/etc/newman
+      - ./test-results:/test-results
+    environment:
+      - NEWMAN_COLLECTION=/etc/newman/Enhanced-Enterprise-Banking-System.postman_collection.json
+      - NEWMAN_ENVIRONMENT=/etc/newman/Enhanced-Enterprise-Environment.postman_environment.json
+      - NEWMAN_REPORTERS=cli,json,htmlextra
+      - NEWMAN_REPORTER_HTMLEXTRA_EXPORT=/test-results/newman-report.html
+      - NEWMAN_REPORTER_JSON_EXPORT=/test-results/newman-results.json
+    command: >
+      sh -c "
+        echo 'Waiting for services to be ready...' &&
+        sleep 60 &&
+        newman run $$NEWMAN_COLLECTION 
+        --environment $$NEWMAN_ENVIRONMENT 
+        --reporters $$NEWMAN_REPORTERS 
+        --reporter-htmlextra-export $$NEWMAN_REPORTER_HTMLEXTRA_EXPORT 
+        --reporter-json-export $$NEWMAN_REPORTER_JSON_EXPORT 
+        --delay-request 1000 
+        --timeout-request 30000 
+        --verbose
+      "
+    depends_on:
+      api-gateway-test:
+        condition: service_healthy
+    networks:
+      - banking-test-network
+
+  # ============================================
+  # REGRESSION TEST RUNNER
+  # ============================================
+  regression-test-runner:
+    build:
+      context: ../../
+      dockerfile: docker/testing/Dockerfile.regression-tests
+    container_name: banking-regression-test-runner
+    volumes:
+      - ../../src/test:/tests
+      - ./test-results:/test-results
+      - ../../scripts/test:/test-scripts
+    environment:
+      SPRING_PROFILES_ACTIVE: test,docker
+      API_GATEWAY_URL: http://api-gateway-test:8080
+      CUSTOMER_SERVICE_URL: http://customer-service-test:8081
+      LOAN_SERVICE_URL: http://loan-service-test:8082
+      PAYMENT_SERVICE_URL: http://payment-service-test:8083
+      TEST_DATABASE_URL: jdbc:postgresql://postgres-test:5432/banking_test
+      TEST_DATABASE_USERNAME: banking_test_user
+      TEST_DATABASE_PASSWORD: test_password_2024
+      REDIS_TEST_URL: redis://redis-test:6379
+      KAFKA_TEST_BOOTSTRAP_SERVERS: kafka-test:9092
+    command: >
+      sh -c "
+        echo 'Starting regression test suite...' &&
+        sleep 90 &&
+        cd /tests &&
+        ./gradlew test --tests '*RegressionTest*' 
+        --tests '*IntegrationTest*' 
+        --tests '*E2ETest*' 
+        -PtestProfile=regression 
+        --continue 
+        --stacktrace &&
+        echo 'Regression tests completed.'
+      "
+    depends_on:
+      api-gateway-test:
+        condition: service_healthy
+      newman-test-runner:
+        condition: service_completed_successfully
+    networks:
+      - banking-test-network
+
+  # ============================================
+  # PERFORMANCE TEST RUNNER
+  # ============================================
+  k6-performance-tests:
+    image: grafana/k6:latest
+    container_name: banking-k6-performance-tests
+    volumes:
+      - ../../scripts/performance:/scripts
+      - ./test-results:/results
+    environment:
+      K6_OUT: json=/results/k6-performance-results.json
+      API_BASE_URL: http://api-gateway-test:8080
+    command: >
+      sh -c "
+        echo 'Starting performance tests...' &&
+        sleep 120 &&
+        k6 run /scripts/banking-load-test.js 
+        --vus 10 
+        --duration 5m 
+        --rps 100 
+        --out json=/results/k6-performance-results.json &&
+        echo 'Performance tests completed.'
+      "
+    depends_on:
+      api-gateway-test:
+        condition: service_healthy
+    networks:
+      - banking-test-network
+
+  # ============================================
+  # SECURITY TESTING
+  # ============================================
+  zap-security-scan:
+    image: owasp/zap2docker-stable
+    container_name: banking-zap-security-scan
+    volumes:
+      - ./test-results:/zap/wrk:rw
+    environment:
+      ZAP_BASELINE_URL: http://api-gateway-test:8080
+    command: >
+      sh -c "
+        echo 'Starting security baseline scan...' &&
+        sleep 150 &&
+        zap-baseline.py -t $$ZAP_BASELINE_URL 
+        -J zap-baseline-report.json 
+        -r zap-baseline-report.html 
+        -w zap-baseline-report.md &&
+        echo 'Security scan completed.'
+      "
+    depends_on:
+      api-gateway-test:
+        condition: service_healthy
+    networks:
+      - banking-test-network
+
+  # ============================================
+  # MONITORING AND OBSERVABILITY
+  # ============================================
+  prometheus-test:
+    image: prom/prometheus:latest
+    container_name: banking-prometheus-test
+    volumes:
+      - ../../monitoring/prometheus-test.yml:/etc/prometheus/prometheus.yml
+      - prometheus_test_data:/prometheus
+    ports:
+      - "9091:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=1h'
+      - '--web.enable-lifecycle'
+    networks:
+      - banking-test-network
+
+  grafana-test:
+    image: grafana/grafana:latest
+    container_name: banking-grafana-test
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: test_grafana_2024
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_test_data:/var/lib/grafana
+      - ../../monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus-test
+    networks:
+      - banking-test-network
+
+  # ============================================
+  # TEST RESULTS AGGREGATOR
+  # ============================================
+  test-results-aggregator:
+    build:
+      context: ../../
+      dockerfile: docker/testing/Dockerfile.test-aggregator
+    container_name: banking-test-results-aggregator
+    volumes:
+      - ./test-results:/input-results
+      - ./aggregated-results:/output-results
+    environment:
+      REPORT_FORMAT: "html,json,junit"
+      INCLUDE_SCREENSHOTS: "true"
+      SLACK_WEBHOOK_URL: "${SLACK_WEBHOOK_URL}"
+    command: >
+      sh -c "
+        echo 'Waiting for all tests to complete...' &&
+        sleep 300 &&
+        echo 'Aggregating test results...' &&
+        python3 /app/aggregate_test_results.py 
+        --input-dir /input-results 
+        --output-dir /output-results 
+        --format html,json,junit &&
+        echo 'Test results aggregation completed.'
+      "
+    depends_on:
+      regression-test-runner:
+        condition: service_completed_successfully
+      k6-performance-tests:
+        condition: service_completed_successfully
+      zap-security-scan:
+        condition: service_completed_successfully
+    networks:
+      - banking-test-network
+
+# ============================================
+# NETWORK CONFIGURATION
+# ============================================
+networks:
+  banking-test-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================
+# PERSISTENT VOLUMES
+# ============================================
+volumes:
+  postgres_test_data:
+    driver: local
+  redis_test_data:
+    driver: local
+  prometheus_test_data:
+    driver: local
+  grafana_test_data:
+    driver: local
