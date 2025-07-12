@@ -1,75 +1,173 @@
 # =================================================================
-# ENTERPRISE LOAN MANAGEMENT PLATFORM - GITATTRIBUTES CONFIGURATION
+# ENTERPRISE BANKING SYSTEM - GITATTRIBUTES CONFIGURATION
 # =================================================================
-# ⚠️  CRITICAL: This file ensures CI/CD compatibility and security
-# ⚠️  Banking Compliance: Ensures consistent builds across platforms
-# ⚠️  Any modifications must be reviewed by DevOps Team
+# Document Information:
+# - Author: Lead DevOps Engineer & Build Engineering Team
+# - Version: 1.0.0
+# - Last Updated: December 2024
+# - Classification: Internal - Build Configuration
+# - Purpose: Ensure consistent builds and security across platforms
+# =================================================================
+# CRITICAL: This configuration ensures CI/CD pipeline reliability
+# Banking Compliance: Consistent builds for regulatory environments
+# Any modifications require DevOps Team approval
 # =================================================================
 
 # ============================================
-# TEXT FILES - NORMALIZED LINE ENDINGS
+# GLOBAL DEFAULTS - CONSISTENT LINE ENDINGS
 # ============================================
-# Ensure consistent line endings across platforms for CI/CD
+# Normalize line endings for cross-platform development
 * text=auto
 
-# Java source files - always use LF
-*.java text eol=lf
+# Set default line ending for text files
+* text eol=lf
+
+# ============================================
+# SOURCE CODE FILES - ENFORCE LF
+# ============================================
+# Java source files - critical for banking applications
+*.java text eol=lf diff=java
 *.kt text eol=lf
 *.kts text eol=lf
 *.scala text eol=lf
 *.groovy text eol=lf
 
-# Build files - always use LF for cross-platform compatibility
+# Web source files
+*.js text eol=lf diff=javascript
+*.jsx text eol=lf diff=javascript
+*.ts text eol=lf diff=typescript
+*.tsx text eol=lf diff=typescript
+*.css text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+*.less text eol=lf
+*.html text eol=lf diff=html
+*.htm text eol=lf diff=html
+*.vue text eol=lf
+*.svelte text eol=lf
+
+# ============================================
+# BUILD AND CONFIGURATION FILES - ENFORCE LF
+# ============================================
+# Build system files - critical for CI/CD
 *.gradle text eol=lf
 *.gradle.kts text eol=lf
-*.xml text eol=lf
-*.pom text eol=lf
 build.gradle text eol=lf
 settings.gradle text eol=lf
+gradle.properties text eol=lf
 gradlew text eol=lf
 
-# Configuration files - always use LF
-*.yml text eol=lf
-*.yaml text eol=lf
-*.json text eol=lf
+# Maven files
+*.xml text eol=lf diff=xml
+*.pom text eol=lf diff=xml
+pom.xml text eol=lf diff=xml
+
+# Configuration files - banking system configurations
+*.yml text eol=lf diff=yaml
+*.yaml text eol=lf diff=yaml
+*.json text eol=lf diff=json
 *.properties text eol=lf
 *.conf text eol=lf
 *.config text eol=lf
 *.toml text eol=lf
 *.ini text eol=lf
+*.cfg text eol=lf
 
-# Scripts - always use LF for Unix-like systems
+# Spring Boot configuration files
+application*.yml text eol=lf diff=yaml
+application*.yaml text eol=lf diff=yaml
+application*.properties text eol=lf
+bootstrap*.yml text eol=lf diff=yaml
+bootstrap*.yaml text eol=lf diff=yaml
+bootstrap*.properties text eol=lf
+
+# ============================================
+# INFRASTRUCTURE AS CODE - ENFORCE LF
+# ============================================
+# Docker files
+Dockerfile text eol=lf
+*.dockerfile text eol=lf
+docker-compose*.yml text eol=lf diff=yaml
+docker-compose*.yaml text eol=lf diff=yaml
+.dockerignore text eol=lf
+
+# Kubernetes manifests
+*.k8s.yml text eol=lf diff=yaml
+*.k8s.yaml text eol=lf diff=yaml
+
+# Terraform files
+*.tf text eol=lf
+*.tfvars text eol=lf
+*.hcl text eol=lf
+
+# Ansible files
+*.ansible.yml text eol=lf diff=yaml
+*.ansible.yaml text eol=lf diff=yaml
+
+# ============================================
+# SCRIPTS - PLATFORM-SPECIFIC LINE ENDINGS
+# ============================================
+# Unix/Linux shell scripts - use LF
 *.sh text eol=lf
 *.bash text eol=lf
 *.zsh text eol=lf
 *.fish text eol=lf
+*.ksh text eol=lf
 
 # Windows batch files - use CRLF
 *.bat text eol=crlf
 *.cmd text eol=crlf
 *.ps1 text eol=crlf
 
-# Documentation - use LF
-*.md text eol=lf
+# ============================================
+# DOCUMENTATION - ENFORCE LF
+# ============================================
+# Markdown and text documentation
+*.md text eol=lf diff=markdown
 *.txt text eol=lf
 *.rst text eol=lf
 *.adoc text eol=lf
+*.asciidoc text eol=lf
 
-# SQL files - use LF
-*.sql text eol=lf
+# License and readme files
+LICENSE text eol=lf
+LICENCE text eol=lf
+README text eol=lf
+CHANGELOG text eol=lf
+CONTRIBUTING text eol=lf
+AUTHORS text eol=lf
+NOTICE text eol=lf
+
+# ============================================
+# DATABASE AND SQL FILES - ENFORCE LF
+# ============================================
+# SQL files - banking database schemas
+*.sql text eol=lf diff=sql
+*.ddl text eol=lf diff=sql
+*.dml text eol=lf diff=sql
+
+# Database migration files
+*.migration text eol=lf diff=sql
+*.flyway text eol=lf diff=sql
+*.liquibase text eol=lf diff=sql
 
 # ============================================
 # BINARY FILES - NO TEXT PROCESSING
 # ============================================
-# Essential JAR files for CI/CD (not using Git LFS)
-gradle/wrapper/gradle-wrapper.jar binary
+# Java binary files
 *.jar binary
 *.war binary
 *.ear binary
 *.nar binary
 *.class binary
 
-# Images
+# Essential JAR files for CI/CD (keep as binary)
+gradle/wrapper/gradle-wrapper.jar binary
+
+# ============================================
+# IMAGES AND MEDIA - BINARY
+# ============================================
+# Common image formats
 *.png binary
 *.jpg binary
 *.jpeg binary
@@ -80,8 +178,11 @@ gradle/wrapper/gradle-wrapper.jar binary
 *.bmp binary
 *.tiff binary
 *.tif binary
+*.pdf binary
 
-# Archives
+# ============================================
+# ARCHIVES AND COMPRESSED FILES - BINARY
+# ============================================
 *.zip binary
 *.tar binary
 *.gz binary
@@ -89,8 +190,13 @@ gradle/wrapper/gradle-wrapper.jar binary
 *.xz binary
 *.7z binary
 *.rar binary
+*.lz4 binary
+*.zst binary
 
-# Certificates and Keys (CRITICAL SECURITY)
+# ============================================
+# SECURITY CERTIFICATES AND KEYS - BINARY
+# ============================================
+# Certificate and key files (CRITICAL SECURITY)
 *.p12 binary
 *.pfx binary
 *.jks binary
@@ -101,16 +207,12 @@ gradle/wrapper/gradle-wrapper.jar binary
 *.crt binary
 *.cer binary
 *.der binary
-
-# Database files
-*.db binary
-*.sqlite binary
-*.sqlite3 binary
+*.csr binary
 
 # ============================================
-# BANKING-SPECIFIC FILE FORMATS
+# BANKING-SPECIFIC FILE FORMATS - BINARY
 # ============================================
-# Banking message formats (binary - preserve exact format)
+# Banking message formats (preserve exact binary format)
 *.ach binary
 *.nacha binary
 *.mt940 binary
@@ -119,17 +221,36 @@ gradle/wrapper/gradle-wrapper.jar binary
 *.swift binary
 *.qif binary
 *.ofx binary
+*.iso20022 binary
+*.pain binary
+*.camt binary
+*.pacs binary
+
+# Financial data formats
+*.csv binary
+*.xls binary
+*.xlsx binary
 
 # ============================================
-# WORKING TREE ENCODING
+# DATABASE FILES - BINARY
+# ============================================
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+*.mdb binary
+*.accdb binary
+
+# ============================================
+# WORKING TREE ENCODING - UTF-8
 # ============================================
 # Ensure UTF-8 encoding for international banking compliance
 *.java working-tree-encoding=UTF-8
 *.kt working-tree-encoding=UTF-8
 *.scala working-tree-encoding=UTF-8
+*.groovy working-tree-encoding=UTF-8
 *.js working-tree-encoding=UTF-8
-*.ts working-tree-encoding=UTF-8
 *.jsx working-tree-encoding=UTF-8
+*.ts working-tree-encoding=UTF-8
 *.tsx working-tree-encoding=UTF-8
 *.json working-tree-encoding=UTF-8
 *.yml working-tree-encoding=UTF-8
@@ -138,7 +259,81 @@ gradle/wrapper/gradle-wrapper.jar binary
 *.sql working-tree-encoding=UTF-8
 *.md working-tree-encoding=UTF-8
 *.txt working-tree-encoding=UTF-8
+*.properties working-tree-encoding=UTF-8
+*.html working-tree-encoding=UTF-8
+
+# ============================================
+# MERGE AND DIFF STRATEGIES
+# ============================================
+# Custom merge drivers for specific file types
+*.sql merge=ours
+*.properties merge=ours
+application*.yml merge=ours
+application*.yaml merge=ours
+application*.properties merge=ours
+
+# ============================================
+# EXPORT-IGNORE - FILES NOT INCLUDED IN EXPORTS
+# ============================================
+# Development and testing files not included in releases
+.gitignore export-ignore
+.gitattributes export-ignore
+.github/ export-ignore
+.vscode/ export-ignore
+.idea/ export-ignore
+test/ export-ignore
+tests/ export-ignore
+spec/ export-ignore
+docs/development/ export-ignore
+docs/testing/ export-ignore
+
+# ============================================
+# LANGUAGE DETECTION OVERRIDES
+# ============================================
+# Override GitHub language detection for specific files
+*.gradle linguist-language=Gradle
+*.gradle.kts linguist-language=Gradle
+Dockerfile linguist-language=Dockerfile
+docker-compose*.yml linguist-language=YAML
+*.k8s.yml linguist-language=YAML
+*.k8s.yaml linguist-language=YAML
+
+# Documentation files - don't count toward language stats
+docs/ linguist-documentation
+documentation/ linguist-documentation
+*.md linguist-documentation
+*.txt linguist-documentation
+
+# Generated files - don't count toward language stats
+build/ linguist-generated
+target/ linguist-generated
+dist/ linguist-generated
+out/ linguist-generated
+
+# ============================================
+# FILTER CONFIGURATION
+# ============================================
+# Git LFS configuration for large files (if needed)
+# Uncomment if using Git LFS for large binary assets
+# *.jar filter=lfs diff=lfs merge=lfs -text
+# *.war filter=lfs diff=lfs merge=lfs -text
+# *.pdf filter=lfs diff=lfs merge=lfs -text
+
+# ============================================
+# WHITESPACE CONFIGURATION
+# ============================================
+# Configure whitespace handling for different file types
+*.java whitespace=tab-in-indent,trailing-space,space-before-tab
+*.kt whitespace=tab-in-indent,trailing-space,space-before-tab
+*.js whitespace=tab-in-indent,trailing-space,space-before-tab
+*.ts whitespace=tab-in-indent,trailing-space,space-before-tab
+*.json whitespace=tab-in-indent,trailing-space,space-before-tab
+*.yml whitespace=tab-in-indent,trailing-space,space-before-tab
+*.yaml whitespace=tab-in-indent,trailing-space,space-before-tab
+*.xml whitespace=tab-in-indent,trailing-space,space-before-tab
+*.sql whitespace=tab-in-indent,trailing-space,space-before-tab
+*.md whitespace=trailing-space
 
 # =================================================================
-# END OF ENTERPRISE GITATTRIBUTES CONFIGURATION
+# END OF ENTERPRISE BANKING SYSTEM GITATTRIBUTES CONFIGURATION
 # =================================================================

@@ -1,20 +1,30 @@
 # =================================================================
-# ENTERPRISE LOAN MANAGEMENT PLATFORM - GITIGNORE CONFIGURATION
+# ENTERPRISE BANKING SYSTEM - GITIGNORE CONFIGURATION
 # =================================================================
-# ⚠️  CRITICAL: This file enforces enterprise security standards
-# ⚠️  Any modifications must be reviewed by Security Team
-# ⚠️  Banking Compliance: PCI DSS, SOX, ISO 27001, GDPR
+# Document Information:
+# - Author: Lead DevSecOps Engineer & Security Architecture Team
+# - Version: 1.0.0
+# - Last Updated: December 2024
+# - Classification: Internal - Security Configuration
+# - Purpose: Enterprise-grade security and compliance enforcement
+# =================================================================
+# CRITICAL: This configuration enforces banking security standards
+# Compliance: PCI DSS, SOX, ISO 27001, GDPR, FAPI
+# Any modifications require Security Team approval
 # =================================================================
 
 # ============================================
 # CRITICAL SECURITY - NEVER COMMIT
 # ============================================
-# Secrets and Credentials
+# Secrets and Credentials (PCI DSS Requirement)
 secrets/
 credentials/
 vault/
 encryption-keys/
 certificates/
+keys/
+certs/
+private/
 *.key
 *.pem
 *.p12
@@ -31,6 +41,9 @@ certificates/
 *token*
 *api-key*
 *private-key*
+*jwt*
+*bearer*
+*auth*
 
 # Environment Configuration Files
 .env
@@ -41,52 +54,64 @@ certificates/
 *.env.*
 environment.properties
 local.properties
+production.properties
+staging.properties
+uat.properties
 
 # Application Configuration with Sensitive Data
-application-local.properties
-application-local.yml
-application-local.yaml
-application-dev.properties
-application-dev.yml
-application-dev.yaml
-application-uat.properties
-application-uat.yml
-application-uat.yaml
-application-staging.properties
-application-staging.yml
-application-staging.yaml
-application-prod.properties
-application-prod.yml
-application-prod.yaml
-application-production.properties
-application-production.yml
-application-production.yaml
+application-local.*
+application-dev.*
+application-uat.*
+application-staging.*
+application-prod.*
+application-production.*
+bootstrap-local.*
+bootstrap-dev.*
+bootstrap-prod.*
+config-local.*
+config-prod.*
 
-# Database Configuration
+# Database Configuration (SOX Compliance)
 database.yml
 database.yaml
 database.properties
 *database*config*
+datasource.*
+connection.*
+jdbc.*
+
+# Banking Integration Credentials
+bank-*.properties
+payment-gateway.*
+swift-*.config
+ach-*.config
+wire-*.config
+fintech-*.config
 
 # ============================================
-# FINANCIAL DATA PROTECTION (CRITICAL)
+# FINANCIAL DATA PROTECTION (GDPR/PCI DSS)
 # ============================================
 # Customer Data (GDPR/PII Compliance)
 customer-data/
 personal-data/
 pii-data/
 gdpr-data/
+sensitive-data/
 customer-*.csv
 customer-*.json
 customer-*.xml
+pii-*.csv
+personal-*.json
 
-# Financial Records
+# Financial Records (PCI DSS Scope)
 financial-data/
 transaction-data/
 payment-data/
 loan-data/
 credit-data/
 account-data/
+card-data/
+merchant-data/
 *.sql
 *.db
 *.sqlite
@@ -95,6 +120,7 @@ sample-data.*
 test-data.*
 *-data.sql
 *-sample-data.*
+*-financial-data.*
 
 # Banking File Formats
 *.ach
@@ -105,6 +131,25 @@ test-data.*
 *.qif
 *.ofx
 *.swift
+*.iso20022
+*.pain
+*.camt
+*.pacs
+
+# Islamic Finance Specific
+halal-*.data
+sharia-*.data
+sukuk-*.data
+murabaha-*.data
+musharakah-*.data
+ijarah-*.data
+
+# CBDC and Cryptocurrency
+cbdc-*.data
+crypto-*.data
+digital-currency.*
+blockchain-*.data
+wallet-*.data
 
 # Compliance and Audit
 audit-logs/
@@ -114,8 +159,13 @@ pci-data/
 sox-reports/
 iso-reports/
 gdpr-reports/
+fapi-reports/
+aml-reports/
+kyc-reports/
 *.audit
 *.compliance
+*.sox
+*.pci
 
 # ============================================
 # BUILD ARTIFACTS (CI/CD COMPATIBILITY)
@@ -144,6 +194,7 @@ bin/
 gradle-app.setting
 !gradle-wrapper.jar
 !gradle-wrapper.properties
+gradle.properties.local
 
 # Maven
 .mvn/
@@ -151,6 +202,10 @@ mvnw
 mvnw.cmd
 .m2/
 */.m2/
+
+# Spring Boot
+spring-*.properties
+bootRun/
 
 # ============================================
 # DEVELOPMENT ENVIRONMENT
@@ -171,6 +226,18 @@ mvnw.cmd
 .recommenders/
 .metadata/
 .sts4-cache/
+.eclipse/
+.netbeans/
+
+# JetBrains
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/shelf
+.idea/libraries
+.idea/modules.xml
+.idea/*.iml
+.idea/vcs.xml
 
 # ============================================
 # OPERATING SYSTEM FILES
@@ -210,7 +277,7 @@ $RECYCLE.BIN/
 # ============================================
 # LOGS AND TEMPORARY FILES
 # ============================================
-# Logs
+# Application Logs
 *.log
 *.log.*
 logs/
@@ -222,6 +289,11 @@ error.log
 access.log
 debug.log
 trace.log
+security.log
+audit.log
+transaction.log
+payment.log
+loan.log
 *.log.gz
 *.log.zip
 
@@ -244,15 +316,19 @@ tmp/
 cache/
 .cache/
 *-cache/
+.gradle-cache/
+maven-cache/
 
 # ============================================
-# CONTAINERIZATION
+# CONTAINERIZATION & ORCHESTRATION
 # ============================================
 # Docker
 .dockerignore
 docker-compose.override.yml
 docker-compose.local.yml
 docker-compose.dev.yml
+docker-compose.staging.yml
+docker-compose.prod.yml
 .docker/
 *.dockerfile.local
 
@@ -261,6 +337,45 @@ docker-compose.dev.yml
 *secrets*.yml
 *secret*.yaml
 *secret*.yml
+kube-secrets/
+k8s-secrets/
+
+# Helm
+charts/*/values-local.yaml
+charts/*/values-dev.yaml
+charts/*/values-staging.yaml
+charts/*/values-prod.yaml
+
+# ============================================
+# CLOUD & INFRASTRUCTURE
+# ============================================
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+terraform.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# AWS
+.aws/
+aws-config/
+*.pem
+
+# Azure
+.azure/
+azure-credentials/
+
+# GCP
+.gcp/
+gcp-credentials/
+*.json.key
 
 # ============================================
 # TESTING AND QUALITY ASSURANCE
@@ -281,6 +396,39 @@ htmlcov/
 .hypothesis/
 junit.xml
 *.xml.test
+jacoco.exec
+jacoco-it.exec
+
+# Performance Testing
+jmeter-results/
+gatling-results/
+performance-results/
+load-test-results/
+stress-test-results/
+
+# Security Testing
+security-test-results/
+penetration-test-results/
+vulnerability-scan-results/
+sast-results/
+dast-results/
+
+# ============================================
+# MONITORING & OBSERVABILITY
+# ============================================
+# Monitoring Data
+monitoring-data/
+metrics-data/
+telemetry-data/
+prometheus-data/
+grafana-data/
+jaeger-data/
+zipkin-data/
+
+# Health Check Data
+health-check-results/
+readiness-probe-data/
+liveness-probe-data/
 
 # ============================================
 # BACKUP AND ARCHIVE FILES
@@ -300,6 +448,78 @@ junit.xml
 *.bak
 *.old
 
+# Database Backups (CRITICAL)
+*.sql.backup
+*.sql.dump
+*.sql.gz
+database-backup/
+db-backup/
+backup/
+
+# ============================================
+# DOCUMENTATION ARTIFACTS
+# ============================================
+# Generated Documentation
+docs/generated/
+documentation/generated/
+*.pdf.generated
+*.html.generated
+
+# PlantUML Cache
+.plantuml/
+
+# ============================================
+# NODE.JS / FRONTEND (IF APPLICABLE)
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# ============================================
+# VENDOR DEPENDENCIES
+# ============================================
+vendor/
+third-party/
+external-libs/
+dependencies/
+
+# ============================================
+# MISCELLANEOUS
+# ============================================
+# Runtime
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
 # =================================================================
-# END OF ENTERPRISE GITIGNORE CONFIGURATION
+# END OF ENTERPRISE BANKING SYSTEM GITIGNORE CONFIGURATION
 # =================================================================
