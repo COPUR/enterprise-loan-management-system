@@ -121,7 +121,7 @@ public class EventStreamingService {
     @KafkaListener(topics = CUSTOMER_EVENTS_TOPIC, groupId = "banking-platform")
     public void handleCustomerEvent(@Payload String eventJson,
                                    @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                                   @Header(KafkaHeaders.RECEIVED_PARTITION_ID) Integer partition,
+                                   @Header(KafkaHeaders.RECEIVED_PARTITION) Integer partition,
                                    @Header(KafkaHeaders.OFFSET) Long offset) {
         handleEventMessage(eventJson, topic, partition, offset);
     }
@@ -132,7 +132,7 @@ public class EventStreamingService {
     @KafkaListener(topics = LOAN_EVENTS_TOPIC, groupId = "banking-platform")
     public void handleLoanEvent(@Payload String eventJson,
                                @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                               @Header(KafkaHeaders.RECEIVED_PARTITION_ID) Integer partition,
+                               @Header(KafkaHeaders.RECEIVED_PARTITION) Integer partition,
                                @Header(KafkaHeaders.OFFSET) Long offset) {
         handleEventMessage(eventJson, topic, partition, offset);
     }
@@ -143,7 +143,7 @@ public class EventStreamingService {
     @KafkaListener(topics = PAYMENT_EVENTS_TOPIC, groupId = "banking-platform")
     public void handlePaymentEvent(@Payload String eventJson,
                                   @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                                  @Header(KafkaHeaders.RECEIVED_PARTITION_ID) Integer partition,
+                                  @Header(KafkaHeaders.RECEIVED_PARTITION) Integer partition,
                                   @Header(KafkaHeaders.OFFSET) Long offset) {
         handleEventMessage(eventJson, topic, partition, offset);
     }
@@ -154,7 +154,7 @@ public class EventStreamingService {
     @KafkaListener(topics = COMPLIANCE_EVENTS_TOPIC, groupId = "banking-platform")
     public void handleComplianceEvent(@Payload String eventJson,
                                      @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                                     @Header(KafkaHeaders.RECEIVED_PARTITION_ID) Integer partition,
+                                     @Header(KafkaHeaders.RECEIVED_PARTITION) Integer partition,
                                      @Header(KafkaHeaders.OFFSET) Long offset) {
         handleEventMessage(eventJson, topic, partition, offset);
     }
@@ -165,7 +165,7 @@ public class EventStreamingService {
     @KafkaListener(topics = SYSTEM_EVENTS_TOPIC, groupId = "banking-platform")
     public void handleSystemEvent(@Payload String eventJson,
                                  @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                                 @Header(KafkaHeaders.RECEIVED_PARTITION_ID) Integer partition,
+                                 @Header(KafkaHeaders.RECEIVED_PARTITION) Integer partition,
                                  @Header(KafkaHeaders.OFFSET) Long offset) {
         handleEventMessage(eventJson, topic, partition, offset);
     }
@@ -182,7 +182,7 @@ public class EventStreamingService {
     }, groupId = "banking-platform-dlq")
     public void handleDeadLetterEvent(@Payload String eventJson,
                                      @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                                     @Header(KafkaHeaders.RECEIVED_PARTITION_ID) Integer partition,
+                                     @Header(KafkaHeaders.RECEIVED_PARTITION) Integer partition,
                                      @Header(KafkaHeaders.OFFSET) Long offset) {
         handleDeadLetterMessage(eventJson, topic, partition, offset);
     }
@@ -518,9 +518,3 @@ public class EventStreamingService {
     }
 }
 
-/**
- * Event Schema Registry for validation
- */
-interface EventSchemaRegistry {
-    void validateEvent(EventStreamingService.BankingDomainEvent event);
-}

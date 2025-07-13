@@ -1,8 +1,16 @@
-# AmanahFi Platform Documentation Hub
+# AmanahFi Islamic Banking Platform - Documentation Hub
 
 ## Executive Overview
 
-As Banking Technology Lead Architect with over two decades of experience in financial services architecture, I present the AmanahFi Platform - a transformative Islamic finance technology solution architected for the evolving needs of the MENAT banking sector. This documentation serves as the authoritative knowledge transfer repository for stakeholders, technical teams, and operational units.
+The AmanahFi Platform represents a next-generation Islamic banking technology solution engineered with cutting-edge financial technology and strict Sharia compliance. Built on event-driven hexagonal architecture principles, this platform delivers comprehensive Islamic finance products including Murabaha (cost-plus financing), Musharakah (partnership financing), Ijarah (leasing), and seamless UAE Central Bank Digital Currency (CBDC) integration.
+
+### Platform Highlights
+- **🕌 Sharia-Compliant**: Real-time validation with integrated Sharia Board APIs
+- **💰 CBDC Integration**: Native UAE Digital Dirham support with multi-bank interoperability  
+- **🔒 FAPI 2.0 Security**: Advanced OAuth 2.1 + DPoP + mTLS security framework
+- **📊 Event-Driven**: Complete event sourcing with Islamic finance audit trails
+- **🌐 Multi-Tenant**: Scalable architecture supporting multiple Islamic banks
+- **⚡ High Performance**: Sub-2 second response times with 99.99% availability
 
 ## Documentation Index
 
@@ -11,11 +19,13 @@ As Banking Technology Lead Architect with over two decades of experience in fina
 - **[Strategic Business Case](./business/strategic-business-case.md)** - Financial analysis with projected ROI of 138% over three years
 - **Strategic Roadmap** - Multi-phase implementation strategy across seven MENAT jurisdictions
 
-### Architecture Documentation
-- **[System Architecture](./architecture/system-architecture.md)** - Enterprise-grade hexagonal architecture with domain-driven design principles
-- **[Security Architecture](./security/security-requirements.md)** - Zero Trust security model implementing OAuth 2.1, DPoP, and mutual TLS
-- **Integration Architecture** - Enterprise service bus with Keycloak IAM, Apache Kafka event streaming, and R3 Corda blockchain
-- **Deployment Architecture** - Cloud-native Kubernetes orchestration with Istio service mesh for microservices governance
+### 🏗️ Architecture Documentation
+- **[AmanahFi System Architecture](./architecture/system-architecture.md)** - Islamic banking hexagonal architecture with DDD principles
+- **[AmanahFi Hexagonal Architecture Diagram](./architecture/amanahfi-hexagonal-architecture.puml)** - Visual PlantUML architecture showcasing Islamic finance components
+- **[Security Architecture](./security/security-requirements.md)** - FAPI 2.0 security with DPoP tokens and certificate-bound access
+- **[CBDC Integration Architecture](./architecture/cbdc-integration.md)** - UAE Digital Dirham integration patterns
+- **[Islamic Finance Domain Models](./architecture/islamic-finance-domains.md)** - Bounded contexts for Sharia-compliant services
+- **[Event-Driven Architecture](./architecture/event-driven-islamic-banking.md)** - Event sourcing for Islamic finance compliance
 
 ### Business Requirements
 - **[Functional Requirements](./business/functional-requirements.md)** - Comprehensive Islamic finance product specifications covering six core models
@@ -23,11 +33,12 @@ As Banking Technology Lead Architect with over two decades of experience in fina
 - **Regulatory Requirements** - Multi-jurisdictional compliance framework for CBUAE, VARA, and HSA standards
 - **User Stories** - Detailed business scenarios validated by Islamic finance domain experts
 
-### Application Documentation
-- **[API Documentation](./application/api-catalogue.md)** - OpenAPI 3.0 compliant REST and GraphQL endpoint specifications
-- **Domain Models** - Strategic and tactical domain modeling with bounded contexts
-- **Event Catalog** - Complete event sourcing implementation with compensating transactions
-- **Integration Patterns** - Enterprise integration patterns for core banking system connectivity
+### 📱 Application Documentation
+- **[Islamic Banking API Catalogue](./application/api-catalogue.md)** - OpenAPI 3.0 specifications for Murabaha, Musharakah, and CBDC APIs
+- **[Islamic Finance Domain Models](./application/islamic-finance-domains.md)** - Sharia-compliant domain entities and value objects
+- **[Islamic Banking Event Catalog](./application/islamic-events-catalog.md)** - Complete event sourcing for Islamic finance audit trails
+- **[CBDC Integration Patterns](./application/cbdc-integration-patterns.md)** - Digital currency integration with UAE Central Bank
+- **[Sharia Compliance Validation](./application/sharia-compliance-api.md)** - Real-time Islamic finance validation endpoints
 
 ### Security Requirements
 - **[Security Architecture](./security/security-requirements.md)** - Defense-in-depth security architecture with threat modeling
@@ -137,35 +148,37 @@ docs/
     └── disaster-recovery.md   # Business continuity and disaster recovery
 ```
 
-## Key Stakeholder Audiences
+### Documentation by Stakeholder Role
 
-### Executive Leadership
-- **Focus**: Strategic business value, return on investment, market positioning
-- **Documents**: Comprehensive business case, market opportunity analysis, competitive positioning
-- **Format**: Executive briefings with financial projections and strategic recommendations
+#### Executive Leadership and C-Level Management
+- [Executive Business Case](./business/strategic-business-case.md) - ROI analysis and strategic positioning
+- [Platform Comparison Analysis](./architecture/platform-comparison.md) - Competitive analysis and market differentiation
+- [Stakeholder Presentation](./executive/stakeholder-presentation.html) - Interactive executive presentation
 
-### Regulatory & Compliance Officers
-- **Focus**: Multi-jurisdictional compliance, risk management frameworks, audit trail integrity
-- **Documents**: Regulatory compliance matrices, audit procedures, risk assessment reports
-- **Format**: Detailed compliance documentation with traceability to regulatory requirements
+#### Islamic Finance Architects and Technical Leadership
+- [Enterprise Architecture Specifications](./architecture/system-architecture.md) - Comprehensive technical architecture
+- [Islamic Finance Domain Models](./application/islamic-finance-domains.md) - Sharia-compliant architectural patterns
+- [Security Architecture Framework](./security/security-requirements.md) - Enterprise security specifications
 
-### Development Teams
-- **Focus**: Technical implementation excellence, architectural patterns, code quality standards
-- **Documents**: Technical architecture guides, API specifications, development best practices
-- **Format**: Technical specifications with implementation examples and pattern libraries
+#### Platform Development Teams
+- [Development Team Operations Guide](./teams/amanahfi-development-squad-guide.md) - Team procedures and technical standards
+- [API Development Specifications](./application/api-catalogue.md) - Complete API documentation and standards
+- [Event Sourcing Implementation](./application/islamic-events-catalog.md) - Event-driven architecture guidelines
 
-### Security Teams
-- **Focus**: Enterprise security architecture, threat mitigation strategies, continuous compliance
-- **Documents**: Security architecture blueprints, threat models, security implementation guides
-- **Format**: Security specifications with threat assessments and mitigation strategies
+#### DevSecOps and Operations Teams
+- [DevSecOps Operational Procedures](./teams/devsecops-guide.md) - Complete operational methodology and incident response
+- [CI/CD Pipeline Architecture](./cicd/comprehensive-pipeline-architecture.md) - Deployment automation and security integration
+- [Infrastructure Management](./cicd/infrastructure-as-code.md) - Infrastructure as code specifications
 
-### DevOps & Operations
-- **Focus**: Automated deployment pipelines, system observability, infrastructure reliability
-- **Documents**: CI/CD pipeline specifications, deployment automation, monitoring configurations
-- **Format**: Infrastructure as code templates, operational runbooks, incident response procedures
+#### Regulatory and Compliance Officers
+- [Comprehensive Functional Requirements](./business/functional-requirements.md) - Complete business rule and compliance specifications
+- [Security and Compliance Framework](./security/security-requirements.md) - Regulatory compliance and security standards
+- [Event Auditing and Compliance](./application/islamic-events-catalog.md) - Audit trail and compliance validation
 
-### Regional Implementation Teams
-- **Focus**: Local market requirements, jurisdiction-specific compliance, cultural localization
+#### Regional Implementation Teams
+- [UAE Market Implementation](./regional/uae-market.md) - Local market deployment specifications
+- [MENAT Regional Expansion](./regional/menat-expansion.md) - Multi-jurisdictional implementation strategy
+- [Cross-Border Compliance](./regional/regulatory-mapping.md) - International regulatory requirements
 - **Documents**: Regional deployment guides, compliance mappings, localization specifications
 - **Format**: Market-specific implementation guides with regulatory compliance checklists
 

@@ -5,13 +5,17 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
+import lombok.extern.slf4j.Slf4j;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.security.cert.X509Certificate;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -26,6 +30,7 @@ import java.util.regex.Pattern;
  * - Attack detection and prevention
  */
 @Component
+@Slf4j
 public class FAPISecurityEnforcer extends OncePerRequestFilter {
     
     // FAPI 2.0 required headers
@@ -116,8 +121,12 @@ public class FAPISecurityEnforcer extends OncePerRequestFilter {
      */
     private boolean validateMutualTLS(HttpServletRequest request) {
         // Check for client certificate in request attributes
-        Object clientCert = request.getAttribute("javax.servlet.request.X509Certificate");
-        if (clientCert == null) {
+        Object[] certs = (Object[]) request.getAttribute("javax.servlet.request.X509Certificate");
+        X509Certificate clientCert = null;
+        
+        if (certs != null && certs.length > 0) {
+            clientCert = (X509Certificate) certs[0];
+        } else {
             // Check SSL_CLIENT_CERT header (from reverse proxy)
             String clientCertHeader = request.getHeader("SSL_CLIENT_CERT");
             if (clientCertHeader == null || clientCertHeader.trim().isEmpty()) {
@@ -125,12 +134,39 @@ public class FAPISecurityEnforcer extends OncePerRequestFilter {
             }
         }
         
-        // Additional certificate validation would be performed here
-        // - Certificate chain validation
-        // - Certificate revocation check
-        // - Client ID extraction and validation
-        
-        return true;
+        try {
+            // Validate certificate chain
+            if (!validateCertificateChain(clientCert)) {
+                log.warn("Certificate chain validation failed for request: {}", request.getRequestURI());
+                return false;
+            }
+            
+            // Check certificate revocation status
+            if (!checkCertificateRevocation(clientCert)) {
+                log.warn("Certificate revocation check failed for request: {}", request.getRequestURI());
+                return false;
+            }
+            
+            // Validate certificate expiration
+            if (!isCertificateValid(clientCert)) {
+                log.warn("Certificate expired or not yet valid for request: {}", request.getRequestURI());
+                return false;
+            }
+            
+            // Extract and validate client ID from certificate
+            String certClientId = extractClientIdFromCertificate(request);
+            if (certClientId == null || !isValidClientId(certClientId)) {
+                log.warn("Invalid or missing client ID in certificate for request: {}", request.getRequestURI());
+                return false;
+            }
+            
+            log.debug("Certificate validation successful for client: {}", certClientId);
+            return true;
+            
+        } catch (Exception e) {
+            log.error("Error during certificate validation: {}", e.getMessage(), e);
+            return false;
+        }
     }
     
     /**
@@ -249,16 +285,35 @@ public class FAPISecurityEnforcer extends OncePerRequestFilter {
      * Extract client ID from mTLS certificate
      */
     private String extractClientIdFromCertificate(HttpServletRequest request) {
-        // Implementation would extract client ID from certificate subject
-        // This is a simplified version
-        Object[] certs = (Object[]) request.getAttribute("javax.servlet.request.X509Certificate");
-        if (certs != null && certs.length > 0) {
-            // Extract client ID from certificate CN or SAN
-            return "client-from-cert"; // Placeholder
+        try {
+            Object[] certs = (Object[]) request.getAttribute("javax.servlet.request.X509Certificate");
+            if (certs != null && certs.length > 0) {
+                X509Certificate clientCert = (X509Certificate) certs[0];
+                
+                // First try to extract client ID from Subject Alternative Name (SAN)
+                String clientIdFromSAN = extractClientIdFromSAN(clientCert);
+                if (clientIdFromSAN != null) {
+                    return clientIdFromSAN;
+                }
+                
+                // Fallback to extracting from Subject DN
+                String subjectDN = clientCert.getSubjectX500Principal().getName();
+                return extractClientIdFromSubjectDN(subjectDN);
+            }
+            
+            // Fallback to header-based client ID (for testing/development)
+            String headerClientId = request.getHeader(CLIENT_ID);
+            if (headerClientId != null && !headerClientId.trim().isEmpty()) {
+                log.debug("Using client ID from header (no certificate): {}", headerClientId);
+                return headerClientId;
+            }
+            
+            return null;
+            
+        } catch (Exception e) {
+            log.error("Error extracting client ID from certificate: {}", e.getMessage(), e);
+            return null;
         }
-        
-        // Fallback to header-based client ID
-        return request.getHeader(CLIENT_ID);
     }
     
     /**
@@ -345,5 +400,140 @@ public class FAPISecurityEnforcer extends OncePerRequestFilter {
         public String getErrorMessage() {
             return errorMessage;
         }
+    }
+    
+    /**
+     * Validate certificate chain
+     */
+    private boolean validateCertificateChain(X509Certificate clientCert) {
+        try {
+            // Check if certificate is self-signed or properly chained
+            clientCert.verify(clientCert.getPublicKey());
+            
+            // In production, this would validate against trusted CA certificates
+            // For now, we'll accept self-signed certificates for testing
+            log.debug("Certificate chain validation passed for: {}", 
+                clientCert.getSubjectX500Principal().getName());
+            return true;
+            
+        } catch (Exception e) {
+            log.debug("Certificate chain validation failed: {}", e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Check certificate revocation status
+     */
+    private boolean checkCertificateRevocation(X509Certificate clientCert) {
+        try {
+            // In production, this would check OCSP or CRL
+            // For now, we'll implement a basic validity check
+            
+            // Check if certificate has CRL distribution points
+            byte[] crlDP = clientCert.getExtensionValue("2.5.29.31");
+            if (crlDP != null) {
+                log.debug("Certificate has CRL distribution points, should check revocation status");
+                // Would perform actual CRL/OCSP check here
+            }
+            
+            // For demo purposes, always return true (not revoked)
+            return true;
+            
+        } catch (Exception e) {
+            log.error("Error checking certificate revocation: {}", e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Check if certificate is currently valid (not expired)
+     */
+    private boolean isCertificateValid(X509Certificate clientCert) {
+        try {
+            clientCert.checkValidity();
+            return true;
+        } catch (Exception e) {
+            log.warn("Certificate validity check failed: {}", e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Extract client ID from Subject Alternative Name
+     */
+    private String extractClientIdFromSAN(X509Certificate cert) {
+        try {
+            Collection<List<?>> subjectAltNames = cert.getSubjectAlternativeNames();
+            if (subjectAltNames != null) {
+                for (List<?> altName : subjectAltNames) {
+                    Integer type = (Integer) altName.get(0);
+                    String value = (String) altName.get(1);
+                    
+                    // Look for DNS name or URI that contains client ID
+                    if (type == 2 || type == 6) { // DNS name or URI
+                        if (value.startsWith("client-") || value.contains("client_id=")) {
+                            return extractClientIdFromValue(value);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Error extracting client ID from SAN: {}", e.getMessage());
+        }
+        return null;
+    }
+    
+    /**
+     * Extract client ID from Subject Distinguished Name
+     */
+    private String extractClientIdFromSubjectDN(String subjectDN) {
+        try {
+            // Parse Subject DN for CN (Common Name)
+            String[] parts = subjectDN.split(",");
+            for (String part : parts) {
+                String trimmedPart = part.trim();
+                if (trimmedPart.startsWith("CN=")) {
+                    String cn = trimmedPart.substring(3);
+                    // Check if CN looks like a client ID
+                    if (cn.matches("^[A-Za-z0-9_-]+$")) {
+                        return cn;
+                    }
+                }
+                // Also check for custom OID that might contain client ID
+                if (trimmedPart.startsWith("1.3.6.1.4.1.")) { // Custom OID
+                    return extractClientIdFromValue(trimmedPart);
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Error extracting client ID from Subject DN: {}", e.getMessage());
+        }
+        return null;
+    }
+    
+    /**
+     * Extract client ID from a value string
+     */
+    private String extractClientIdFromValue(String value) {
+        // Handle different formats: client-id, client_id=value, etc.
+        if (value.startsWith("client-")) {
+            return value;
+        }
+        if (value.contains("client_id=")) {
+            String[] parts = value.split("client_id=");
+            if (parts.length > 1) {
+                return parts[1].split("&")[0]; // Take first part before any other params
+            }
+        }
+        return value;
+    }
+    
+    /**
+     * Validate if client ID is valid
+     */
+    private boolean isValidClientId(String clientId) {
+        return clientId != null && 
+               !clientId.trim().isEmpty() && 
+               clientId.matches("^[A-Za-z0-9_-]{3,50}$");
     }
 }

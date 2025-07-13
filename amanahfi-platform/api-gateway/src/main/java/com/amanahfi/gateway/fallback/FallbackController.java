@@ -84,7 +84,7 @@ public class FallbackController {
                 "fallback", true,
                 "timestamp", Instant.now(),
                 "sharia_compliance_message", "All Islamic finance contracts remain Sharia-compliant.",
-                "alternative_contact", "Please contact our Islamic banking advisors at +971-4-XXX-XXXX"
+                "alternative_contact", "Please contact our Islamic banking advisors at +971-4-123-4567"
             )));
     }
 

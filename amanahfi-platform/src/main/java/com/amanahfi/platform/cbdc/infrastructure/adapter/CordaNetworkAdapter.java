@@ -2,11 +2,16 @@ package com.amanahfi.platform.cbdc.infrastructure.adapter;
 
 import com.amanahfi.platform.cbdc.domain.TransferType;
 import com.amanahfi.platform.cbdc.domain.WalletType;
+import com.amanahfi.platform.cbdc.domain.states.TransferState;
+import com.amanahfi.platform.cbdc.domain.states.WalletState;
 import com.amanahfi.platform.cbdc.port.out.CordaNetworkClient;
 import com.amanahfi.platform.cbdc.port.out.CordaTransactionDetails;
 import com.amanahfi.platform.shared.domain.Money;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.corda.core.contracts.ContractState;
+import net.corda.core.contracts.StateAndRef;
+import net.corda.core.contracts.StateRef;
 import net.corda.core.flows.FlowLogic;
 import net.corda.core.messaging.CordaRPCOps;
 import net.corda.core.node.services.Vault;
@@ -45,14 +50,17 @@ public class CordaNetworkAdapter implements CordaNetworkClient {
             ownerId, walletType);
         
         try {
-            // Generate unique wallet ID
-            String walletId = "DD-WALLET-" + UUID.randomUUID().toString();
+            // Start CreateWalletFlow on Corda
+            FlowLogic<?> createWalletFlow = new CreateWalletFlow(ownerId, walletType, initialBalance);
+            SignedTransaction txResult = (SignedTransaction) cordaRPCOps
+                .startFlowDynamic(createWalletFlow.getClass(), ownerId, walletType, initialBalance)
+                .getReturnValue()
+                .get(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS);
             
-            // Create wallet state on Corda
-            // In a real implementation, this would call a Corda flow
-            // For now, we'll simulate the creation
+            String walletId = "DD-WALLET-" + txResult.getId().toString();
             
-            log.info("Created Digital Dirham wallet on Corda: {}", walletId);
+            log.info("Created Digital Dirham wallet on Corda: {} with transaction: {}", 
+                walletId, txResult.getId());
             return walletId;
             
         } catch (Exception e) {
@@ -170,9 +178,19 @@ public class CordaNetworkAdapter implements CordaNetworkClient {
         log.debug("Getting wallet balance from Corda for wallet: {}", walletId);
         
         try {
-            // Query Corda for wallet balance
-            // In a real implementation, this would query the vault
-            return Money.aed(java.math.BigDecimal.ZERO); // Placeholder
+            // Query the vault for wallet states
+            Vault.Page<Object> walletStates = cordaRPCOps.vaultQuery(WalletState.class);
+            
+            // Find the wallet with matching ID
+            for (Object state : walletStates.getStates()) {
+                WalletState walletState = (WalletState) ((StateAndRef<?>) state).getState().getData();
+                if (walletId.equals(walletState.getWalletId())) {
+                    return Money.aed(walletState.getBalance());
+                }
+            }
+            
+            // Wallet not found
+            throw new RuntimeException("Wallet not found: " + walletId);
             
         } catch (Exception e) {
             log.error("Failed to get wallet balance from Corda for wallet: {}", walletId, e);
@@ -196,9 +214,15 @@ public class CordaNetworkAdapter implements CordaNetworkClient {
     @Override
     public long getCurrentBlockHeight() {
         try {
-            // Get current block height from Corda
-            // In a real implementation, this would query the ledger
-            return System.currentTimeMillis() / 1000; // Placeholder
+            // Get network parameters which contain the current block height equivalent
+            var networkParameters = cordaRPCOps.networkParameters();
+            var networkMap = cordaRPCOps.networkMapSnapshot();
+            
+            // In Corda, we use the network map update ID as a proxy for block height
+            return networkMap.stream()
+                .mapToLong(nodeInfo -> nodeInfo.getSerial())
+                .max()
+                .orElse(0L);
             
         } catch (Exception e) {
             log.error("Failed to get current block height from Corda", e);
@@ -211,20 +235,43 @@ public class CordaNetworkAdapter implements CordaNetworkClient {
         log.debug("Getting transaction details from Corda for hash: {}", cordaTransactionHash);
         
         try {
-            // Query Corda for transaction details
-            // In a real implementation, this would query the vault
+            // Parse transaction hash to SecureHash
+            net.corda.core.crypto.SecureHash txHash = 
+                net.corda.core.crypto.SecureHash.parse(cordaTransactionHash);
+            
+            // Get transaction from the vault
+            SignedTransaction signedTx = cordaRPCOps.internalFindVerifiedTransaction(txHash);
+            
+            if (signedTx == null) {
+                throw new RuntimeException("Transaction not found: " + cordaTransactionHash);
+            }
+            
+            // Extract transaction details
+            var coreTransaction = signedTx.getCoreTransaction();
+            var inputs = coreTransaction.getInputs();
+            var outputs = coreTransaction.getOutputs();
+            
+            // Determine transaction type and extract wallet information
+            String transactionType = determineTransactionType(outputs);
+            String fromWalletId = extractFromWalletId(inputs);
+            String toWalletId = extractToWalletId(outputs);
+            Money amount = extractTransactionAmount(outputs);
+            String reference = extractTransactionReference(coreTransaction);
+            
             return CordaTransactionDetails.builder()
                 .transactionHash(cordaTransactionHash)
-                .fromWalletId("FROM-WALLET")
-                .toWalletId("TO-WALLET")
-                .amount(Money.aed(java.math.BigDecimal.ZERO))
-                .reference("REFERENCE")
-                .transactionType("TRANSFER")
-                .timestamp(Instant.now())
+                .fromWalletId(fromWalletId)
+                .toWalletId(toWalletId)
+                .amount(amount)
+                .reference(reference)
+                .transactionType(transactionType)
+                .timestamp(Instant.now()) // Use current time as proxy
                 .status("CONFIRMED")
-                .notarySignatures(List.of("NOTARY-SIG"))
+                .notarySignatures(signedTx.getSigs().stream()
+                    .map(sig -> sig.toString())
+                    .collect(java.util.stream.Collectors.toList()))
                 .blockHeight(getCurrentBlockHeight())
-                .blockHash("BLOCK-HASH")
+                .blockHash(txHash.toString())
                 .build();
             
         } catch (Exception e) {
@@ -237,28 +284,193 @@ public class CordaNetworkAdapter implements CordaNetworkClient {
     
     private String executeTransferFlow(String fromWalletId, String toWalletId, Money amount, 
                                      String reference, TransferType transferType) {
-        // In a real implementation, this would start a Corda flow
-        // For now, we'll simulate the transfer
-        return "CORDA-TX-" + UUID.randomUUID().toString();
+        try {
+            // Start TransferFlow on Corda
+            FlowLogic<?> transferFlow = new TransferFlow(fromWalletId, toWalletId, amount, reference, transferType);
+            SignedTransaction txResult = (SignedTransaction) cordaRPCOps
+                .startFlowDynamic(transferFlow.getClass(), fromWalletId, toWalletId, amount, reference, transferType)
+                .getReturnValue()
+                .get(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS);
+            
+            return txResult.getId().toString();
+            
+        } catch (Exception e) {
+            log.error("Failed to execute transfer flow on Corda", e);
+            throw new RuntimeException("Transfer flow execution failed", e);
+        }
     }
     
     private String executeMintingFlow(String centralBankWalletId, Money amount, String authorization) {
-        // In a real implementation, this would start a Corda minting flow
-        return "CORDA-MINT-" + UUID.randomUUID().toString();
+        try {
+            // Start MintingFlow on Corda
+            FlowLogic<?> mintingFlow = new MintingFlow(centralBankWalletId, amount, authorization);
+            SignedTransaction txResult = (SignedTransaction) cordaRPCOps
+                .startFlowDynamic(mintingFlow.getClass(), centralBankWalletId, amount, authorization)
+                .getReturnValue()
+                .get(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS);
+            
+            return txResult.getId().toString();
+            
+        } catch (Exception e) {
+            log.error("Failed to execute minting flow on Corda", e);
+            throw new RuntimeException("Minting flow execution failed", e);
+        }
     }
     
     private String executeBurningFlow(String centralBankWalletId, Money amount, String authorization) {
-        // In a real implementation, this would start a Corda burning flow
-        return "CORDA-BURN-" + UUID.randomUUID().toString();
+        try {
+            // Start BurningFlow on Corda
+            FlowLogic<?> burningFlow = new BurningFlow(centralBankWalletId, amount, authorization);
+            SignedTransaction txResult = (SignedTransaction) cordaRPCOps
+                .startFlowDynamic(burningFlow.getClass(), centralBankWalletId, amount, authorization)
+                .getReturnValue()
+                .get(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS);
+            
+            return txResult.getId().toString();
+            
+        } catch (Exception e) {
+            log.error("Failed to execute burning flow on Corda", e);
+            throw new RuntimeException("Burning flow execution failed", e);
+        }
     }
     
     private void executeFreezeFlow(String walletId, String reason) {
-        // In a real implementation, this would start a Corda freeze flow
-        log.debug("Executing freeze flow for wallet: {}", walletId);
+        try {
+            // Start FreezeWalletFlow on Corda
+            FlowLogic<?> freezeFlow = new FreezeWalletFlow(walletId, reason);
+            cordaRPCOps
+                .startFlowDynamic(freezeFlow.getClass(), walletId, reason)
+                .getReturnValue()
+                .get(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS);
+            
+            log.debug("Freeze flow executed successfully for wallet: {}", walletId);
+            
+        } catch (Exception e) {
+            log.error("Failed to execute freeze flow on Corda for wallet: {}", walletId, e);
+            throw new RuntimeException("Freeze flow execution failed", e);
+        }
     }
     
     private void executeUnfreezeFlow(String walletId, String reason) {
-        // In a real implementation, this would start a Corda unfreeze flow
-        log.debug("Executing unfreeze flow for wallet: {}", walletId);
+        try {
+            // Start UnfreezeWalletFlow on Corda
+            FlowLogic<?> unfreezeFlow = new UnfreezeWalletFlow(walletId, reason);
+            cordaRPCOps
+                .startFlowDynamic(unfreezeFlow.getClass(), walletId, reason)
+                .getReturnValue()
+                .get(timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS);
+            
+            log.debug("Unfreeze flow executed successfully for wallet: {}", walletId);
+            
+        } catch (Exception e) {
+            log.error("Failed to execute unfreeze flow on Corda for wallet: {}", walletId, e);
+            throw new RuntimeException("Unfreeze flow execution failed", e);
+        }
+    }
+    
+    // Helper methods for transaction parsing
+    
+    private String determineTransactionType(List<?> outputs) {
+        // Analyze outputs to determine transaction type based on state types
+        for (Object output : outputs) {
+            if (output instanceof StateAndRef) {
+                StateAndRef<?> stateAndRef = (StateAndRef<?>) output;
+                ContractState state = stateAndRef.getState().getData();
+                
+                if (state instanceof TransferState) {
+                    TransferState transferState = (TransferState) state;
+                    return transferState.getTransferType().toString();
+                } else if (state instanceof WalletState) {
+                    // Wallet state changes might indicate minting/burning
+                    return "WALLET_UPDATE";
+                }
+            }
+        }
+        return "TRANSFER"; // Default
+    }
+    
+    private String extractFromWalletId(List<?> inputs) {
+        // Extract source wallet ID from transaction inputs
+        for (Object input : inputs) {
+            if (input instanceof StateRef) {
+                StateRef stateRef = (StateRef) input;
+                // Query the vault for the input state
+                try {
+                    StateAndRef<?> stateAndRef = cordaRPCOps.internalFindVerifiedTransaction(
+                        stateRef.getTxhash()).getTx().getOutput(stateRef.getIndex());
+                    
+                    ContractState state = stateAndRef.getState().getData();
+                    if (state instanceof WalletState) {
+                        return ((WalletState) state).getWalletId();
+                    } else if (state instanceof TransferState) {
+                        return ((TransferState) state).getFromWalletId();
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to extract from wallet ID from input: {}", e.getMessage());
+                }
+            }
+        }
+        return "UNKNOWN-FROM-WALLET";
+    }
+    
+    private String extractToWalletId(List<?> outputs) {
+        // Extract destination wallet ID from transaction outputs
+        for (Object output : outputs) {
+            if (output instanceof StateAndRef) {
+                StateAndRef<?> stateAndRef = (StateAndRef<?>) output;
+                ContractState state = stateAndRef.getState().getData();
+                
+                if (state instanceof TransferState) {
+                    return ((TransferState) state).getToWalletId();
+                } else if (state instanceof WalletState) {
+                    return ((WalletState) state).getWalletId();
+                }
+            }
+        }
+        return "UNKNOWN-TO-WALLET";
+    }
+    
+    private Money extractTransactionAmount(List<?> outputs) {
+        // Extract transaction amount from outputs
+        for (Object output : outputs) {
+            if (output instanceof StateAndRef) {
+                StateAndRef<?> stateAndRef = (StateAndRef<?>) output;
+                ContractState state = stateAndRef.getState().getData();
+                
+                if (state instanceof TransferState) {
+                    TransferState transferState = (TransferState) state;
+                    return Money.aed(transferState.getAmount());
+                } else if (state instanceof WalletState) {
+                    // For wallet updates, the amount might be the balance difference
+                    WalletState walletState = (WalletState) state;
+                    return Money.aed(walletState.getBalance());
+                }
+            }
+        }
+        return Money.aed(java.math.BigDecimal.ZERO);
+    }
+    
+    private String extractTransactionReference(Object coreTransaction) {
+        // Extract reference from transaction metadata
+        if (coreTransaction instanceof net.corda.core.transactions.CoreTransaction) {
+            net.corda.core.transactions.CoreTransaction coreTx = 
+                (net.corda.core.transactions.CoreTransaction) coreTransaction;
+            
+            // Check outputs for TransferState which contains reference
+            for (Object output : coreTx.getOutputs()) {
+                if (output instanceof net.corda.core.contracts.TransactionState) {
+                    net.corda.core.contracts.TransactionState<?> txState = 
+                        (net.corda.core.contracts.TransactionState<?>) output;
+                    
+                    if (txState.getData() instanceof TransferState) {
+                        return ((TransferState) txState.getData()).getReference();
+                    }
+                }
+            }
+            
+            // Fallback to transaction ID
+            return "TX-REF-" + coreTx.getId().toString().substring(0, 8);
+        }
+        return "UNKNOWN-REFERENCE";
     }
 }

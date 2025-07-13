@@ -48,8 +48,27 @@ dependencies {
     // Utilities
     api 'org.apache.commons:commons-lang3'
     
+    // Lombok
+    api 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    
+    // Redis
+    api 'org.springframework.boot:spring-boot-starter-data-redis'
+    
+    // Resilience4J
+    api 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
+    api 'io.github.resilience4j:resilience4j-circuitbreaker:2.2.0'
+    api 'io.github.resilience4j:resilience4j-retry:2.2.0'
+    api 'io.github.resilience4j:resilience4j-bulkhead:2.2.0'
+    api 'io.github.resilience4j:resilience4j-ratelimiter:2.2.0'
+    api 'io.github.resilience4j:resilience4j-timelimiter:2.2.0'
+    
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
 }

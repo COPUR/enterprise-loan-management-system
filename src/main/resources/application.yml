@@ -6,24 +6,38 @@ spring:
     active: dev
   
   datasource:
-    url: jdbc:h2:mem:testdb
-    driverClassName: org.h2.Driver
-    username: sa
-    password: password
+    url: ${DATABASE_URL:jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    driverClassName: ${DATABASE_DRIVER:org.h2.Driver}
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:}
+    hikari:
+      maximum-pool-size: ${DATABASE_POOL_SIZE:20}
+      minimum-idle: ${DATABASE_MIN_IDLE:5}
+      idle-timeout: 300000
+      connection-timeout: 20000
   
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     properties:
       hibernate:
         format_sql: true
         show_sql: false
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    show-sql: false
   
   h2:
     console:
       enabled: true
       path: /h2-console
+      settings:
+        web-allow-others: false
   
   cache:
     type: simple
@@ -33,6 +47,11 @@ spring:
       name: admin
       password: admin
       roles: ADMIN
+  
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
 
 management:
   endpoints:

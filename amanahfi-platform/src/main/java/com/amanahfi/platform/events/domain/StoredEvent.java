@@ -2,6 +2,10 @@ package com.amanahfi.platform.events.domain;
 
 import com.amanahfi.platform.shared.domain.DomainEvent;
 import com.amanahfi.platform.shared.domain.EventMetadata;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -114,8 +118,36 @@ public class StoredEvent {
     }
     
     private static DomainEvent deserializeEventData(String eventData, String eventType) {
-        // In a real implementation, this would deserialize from JSON
-        // For now, we'll return a placeholder
-        throw new UnsupportedOperationException("Event deserialization not implemented");
+        try {
+            ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            
+            // Load the event class based on event type
+            Class<?> eventClass = Class.forName(eventType);
+            
+            if (!DomainEvent.class.isAssignableFrom(eventClass)) {
+                throw new IllegalArgumentException("Event type must implement DomainEvent: " + eventType);
+            }
+            
+            // Deserialize JSON to event object
+            return (DomainEvent) objectMapper.readValue(eventData, eventClass);
+            
+        } catch (ClassNotFoundException e) {
+            throw new EventDeserializationException("Event class not found: " + eventType, e);
+        } catch (JsonProcessingException e) {
+            throw new EventDeserializationException("Failed to deserialize event data: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new EventDeserializationException("Unexpected error during event deserialization: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Exception thrown when event deserialization fails
+     */
+    public static class EventDeserializationException extends RuntimeException {
+        public EventDeserializationException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

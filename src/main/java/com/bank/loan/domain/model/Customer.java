@@ -1,138 +1,219 @@
 package com.bank.loan.domain.model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "customers")
+/**
+ * Customer Domain Model (Clean Domain - No Infrastructure Dependencies)
+ * 
+ * Represents a banking customer with business logic for loan eligibility,
+ * credit assessment, and customer lifecycle management.
+ */
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @Builder
 public class Customer {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @NotBlank
-    @Column(name = "first_name", nullable = false)
+    private CustomerId customerId;
     private String firstName;
-    
-    @NotBlank
-    @Column(name = "last_name", nullable = false)
     private String lastName;
-    
-    @Email
-    @NotBlank
-    @Column(name = "email", nullable = false, unique = true)
     private String email;
-    
-    @NotBlank
-    @Column(name = "phone", nullable = false)
     private String phone;
-    
-    @Column(name = "address")
     private String address;
-    
-    @Column(name = "city")
     private String city;
-    
-    @Column(name = "postal_code")
     private String postalCode;
-    
-    @Column(name = "country")
     private String country;
-    
-    @Column(name = "nationality")
     private String nationality;
-    
-    @Column(name = "occupation")
     private String occupation;
-    
-    @Column(name = "employer_name")
     private String employerName;
-    
-    @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
-    
-    @Min(300)
-    @Max(850)
-    @Column(name = "credit_score")
     private Integer creditScore;
-    
-    @DecimalMin("0.00")
-    @Column(name = "credit_limit", precision = 15, scale = 2)
     private BigDecimal creditLimit;
-    
-    @Column(name = "monthly_income", precision = 15, scale = 2)
     private BigDecimal monthlyIncome;
-    
-    @Column(name = "existing_monthly_obligations", precision = 15, scale = 2)
     private BigDecimal existingMonthlyObligations;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
     private CustomerStatus status;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "risk_category")
     private RiskCategory riskCategory;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "customer_type")
     private CustomerType customerType;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "employment_type")
     private EmploymentType employmentType;
-    
-    @Column(name = "driving_license")
     private String drivingLicense;
-    
-    @Column(name = "business_license")
     private String businessLicense;
-    
-    @Column(name = "business_name")
     private String businessName;
-    
-    @Column(name = "years_in_business")
     private Integer yearsInBusiness;
-    
-    @Column(name = "religion_preference")
     private String religionPreference;
-    
-    @Column(name = "islamic_banking_preference")
     private Boolean islamicBankingPreference = false;
-    
-    @Column(name = "registration_date")
     private LocalDateTime registrationDate;
-    
-    @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
-    
-    @Column(name = "use_case_reference")
     private String useCaseReference;
     
-    @PrePersist
-    protected void onCreate() {
-        registrationDate = LocalDateTime.now();
-        lastUpdated = LocalDateTime.now();
+    /**
+     * Critical Business Rule: Determine loan eligibility
+     * This method contains core banking business logic that must be preserved
+     */
+    public boolean isEligibleForLoan(Money requestedAmount) {
+        if (status != CustomerStatus.ACTIVE) {
+            return false;
+        }
+        
+        if (creditScore == null || creditScore < 600) {
+            return false;
+        }
+        
+        if (monthlyIncome == null || monthlyIncome.compareTo(BigDecimal.ZERO) <= 0) {
+            return false;
+        }
+        
+        // Debt-to-income ratio check (should not exceed 40%)
+        BigDecimal totalObligations = existingMonthlyObligations != null ? 
+            existingMonthlyObligations : BigDecimal.ZERO;
+        
+        // Calculate monthly payment for requested loan (assuming 5-year term at 5% APR)
+        BigDecimal estimatedMonthlyPayment = calculateEstimatedMonthlyPayment(requestedAmount.getAmount());
+        BigDecimal projectedTotalObligations = totalObligations.add(estimatedMonthlyPayment);
+        
+        BigDecimal debtToIncomeRatio = projectedTotalObligations.divide(monthlyIncome, 4, BigDecimal.ROUND_HALF_UP);
+        
+        return debtToIncomeRatio.compareTo(new BigDecimal("0.40")) <= 0;
     }
     
-    @PreUpdate
-    protected void onUpdate() {
-        lastUpdated = LocalDateTime.now();
+    /**
+     * Update customer credit score - Financial Logic
+     */
+    public void updateCreditScore(Integer newCreditScore) {
+        if (newCreditScore == null || newCreditScore < 300 || newCreditScore > 850) {
+            throw new IllegalArgumentException("Credit score must be between 300 and 850");
+        }
+        
+        Integer oldScore = this.creditScore;
+        this.creditScore = newCreditScore;
+        this.lastUpdated = LocalDateTime.now();
+        
+        // Update risk category based on new credit score
+        updateRiskCategoryBasedOnCreditScore(newCreditScore);
+        
+        // Domain event could be published here
+        // publishDomainEvent(new CustomerCreditScoreUpdatedEvent(customerId, oldScore, newCreditScore));
     }
     
+    /**
+     * Activate customer account - Business Logic
+     */
+    public void activate() {
+        if (this.status == CustomerStatus.SUSPENDED || this.status == CustomerStatus.PENDING_VERIFICATION) {
+            this.status = CustomerStatus.ACTIVE;
+            this.lastUpdated = LocalDateTime.now();
+        } else {
+            throw new IllegalStateException("Cannot activate customer in current status: " + this.status);
+        }
+    }
+    
+    /**
+     * Suspend customer account - Business Logic
+     */
+    public void suspend() {
+        if (this.status == CustomerStatus.ACTIVE) {
+            this.status = CustomerStatus.SUSPENDED;
+            this.lastUpdated = LocalDateTime.now();
+        } else {
+            throw new IllegalStateException("Cannot suspend customer in current status: " + this.status);
+        }
+    }
+    
+    /**
+     * Close customer account - Business Logic
+     */
+    public void close() {
+        if (this.status == CustomerStatus.ACTIVE || this.status == CustomerStatus.SUSPENDED) {
+            this.status = CustomerStatus.CLOSED;
+            this.lastUpdated = LocalDateTime.now();
+        } else {
+            throw new IllegalStateException("Cannot close customer in current status: " + this.status);
+        }
+    }
+    
+    /**
+     * Calculate age from date of birth
+     */
     public Integer getAge() {
         if (dateOfBirth == null) return null;
         return LocalDate.now().getYear() - dateOfBirth.getYear();
     }
     
+    /**
+     * Check if customer prefers Islamic banking
+     */
     public boolean isIslamicBankingCustomer() {
         return islamicBankingPreference != null && islamicBankingPreference;
+    }
+    
+    /**
+     * Get customer's full name
+     */
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+    
+    /**
+     * Check if customer is a business customer
+     */
+    public boolean isBusinessCustomer() {
+        return customerType == CustomerType.BUSINESS;
+    }
+    
+    /**
+     * Calculate available credit limit
+     */
+    public BigDecimal getAvailableCreditLimit() {
+        if (creditLimit == null) return BigDecimal.ZERO;
+        
+        // This would typically subtract current outstanding balances
+        // For now, return the full credit limit
+        return creditLimit;
+    }
+    
+    // Private helper methods
+    
+    private BigDecimal calculateEstimatedMonthlyPayment(BigDecimal loanAmount) {
+        if (loanAmount == null || loanAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        
+        // Simple calculation: 5-year term at 5% APR
+        BigDecimal monthlyRate = new BigDecimal("0.05").divide(new BigDecimal("12"), 6, BigDecimal.ROUND_HALF_UP);
+        int numberOfPayments = 60; // 5 years * 12 months
+        
+        // PMT formula: L[c(1 + c)^n]/[(1 + c)^n - 1]
+        BigDecimal onePlusRate = BigDecimal.ONE.add(monthlyRate);
+        BigDecimal onePlusRatePowerN = onePlusRate.pow(numberOfPayments);
+        
+        BigDecimal numerator = loanAmount.multiply(monthlyRate).multiply(onePlusRatePowerN);
+        BigDecimal denominator = onePlusRatePowerN.subtract(BigDecimal.ONE);
+        
+        return numerator.divide(denominator, 2, BigDecimal.ROUND_HALF_UP);
+    }
+    
+    private void updateRiskCategoryBasedOnCreditScore(Integer creditScore) {
+        if (creditScore >= 750) {
+            this.riskCategory = RiskCategory.LOW;
+        } else if (creditScore >= 650) {
+            this.riskCategory = RiskCategory.MEDIUM;
+        } else {
+            this.riskCategory = RiskCategory.HIGH;
+        }
+    }
+    
+    /**
+     * Initialize timestamps for new customer
+     */
+    public void initializeTimestamps() {
+        this.registrationDate = LocalDateTime.now();
+        this.lastUpdated = LocalDateTime.now();
+    }
+    
+    /**
+     * Update last modified timestamp
+     */
+    public void markAsUpdated() {
+        this.lastUpdated = LocalDateTime.now();
     }
 }

@@ -1,0 +1,66 @@
+package com.bank.payment.infrastructure.fraud;
+
+import com.bank.payment.application.FraudDetectedException;
+import com.bank.payment.domain.Payment;
+import com.bank.payment.domain.PaymentType;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+/**
+ * Test suite for ML-based Fraud Detection Service
+ * 
+ * Tests comprehensive fraud detection scenarios:
+ * - ML model integration and ensemble predictions
+ * - Velocity and behavioral pattern analysis
+ * - Geospatial and network risk assessment
+ * - Anomaly detection and risk scoring
+ * - Edge cases and error handling
+ */
+@ExtendWith(MockitoExtension.class)
+@DisplayName("ML Fraud Detection Service Tests")
+class MLFraudDetectionServiceAdapterTest {
+    
+    @Mock
+    private MLModelService mlModelService;
+    
+    @Mock
+    private TransactionHistoryService transactionHistoryService;
+    
+    @Mock
+    private BehavioralAnalysisService behavioralAnalysisService;
+    
+    @Mock
+    private AnomalyDetectionService anomalyDetectionService;
+    
+    @Mock
+    private GeospatialAnalysisService geospatialAnalysisService;
+    
+    @Mock
+    private NetworkAnalysisService networkAnalysisService;
+    
+    private MLFraudDetectionServiceAdapter fraudDetectionService;
+    
+    @BeforeEach
+    void setUp() {
+        fraudDetectionService = new MLFraudDetectionServiceAdapter(
+            mlModelService,
+            transactionHistoryService,
+            behavioralAnalysisService,
+            anomalyDetectionService,
+            geospatialAnalysisService,
+            networkAnalysisService
+        );
+    }
+    
+    @Test\n    @DisplayName(\"Should allow legitimate low-risk payment\")\n    void shouldAllowLegitimateLowRiskPayment() {\n        // Given\n        Payment payment = createTestPayment(\"CUST-001\", BigDecimal.valueOf(100), PaymentType.BANK_TRANSFER);\n        \n        // Mock low risk scores from all services\n        when(mlModelService.predictRiskScore(any(MLFeatures.class))).thenReturn(15);\n        when(behavioralAnalysisService.analyzeBehavioralPatterns(any(), any())).thenReturn(5);\n        when(anomalyDetectionService.calculateAnomalyScore(any())).thenReturn(0.1);\n        when(geospatialAnalysisService.analyzeGeospatialRisk(any(), any())).thenReturn(8);\n        when(networkAnalysisService.analyzeNetworkRisk(any())).thenReturn(3);\n        \n        // When & Then\n        assertThatCode(() -> fraudDetectionService.isValidPayment(payment))\n            .doesNotThrowAnyException();\n        \n        assertThat(fraudDetectionService.calculateRiskScore(payment)).isLessThan(75);\n    }\n    \n    @Test\n    @DisplayName(\"Should block high-risk fraudulent payment\")\n    void shouldBlockHighRiskFraudulentPayment() {\n        // Given\n        Payment payment = createTestPayment(\"CUST-002\", BigDecimal.valueOf(50000), PaymentType.WIRE_TRANSFER);\n        \n        // Mock high risk scores from all services\n        when(mlModelService.predictRiskScore(any(MLFeatures.class))).thenReturn(85);\n        when(behavioralAnalysisService.analyzeBehavioralPatterns(any(), any())).thenReturn(25);\n        when(anomalyDetectionService.calculateAnomalyScore(any())).thenReturn(0.98);\n        when(geospatialAnalysisService.analyzeGeospatialRisk(any(), any())).thenReturn(40);\n        when(networkAnalysisService.analyzeNetworkRisk(any())).thenReturn(30);\n        \n        // When & Then\n        assertThatThrownBy(() -> fraudDetectionService.isValidPayment(payment))\n            .isInstanceOf(FraudDetectedException.class)\n            .hasMessageContaining(\"Payment blocked due to fraud detection\");\n        \n        assertThat(fraudDetectionService.calculateRiskScore(payment)).isGreaterThanOrEqualTo(75);\n    }\n    \n    @Test\n    @DisplayName(\"Should detect velocity limit violations\")\n    void shouldDetectVelocityLimitViolations() {\n        // Given\n        Payment payment = createTestPayment(\"CUST-003\", BigDecimal.valueOf(60000), PaymentType.BANK_TRANSFER);\n        \n        // Mock moderate ML score but high velocity\n        when(mlModelService.predictRiskScore(any(MLFeatures.class))).thenReturn(40);\n        when(behavioralAnalysisService.analyzeBehavioralPatterns(any(), any())).thenReturn(35); // High velocity risk\n        when(anomalyDetectionService.calculateAnomalyScore(any())).thenReturn(0.3);\n        when(geospatialAnalysisService.analyzeGeospatialRisk(any(), any())).thenReturn(10);\n        when(networkAnalysisService.analyzeNetworkRisk(any())).thenReturn(5);\n        \n        // When\n        boolean exceedsVelocity = fraudDetectionService.exceedsVelocityLimits(payment);\n        \n        // Then\n        assertThat(exceedsVelocity).isTrue();\n    }\n    \n    @Test\n    @DisplayName(\"Should detect suspicious behavioral patterns\")\n    void shouldDetectSuspiciousBehavioralPatterns() {\n        // Given\n        Payment payment = createTestPayment(\"CUST-004\", BigDecimal.valueOf(1000), PaymentType.ACH_TRANSFER);\n        \n        // Mock high behavioral risk\n        when(behavioralAnalysisService.analyzeBehavioralPatterns(any(), any())).thenReturn(45);\n        \n        // When\n        boolean suspiciousPattern = fraudDetectionService.isSuspiciousPattern(payment);\n        \n        // Then\n        assertThat(suspiciousPattern).isTrue();\n    }\n    \n    @Test\n    @DisplayName(\"Should handle ML model service errors gracefully\")\n    void shouldHandleMLModelServiceErrorsGracefully() {\n        // Given\n        Payment payment = createTestPayment(\"CUST-005\", BigDecimal.valueOf(1000), PaymentType.BANK_TRANSFER);\n        \n        // Mock ML service throwing exception\n        when(mlModelService.predictRiskScore(any(MLFeatures.class)))\n            .thenThrow(new RuntimeException(\"ML service unavailable\"));\n        \n        // When & Then\n        assertThatThrownBy(() -> fraudDetectionService.isValidPayment(payment))\n            .isInstanceOf(FraudDetectedException.class)\n            .hasMessageContaining(\"Payment blocked due to fraud detection service error\");\n    }\n    \n    @Test\n    @DisplayName(\"Should calculate accurate risk scores for different scenarios\")\n    void shouldCalculateAccurateRiskScoresForDifferentScenarios() {\n        // Scenario 1: Low risk\n        Payment lowRiskPayment = createTestPayment(\"CUST-LOW\", BigDecimal.valueOf(50), PaymentType.BANK_TRANSFER);\n        mockLowRiskScenario();\n        int lowRiskScore = fraudDetectionService.calculateRiskScore(lowRiskPayment);\n        \n        // Scenario 2: Medium risk\n        Payment mediumRiskPayment = createTestPayment(\"CUST-MED\", BigDecimal.valueOf(5000), PaymentType.ACH_TRANSFER);\n        mockMediumRiskScenario();\n        int mediumRiskScore = fraudDetectionService.calculateRiskScore(mediumRiskPayment);\n        \n        // Scenario 3: High risk\n        Payment highRiskPayment = createTestPayment(\"CUST-HIGH\", BigDecimal.valueOf(100000), PaymentType.WIRE_TRANSFER);\n        mockHighRiskScenario();\n        int highRiskScore = fraudDetectionService.calculateRiskScore(highRiskPayment);\n        \n        // Assertions\n        assertThat(lowRiskScore).isBetween(0, 30);\n        assertThat(mediumRiskScore).isBetween(31, 74);\n        assertThat(highRiskScore).isBetween(75, 100);\n        \n        // Risk scores should be ordered\n        assertThat(lowRiskScore).isLessThan(mediumRiskScore);\n        assertThat(mediumRiskScore).isLessThan(highRiskScore);\n    }\n    \n    @Test\n    @DisplayName(\"Should analyze geospatial risks correctly\")\n    void shouldAnalyzeGeospatialRisksCorrectly() {\n        // Given\n        Payment payment = createTestPayment(\"CUST-GEO\", BigDecimal.valueOf(1000), PaymentType.BANK_TRANSFER);\n        \n        // Mock high geospatial risk (unusual location)\n        when(mlModelService.predictRiskScore(any(MLFeatures.class))).thenReturn(20);\n        when(behavioralAnalysisService.analyzeBehavioralPatterns(any(), any())).thenReturn(10);\n        when(anomalyDetectionService.calculateAnomalyScore(any())).thenReturn(0.2);\n        when(geospatialAnalysisService.analyzeGeospatialRisk(any(), any())).thenReturn(50); // High geo risk\n        when(networkAnalysisService.analyzeNetworkRisk(any())).thenReturn(5);\n        \n        // When\n        int riskScore = fraudDetectionService.calculateRiskScore(payment);\n        \n        // Then\n        assertThat(riskScore).isGreaterThan(75); // Should be high risk due to geospatial factors\n        verify(geospatialAnalysisService).analyzeGeospatialRisk(eq(\"CUST-GEO\"), any());\n    }\n    \n    @Test\n    @DisplayName(\"Should integrate all fraud detection components\")\n    void shouldIntegrateAllFraudDetectionComponents() {\n        // Given\n        Payment payment = createTestPayment(\"CUST-INTEGRATED\", BigDecimal.valueOf(10000), PaymentType.WIRE_TRANSFER);\n        \n        // Mock all services\n        when(mlModelService.predictRiskScore(any(MLFeatures.class))).thenReturn(60);\n        when(behavioralAnalysisService.analyzeBehavioralPatterns(any(), any())).thenReturn(20);\n        when(anomalyDetectionService.calculateAnomalyScore(any())).thenReturn(0.7);\n        when(geospatialAnalysisService.analyzeGeospatialRisk(any(), any())).thenReturn(15);\n        when(networkAnalysisService.analyzeNetworkRisk(any())).thenReturn(10);\n        \n        // When\n        fraudDetectionService.calculateRiskScore(payment);\n        \n        // Then - verify all services were called\n        verify(mlModelService).predictRiskScore(any(MLFeatures.class));\n        verify(behavioralAnalysisService).analyzeBehavioralPatterns(eq(\"CUST-INTEGRATED\"), any());\n        verify(anomalyDetectionService).calculateAnomalyScore(any(MLFeatures.class));\n        verify(geospatialAnalysisService).analyzeGeospatialRisk(eq(\"CUST-INTEGRATED\"), any());\n        verify(networkAnalysisService).analyzeNetworkRisk(any());\n    }\n    \n    @Test\n    @DisplayName(\"Should handle edge cases for risk calculation\")\n    void shouldHandleEdgeCasesForRiskCalculation() {\n        // Given - Payment with zero amount\n        Payment zeroAmountPayment = createTestPayment(\"CUST-ZERO\", BigDecimal.ZERO, PaymentType.BANK_TRANSFER);\n        \n        // Mock services\n        when(mlModelService.predictRiskScore(any(MLFeatures.class))).thenReturn(0);\n        when(behavioralAnalysisService.analyzeBehavioralPatterns(any(), any())).thenReturn(0);\n        when(anomalyDetectionService.calculateAnomalyScore(any())).thenReturn(0.0);\n        when(geospatialAnalysisService.analyzeGeospatialRisk(any(), any())).thenReturn(0);\n        when(networkAnalysisService.analyzeNetworkRisk(any())).thenReturn(0);\n        \n        // When\n        int riskScore = fraudDetectionService.calculateRiskScore(zeroAmountPayment);\n        \n        // Then\n        assertThat(riskScore).isBetween(0, 100); // Should be within valid range\n    }\n    \n    // Helper methods\n    private Payment createTestPayment(String customerId, BigDecimal amount, PaymentType type) {\n        return Payment.builder()\n            .paymentId(\"PAY-\" + System.currentTimeMillis())\n            .customerId(customerId)\n            .fromAccountId(\"ACC-FROM-001\")\n            .toAccountId(\"ACC-TO-002\")\n            .amount(amount)\n            .paymentType(type)\n            .description(\"Test payment\")\n            .build();\n    }\n    \n    private void mockLowRiskScenario() {\n        when(mlModelService.predictRiskScore(any(MLFeatures.class))).thenReturn(10);\n        when(behavioralAnalysisService.analyzeBehavioralPatterns(any(), any())).thenReturn(5);\n        when(anomalyDetectionService.calculateAnomalyScore(any())).thenReturn(0.1);\n        when(geospatialAnalysisService.analyzeGeospatialRisk(any(), any())).thenReturn(3);\n        when(networkAnalysisService.analyzeNetworkRisk(any())).thenReturn(2);\n    }\n    \n    private void mockMediumRiskScenario() {\n        when(mlModelService.predictRiskScore(any(MLFeatures.class))).thenReturn(40);\n        when(behavioralAnalysisService.analyzeBehavioralPatterns(any(), any())).thenReturn(15);\n        when(anomalyDetectionService.calculateAnomalyScore(any())).thenReturn(0.5);\n        when(geospatialAnalysisService.analyzeGeospatialRisk(any(), any())).thenReturn(12);\n        when(networkAnalysisService.analyzeNetworkRisk(any())).thenReturn(8);\n    }\n    \n    private void mockHighRiskScenario() {\n        when(mlModelService.predictRiskScore(any(MLFeatures.class))).thenReturn(80);\n        when(behavioralAnalysisService.analyzeBehavioralPatterns(any(), any())).thenReturn(30);\n        when(anomalyDetectionService.calculateAnomalyScore(any())).thenReturn(0.95);\n        when(geospatialAnalysisService.analyzeGeospatialRisk(any(), any())).thenReturn(45);\n        when(networkAnalysisService.analyzeNetworkRisk(any())).thenReturn(25);\n    }\n}"

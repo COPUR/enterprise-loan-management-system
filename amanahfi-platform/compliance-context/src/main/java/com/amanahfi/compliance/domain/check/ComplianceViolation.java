@@ -47,6 +47,13 @@ public class ComplianceViolation {
         this.severityLevel = severityLevel;
         this.detectedAt = LocalDateTime.now();
     }
+    
+    /**
+     * Factory method to create a compliance violation
+     */
+    public static ComplianceViolation create(ViolationType violationType, SeverityLevel severityLevel, String description) {
+        return new ComplianceViolation(violationType, description, severityLevel);
+    }
 
     void assignToCheck(ComplianceCheck check) {
         this.complianceCheck = check;

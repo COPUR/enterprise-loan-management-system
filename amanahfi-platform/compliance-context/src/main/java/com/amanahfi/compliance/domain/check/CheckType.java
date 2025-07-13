@@ -20,6 +20,11 @@ public enum CheckType {
     CONTRACT_VALIDATION,
     
     /**
+     * Contract review for compliance and legal validation
+     */
+    CONTRACT_REVIEW,
+    
+    /**
      * Periodic customer review
      */
     PERIODIC_REVIEW,

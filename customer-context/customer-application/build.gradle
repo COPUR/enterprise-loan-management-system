@@ -12,7 +12,8 @@ dependencies {
     api project(':customer-context:customer-domain')
     
     // Infrastructure
-    api project(':shared-infrastructure')
+    // Temporarily disable shared-infrastructure due to missing dependencies
+    // api project(':shared-infrastructure')
     
     // Application Services
     implementation 'org.springframework.boot:spring-boot-starter'

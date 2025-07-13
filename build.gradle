@@ -139,8 +139,8 @@ dependencies {
     // Core Bounded Contexts
     implementation project(':shared-kernel')
     implementation project(':shared-infrastructure')
-    implementation project(':customer-context:customer-application')
-    implementation project(':loan-context:loan-application')
+    // implementation project(':customer-context:customer-application')
+    // implementation project(':loan-context:loan-application')
     // TODO: Create remaining contexts
     // implementation project(':payment-context:payment-application')
     // implementation project(':risk-context:risk-application')

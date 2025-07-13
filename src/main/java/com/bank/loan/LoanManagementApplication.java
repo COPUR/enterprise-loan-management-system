@@ -2,9 +2,8 @@ package com.bank.loan;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.context.annotation.Import;
+import com.bank.loan.config.ApplicationConfiguration;
 
 /**
  * Enterprise Banking System - Main Application
@@ -21,10 +20,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * - Regulatory Compliance (AML, GDPR, PCI DSS)
  * - Real-time Integration (Credit Bureau, Core Banking, Payment Gateway)
  */
-@SpringBootApplication
-@EnableJpaRepositories
-@EnableTransactionManagement
-@EnableCaching
+@SpringBootApplication(scanBasePackages = "com.bank.loan.config")
+@Import(ApplicationConfiguration.class)
 public class LoanManagementApplication {
 
     public static void main(String[] args) {
