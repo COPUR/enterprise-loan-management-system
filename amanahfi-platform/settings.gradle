@@ -1,0 +1,17 @@
+rootProject.name = 'amanahfi-platform'
+
+// Bounded Context Modules
+include 'onboarding-context'
+include 'accounts-context'
+include 'payments-context'
+include 'murabaha-context'
+include 'compliance-context'
+
+// Shared Kernel
+include 'shared-kernel'
+
+// Infrastructure
+include 'infrastructure'
+
+// API Gateway
+include 'api-gateway'

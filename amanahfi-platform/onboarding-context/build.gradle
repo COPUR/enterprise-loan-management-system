@@ -1,0 +1,10 @@
+description = 'AmanahFi Onboarding Context - Customer registration and KYC'
+
+dependencies {
+    implementation project(':amanahfi-platform:shared-kernel')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    
+    // eKYC and compliance
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+}

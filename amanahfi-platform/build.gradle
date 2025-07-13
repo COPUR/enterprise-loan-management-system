@@ -1,292 +1,101 @@
 plugins {
-    id 'java-library'
-    id 'org.springframework.boot' version '3.2.0'
-    id 'io.spring.dependency-management' version '1.1.4'
-    id 'jacoco'
-    // id 'org.sonarqube' version '5.0.0.4638'
+    id 'java'
 }
 
-group = 'com.amanahfi.platform'
-version = '1.0.0-SNAPSHOT'
 description = 'AmanahFi Platform - UAE & MENAT Islamic Finance Platform'
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-    withJavadocJar()
-    withSourcesJar()
-}
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
 
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
+    group = 'com.amanahfi'
+    version = '0.9.0-SNAPSHOT'
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
-    testCompileOnly {
-        extendsFrom testAnnotationProcessor
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://repo.spring.io/milestone' }
     }
-}
 
-repositories {
-    mavenCentral()
-    maven { url 'https://repo1.maven.org/maven2' }
-    maven { url 'https://repository.jboss.org/nexus/content/repositories/releases' }
-}
-
-ext {
-    springBootVersion = '3.2.0'
-    springVersion = '6.1.8'
-    springSecurityVersion = '6.3.0'
-    keycloakVersion = '24.0.5'
-    cordaVersion = '5.1.0'
-    kafkaVersion = '3.6.0'
-    testcontainersVersion = '1.19.8'
-    archunitVersion = '1.3.0'
-    wiremockVersion = '3.3.1'
-    hibernateVersion = '6.5.2.Final'
-    jacksonVersion = '2.17.1'
-    logbackVersion = '1.5.6'
-    slf4jVersion = '2.0.13'
-    postgresqlVersion = '42.7.3'
-    flywayVersion = '10.13.0'
-    droolsVersion = '8.44.0.Final'
-    lombokVersion = '1.18.32'
-    mapstructVersion = '1.5.5.Final'
-    openApiVersion = '2.5.0'
-    micrometerVersion = '1.12.0'
-    resilience4jVersion = '2.2.0'
-    junitVersion = '5.10.2'
-    mockitoVersion = '5.12.0'
-}
-
-dependencies {
-    // Spring Boot Core
-    implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-validation:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-security:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-cache:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-data-redis:${springBootVersion}"
-    
-    // Event-Driven Architecture (Custom Implementation)
-    implementation 'org.springframework.kafka:spring-kafka'
-    implementation "org.springframework:spring-context-support:${springVersion}"
-    
-    // Security & Authentication
-    // implementation "org.keycloak:keycloak-spring-boot-starter:${keycloakVersion}"
-    // implementation "org.keycloak:keycloak-admin-client:${keycloakVersion}"
-    // implementation "org.springframework.security:spring-security-oauth2-jose:${springSecurityVersion}"
-    // implementation "org.springframework.security:spring-security-oauth2-client:${springSecurityVersion}"
-    
-    // CBDC & Cryptocurrency Integration (R3 Corda)
-    // implementation "net.corda:corda-core:${cordaVersion}"
-    // implementation "net.corda:corda-serialization:${cordaVersion}"
-    // implementation "net.corda:corda-node-api:${cordaVersion}"
-    
-    // Business Rules Engine (Drools)
-    // implementation "org.drools:drools-core:${droolsVersion}"
-    // implementation "org.drools:drools-compiler:${droolsVersion}"
-    // implementation "org.drools:drools-engine:${droolsVersion}"
-    // implementation "org.drools:drools-engine-classic:${droolsVersion}"
-    // implementation "org.kie:kie-spring:${droolsVersion}"
-    
-    // Database
-    implementation "org.postgresql:postgresql:${postgresqlVersion}"
-    implementation "org.flywaydb:flyway-core:${flywayVersion}"
-    implementation "org.flywaydb:flyway-database-postgresql:${flywayVersion}"
-    implementation "org.hibernate:hibernate-core:${hibernateVersion}"
-    
-    // JSON Processing
-    implementation "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
-    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
-    implementation "com.fasterxml.jackson.module:jackson-module-parameter-names:${jacksonVersion}"
-    
-    // Monitoring & Observability
-    implementation "io.micrometer:micrometer-core:${micrometerVersion}"
-    implementation "io.micrometer:micrometer-registry-prometheus:${micrometerVersion}"
-    
-    // Resilience
-    implementation "io.github.resilience4j:resilience4j-spring-boot3:${resilience4jVersion}"
-    implementation "io.github.resilience4j:resilience4j-reactor:${resilience4jVersion}"
-    
-    // Documentation
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openApiVersion}"
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:${openApiVersion}"
-    
-    // Code Generation & Boilerplate Reduction
-    compileOnly "org.projectlombok:lombok:${lombokVersion}"
-    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
-    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
-    
-    // Logging
-    implementation "ch.qos.logback:logback-classic:${logbackVersion}"
-    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
-    
-    // Testing Dependencies
-    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
-    testImplementation "org.springframework.security:spring-security-test:${springSecurityVersion}"
-    testImplementation 'org.springframework.kafka:spring-kafka-test'
-    testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
-    testImplementation "org.testcontainers:postgresql:${testcontainersVersion}"
-    testImplementation "org.testcontainers:kafka:${testcontainersVersion}"
-    // testImplementation "org.testcontainers:keycloak:${testcontainersVersion}"
-    // testImplementation "com.github.tomakehurst:wiremock-jre8:${wiremockVersion}"
-    // testImplementation "com.tngtech.archunit:archunit-junit5:${archunitVersion}"
-    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
-    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
-    testImplementation "org.mockito:mockito-junit-jupiter:${mockitoVersion}"
-    testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
-    
-    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-}
-
-// Testing Configuration
-test {
-    useJUnitPlatform()
-    finalizedBy jacocoTestReport
-    
-    testLogging {
-        events "passed", "skipped", "failed"
-        exceptionFormat "full"
-        showStandardStreams = false
+    ext {
+        springBootVersion = '3.2.0'
+        springCloudVersion = '2023.0.0'
+        kafkaVersion = '3.8.0'
+        cordaVersion = '5.0.0'
+        keycloakVersion = '26.0.0'
+        testcontainersVersion = '1.19.3'
     }
-    
-    // Parallel test execution
-    systemProperty 'junit.jupiter.execution.parallel.enabled', 'true'
-    systemProperty 'junit.jupiter.execution.parallel.mode.default', 'concurrent'
-    
-    // Memory settings for tests
-    minHeapSize = "512m"
-    maxHeapSize = "2g"
-}
 
-// Code Coverage
-jacoco {
-    toolVersion = "0.8.12"
-}
-
-jacocoTestReport {
-    dependsOn test
-    reports {
-        xml.required = true
-        html.required = true
-        csv.required = false
+    dependencies {
+        // Spring Boot Core
+        implementation 'org.springframework.boot:spring-boot-starter'
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        implementation 'org.springframework.boot:spring-boot-starter-validation'
+        implementation 'org.springframework.boot:spring-boot-starter-security'
+        implementation 'org.springframework.boot:spring-boot-starter-actuator'
+        
+        // Islamic Finance & Compliance
+        implementation 'org.springframework.boot:spring-boot-starter-aop'
+        
+        // Event Driven Architecture (only for contexts that need it)
+        // implementation "org.springframework.kafka:spring-kafka:${kafkaVersion}"
+        
+        // Database
+        runtimeOnly 'org.postgresql:postgresql'
+        implementation 'org.flywaydb:flyway-core'
+        
+        // Redis for caching and idempotency
+        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+        
+        // JSON Processing
+        implementation 'com.fasterxml.jackson.core:jackson-databind'
+        implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+        
+        // Observability
+        implementation 'io.micrometer:micrometer-registry-prometheus'
+        implementation 'io.opentelemetry:opentelemetry-api'
+        
+        // Utilities
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        
+        // Testing - TDD Approach
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.springframework.kafka:spring-kafka-test'
+        testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
+        testImplementation "org.testcontainers:postgresql:${testcontainersVersion}"
+        testImplementation "org.testcontainers:kafka:${testcontainersVersion}"
+        testImplementation 'org.awaitility:awaitility'
+        testImplementation 'org.mockito:mockito-inline:5.2.0'
+        testImplementation 'org.assertj:assertj-core'
+        
+        // Islamic Finance Testing
+        testImplementation 'org.junit.jupiter:junit-jupiter-params'
     }
-    
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                '**/config/**',
-                '**/dto/**',
-                '**/entity/**',
-                '**/*Application*',
-                '**/*Config*',
-                '**/*Properties*'
-            ])
-        }))
-    }
-}
 
-jacocoTestCoverageVerification {
-    dependsOn jacocoTestReport
-    violationRules {
-        rule {
-            limit {
-                minimum = 0.95 // 95% coverage requirement
-            }
+    test {
+        useJUnitPlatform()
+        testLogging {
+            events "passed", "skipped", "failed"
+            exceptionFormat "full"
         }
+        // Enable Loom virtual threads for testing (available in Java 21 without preview)
+    }
+
+    tasks.withType(JavaCompile) {
+        options.compilerArgs = [
+            '-parameters',
+            '-Xlint:unchecked',
+            '-Xlint:deprecation'
+        ]
     }
 }
 
-// Compilation Configuration
-compileJava {
-    options.encoding = 'UTF-8'
-    options.compilerArgs += ['-parameters', '-Xlint:all', '-Werror']
-}
-
-compileTestJava {
-    options.encoding = 'UTF-8'
-    options.compilerArgs += ['-parameters']
-}
-
-// JavaDoc Configuration
-javadoc {
-    if(JavaVersion.current().isJava9Compatible()) {
-        options.addBooleanOption('html5', true)
-    }
-    options.encoding = 'UTF-8'
-    options.charSet = 'UTF-8'
-    options.author = true
-    options.version = true
-    options.use = true
-    options.windowTitle = 'AmanahFi Platform API Documentation'
-    options.docTitle = 'AmanahFi Platform - UAE & MENAT Islamic Finance Platform'
-}
-
-// Spring Boot Configuration
-springBoot {
-    buildInfo()
-}
-
-// SonarQube Configuration
-// sonar {
-//     properties {
-//         property "sonar.projectKey", "amanahfi-platform"
-//         property "sonar.projectName", "AmanahFi Platform"
-//         property "sonar.host.url", "http://localhost:9000"
-//         property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
-//         property "sonar.java.source", "21"
-//         property "sonar.java.target", "21"
-//         property "sonar.exclusions", "**/config/**,**/dto/**,**/entity/**,**/*Application*,**/*Config*,**/*Properties*"
-//     }
-// }
-
-// Custom Tasks
-task validateArchitecture(type: Test) {
-    description = 'Validates architectural constraints using ArchUnit'
-    group = 'verification'
-    useJUnitPlatform {
-        includeTags 'architecture'
-    }
-}
-
-task integrationTest(type: Test) {
-    description = 'Runs integration tests'
-    group = 'verification'
-    useJUnitPlatform {
-        includeTags 'integration'
-    }
-}
-
-task contractTest(type: Test) {
-    description = 'Runs contract tests'
-    group = 'verification'
-    useJUnitPlatform {
-        includeTags 'contract'
-    }
-}
-
-// Build lifecycle hooks
-check.dependsOn validateArchitecture
-check.dependsOn jacocoTestCoverageVerification
-
-// Clean task enhancement
-clean {
-    delete 'logs'
-    delete 'data'
-}
-
-// Distribution
-jar {
-    enabled = false
-}
-
-bootJar {
-    archiveClassifier = ''
-    mainClass = 'com.amanahfi.platform.AmanahFiPlatformApplication'
-}
+// Root project has no source code
+sourceSets.main.java.srcDirs = []

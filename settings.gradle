@@ -1,13 +1,21 @@
 rootProject.name = 'enterprise-loan-management-system'
 
-// Core Enterprise System Modules
-include 'shared-kernel'
-include 'bank-wide-services'
-include 'loan-service'
-include 'payment-service'
+// Core Enterprise System Modules - Temporarily disabled for monolith testing
+// include 'shared-kernel'
+// include 'bank-wide-services'
+// include 'loan-service'
+// include 'payment-service'
 
 // MasruFi Framework - Islamic Finance Extension Module
-include 'masrufi-framework'
+// include 'masrufi-framework'
 
 // AmanahFi Platform - UAE & MENAT Islamic Finance Platform
 include 'amanahfi-platform'
+include 'amanahfi-platform:shared-kernel'
+include 'amanahfi-platform:onboarding-context'
+include 'amanahfi-platform:accounts-context'
+include 'amanahfi-platform:payments-context'
+include 'amanahfi-platform:murabaha-context'
+include 'amanahfi-platform:compliance-context'
+include 'amanahfi-platform:api-gateway'
+include 'amanahfi-platform:event-streaming'

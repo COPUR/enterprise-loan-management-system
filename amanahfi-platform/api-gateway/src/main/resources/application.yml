@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: amanahfi-api-gateway
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8086/oauth2
+  
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,auditevents
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.amanahfi.gateway: DEBUG
+    org.springframework.security: DEBUG
+    AUDIT: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

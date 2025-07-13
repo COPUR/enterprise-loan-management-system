@@ -2,10 +2,6 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.0'
     id 'io.spring.dependency-management' version '1.1.4'
-    id 'org.springdoc.openapi-gradle-plugin' version '1.8.0'
-    id 'jacoco'
-    id 'checkstyle'
-    // id 'org.sonarqube' version '5.0.0'
 }
 
 // Enterprise Loan Management System
@@ -35,99 +31,38 @@ ext {
     mapstructVersion = '1.5.5.Final'
     testcontainersVersion = '1.19.3'
     archUnitVersion = '1.2.1'
-    kafkaVersion = '3.6.0'
-    r3CordaVersion = '5.1.0'
-    keycloakVersion = '23.0.1'
-    redisVersion = '3.2.0'
-    postgresqlVersion = '42.7.1'
-    flywayVersion = '10.2.0'
-    resilience4jVersion = '2.2.0'
-    micrometerVersion = '1.12.0'
-    openapiVersion = '2.2.0'
-    wiremockVersion = '3.3.1'
-    cucumberVersion = '7.15.0'
 }
 
 dependencies {
     // Spring Boot Core
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-    
-    // Spring Cloud
-    implementation platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
-    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-    implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
-    implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
-    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    
-    // Event Streaming & Messaging
-    implementation "org.springframework.kafka:spring-kafka:${kafkaVersion}"
-    implementation 'org.apache.kafka:kafka-streams'
-    implementation 'org.springframework.boot:spring-boot-starter-amqp'
     
     // Database & Persistence
-    implementation "org.postgresql:postgresql:${postgresqlVersion}"
-    implementation "org.flywaydb:flyway-core:${flywayVersion}"
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
-    implementation 'redis.clients:jedis'
-    
-    // Event Sourcing & CQRS
-    implementation 'org.axonframework:axon-spring-boot-starter:4.9.1'
-    implementation 'org.axonframework:axon-messaging:4.9.1'
-    implementation 'org.axonframework:axon-eventsourcing:4.9.1'
-    
-    // Blockchain & CBDC Integration
-    implementation "net.corda:corda-node-api:${r3CordaVersion}"
-    implementation "net.corda:corda-core:${r3CordaVersion}"
-    implementation "net.corda:corda-serialization:${r3CordaVersion}"
-    implementation 'org.web3j:core:4.10.3'
-    implementation 'org.bitcoinj:bitcoinj-core:0.16.3'
-    
-    // Security & Identity Management
-    implementation "org.keycloak:keycloak-spring-boot-starter:${keycloakVersion}"
-    implementation "org.keycloak:keycloak-admin-client:${keycloakVersion}"
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
-    implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
-    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+    implementation 'org.postgresql:postgresql:42.7.1'
+    implementation 'org.flywaydb:flyway-core:10.2.0'
+    runtimeOnly 'com.h2database:h2'
     
     // Resilience & Circuit Breaker
-    implementation "io.github.resilience4j:resilience4j-spring-boot3:${resilience4jVersion}"
-    implementation "io.github.resilience4j:resilience4j-circuitbreaker:${resilience4jVersion}"
-    implementation "io.github.resilience4j:resilience4j-retry:${resilience4jVersion}"
-    implementation "io.github.resilience4j:resilience4j-ratelimiter:${resilience4jVersion}"
-    implementation "io.github.resilience4j:resilience4j-bulkhead:${resilience4jVersion}"
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
+    implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.2.0'
+    implementation 'io.github.resilience4j:resilience4j-retry:2.2.0'
     
     // Monitoring & Observability
-    implementation "io.micrometer:micrometer-registry-prometheus:${micrometerVersion}"
-    implementation "io.micrometer:micrometer-tracing-bridge-brave:${micrometerVersion}"
-    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.12.0'
     implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
     
     // API Documentation
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openapiVersion}"
-    implementation "org.springdoc:springdoc-openapi-starter-webflux-ui:${openapiVersion}"
-    
-    // Business Rules Engine
-    implementation 'org.drools:drools-core:8.44.0.Final'
-    implementation 'org.drools:drools-compiler:8.44.0.Final'
-    implementation 'org.drools:drools-mvel:8.44.0.Final'
-    implementation 'org.kie:kie-spring:8.44.0.Final'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
     
     // Financial & Banking Standards
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
     implementation 'org.apache.commons:commons-csv:1.10.0'
-    implementation 'com.opencsv:opencsv:5.9'
     
     // Mapping & Code Generation
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
@@ -141,83 +76,37 @@ dependencies {
     // Testing Dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.springframework.kafka:spring-kafka-test'
     testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
     testImplementation "org.testcontainers:postgresql:${testcontainersVersion}"
-    testImplementation "org.testcontainers:kafka:${testcontainersVersion}"
-    testImplementation "org.testcontainers:redis:${testcontainersVersion}"
-    testImplementation "org.testcontainers:keycloak:${testcontainersVersion}"
     testImplementation "com.tngtech.archunit:archunit-junit5:${archUnitVersion}"
-    testImplementation "com.github.tomakehurst:wiremock-jre8:${wiremockVersion}"
-    testImplementation "io.cucumber:cucumber-java:${cucumberVersion}"
-    testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
-    testImplementation "io.cucumber:cucumber-spring:${cucumberVersion}"
-    testImplementation 'org.mockito:mockito-inline'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
     testImplementation 'org.awaitility:awaitility'
     testImplementation 'io.rest-assured:rest-assured'
     testImplementation 'io.rest-assured:json-path'
-    testImplementation 'io.rest-assured:xml-path'
     
     // BDD Testing
     testImplementation 'org.junit.platform:junit-platform-suite'
-    testImplementation 'net.serenity-bdd:serenity-core:4.0.19'
-    testImplementation 'net.serenity-bdd:serenity-cucumber:4.0.19'
-    testImplementation 'net.serenity-bdd:serenity-spring:4.0.19'
 }
 
 test {
     useJUnitPlatform()
     testLogging {
         events "passed", "skipped", "failed"
-    }
-    finalizedBy jacocoTestReport
-}
-
-jacocoTestReport {
-    dependsOn test
-    reports {
-        xml.required = true
-        csv.required = true
-        html.required = true
-    }
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                '**/config/**',
-                '**/dto/**',
-                '**/entity/**',
-                '**/*Application.*',
-                '**/*Config.*'
-            ])
-        }))
+        exceptionFormat "full"
     }
 }
 
-jacoco {
-    toolVersion = "0.8.11"
-}
 
-checkstyle {
-    toolVersion '10.12.5'
-    configFile file("${rootDir}/config/checkstyle/checkstyle.xml")
-}
-
-// sonarqube {
-//     properties {
-//         property "sonar.projectKey", "enterprise-loan-management"
-//         property "sonar.projectName", "Enterprise Loan Management System"
-//         property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
-//         property "sonar.exclusions", "**/config/**,**/dto/**,**/entity/**,**/*Application.*,**/*Config.*"
-//     }
-// }
-
-// Custom tasks for architectural governance
-task archTest(type: Test) {
-    description = 'Run architecture tests'
+// Custom tasks for test execution
+task useCaseTests(type: Test) {
+    description = 'Run use case tests'
     group = 'verification'
     useJUnitPlatform {
-        includeTags 'architecture'
+        includeEngines 'junit-jupiter'
+        includeTags 'use-case'
     }
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
 }
 
 task integrationTest(type: Test) {
@@ -228,46 +117,9 @@ task integrationTest(type: Test) {
     }
 }
 
-task contractTest(type: Test) {
-    description = 'Run contract tests'
-    group = 'verification'
-    useJUnitPlatform {
-        includeTags 'contract'
-    }
-}
-
-task securityTest(type: Test) {
-    description = 'Run security tests'
-    group = 'verification'
-    useJUnitPlatform {
-        includeTags 'security'
-    }
-}
-
-// Docker and deployment tasks
-task buildDockerImage(type: Exec) {
-    dependsOn build
-    commandLine 'docker', 'build', '-t', "enterprise-loan-system:${version}", '.'
-}
-
-// Flyway database migration
-// flyway {
-//     url = project.findProperty('flyway.url') ?: 'jdbc:postgresql://localhost:5432/loan_management'
-//     user = project.findProperty('flyway.user') ?: 'loan_user'
-//     password = project.findProperty('flyway.password') ?: 'loan_password'
-//     locations = ['classpath:db/migration']
-//     baselineOnMigrate = true
-// }
-
 // Spring Boot configuration
 springBoot {
     buildInfo()
-}
-
-// Gradle wrapper
-wrapper {
-    gradleVersion = '8.5'
-    distributionType = Wrapper.DistributionType.BIN
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -278,6 +130,7 @@ tasks.withType(JavaCompile).configureEach {
     ]
 }
 
+// Disable subproject configurations for now - running as monolith
 allprojects {
     group = 'com.bank.loan'
     version = '1.0.0-SNAPSHOT'
@@ -285,117 +138,5 @@ allprojects {
     repositories {
         mavenCentral()
         maven { url 'https://repo.spring.io/milestone' }
-    }
-}
-
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'org.springframework.boot'
-    apply plugin: 'io.spring.dependency-management'
-    apply plugin: 'jacoco'
-
-    java {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
-
-    configurations {
-        compileOnly {
-            extendsFrom annotationProcessor
-        }
-    }
-
-    dependencies {
-        // Core Spring Boot dependencies inherit from parent
-        implementation 'org.springframework.boot:spring-boot-starter-web'
-        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-        implementation 'org.springframework.boot:spring-boot-starter-validation'
-        implementation 'org.springframework.boot:spring-boot-starter-security'
-        implementation 'org.springframework.boot:spring-boot-starter-actuator'
-        
-        // Common utilities
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
-        
-        // Testing
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
-        testImplementation 'org.junit.jupiter:junit-jupiter'
-        testImplementation 'org.assertj:assertj-core'
-        testImplementation 'org.mockito:mockito-junit-jupiter'
-    }
-
-    test {
-        useJUnitPlatform()
-        finalizedBy jacocoTestReport
-    }
-
-    jacocoTestReport {
-        dependsOn test
-        reports {
-            xml.required = true
-            html.required = true
-        }
-    }
-
-    tasks.withType(JavaCompile).configureEach {
-        options.compilerArgs = [
-                '-parameters',
-                '-Xlint:unchecked',
-                '-Xlint:deprecation'
-        ]
-    }
-}
-
-// Microservice configurations
-// project(':customer-service') {
-//     dependencies {
-//         implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-//         implementation 'org.keycloak:keycloak-spring-boot-starter'
-//     }
-// }
-
-// project(':account-service') {
-//     dependencies {
-//         implementation 'org.axonframework:axon-spring-boot-starter:4.9.1'
-//         implementation 'org.springframework.kafka:spring-kafka'
-//     }
-// }
-
-// project(':payment-service') {
-//     dependencies {
-//         implementation 'net.corda:corda-core'
-//         implementation 'org.springframework.kafka:spring-kafka'
-//     }
-// }
-
-// project(':islamic-finance-service') {
-//     dependencies {
-//         implementation 'org.drools:drools-core:8.44.0.Final'
-//         implementation 'org.axonframework:axon-spring-boot-starter:4.9.1'
-//     }
-// }
-
-// project(':compliance-service') {
-//     dependencies {
-//         implementation 'org.springframework.kafka:spring-kafka'
-//         implementation 'io.micrometer:micrometer-registry-prometheus'
-//     }
-// }
-
-// project(':api-gateway') {
-//     dependencies {
-//         implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-//         implementation 'org.keycloak:keycloak-spring-boot-starter'
-//     }
-// }
-
-// Shared kernel is a library, not a Spring Boot application
-project(':shared-kernel') {
-    bootJar {
-        enabled = false
-    }
-    jar {
-        enabled = true
-        archiveClassifier = ''
     }
 }

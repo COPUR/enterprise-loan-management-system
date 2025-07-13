@@ -1,0 +1,84 @@
+# Build output
+build/
+out/
+target/
+*.jar
+*.war
+*.ear
+*.class
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+.gradletasknamecache
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+log/
+
+# Runtime
+*.pid
+*.seed
+*.pid.lock
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Node modules (if any frontend dependencies)
+node_modules/
+npm-debug.log*
+
+# Docker
+.dockerignore
+
+# Spring Boot
+application-*.yml
+application-*.yaml
+application-*.properties
+!application.yml
+!application.yaml
+!application.properties
+
+# Kubernetes secrets
+*-secret.yaml
+*-secret.yml
+
+# Helm packages
+*.tgz
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Test reports
+test-results/

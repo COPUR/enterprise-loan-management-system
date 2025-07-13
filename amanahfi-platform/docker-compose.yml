@@ -1,430 +1,197 @@
-# AmanahFi Platform - Docker Compose for Local Development
-# This compose file sets up the complete AmanahFi ecosystem for local development
 version: '3.8'
 
 services:
-  # AmanahFi Platform Application
-  amanahfi-platform:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
-      args:
-        BUILDKIT_INLINE_CACHE: 1
-    image: amanahfi/platform:latest
-    container_name: amanahfi-platform
-    hostname: amanahfi-platform
-    restart: unless-stopped
-    
-    environment:
-      # Spring profiles
-      SPRING_PROFILES_ACTIVE: development,docker,amanahfi
-      SERVER_PORT: 8080
-      MANAGEMENT_SERVER_PORT: 8081
-      
-      # Database configuration
-      DATABASE_URL: jdbc:postgresql://postgres:5432/amanahfi_platform
-      DATABASE_USERNAME: amanahfi_user
-      DATABASE_PASSWORD: amanahfi_dev_password
-      
-      # Redis configuration
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: redis_dev_password
-      REDIS_DATABASE: 0
-      
-      # Kafka configuration
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      
-      # Islamic Finance settings
-      ISLAMIC_FINANCE_ENABLED: "true"
-      SHARIA_COMPLIANCE_MODE: development
-      
-      # CBDC settings
-      CBDC_INTEGRATION_ENABLED: "true"
-      DIGITAL_DIRHAM_NETWORK: development
-      CORDA_NETWORK_ENDPOINT: http://corda-node:10003
-      
-      # Security settings (relaxed for development)
-      SECURITY_REQUIRE_SSL: "false"
-      OAUTH2_ISSUER_URI: http://keycloak:8080/auth/realms/amanahfi
-      DPOP_VALIDATION_ENABLED: "false"
-      MTLS_ENABLED: "false"
-      
-      # Regulatory APIs (mock endpoints)
-      CBUAE_API_ENDPOINT: http://mock-regulatory-apis:8090/cbuae
-      VARA_API_ENDPOINT: http://mock-regulatory-apis:8090/vara
-      HSA_API_ENDPOINT: http://mock-regulatory-apis:8090/hsa
-      
-      # Development settings
-      LOGGING_LEVEL_ROOT: INFO
-      LOGGING_LEVEL_COM_AMANAHFI: DEBUG
-      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "*"
-      
-    ports:
-      - "8080:8080"  # Application port
-      - "8081:8081"  # Management port
-    
-    volumes:
-      - ./logs:/app/logs
-      - ./config:/app/config/external:ro
-    
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_started
-      keycloak:
-        condition: service_healthy
-    
-    networks:
-      - amanahfi-network
-    
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.amanahfi-platform.rule=Host(`api.amanahfi.local`)"
-      - "traefik.http.routers.amanahfi-platform.entrypoints=web"
-      - "traefik.http.services.amanahfi-platform.loadbalancer.server.port=8080"
-    
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  # PostgreSQL Database
+  # Infrastructure Services
   postgres:
     image: postgres:15-alpine
     container_name: amanahfi-postgres
-    hostname: postgres
-    restart: unless-stopped
-    
     environment:
-      POSTGRES_DB: amanahfi_platform
-      POSTGRES_USER: amanahfi_user
-      POSTGRES_PASSWORD: amanahfi_dev_password
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
-    
+      POSTGRES_DB: amanahfi
+      POSTGRES_USER: amanahfi
+      POSTGRES_PASSWORD: amanahfi-password
     ports:
       - "5432:5432"
-    
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
-      - ./docker/postgres/config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
-    
-    command: >
-      postgres 
-      -c config_file=/etc/postgresql/postgresql.conf
-      -c log_statement=all
-      -c log_duration=on
-      -c log_min_duration_statement=0
-    
     networks:
       - amanahfi-network
-    
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U amanahfi_user -d amanahfi_platform"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: amanahfi-redis
-    hostname: redis
-    restart: unless-stopped
-    
-    command: >
-      redis-server 
-      --requirepass redis_dev_password
-      --appendonly yes
-      --appendfsync everysec
-      --save 60 1000
-    
-    ports:
-      - "6379:6379"
-    
-    volumes:
-      - redis_data:/data
-      - ./docker/redis/redis.conf:/etc/redis/redis.conf:ro
-    
-    networks:
-      - amanahfi-network
-    
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "redis_dev_password", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-
-  # Apache Kafka
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     container_name: amanahfi-kafka
-    hostname: kafka
-    restart: unless-stopped
-    
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
-      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
-      KAFKA_NUM_PARTITIONS: 3
-      KAFKA_LOG_RETENTION_HOURS: 168
-      KAFKA_LOG_SEGMENT_BYTES: 1073741824
-      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 300000
-    
-    ports:
-      - "29092:29092"
-    
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
     volumes:
       - kafka_data:/var/lib/kafka/data
-    
-    depends_on:
-      - zookeeper
-    
     networks:
       - amanahfi-network
 
-  # Apache Zookeeper (for Kafka)
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
     container_name: amanahfi-zookeeper
-    hostname: zookeeper
-    restart: unless-stopped
-    
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-      ZOOKEEPER_INIT_LIMIT: 5
-      ZOOKEEPER_SYNC_LIMIT: 2
-    
     ports:
       - "2181:2181"
-    
     volumes:
       - zookeeper_data:/var/lib/zookeeper/data
-      - zookeeper_logs:/var/lib/zookeeper/log
-    
     networks:
       - amanahfi-network
 
-  # Keycloak Identity and Access Management
-  keycloak:
-    image: quay.io/keycloak/keycloak:22.0
-    container_name: amanahfi-keycloak
-    hostname: keycloak
-    restart: unless-stopped
-    
+  redis:
+    image: redis:7-alpine
+    container_name: amanahfi-redis
+    command: redis-server --requirepass amanahfi-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - amanahfi-network
+
+  # Application Services
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: amanahfi-api-gateway
+    ports:
+      - "8080:8080"
     environment:
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
-      KC_DB_USERNAME: keycloak_user
-      KC_DB_PASSWORD: keycloak_dev_password
-      KC_HOSTNAME: keycloak.amanahfi.local
-      KC_HTTP_ENABLED: "true"
-      KC_HTTP_PORT: 8080
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin_dev_password
-    
-    command: start-dev --import-realm
-    
-    ports:
-      - "8180:8080"
-    
-    volumes:
-      - ./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
-      - keycloak_data:/opt/keycloak/data
-    
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PASSWORD: amanahfi-redis
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://eureka:8761/eureka
     depends_on:
-      postgres:
-        condition: service_healthy
-    
+      - redis
     networks:
       - amanahfi-network
-    
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
-  # Mock Regulatory APIs for Development
-  mock-regulatory-apis:
-    image: wiremock/wiremock:3.0.0
-    container_name: amanahfi-mock-regulatory-apis
-    hostname: mock-regulatory-apis
-    restart: unless-stopped
-    
+  onboarding-service:
+    build:
+      context: ./onboarding-context
+      dockerfile: Dockerfile
+    container_name: amanahfi-onboarding
     ports:
-      - "8090:8080"
-    
-    volumes:
-      - ./docker/wiremock/mappings:/home/wiremock/mappings:ro
-      - ./docker/wiremock/__files:/home/wiremock/__files:ro
-    
-    command: --global-response-templating --verbose
-    
-    networks:
-      - amanahfi-network
-
-  # Mock Corda Node for CBDC Development
-  corda-node-mock:
-    image: corda/corda-zulu-java8:4.9
-    container_name: amanahfi-corda-mock
-    hostname: corda-node
-    restart: unless-stopped
-    
-    ports:
-      - "10002:10002"  # P2P port
-      - "10003:10003"  # RPC port
-      - "10004:10004"  # SSH port
-    
-    volumes:
-      - ./docker/corda/node.conf:/opt/corda/node.conf:ro
-      - ./docker/corda/cordapps:/opt/corda/cordapps:ro
-      - corda_data:/opt/corda/persistence
-    
-    networks:
-      - amanahfi-network
-
-  # Traefik Reverse Proxy
-  traefik:
-    image: traefik:v3.0
-    container_name: amanahfi-traefik
-    hostname: traefik
-    restart: unless-stopped
-    
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--accesslog=true"
-      - "--log.level=INFO"
-    
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8088:8080"  # Traefik dashboard
-    
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./docker/traefik/config:/etc/traefik/dynamic:ro
-    
-    networks:
-      - amanahfi-network
-
-  # Prometheus Monitoring
-  prometheus:
-    image: prom/prometheus:v2.47.0
-    container_name: amanahfi-prometheus
-    hostname: prometheus
-    restart: unless-stopped
-    
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=15d'
-      - '--web.enable-lifecycle'
-    
-    ports:
-      - "9090:9090"
-    
-    volumes:
-      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./docker/prometheus/rules:/etc/prometheus/rules:ro
-      - prometheus_data:/prometheus
-    
-    networks:
-      - amanahfi-network
-
-  # Grafana Dashboard
-  grafana:
-    image: grafana/grafana:10.1.0
-    container_name: amanahfi-grafana
-    hostname: grafana
-    restart: unless-stopped
-    
+      - "8081:8081"
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin_dev_password
-      GF_USERS_ALLOW_SIGN_UP: "false"
-      GF_INSTALL_PLUGINS: grafana-piechart-panel
-    
-    ports:
-      - "3000:3000"
-    
-    volumes:
-      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
-      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
-      - grafana_data:/var/lib/grafana
-    
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/amanahfi
+      SPRING_DATASOURCE_USERNAME: amanahfi
+      SPRING_DATASOURCE_PASSWORD: amanahfi-password
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PASSWORD: amanahfi-redis
     depends_on:
-      - prometheus
-    
+      - postgres
+      - kafka
+      - redis
     networks:
       - amanahfi-network
 
-# Named volumes for data persistence
+  accounts-service:
+    build:
+      context: ./accounts-context
+      dockerfile: Dockerfile
+    container_name: amanahfi-accounts
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/amanahfi
+      SPRING_DATASOURCE_USERNAME: amanahfi
+      SPRING_DATASOURCE_PASSWORD: amanahfi-password
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PASSWORD: amanahfi-redis
+    depends_on:
+      - postgres
+      - kafka
+      - redis
+    networks:
+      - amanahfi-network
+
+  payments-service:
+    build:
+      context: ./payments-context
+      dockerfile: Dockerfile
+    container_name: amanahfi-payments
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/amanahfi
+      SPRING_DATASOURCE_USERNAME: amanahfi
+      SPRING_DATASOURCE_PASSWORD: amanahfi-password
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PASSWORD: amanahfi-redis
+    depends_on:
+      - postgres
+      - kafka
+      - redis
+    networks:
+      - amanahfi-network
+
+  murabaha-service:
+    build:
+      context: ./murabaha-context
+      dockerfile: Dockerfile
+    container_name: amanahfi-murabaha
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/amanahfi
+      SPRING_DATASOURCE_USERNAME: amanahfi
+      SPRING_DATASOURCE_PASSWORD: amanahfi-password
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PASSWORD: amanahfi-redis
+    depends_on:
+      - postgres
+      - kafka
+      - redis
+    networks:
+      - amanahfi-network
+
+  compliance-service:
+    build:
+      context: ./compliance-context
+      dockerfile: Dockerfile
+    container_name: amanahfi-compliance
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/amanahfi
+      SPRING_DATASOURCE_USERNAME: amanahfi
+      SPRING_DATASOURCE_PASSWORD: amanahfi-password
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PASSWORD: amanahfi-redis
+    depends_on:
+      - postgres
+      - kafka
+      - redis
+    networks:
+      - amanahfi-network
+
 volumes:
   postgres_data:
-    driver: local
-    name: amanahfi_postgres_data
-  
-  redis_data:
-    driver: local
-    name: amanahfi_redis_data
-  
   kafka_data:
-    driver: local
-    name: amanahfi_kafka_data
-  
   zookeeper_data:
-    driver: local
-    name: amanahfi_zookeeper_data
-  
-  zookeeper_logs:
-    driver: local
-    name: amanahfi_zookeeper_logs
-  
-  keycloak_data:
-    driver: local
-    name: amanahfi_keycloak_data
-  
-  corda_data:
-    driver: local
-    name: amanahfi_corda_data
-  
-  prometheus_data:
-    driver: local
-    name: amanahfi_prometheus_data
-  
-  grafana_data:
-    driver: local
-    name: amanahfi_grafana_data
+  redis_data:
 
-# Custom network for service communication
 networks:
   amanahfi-network:
     driver: bridge
-    name: amanahfi-network
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-    labels:
-      - "description=AmanahFi Platform Network"
-      - "environment=development"
-      - "project=amanahfi-platform"

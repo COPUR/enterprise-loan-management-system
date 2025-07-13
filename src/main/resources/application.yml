@@ -1,72 +1,39 @@
-# Application properties for Loan Management System
 spring:
   application:
-    name: loan-management-system
-  config:
-    fail-fast: true
-
+    name: enterprise-loan-management-system
+  
+  profiles:
+    active: dev
+  
   datasource:
     url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
+    driverClassName: org.h2.Driver
     username: sa
-    password:
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-
+    password: password
+  
   jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
-    show-sql: true
+        show_sql: false
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  cache:
+    type: simple
+  
+  security:
+    user:
+      name: admin
+      password: admin
+      roles: ADMIN
 
-  liquibase:
-    enabled: false
-
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-
-logging:
-  level:
-    com.loanmanagement: DEBUG
-    org.springframework.security: DEBUG
-
-# Security configuration - externalized per 12-Factor App principles
-security:
-  admin:
-    username: ${ADMIN_USERNAME:admin}
-    password: ${ADMIN_PASSWORD:admin123}
-  customer:
-    username: ${CUSTOMER_USERNAME:customer1}
-    password: ${CUSTOMER_PASSWORD:customer123}
-    id: ${CUSTOMER_ID:1}
-
-# Business rules externalized per 12-Factor App principles
-loan:
-  validation:
-    interest-rate:
-      min: ${LOAN_MIN_INTEREST_RATE:0.01}
-      max: ${LOAN_MAX_INTEREST_RATE:0.50}
-    installments:
-      min: ${LOAN_MIN_INSTALLMENTS:1}
-      max: ${LOAN_MAX_INSTALLMENTS:60}
-    max-payment: ${LOAN_MAX_PAYMENT:1000000}
-    amount:
-      min: ${LOAN_MIN_AMOUNT:1000}
-      max: ${LOAN_MAX_AMOUNT:500000}
-  payment:
-    early-discount-rate: ${EARLY_PAYMENT_DISCOUNT:0.001}
-    late-penalty-rate: ${LATE_PAYMENT_PENALTY:0.001}
-
-# Management endpoints for monitoring
 management:
   endpoints:
     web:
@@ -74,16 +41,46 @@ management:
         include: health,info,metrics
   endpoint:
     health:
-      show-details: when-authorized
+      show-details: always
+
+logging:
+  level:
+    com.bank.loan: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+server:
+  port: 8080
 
 ---
-# Production profile with stricter settings
 spring:
   config:
     activate:
-      on-profile: production
+      on-profile: test
+  
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: false
+        show_sql: false
+  
+  security:
+    user:
+      name: testuser
+      password: testpass
 
-loan:
-  payment:
-    early-discount-rate: ${EARLY_PAYMENT_DISCOUNT:0.0005}
-    late-penalty-rate: ${LATE_PAYMENT_PENALTY:0.002}
+logging:
+  level:
+    com.bank.loan: WARN
+    org.springframework: WARN
+    org.hibernate: WARN
