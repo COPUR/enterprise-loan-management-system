@@ -1,15 +1,55 @@
 rootProject.name = 'enterprise-loan-management-system'
 
-// Core Enterprise System Modules - Temporarily disabled for monolith testing
-// include 'shared-kernel'
-// include 'bank-wide-services'
-// include 'loan-service'
-// include 'payment-service'
+// =================================================================
+// ENTERPRISE BANKING SYSTEM - MULTI-MODULE ARCHITECTURE
+// =================================================================
+// Domain-Driven Design with Bounded Contexts
+// Low Coupling & High Cohesion Architecture
+// =================================================================
 
-// MasruFi Framework - Islamic Finance Extension Module
-// include 'masrufi-framework'
+// ============================================
+// SHARED FOUNDATION LAYER
+// ============================================
+include 'shared-kernel'
+include 'shared-infrastructure'
 
-// AmanahFi Platform - UAE & MENAT Islamic Finance Platform
+// ============================================
+// CORE BANKING CONTEXTS (Bounded Contexts)
+// ============================================
+// Customer Management Context
+include 'customer-context'
+include 'customer-context:customer-domain'
+include 'customer-context:customer-application'
+include 'customer-context:customer-infrastructure'
+
+// Loan Management Context
+include 'loan-context'
+include 'loan-context:loan-domain'
+include 'loan-context:loan-application'
+include 'loan-context:loan-infrastructure'
+
+// Payment Processing Context
+include 'payment-context'
+include 'payment-context:payment-domain'
+include 'payment-context:payment-application'
+include 'payment-context:payment-infrastructure'
+
+// Risk Assessment Context - TODO: Create these modules
+// include 'risk-context'
+// include 'risk-context:risk-domain'
+// include 'risk-context:risk-application'
+// include 'risk-context:risk-infrastructure'
+
+// Compliance & Regulatory Context - TODO: Create these modules
+// include 'compliance-context'
+// include 'compliance-context:compliance-domain'
+// include 'compliance-context:compliance-application'
+// include 'compliance-context:compliance-infrastructure'
+
+// ============================================
+// ISLAMIC FINANCE PLATFORM CONTEXTS
+// ============================================
+// AmanahFi Platform - UAE & MENAT Islamic Finance
 include 'amanahfi-platform'
 include 'amanahfi-platform:shared-kernel'
 include 'amanahfi-platform:onboarding-context'
@@ -19,3 +59,35 @@ include 'amanahfi-platform:murabaha-context'
 include 'amanahfi-platform:compliance-context'
 include 'amanahfi-platform:api-gateway'
 include 'amanahfi-platform:event-streaming'
+
+// MasruFi Framework - Core Islamic Finance Framework - TODO: Restructure
+// include 'masrufi-framework'
+// include 'masrufi-framework:sharia-domain'
+// include 'masrufi-framework:contracts-domain'
+// include 'masrufi-framework:compliance-engine'
+
+// ============================================
+// INFRASTRUCTURE & CROSS-CUTTING CONTEXTS - TODO: Create these modules
+// ============================================
+// API Gateway & External Integration
+// include 'api-gateway'
+// include 'integration-context'
+
+// Event Streaming & Messaging
+// include 'event-streaming'
+// include 'notification-context'
+
+// Security & Identity
+// include 'security-context'
+// include 'identity-context'
+
+// Monitoring & Observability
+// include 'monitoring-context'
+// include 'audit-context'
+
+// ============================================
+// APPLICATION SERVICES - TODO: Create these modules
+// ============================================
+// include 'web-application'
+// include 'mobile-api'
+// include 'admin-portal'

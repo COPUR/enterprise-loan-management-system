@@ -1,0 +1,6 @@
+// Payment Context - Parent Module Build Configuration
+// This module serves as a parent for payment processing domain
+
+description = 'Payment Processing Context - Enterprise Banking System'
+
+// This is a parent module, so it doesn't need specific dependencies

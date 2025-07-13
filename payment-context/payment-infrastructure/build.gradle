@@ -1,0 +1,25 @@
+description = 'Payment Infrastructure Layer - Persistence and external integrations'
+
+dependencies {
+    // Payment layers
+    implementation project(':payment-context:payment-domain')
+    implementation project(':payment-context:payment-application')
+    
+    // Shared components
+    implementation project(':shared-kernel')
+    implementation project(':shared-infrastructure')
+    
+    // Spring Boot dependencies
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    
+    // Database
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.postgresql:postgresql'
+    
+    // Test dependencies
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+}

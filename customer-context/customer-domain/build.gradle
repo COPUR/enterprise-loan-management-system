@@ -1,0 +1,21 @@
+// =================================================================
+// CUSTOMER DOMAIN MODULE
+// =================================================================
+// Core customer domain logic, entities, value objects, and domain services
+// Pure domain layer with no external dependencies
+// =================================================================
+
+description = 'Customer Domain - Core customer business logic and domain model'
+
+dependencies {
+    // Domain Dependencies Only
+    // No infrastructure or framework dependencies in domain layer
+    
+    // Domain Events (from shared kernel)
+    api project(':shared-kernel')
+    
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+}

@@ -1,0 +1,11 @@
+description = 'Payment Domain Layer - Core business logic and domain models'
+
+dependencies {
+    // Shared kernel for common domain building blocks
+    implementation project(':shared-kernel')
+    
+    // Test dependencies
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.assertj:assertj-core'
+}

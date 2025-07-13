@@ -1,0 +1,55 @@
+// =================================================================
+// SHARED INFRASTRUCTURE MODULE
+// =================================================================
+// Cross-cutting infrastructure concerns shared across all contexts
+// Persistence, Messaging, Security, Configuration
+// =================================================================
+
+plugins {
+    id 'java-library'
+    id 'io.spring.dependency-management'
+}
+
+description = 'Shared Infrastructure - Cross-cutting infrastructure concerns'
+
+dependencies {
+    // Shared Kernel
+    api project(':shared-kernel')
+    
+    // Spring Framework
+    api 'org.springframework.boot:spring-boot-starter'
+    api 'org.springframework.boot:spring-boot-starter-data-jpa'
+    api 'org.springframework.boot:spring-boot-starter-security'
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    api 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // Database
+    api 'org.postgresql:postgresql'
+    api 'org.flywaydb:flyway-core'
+    api 'com.zaxxer:HikariCP'
+    
+    // Messaging
+    api 'org.springframework.kafka:spring-kafka'
+    api 'org.springframework.boot:spring-boot-starter-amqp'
+    
+    // Security
+    api 'org.springframework.security:spring-security-oauth2-resource-server'
+    api 'org.springframework.security:spring-security-oauth2-jose'
+    
+    // Monitoring
+    api 'io.micrometer:micrometer-registry-prometheus'
+    api 'org.springframework.boot:spring-boot-starter-logging'
+    
+    // JSON Processing
+    api 'com.fasterxml.jackson.core:jackson-databind'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    
+    // Utilities
+    api 'org.apache.commons:commons-lang3'
+    
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+}

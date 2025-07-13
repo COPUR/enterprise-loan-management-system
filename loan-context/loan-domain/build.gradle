@@ -1,0 +1,18 @@
+// =================================================================
+// LOAN DOMAIN MODULE
+// =================================================================
+// Core loan domain logic, entities, value objects, and domain services
+// Pure domain layer with no external dependencies
+// =================================================================
+
+description = 'Loan Domain - Core loan business logic and domain model'
+
+dependencies {
+    // Domain Dependencies Only
+    api project(':shared-kernel')
+    
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+}

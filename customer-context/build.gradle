@@ -1,0 +1,43 @@
+// =================================================================
+// CUSTOMER CONTEXT - PARENT MODULE
+// =================================================================
+// Customer Management Bounded Context
+// Manages customer onboarding, profiles, and lifecycle
+// =================================================================
+
+plugins {
+    id 'java-library'
+}
+
+description = 'Customer Context - Customer management bounded context'
+
+// Parent module configuration
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'io.spring.dependency-management'
+    
+    dependencies {
+        // Shared Foundation
+        api project(':shared-kernel')
+        api project(':shared-infrastructure')
+        
+        // Testing
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+        testImplementation 'org.assertj:assertj-core'
+        testImplementation 'org.mockito:mockito-core'
+    }
+    
+    // Configure JAR tasks
+    afterEvaluate {
+        jar {
+            enabled = true
+            archiveClassifier = ''
+        }
+    }
+}
+
+// No direct dependencies for parent module
+dependencies {
+    // This parent module aggregates the submodules
+}

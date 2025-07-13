@@ -1,0 +1,42 @@
+// =================================================================
+// LOAN CONTEXT - PARENT MODULE
+// =================================================================
+// Loan Management Bounded Context
+// Manages loan applications, approvals, and lifecycle
+// =================================================================
+
+plugins {
+    id 'java-library'
+}
+
+description = 'Loan Context - Loan management bounded context'
+
+// Parent module configuration
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'io.spring.dependency-management'
+    
+    dependencies {
+        // Shared Foundation
+        api project(':shared-kernel')
+        api project(':shared-infrastructure')
+        
+        // Testing
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+        testImplementation 'org.assertj:assertj-core'
+        testImplementation 'org.mockito:mockito-core'
+    }
+    
+    // Configure JAR tasks
+    afterEvaluate {
+        jar {
+            enabled = true
+            archiveClassifier = ''
+        }
+    }
+}
+
+dependencies {
+    // This parent module aggregates the submodules
+}

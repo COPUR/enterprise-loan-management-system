@@ -1,0 +1,29 @@
+// =================================================================
+// CUSTOMER APPLICATION MODULE
+// =================================================================
+// Application services, DTOs, and use case orchestration
+// Coordinates domain operations and external integrations
+// =================================================================
+
+description = 'Customer Application - Application services and use case orchestration'
+
+dependencies {
+    // Domain Layer
+    api project(':customer-context:customer-domain')
+    
+    // Infrastructure
+    api project(':shared-infrastructure')
+    
+    // Application Services
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework:spring-tx'
+    
+    // Mapping
+    implementation "org.mapstruct:mapstruct:${project.rootProject.ext.mapstructVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${project.rootProject.ext.mapstructVersion}"
+    
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework:spring-test'
+}

@@ -1,0 +1,1203 @@
+asyncapi: 2.6.0
+info:
+  title: Enterprise Banking Platform Events API
+  version: 1.0.0
+  description: |
+    Asynchronous event streaming API for the Enterprise Banking Platform.
+    
+    ## Event-Driven Architecture
+    This API defines the asynchronous events published by the banking platform for:
+    - Real-time notifications
+    - Event sourcing and audit trails
+    - Cross-context communication
+    - External system integrations
+    - Webhook deliveries
+    
+    ## Event Categories
+    - **Customer Events**: Account creation, KYC updates, credit changes
+    - **Loan Events**: Application submissions, approvals, disbursements, payments
+    - **Payment Events**: Transaction processing, settlements, failures
+    - **Compliance Events**: AML alerts, fraud detection, regulatory reporting
+    - **System Events**: Health checks, performance metrics, security events
+    
+    ## Delivery Guarantees
+    - **At-least-once delivery** for critical financial events
+    - **Exactly-once semantics** for payment settlements
+    - **Ordered delivery** within partition keys
+    - **Dead letter queues** for failed deliveries
+    
+    ## Security
+    - **mTLS** for Kafka connections
+    - **SASL/SCRAM-SHA-512** authentication
+    - **Event encryption** for sensitive data
+    - **Digital signatures** for event integrity
+    
+  contact:
+    name: API Support
+    url: https://banking.local/support
+    email: api-support@banking.local
+  license:
+    name: Proprietary
+    url: https://banking.local/license
+
+servers:
+  kafka-production:
+    url: kafka.banking.local:9093
+    protocol: kafka-secure
+    description: Production Kafka cluster
+    security:
+      - saslScram: []
+      - ssl: []
+    bindings:
+      kafka:
+        schemaRegistryUrl: https://schema-registry.banking.local
+        schemaRegistryVendor: confluent
+        
+  kafka-staging:
+    url: kafka-staging.banking.local:9093
+    protocol: kafka-secure
+    description: Staging Kafka cluster
+    security:
+      - saslScram: []
+      - ssl: []
+      
+  webhooks:
+    url: https://webhooks.banking.local
+    protocol: https
+    description: Webhook delivery endpoint
+    security:
+      - httpBearer: []
+
+defaultContentType: application/json
+
+channels:
+  # Customer Domain Events
+  customer.events:
+    description: Customer lifecycle events
+    bindings:
+      kafka:
+        topic: customer-events
+        partitions: 12
+        replicas: 3
+        configs:
+          cleanup.policy: compact
+          retention.ms: 2629746000  # 30 days
+          compression.type: lz4
+    subscribe:
+      summary: Subscribe to customer events
+      operationId: subscribeCustomerEvents
+      message:
+        oneOf:
+          - $ref: '#/components/messages/CustomerCreated'
+          - $ref: '#/components/messages/CustomerUpdated'
+          - $ref: '#/components/messages/CreditLimitChanged'
+          - $ref: '#/components/messages/CreditReserved'
+          - $ref: '#/components/messages/CreditReleased'
+          - $ref: '#/components/messages/CustomerSuspended'
+
+  # Loan Domain Events
+  loan.events:
+    description: Loan lifecycle events
+    bindings:
+      kafka:
+        topic: loan-events
+        partitions: 12
+        replicas: 3
+        configs:
+          cleanup.policy: delete
+          retention.ms: 7776000000  # 90 days
+          compression.type: lz4
+    subscribe:
+      summary: Subscribe to loan events
+      operationId: subscribeLoanEvents
+      message:
+        oneOf:
+          - $ref: '#/components/messages/LoanApplicationSubmitted'
+          - $ref: '#/components/messages/LoanApproved'
+          - $ref: '#/components/messages/LoanRejected'
+          - $ref: '#/components/messages/LoanDisbursed'
+          - $ref: '#/components/messages/LoanPaymentReceived'
+          - $ref: '#/components/messages/LoanDefaulted'
+
+  # Payment Domain Events
+  payment.events:
+    description: Payment processing events
+    bindings:
+      kafka:
+        topic: payment-events
+        partitions: 24
+        replicas: 3
+        configs:
+          cleanup.policy: delete
+          retention.ms: 7776000000  # 90 days
+          compression.type: lz4
+          min.insync.replicas: 2
+    subscribe:
+      summary: Subscribe to payment events
+      operationId: subscribePaymentEvents
+      message:
+        oneOf:
+          - $ref: '#/components/messages/PaymentInitiated'
+          - $ref: '#/components/messages/PaymentProcessing'
+          - $ref: '#/components/messages/PaymentCompleted'
+          - $ref: '#/components/messages/PaymentFailed'
+          - $ref: '#/components/messages/PaymentRefunded'
+          - $ref: '#/components/messages/FraudDetected'
+
+  # Compliance Events
+  compliance.events:
+    description: Regulatory compliance and AML events
+    bindings:
+      kafka:
+        topic: compliance-events
+        partitions: 6
+        replicas: 3
+        configs:
+          cleanup.policy: delete
+          retention.ms: 31556926000  # 365 days
+          compression.type: lz4
+    subscribe:
+      summary: Subscribe to compliance events
+      operationId: subscribeComplianceEvents
+      message:
+        oneOf:
+          - $ref: '#/components/messages/AMLAlertGenerated'
+          - $ref: '#/components/messages/KYCVerificationCompleted'
+          - $ref: '#/components/messages/SanctionScreenCompleted'
+          - $ref: '#/components/messages/RegulatoryReportGenerated'
+
+  # System Events
+  system.events:
+    description: System health and monitoring events
+    bindings:
+      kafka:
+        topic: system-events
+        partitions: 6
+        replicas: 3
+        configs:
+          cleanup.policy: delete
+          retention.ms: 604800000  # 7 days
+          compression.type: lz4
+    subscribe:
+      summary: Subscribe to system events
+      operationId: subscribeSystemEvents
+      message:
+        oneOf:
+          - $ref: '#/components/messages/HealthCheckEvent'
+          - $ref: '#/components/messages/SecurityEvent'
+          - $ref: '#/components/messages/PerformanceMetric'
+
+  # Webhook Delivery Channel
+  webhooks/delivery:
+    description: Webhook delivery for external integrations
+    bindings:
+      http:
+        type: request
+        method: POST
+        headers:
+          type: object
+          properties:
+            X-Banking-Event-Type:
+              type: string
+            X-Banking-Event-Id:
+              type: string
+            X-Banking-Signature:
+              type: string
+              description: HMAC-SHA256 signature for payload verification
+            X-Banking-Timestamp:
+              type: string
+              format: date-time
+    publish:
+      summary: Deliver webhook events
+      operationId: deliverWebhookEvent
+      message:
+        $ref: '#/components/messages/WebhookEvent'
+
+components:
+  messages:
+    # Customer Events
+    CustomerCreated:
+      name: CustomerCreated
+      title: Customer Created
+      summary: A new customer account has been created
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/CustomerCreatedPayload'
+      examples:
+        - name: Individual customer created
+          payload:
+            eventId: "evt-cust-created-001"
+            eventType: "customer.created"
+            aggregateId: "CUST-12345678"
+            version: 1
+            timestamp: "2024-01-15T10:30:00Z"
+            data:
+              customerId: "CUST-12345678"
+              firstName: "John"
+              lastName: "Doe"
+              email: "john.doe@example.com"
+              status: "ACTIVE"
+              creditLimit: 50000.00
+              currency: "USD"
+            metadata:
+              source: "customer-service"
+              userId: "USR-BANKER-001"
+
+    CustomerUpdated:
+      name: CustomerUpdated
+      title: Customer Updated
+      summary: Customer information has been modified
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/CustomerUpdatedPayload'
+
+    CreditLimitChanged:
+      name: CreditLimitChanged
+      title: Credit Limit Changed
+      summary: Customer credit limit has been modified
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/CreditLimitChangedPayload'
+
+    CreditReserved:
+      name: CreditReserved
+      title: Credit Reserved
+      summary: Credit amount has been reserved for a customer
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/CreditReservedPayload'
+
+    CreditReleased:
+      name: CreditReleased
+      title: Credit Released
+      summary: Previously reserved credit has been released
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/CreditReleasedPayload'
+
+    CustomerSuspended:
+      name: CustomerSuspended
+      title: Customer Suspended
+      summary: Customer account has been suspended
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/CustomerSuspendedPayload'
+
+    # Loan Events
+    LoanApplicationSubmitted:
+      name: LoanApplicationSubmitted
+      title: Loan Application Submitted
+      summary: A new loan application has been submitted
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/LoanApplicationSubmittedPayload'
+
+    LoanApproved:
+      name: LoanApproved
+      title: Loan Approved
+      summary: Loan application has been approved
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/LoanApprovedPayload'
+
+    LoanRejected:
+      name: LoanRejected
+      title: Loan Rejected
+      summary: Loan application has been rejected
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/LoanRejectedPayload'
+
+    LoanDisbursed:
+      name: LoanDisbursed
+      title: Loan Disbursed
+      summary: Loan funds have been disbursed
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/LoanDisbursedPayload'
+
+    LoanPaymentReceived:
+      name: LoanPaymentReceived
+      title: Loan Payment Received
+      summary: A payment has been received for a loan
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/LoanPaymentReceivedPayload'
+
+    LoanDefaulted:
+      name: LoanDefaulted
+      title: Loan Defaulted
+      summary: Loan has been marked as defaulted
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/LoanDefaultedPayload'
+
+    # Payment Events
+    PaymentInitiated:
+      name: PaymentInitiated
+      title: Payment Initiated
+      summary: A new payment has been initiated
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/PaymentInitiatedPayload'
+
+    PaymentProcessing:
+      name: PaymentProcessing
+      title: Payment Processing
+      summary: Payment is being processed
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/PaymentProcessingPayload'
+
+    PaymentCompleted:
+      name: PaymentCompleted
+      title: Payment Completed
+      summary: Payment has been successfully completed
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/PaymentCompletedPayload'
+
+    PaymentFailed:
+      name: PaymentFailed
+      title: Payment Failed
+      summary: Payment processing has failed
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/PaymentFailedPayload'
+
+    PaymentRefunded:
+      name: PaymentRefunded
+      title: Payment Refunded
+      summary: Payment has been refunded
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/PaymentRefundedPayload'
+
+    FraudDetected:
+      name: FraudDetected
+      title: Fraud Detected
+      summary: Fraudulent activity has been detected
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/FraudDetectedPayload'
+
+    # Compliance Events
+    AMLAlertGenerated:
+      name: AMLAlertGenerated
+      title: AML Alert Generated
+      summary: Anti-Money Laundering alert has been generated
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/AMLAlertPayload'
+
+    KYCVerificationCompleted:
+      name: KYCVerificationCompleted
+      title: KYC Verification Completed
+      summary: Know Your Customer verification has been completed
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/KYCVerificationPayload'
+
+    SanctionScreenCompleted:
+      name: SanctionScreenCompleted
+      title: Sanction Screen Completed
+      summary: Sanction screening has been completed
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/SanctionScreenPayload'
+
+    RegulatoryReportGenerated:
+      name: RegulatoryReportGenerated
+      title: Regulatory Report Generated
+      summary: Regulatory compliance report has been generated
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/RegulatoryReportPayload'
+
+    # System Events
+    HealthCheckEvent:
+      name: HealthCheckEvent
+      title: Health Check Event
+      summary: System health check result
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/HealthCheckPayload'
+
+    SecurityEvent:
+      name: SecurityEvent
+      title: Security Event
+      summary: Security-related system event
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/SecurityEventPayload'
+
+    PerformanceMetric:
+      name: PerformanceMetric
+      title: Performance Metric
+      summary: System performance metric
+      contentType: application/json
+      traits:
+        - $ref: '#/components/messageTraits/BankingEvent'
+      payload:
+        $ref: '#/components/schemas/PerformanceMetricPayload'
+
+    # Webhook Event
+    WebhookEvent:
+      name: WebhookEvent
+      title: Webhook Event
+      summary: Event delivered via webhook
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/WebhookEventPayload'
+
+  messageTraits:
+    BankingEvent:
+      headers:
+        type: object
+        properties:
+          eventId:
+            type: string
+            description: Unique event identifier
+            format: uuid
+          eventType:
+            type: string
+            description: Type of the event
+          aggregateId:
+            type: string
+            description: Identifier of the aggregate that generated the event
+          correlationId:
+            type: string
+            description: Correlation ID for request tracing
+            format: uuid
+          causationId:
+            type: string
+            description: ID of the event that caused this event
+            format: uuid
+      payload:
+        type: object
+        required: [eventId, eventType, aggregateId, version, timestamp, data]
+        properties:
+          eventId:
+            type: string
+            format: uuid
+            description: Unique event identifier
+          eventType:
+            type: string
+            description: Type of the event
+          aggregateId:
+            type: string
+            description: Identifier of the aggregate
+          version:
+            type: integer
+            minimum: 1
+            description: Event version for the aggregate
+          timestamp:
+            type: string
+            format: date-time
+            description: When the event occurred
+          data:
+            type: object
+            description: Event-specific data
+          metadata:
+            type: object
+            description: Additional event metadata
+            properties:
+              source:
+                type: string
+                description: Source service that generated the event
+              userId:
+                type: string
+                description: User who triggered the event
+              correlationId:
+                type: string
+                format: uuid
+              causationId:
+                type: string
+                format: uuid
+
+  schemas:
+    # Base Event Schema
+    BaseEvent:
+      type: object
+      required: [eventId, eventType, aggregateId, version, timestamp, data]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        aggregateId:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+        metadata:
+          type: object
+
+    # Customer Event Payloads
+    CustomerCreatedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                customerId:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phoneNumber:
+                  type: string
+                status:
+                  type: string
+                  enum: [ACTIVE, INACTIVE, SUSPENDED, CLOSED]
+                creditLimit:
+                  type: number
+                  format: decimal
+                currency:
+                  type: string
+
+    CustomerUpdatedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                customerId:
+                  type: string
+                changes:
+                  type: object
+                  description: Fields that were changed
+                previousValues:
+                  type: object
+                  description: Previous values of changed fields
+
+    CreditLimitChangedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                customerId:
+                  type: string
+                previousLimit:
+                  type: number
+                  format: decimal
+                newLimit:
+                  type: number
+                  format: decimal
+                currency:
+                  type: string
+                reason:
+                  type: string
+
+    CreditReservedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                customerId:
+                  type: string
+                reservationId:
+                  type: string
+                amount:
+                  type: number
+                  format: decimal
+                currency:
+                  type: string
+                purpose:
+                  type: string
+
+    CreditReleasedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                customerId:
+                  type: string
+                reservationId:
+                  type: string
+                amount:
+                  type: number
+                  format: decimal
+                currency:
+                  type: string
+                reason:
+                  type: string
+
+    CustomerSuspendedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                customerId:
+                  type: string
+                reason:
+                  type: string
+                suspendedUntil:
+                  type: string
+                  format: date-time
+
+    # Loan Event Payloads
+    LoanApplicationSubmittedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                loanId:
+                  type: string
+                customerId:
+                  type: string
+                principalAmount:
+                  type: number
+                  format: decimal
+                currency:
+                  type: string
+                annualInterestRate:
+                  type: number
+                  format: decimal
+                termInMonths:
+                  type: integer
+                applicationDate:
+                  type: string
+                  format: date
+
+    LoanApprovedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                loanId:
+                  type: string
+                customerId:
+                  type: string
+                approvedAmount:
+                  type: number
+                  format: decimal
+                approvedTermMonths:
+                  type: integer
+                approvalDate:
+                  type: string
+                  format: date
+                approvedBy:
+                  type: string
+
+    LoanRejectedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                loanId:
+                  type: string
+                customerId:
+                  type: string
+                rejectionReason:
+                  type: string
+                rejectionDate:
+                  type: string
+                  format: date
+                rejectedBy:
+                  type: string
+
+    LoanDisbursedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                loanId:
+                  type: string
+                customerId:
+                  type: string
+                disbursedAmount:
+                  type: number
+                  format: decimal
+                currency:
+                  type: string
+                disbursementDate:
+                  type: string
+                  format: date
+                targetAccount:
+                  type: string
+
+    LoanPaymentReceivedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                loanId:
+                  type: string
+                paymentId:
+                  type: string
+                amount:
+                  type: number
+                  format: decimal
+                principalAmount:
+                  type: number
+                  format: decimal
+                interestAmount:
+                  type: number
+                  format: decimal
+                remainingBalance:
+                  type: number
+                  format: decimal
+                paymentDate:
+                  type: string
+                  format: date
+
+    LoanDefaultedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                loanId:
+                  type: string
+                customerId:
+                  type: string
+                outstandingBalance:
+                  type: number
+                  format: decimal
+                daysPastDue:
+                  type: integer
+                defaultDate:
+                  type: string
+                  format: date
+
+    # Payment Event Payloads
+    PaymentInitiatedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                paymentId:
+                  type: string
+                customerId:
+                  type: string
+                fromAccountId:
+                  type: string
+                toAccountId:
+                  type: string
+                amount:
+                  type: number
+                  format: decimal
+                currency:
+                  type: string
+                paymentType:
+                  type: string
+                description:
+                  type: string
+
+    PaymentProcessingPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                paymentId:
+                  type: string
+                status:
+                  type: string
+                processingStage:
+                  type: string
+                estimatedCompletion:
+                  type: string
+                  format: date-time
+
+    PaymentCompletedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                paymentId:
+                  type: string
+                amount:
+                  type: number
+                  format: decimal
+                fee:
+                  type: number
+                  format: decimal
+                totalAmount:
+                  type: number
+                  format: decimal
+                completedAt:
+                  type: string
+                  format: date-time
+                transactionReference:
+                  type: string
+
+    PaymentFailedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                paymentId:
+                  type: string
+                failureReason:
+                  type: string
+                errorCode:
+                  type: string
+                retryable:
+                  type: boolean
+                failedAt:
+                  type: string
+                  format: date-time
+
+    PaymentRefundedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                originalPaymentId:
+                  type: string
+                refundPaymentId:
+                  type: string
+                refundAmount:
+                  type: number
+                  format: decimal
+                reason:
+                  type: string
+                refundedAt:
+                  type: string
+                  format: date-time
+
+    FraudDetectedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                paymentId:
+                  type: string
+                riskScore:
+                  type: number
+                  format: decimal
+                  minimum: 0
+                  maximum: 1
+                fraudType:
+                  type: string
+                indicators:
+                  type: array
+                  items:
+                    type: string
+                actionTaken:
+                  type: string
+
+    # Compliance Event Payloads
+    AMLAlertPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                alertId:
+                  type: string
+                customerId:
+                  type: string
+                transactionId:
+                  type: string
+                alertType:
+                  type: string
+                severity:
+                  type: string
+                  enum: [LOW, MEDIUM, HIGH, CRITICAL]
+                description:
+                  type: string
+                requiresInvestigation:
+                  type: boolean
+
+    KYCVerificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                customerId:
+                  type: string
+                verificationId:
+                  type: string
+                status:
+                  type: string
+                  enum: [VERIFIED, FAILED, PENDING]
+                verificationType:
+                  type: string
+                verifiedAt:
+                  type: string
+                  format: date-time
+                expiresAt:
+                  type: string
+                  format: date-time
+
+    SanctionScreenPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                screeningId:
+                  type: string
+                customerId:
+                  type: string
+                result:
+                  type: string
+                  enum: [CLEAR, MATCH, POTENTIAL_MATCH]
+                matches:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      listName:
+                        type: string
+                      matchScore:
+                        type: number
+                screenedAt:
+                  type: string
+                  format: date-time
+
+    RegulatoryReportPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                reportId:
+                  type: string
+                reportType:
+                  type: string
+                periodStart:
+                  type: string
+                  format: date
+                periodEnd:
+                  type: string
+                  format: date
+                generatedAt:
+                  type: string
+                  format: date-time
+                fileLocation:
+                  type: string
+
+    # System Event Payloads
+    HealthCheckPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                serviceName:
+                  type: string
+                status:
+                  type: string
+                  enum: [UP, DOWN, DEGRADED]
+                responseTime:
+                  type: number
+                  description: Response time in milliseconds
+                dependencies:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      status:
+                        type: string
+
+    SecurityEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                eventType:
+                  type: string
+                  enum: [LOGIN_SUCCESS, LOGIN_FAILURE, PERMISSION_DENIED, SUSPICIOUS_ACTIVITY]
+                userId:
+                  type: string
+                ipAddress:
+                  type: string
+                userAgent:
+                  type: string
+                severity:
+                  type: string
+                  enum: [LOW, MEDIUM, HIGH, CRITICAL]
+                description:
+                  type: string
+
+    PerformanceMetricPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                metricName:
+                  type: string
+                value:
+                  type: number
+                unit:
+                  type: string
+                tags:
+                  type: object
+                  additionalProperties:
+                    type: string
+
+    # Webhook Event Payload
+    WebhookEventPayload:
+      type: object
+      required: [webhookId, eventType, data, timestamp]
+      properties:
+        webhookId:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        data:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+        signature:
+          type: string
+          description: HMAC-SHA256 signature for payload verification
+
+  securitySchemes:
+    saslScram:
+      type: scramSha512
+      description: SASL/SCRAM-SHA-512 authentication for Kafka
+      
+    ssl:
+      type: X509
+      description: SSL/TLS client certificate authentication
+      
+    httpBearer:
+      type: http
+      scheme: bearer
+      description: JWT Bearer token for webhook authentication
+
+  parameters:
+    correlationId:
+      description: Correlation ID for request tracing
+      schema:
+        type: string
+        format: uuid
+        
+    partitionKey:
+      description: Kafka partition key
+      schema:
+        type: string
