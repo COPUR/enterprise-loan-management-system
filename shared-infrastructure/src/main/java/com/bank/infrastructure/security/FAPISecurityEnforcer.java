@@ -5,7 +5,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -30,8 +31,9 @@ import java.util.regex.Pattern;
  * - Attack detection and prevention
  */
 @Component
-@Slf4j
 public class FAPISecurityEnforcer extends OncePerRequestFilter {
+    
+    private static final Logger logger = LoggerFactory.getLogger(FAPISecurityEnforcer.class);
     
     // FAPI 2.0 required headers
     private static final String FAPI_FINANCIAL_ID = "X-FAPI-Financial-Id";
@@ -137,34 +139,34 @@ public class FAPISecurityEnforcer extends OncePerRequestFilter {
         try {
             // Validate certificate chain
             if (!validateCertificateChain(clientCert)) {
-                log.warn("Certificate chain validation failed for request: {}", request.getRequestURI());
+                logger.warn("Certificate chain validation failed for request: {}", request.getRequestURI());
                 return false;
             }
             
             // Check certificate revocation status
             if (!checkCertificateRevocation(clientCert)) {
-                log.warn("Certificate revocation check failed for request: {}", request.getRequestURI());
+                logger.warn("Certificate revocation check failed for request: {}", request.getRequestURI());
                 return false;
             }
             
             // Validate certificate expiration
             if (!isCertificateValid(clientCert)) {
-                log.warn("Certificate expired or not yet valid for request: {}", request.getRequestURI());
+                logger.warn("Certificate expired or not yet valid for request: {}", request.getRequestURI());
                 return false;
             }
             
             // Extract and validate client ID from certificate
             String certClientId = extractClientIdFromCertificate(request);
             if (certClientId == null || !isValidClientId(certClientId)) {
-                log.warn("Invalid or missing client ID in certificate for request: {}", request.getRequestURI());
+                logger.warn("Invalid or missing client ID in certificate for request: {}", request.getRequestURI());
                 return false;
             }
             
-            log.debug("Certificate validation successful for client: {}", certClientId);
+            logger.debug("Certificate validation successful for client: {}", certClientId);
             return true;
             
         } catch (Exception e) {
-            log.error("Error during certificate validation: {}", e.getMessage(), e);
+            logger.error("Error during certificate validation: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -304,14 +306,14 @@ public class FAPISecurityEnforcer extends OncePerRequestFilter {
             // Fallback to header-based client ID (for testing/development)
             String headerClientId = request.getHeader(CLIENT_ID);
             if (headerClientId != null && !headerClientId.trim().isEmpty()) {
-                log.debug("Using client ID from header (no certificate): {}", headerClientId);
+                logger.debug("Using client ID from header (no certificate): {}", headerClientId);
                 return headerClientId;
             }
             
             return null;
             
         } catch (Exception e) {
-            log.error("Error extracting client ID from certificate: {}", e.getMessage(), e);
+            logger.error("Error extracting client ID from certificate: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -412,12 +414,12 @@ public class FAPISecurityEnforcer extends OncePerRequestFilter {
             
             // In production, this would validate against trusted CA certificates
             // For now, we'll accept self-signed certificates for testing
-            log.debug("Certificate chain validation passed for: {}", 
+            logger.debug("Certificate chain validation passed for: {}", 
                 clientCert.getSubjectX500Principal().getName());
             return true;
             
         } catch (Exception e) {
-            log.debug("Certificate chain validation failed: {}", e.getMessage());
+            logger.debug("Certificate chain validation failed: {}", e.getMessage());
             return false;
         }
     }
@@ -433,7 +435,7 @@ public class FAPISecurityEnforcer extends OncePerRequestFilter {
             // Check if certificate has CRL distribution points
             byte[] crlDP = clientCert.getExtensionValue("2.5.29.31");
             if (crlDP != null) {
-                log.debug("Certificate has CRL distribution points, should check revocation status");
+                logger.debug("Certificate has CRL distribution points, should check revocation status");
                 // Would perform actual CRL/OCSP check here
             }
             
@@ -441,7 +443,7 @@ public class FAPISecurityEnforcer extends OncePerRequestFilter {
             return true;
             
         } catch (Exception e) {
-            log.error("Error checking certificate revocation: {}", e.getMessage());
+            logger.error("Error checking certificate revocation: {}", e.getMessage());
             return false;
         }
     }
@@ -454,7 +456,7 @@ public class FAPISecurityEnforcer extends OncePerRequestFilter {
             clientCert.checkValidity();
             return true;
         } catch (Exception e) {
-            log.warn("Certificate validity check failed: {}", e.getMessage());
+            logger.warn("Certificate validity check failed: {}", e.getMessage());
             return false;
         }
     }
@@ -479,7 +481,7 @@ public class FAPISecurityEnforcer extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            log.debug("Error extracting client ID from SAN: {}", e.getMessage());
+            logger.debug("Error extracting client ID from SAN: {}", e.getMessage());
         }
         return null;
     }
@@ -506,7 +508,7 @@ public class FAPISecurityEnforcer extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            log.debug("Error extracting client ID from Subject DN: {}", e.getMessage());
+            logger.debug("Error extracting client ID from Subject DN: {}", e.getMessage());
         }
         return null;
     }

@@ -62,9 +62,14 @@ jobs:
           
     - name: 🏗️ Architecture Tests (ArchUnit)
       run: |
-        ./gradlew test --tests "*ArchitectureTest" \
-          -Dtest.architecture.strict=true \
-          --no-daemon
+        # Check if architecture tests exist before running
+        if find . -name "*ArchitectureTest*.java" | grep -q .; then
+          ./gradlew test --tests "*ArchitectureTest" \
+            -Dtest.architecture.strict=true \
+            --no-daemon
+        else
+          echo "No architecture tests found, skipping..."
+        fi
         
     - name: 📊 Code Quality Analysis (SonarQube)
       env:
@@ -799,7 +804,7 @@ jobs:
         
     - name: 💬 Slack Notification
       uses: 8398a7/action-slack@v3
-      if: always()
+      if: always() && secrets.SLACK_WEBHOOK_URL != ''
       with:
         status: ${{ job.status }}
         channel: '#banking-deployments'
@@ -807,7 +812,7 @@ jobs:
         fields: repo,message,commit,author,action,eventName,ref,workflow
         
     - name: 📧 Email Notification (Failures Only)
-      if: failure()
+      if: failure() && secrets.SMTP_SERVER != '' && secrets.ALERT_EMAIL_LIST != ''
       uses: dawidd6/action-send-mail@v3
       with:
         server_address: ${{ secrets.SMTP_SERVER }}

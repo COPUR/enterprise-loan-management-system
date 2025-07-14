@@ -131,117 +131,125 @@ public class BankingMetricsService {
             .register(meterRegistry);
         
         // Initialize gauges
-        Gauge.builder("banking_active_loan_applications")
+        Gauge.builder("banking_active_loan_applications", activeLoanApplications, AtomicLong::get)
             .description("Number of active loan applications")
             .tag("service", "banking-platform")
-            .register(meterRegistry, activeLoanApplications, AtomicLong::get);
+            .register(meterRegistry);
             
-        Gauge.builder("banking_pending_payments")
+        Gauge.builder("banking_pending_payments", pendingPayments, AtomicLong::get)
             .description("Number of pending payment transactions")
             .tag("service", "banking-platform")
-            .register(meterRegistry, pendingPayments, AtomicLong::get);
+            .register(meterRegistry);
             
-        Gauge.builder("banking_sse_connections")
+        Gauge.builder("banking_sse_connections", sseConnections, AtomicLong::get)
             .description("Number of active Server-Sent Event connections")
             .tag("service", "banking-platform")
-            .register(meterRegistry, sseConnections, AtomicLong::get);
+            .register(meterRegistry);
             
-        Gauge.builder("banking_total_loan_portfolio_usd")
+        Gauge.builder("banking_total_loan_portfolio_usd", totalLoanPortfolio, ref -> ref.get().doubleValue())
             .description("Total loan portfolio value in USD")
             .tag("service", "banking-platform")
-            .register(meterRegistry, totalLoanPortfolio, ref -> ref.get().doubleValue());
+            .register(meterRegistry);
             
-        Gauge.builder("banking_daily_payment_volume_usd")
+        Gauge.builder("banking_daily_payment_volume_usd", dailyPaymentVolume, ref -> ref.get().doubleValue())
             .description("Daily payment volume in USD")
             .tag("service", "banking-platform")
-            .register(meterRegistry, dailyPaymentVolume, ref -> ref.get().doubleValue());
+            .register(meterRegistry);
     }
     
     // Business Event Metrics
     
     public void recordLoanApplication(String loanType, String customerType, BigDecimal amount) {
-        loanApplicationsTotal.increment(
-            Tags.of(
-                Tag.of("loan_type", loanType),
-                Tag.of("customer_type", customerType),
-                Tag.of("amount_bucket", getAmountBucket(amount))
-            )
-        );
+        Counter.builder("banking_loan_applications_total")
+            .description("Total number of loan applications submitted")
+            .tags("loan_type", loanType,
+                  "customer_type", customerType,
+                  "amount_bucket", getAmountBucket(amount),
+                  "service", "banking-platform")
+            .register(meterRegistry)
+            .increment();
         activeLoanApplications.incrementAndGet();
     }
     
     public void recordLoanApproval(String loanType, String customerType, BigDecimal amount) {
-        loanApprovalsTotal.increment(
-            Tags.of(
-                Tag.of("loan_type", loanType),
-                Tag.of("customer_type", customerType),
-                Tag.of("amount_bucket", getAmountBucket(amount))
-            )
-        );
+        Counter.builder("banking_loan_approvals_total")
+            .description("Total number of loans approved")
+            .tags("loan_type", loanType,
+                  "customer_type", customerType,
+                  "amount_bucket", getAmountBucket(amount),
+                  "service", "banking-platform")
+            .register(meterRegistry)
+            .increment();
         activeLoanApplications.decrementAndGet();
         updateTotalLoanPortfolio(amount, true);
     }
     
     public void recordLoanRejection(String loanType, String customerType, String rejectionReason) {
-        loanRejectionsTotal.increment(
-            Tags.of(
-                Tag.of("loan_type", loanType),
-                Tag.of("customer_type", customerType),
-                Tag.of("rejection_reason", rejectionReason)
-            )
-        );
+        Counter.builder("banking_loan_rejections_total")
+            .description("Total number of loans rejected")
+            .tags("loan_type", loanType,
+                  "customer_type", customerType,
+                  "rejection_reason", rejectionReason,
+                  "service", "banking-platform")
+            .register(meterRegistry)
+            .increment();
         activeLoanApplications.decrementAndGet();
     }
     
     public void recordPaymentTransaction(String paymentMethod, String paymentType, 
                                        BigDecimal amount, String status) {
-        paymentTransactionsTotal.increment(
-            Tags.of(
-                Tag.of("payment_method", paymentMethod),
-                Tag.of("payment_type", paymentType),
-                Tag.of("status", status),
-                Tag.of("amount_bucket", getAmountBucket(amount))
-            )
-        );
+        Counter.builder("banking_payment_transactions_total")
+            .description("Total number of payment transactions processed")
+            .tags("payment_method", paymentMethod,
+                  "payment_type", paymentType,
+                  "status", status,
+                  "amount_bucket", getAmountBucket(amount),
+                  "service", "banking-platform")
+            .register(meterRegistry)
+            .increment();
         
         if ("COMPLETED".equals(status)) {
             updateDailyPaymentVolume(amount);
         } else if ("FAILED".equals(status)) {
-            paymentFailuresTotal.increment(
-                Tags.of(
-                    Tag.of("payment_method", paymentMethod),
-                    Tag.of("payment_type", paymentType)
-                )
-            );
+            Counter.builder("banking_payment_failures_total")
+                .description("Total number of failed payment transactions")
+                .tags("payment_method", paymentMethod,
+                      "payment_type", paymentType,
+                      "service", "banking-platform")
+                .register(meterRegistry)
+                .increment();
         }
     }
     
     public void recordCustomerCreation(String customerType, String onboardingChannel) {
-        customerCreationsTotal.increment(
-            Tags.of(
-                Tag.of("customer_type", customerType),
-                Tag.of("onboarding_channel", onboardingChannel)
-            )
-        );
+        Counter.builder("banking_customer_creations_total")
+            .description("Total number of customers created")
+            .tags("customer_type", customerType,
+                  "onboarding_channel", onboardingChannel,
+                  "service", "banking-platform")
+            .register(meterRegistry)
+            .increment();
     }
     
     public void recordFraudDetection(String fraudType, String severity, Double riskScore) {
-        fraudDetectionsTotal.increment(
-            Tags.of(
-                Tag.of("fraud_type", fraudType),
-                Tag.of("severity", severity),
-                Tag.of("risk_bucket", getRiskBucket(riskScore))
-            )
-        );
+        Counter.builder("banking_fraud_detections_total")
+            .description("Total fraud detections")
+            .tags("fraud_type", fraudType,
+                  "severity", severity,
+                  "risk_bucket", getRiskBucket(riskScore),
+                  "service", "banking-platform")
+            .register(meterRegistry)
+            .increment();
     }
     
     public void recordComplianceViolation(String violationType, String severity) {
-        complianceViolationsTotal.increment(
-            Tags.of(
-                Tag.of("violation_type", violationType),
-                Tag.of("severity", severity)
-            )
-        );
+        Counter.builder("banking_compliance_violations_total")
+            .description("Total compliance violations detected")
+            .tags("violation_type", violationType,
+                  "severity", severity,
+                  "service", "banking-platform")
+            .register(meterRegistry)
+            .increment();
     }
     
     // Performance Metrics
@@ -271,30 +279,33 @@ public class BankingMetricsService {
     }
     
     public void recordKYCVerificationDuration(Duration duration, String verificationType, String result) {
-        kycVerificationDuration.record(duration,
-            Tags.of(
-                Tag.of("verification_type", verificationType),
-                Tag.of("result", result)
-            )
-        );
+        Timer.builder("banking_kyc_verification_duration_seconds")
+            .description("Time taken for KYC verification")
+            .tags("verification_type", verificationType,
+                  "result", result,
+                  "service", "banking-platform")
+            .register(meterRegistry)
+            .record(duration);
     }
     
     public void recordFraudAnalysisDuration(Duration duration, String analysisType, String result) {
-        fraudAnalysisDuration.record(duration,
-            Tags.of(
-                Tag.of("analysis_type", analysisType),
-                Tag.of("result", result)
-            )
-        );
+        Timer.builder("banking_fraud_analysis_duration_seconds")
+            .description("Time taken for fraud analysis")
+            .tags("analysis_type", analysisType,
+                  "result", result,
+                  "service", "banking-platform")
+            .register(meterRegistry)
+            .record(duration);
     }
     
     public void recordAuthenticationDuration(Duration duration, String authMethod, String result) {
-        authenticationDuration.record(duration,
-            Tags.of(
-                Tag.of("auth_method", authMethod),
-                Tag.of("result", result)
-            )
-        );
+        Timer.builder("banking_authentication_duration_seconds")
+            .description("Time taken for user authentication")
+            .tags("auth_method", authMethod,
+                  "result", result,
+                  "service", "banking-platform")
+            .register(meterRegistry)
+            .record(duration);
     }
     
     // State Metrics

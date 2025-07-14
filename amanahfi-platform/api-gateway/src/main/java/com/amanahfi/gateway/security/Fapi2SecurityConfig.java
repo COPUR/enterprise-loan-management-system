@@ -59,8 +59,12 @@ public class Fapi2SecurityConfig {
             .headers(headers -> headers
                 .frameOptions(frameOptions -> frameOptions.mode(XFrameOptionsServerHttpHeadersWriter.Mode.DENY))
                 .contentTypeOptions(Customizer.withDefaults())
-                .httpStrictTransportSecurity(Customizer.withDefaults())
-                .referrerPolicy(ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                .hsts(hsts -> hsts
+                    .includeSubdomains(true)
+                    .maxAge(Duration.ofDays(365))
+                    .preload(true))
+                .referrerPolicy(referrerPolicy -> referrerPolicy
+                    .policy(ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
             )
             
             // OAuth 2.1 + JWT Resource Server
