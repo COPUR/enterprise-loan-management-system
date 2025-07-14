@@ -21,6 +21,19 @@ dependencies {
     api 'org.apache.commons:commons-lang3'
     api 'org.springframework:spring-context'
     
+    // Web support
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-security'
+    
+    // Lombok for boilerplate reduction
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    
+    // OpenTelemetry for tracing
+    api 'io.opentelemetry:opentelemetry-api:1.32.0'
+    api 'io.opentelemetry:opentelemetry-context:1.32.0'
+    api 'io.opentelemetry:opentelemetry-sdk:1.32.0'
+    
     // Testing
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.assertj:assertj-core'
