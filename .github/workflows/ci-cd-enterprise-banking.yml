@@ -66,7 +66,7 @@ jobs:
         echo "Skipping architecture tests - fixing compilation issues..."
         
         # Try basic compilation of working modules only
-        ./gradlew clean :shared-kernel:build :shared-infrastructure:build -x test --no-daemon || echo "Compilation has issues, proceeding with warnings..."
+        ./gradlew clean :shared-kernel:build :shared-infrastructure:build :amanahfi-platform:onboarding-context:build :amanahfi-platform:accounts-context:build :amanahfi-platform:payments-context:build :amanahfi-platform:murabaha-context:build :amanahfi-platform:compliance-context:build -x test --no-daemon || echo "Compilation has issues, proceeding with warnings..."
         
     - name: 📊 Code Quality Analysis (SonarQube)
       env:
@@ -147,7 +147,7 @@ jobs:
         REDIS_PORT: 6379
       run: |
         # Run tests only for working modules
-        ./gradlew :shared-kernel:test :shared-infrastructure:test \
+        ./gradlew :shared-kernel:test :shared-infrastructure:test :amanahfi-platform:onboarding-context:test :amanahfi-platform:accounts-context:test :amanahfi-platform:payments-context:test :amanahfi-platform:murabaha-context:test :amanahfi-platform:compliance-context:test \
           -Dspring.profiles.active=test \
           -Dtest.database.url=jdbc:postgresql://localhost:5432/banking_test \
           --no-daemon || echo "Some tests failed, proceeding with warnings..."
