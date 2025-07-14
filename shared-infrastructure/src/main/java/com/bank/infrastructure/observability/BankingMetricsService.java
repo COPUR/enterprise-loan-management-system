@@ -356,10 +356,10 @@ public class BankingMetricsService {
         String key = name + "_" + tags.toString();
         AtomicReference<Double> gauge = dynamicGauges.computeIfAbsent(key, k -> {
             AtomicReference<Double> ref = new AtomicReference<>(value);
-            Gauge.builder(name)
+            Gauge.builder(name, ref, AtomicReference::get)
                 .description(description)
                 .tags(tags)
-                .register(meterRegistry, ref, AtomicReference::get);
+                .register(meterRegistry);
             return ref;
         });
         gauge.set(value);

@@ -11,13 +11,13 @@ keywords:
   - microservices
   - spring-boot
 
-home: https://github.com/amanahfi/platform
+home: https://github.com/COPUR/enterprise-loan-management-system
 sources:
-  - https://github.com/amanahfi/platform
+  - https://github.com/COPUR/enterprise-loan-management-system
 
 maintainers:
-  - name: AmanahFi Team
-    email: platform@amanahfi.com
+  - name: Ali Copur
+    email: linkedin.com/in/acopur
 
 dependencies:
   - name: postgresql

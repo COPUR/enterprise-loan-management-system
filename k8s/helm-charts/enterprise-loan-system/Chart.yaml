@@ -14,14 +14,12 @@ keywords:
   - fintech
   - java
   - spring-boot
-home: https://github.com/your-org/enterprise-loan-system
+home: https://github.com/COPUR/enterprise-loan-management-system
 sources:
-  - https://github.com/your-org/enterprise-loan-system
+  - https://github.com/COPUR/enterprise-loan-management-system
 maintainers:
-  - name: Copur
-    email: copur@alico.com
-  - name: AliCo Banking Platform Team
-    email: platform@alico.com
+  - name: Ali Copur
+    email: linkedin.com/in/acopur
 dependencies:
   - name: postgresql
     version: "12.x.x"

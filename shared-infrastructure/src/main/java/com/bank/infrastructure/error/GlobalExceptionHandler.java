@@ -147,7 +147,8 @@ public class GlobalExceptionHandler {
         problemDetail.setType(java.net.URI.create("https://banking.local/errors/fraud-detected"));
         problemDetail.setInstance(java.net.URI.create(request.getRequestURI()));
         problemDetail.setProperty("riskScore", ex.getRiskScore());
-        problemDetail.setProperty("riskFactors", ex.getRiskFactors());
+        problemDetail.setProperty("fraudReason", ex.getFraudReason());
+        problemDetail.setProperty("transactionId", ex.getTransactionId());
         problemDetail.setProperty("timestamp", Instant.now().toString());
         problemDetail.setProperty("errorId", UUID.randomUUID().toString());
         
@@ -173,7 +174,9 @@ public class GlobalExceptionHandler {
         problemDetail.setType(java.net.URI.create("https://banking.local/errors/compliance-violation"));
         problemDetail.setInstance(java.net.URI.create(request.getRequestURI()));
         problemDetail.setProperty("violationType", ex.getViolationType());
-        problemDetail.setProperty("complianceRules", ex.getViolatedRules());
+        problemDetail.setProperty("complianceRule", ex.getComplianceRule());
+        problemDetail.setProperty("entityId", ex.getEntityId());
+        problemDetail.setProperty("severityLevel", ex.getSeverityLevel());
         problemDetail.setProperty("timestamp", Instant.now().toString());
         problemDetail.setProperty("errorId", UUID.randomUUID().toString());
         
@@ -343,7 +346,8 @@ public class GlobalExceptionHandler {
         problemDetail.setType(java.net.URI.create("https://banking.local/errors/invalid-account"));
         problemDetail.setInstance(java.net.URI.create(request.getRequestURI()));
         problemDetail.setProperty("accountId", ex.getAccountId());
-        problemDetail.setProperty("validationErrors", ex.getValidationErrors());
+        problemDetail.setProperty("accountType", ex.getAccountType());
+        problemDetail.setProperty("reason", ex.getReason());
         problemDetail.setProperty("timestamp", Instant.now().toString());
         problemDetail.setProperty("errorId", UUID.randomUUID().toString());
         

@@ -171,11 +171,11 @@ publishing {
                 
                 developers {
                     developer {
-                        id = 'masrufi-team'
-                        name = 'MasruFi Development Team'
-                        email = 'dev@masrufi.com'
-                        organization = 'Ali&Co'
-                        organizationUrl = 'https://alico.com'
+                        id = 'acopur'
+                        name = 'Ali Copur'
+                        email = 'linkedin.com/in/acopur'
+                        organization = 'Independent'
+                        organizationUrl = 'https://linkedin.com/in/acopur'
                     }
                 }
             }

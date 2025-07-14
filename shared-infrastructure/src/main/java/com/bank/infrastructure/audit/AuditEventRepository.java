@@ -125,6 +125,12 @@ public interface AuditEventRepository extends JpaRepository<AuditEventEntity, St
         @Param("start") LocalDateTime start,
         @Param("end") LocalDateTime end
     );
+    
+    // Simple query methods for AuditService
+    List<AuditEventEntity> findByTimestampBetween(LocalDateTime from, LocalDateTime to);
+    List<AuditEventEntity> findByUserId(String userId);
+    List<AuditEventEntity> findByCategory(AuditEvent.EventCategory category);
+    long countBySeverityAndTimestampBetween(AuditEvent.EventSeverity severity, LocalDateTime from, LocalDateTime to);
 }
 
 /**

@@ -49,7 +49,7 @@ public class ApiVersioningConfiguration implements WebMvcConfigurer {
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
         configurer
             .favorParameter(false)
-            .favorPathExtension(false)
+            // .favorPathExtension(false) // Deprecated in Spring Boot 3.x
             .ignoreAcceptHeader(false)
             .useRegisteredExtensionsOnly(false)
             .defaultContentType(MediaType.APPLICATION_JSON)
