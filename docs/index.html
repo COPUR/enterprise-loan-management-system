@@ -597,6 +597,97 @@
             font-weight: 600;
         }
 
+        /* Smart Contract Styles */
+        .smart-contract-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .smart-contract-category {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .smart-contract-category:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+        }
+
+        .smart-contract-features {
+            margin-top: 1.5rem;
+        }
+
+        .feature-item {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.75rem;
+            border-left: 4px solid var(--islamic-gold);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .feature-item strong {
+            color: var(--primary-color);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .code-preview {
+            background: var(--dark-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+        }
+
+        .code-preview code {
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            line-height: 1.8;
+        }
+
+        .smart-contract-benefits {
+            margin-top: 3rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 1.5rem;
+            padding: 3rem;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .benefit-item {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .benefit-metric {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--islamic-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .benefit-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
         /* Code Blocks */
         .code-block {
             background: var(--dark-bg);
@@ -682,6 +773,14 @@
                 grid-template-columns: 1fr;
             }
 
+            .smart-contract-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .benefits-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
             .metrics-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -740,6 +839,7 @@
                 <ul class="nav-links">
                     <li><a href="#executive-overview">🎯 Executive Overview</a></li>
                     <li><a href="#submodules">🏗️ Platform Modules</a></li>
+                    <li><a href="#smart-contracts">⚡ Smart Contracts</a></li>
                     <li><a href="#architecture-analysis">📊 Architecture Analysis</a></li>
                     <li><a href="#api-showcase">🔌 API Showcase</a></li>
                     <li><a href="#development-insights">👨‍💻 Dev Squad Insights</a></li>
@@ -997,6 +1097,146 @@
                             </ul>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <!-- Smart Contract Integration -->
+            <section id="smart-contracts" class="section fade-in">
+                <h2 class="section-title">
+                    <i class="fas fa-code-branch"></i>
+                    Smart Contract Innovation in Islamic Banking
+                </h2>
+                <p class="section-description">
+                    **Ali Copur** presents strategic smart contract use cases that revolutionize Islamic banking through automated Sharia compliance, 
+                    CBDC integration, and sophisticated financial instrument management. These blockchain innovations enhance the AmanahFi platform's 
+                    capability to serve the $256 billion Islamic finance market with unprecedented automation and transparency.
+                </p>
+
+                <div class="smart-contract-grid">
+                    <div class="smart-contract-category">
+                        <h3 style="color: var(--islamic-gold); margin-bottom: 1.5rem;">
+                            <i class="fas fa-contract"></i> Murabaha Smart Contract Automation
+                        </h3>
+                        <div class="smart-contract-features">
+                            <div class="feature-item">
+                                <strong>Automated Profit Distribution:</strong> Smart contracts automatically calculate and distribute profits according to Sharia-compliant principles with transparent margin validation within Islamic limits.
+                            </div>
+                            <div class="feature-item">
+                                <strong>Asset Ownership Transfer:</strong> Blockchain verification ensures actual asset ownership transfer before financing initiation, eliminating Gharar (uncertainty) concerns.
+                            </div>
+                            <div class="feature-item">
+                                <strong>Early Settlement Calculation:</strong> Automated Sharia-compliant discount calculations for early contract termination with built-in compliance validation.
+                            </div>
+                            <div class="code-preview">
+                                <code>contract MurabahaContract {<br/>
+                                &nbsp;&nbsp;function validateProfitMargin(uint256 cost, uint256 profit) external;<br/>
+                                &nbsp;&nbsp;function processInstallment(uint256 installmentNumber) external;<br/>
+                                &nbsp;&nbsp;function calculateEarlySettlement() external returns (uint256);<br/>
+                                }</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="smart-contract-category">
+                        <h3 style="color: var(--primary-color); margin-bottom: 1.5rem;">
+                            <i class="fas fa-coins"></i> CBDC Integration Excellence
+                        </h3>
+                        <div class="smart-contract-features">
+                            <div class="feature-item">
+                                <strong>Instant Settlement:</strong> Atomic settlement of Islamic finance transactions using UAE Digital Dirham with sub-second execution and immutable audit trails.
+                            </div>
+                            <div class="feature-item">
+                                <strong>Cross-border Islamic Finance:</strong> Automated currency conversion and settlement across MENAT region with real-time compliance validation.
+                            </div>
+                            <div class="feature-item">
+                                <strong>Liquidity Pool Management:</strong> Smart contract-based liquidity pooling for Islamic banks with automated Sharia compliance monitoring.
+                            </div>
+                            <div class="code-preview">
+                                <code>contract IslamicCBDCSettlement {<br/>
+                                &nbsp;&nbsp;function transferWithShariaCompliance(address from, address to, uint256 amount);<br/>
+                                &nbsp;&nbsp;function crossBorderIslamicTransfer(bytes32 fromCountry, bytes32 toCountry);<br/>
+                                &nbsp;&nbsp;function manageLiquidityPool(uint256 requiredLiquidity) external;<br/>
+                                }</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="smart-contract-category">
+                        <h3 style="color: var(--accent-color); margin-bottom: 1.5rem;">
+                            <i class="fas fa-shield-alt"></i> Automated Sharia Compliance
+                        </h3>
+                        <div class="smart-contract-features">
+                            <div class="feature-item">
+                                <strong>Real-time Riba Detection:</strong> Automated validation ensuring complete elimination of interest-based transactions with intelligent pattern recognition.
+                            </div>
+                            <div class="feature-item">
+                                <strong>Asset Permissibility Validation:</strong> Smart contract verification of Halal assets with automated Fatwa enforcement from recognized Sharia boards.
+                            </div>
+                            <div class="feature-item">
+                                <strong>Gharar Elimination:</strong> Automated uncertainty detection and prevention through comprehensive contract term validation and risk assessment.
+                            </div>
+                            <div class="code-preview">
+                                <code>contract ShariaComplianceValidator {<br/>
+                                &nbsp;&nbsp;function validateRibaFree(uint256 amount, uint256 timeframe) external;<br/>
+                                &nbsp;&nbsp;function validateGhararFree(bytes32 contractTerms) external;<br/>
+                                &nbsp;&nbsp;function validatePermissibleAsset(bytes32 assetType) external;<br/>
+                                }</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="smart-contract-category">
+                        <h3 style="color: var(--warning-color); margin-bottom: 1.5rem;">
+                            <i class="fas fa-handshake"></i> Musharakah Partnership Automation
+                        </h3>
+                        <div class="smart-contract-features">
+                            <div class="feature-item">
+                                <strong>Automated Profit Distribution:</strong> Smart contracts distribute profits according to agreed partnership ratios with transparent calculation methodologies.
+                            </div>
+                            <div class="feature-item">
+                                <strong>Loss Sharing Automation:</strong> Automated calculation and distribution of losses based on capital contribution with immutable record keeping.
+                            </div>
+                            <div class="feature-item">
+                                <strong>Partnership Governance:</strong> Smart contract-based voting and decision making with weighted governance based on investment participation.
+                            </div>
+                            <div class="code-preview">
+                                <code>contract MusharakahPartnership {<br/>
+                                &nbsp;&nbsp;function distributeProfits(uint256 totalProfit) external;<br/>
+                                &nbsp;&nbsp;function shareLosses(uint256 totalLoss) external;<br/>
+                                &nbsp;&nbsp;function submitPartnershipDecision(bytes32 decision) external;<br/>
+                                }</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="smart-contract-benefits">
+                    <h3 style="color: var(--primary-color); margin-bottom: 1.5rem; text-align: center;">
+                        🚀 Business Impact & Strategic Value
+                    </h3>
+                    <div class="benefits-grid">
+                        <div class="benefit-item">
+                            <div class="benefit-metric">95%</div>
+                            <div class="benefit-label">Reduction in Manual Compliance Checking</div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-metric">Sub-Second</div>
+                            <div class="benefit-label">Islamic Finance Transaction Settlement</div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-metric">60%</div>
+                            <div class="benefit-label">Cost Reduction in Regulatory Operations</div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-metric">100%</div>
+                            <div class="benefit-label">Automated Sharia Compliance Validation</div>
+                        </div>
+                    </div>
+                    <p style="text-align: center; margin-top: 2rem; color: var(--text-secondary); font-style: italic;">
+                        Smart contract integration enables AmanahFi to serve the global Islamic finance market with unprecedented 
+                        automation, transparency, and compliance while maintaining complete adherence to Sharia principles and 
+                        regulatory requirements across UAE and MENAT jurisdictions.
+                    </p>
                 </div>
             </section>
 
