@@ -804,7 +804,8 @@ jobs:
         
     - name: 💬 Slack Notification
       uses: 8398a7/action-slack@v3
-      if: always() && secrets.SLACK_WEBHOOK_URL != ''
+      if: always()
+      continue-on-error: true
       with:
         status: ${{ job.status }}
         channel: '#banking-deployments'
@@ -812,15 +813,16 @@ jobs:
         fields: repo,message,commit,author,action,eventName,ref,workflow
         
     - name: 📧 Email Notification (Failures Only)
-      if: failure() && secrets.SMTP_SERVER != '' && secrets.ALERT_EMAIL_LIST != ''
+      if: failure()
+      continue-on-error: true
       uses: dawidd6/action-send-mail@v3
       with:
-        server_address: ${{ secrets.SMTP_SERVER }}
+        server_address: ${{ secrets.SMTP_SERVER || 'smtp.gmail.com' }}
         server_port: 587
-        username: ${{ secrets.SMTP_USERNAME }}
-        password: ${{ secrets.SMTP_PASSWORD }}
+        username: ${{ secrets.SMTP_USERNAME || 'noreply@banking.enterprise.com' }}
+        password: ${{ secrets.SMTP_PASSWORD || 'dummy' }}
         subject: "🚨 Banking System Deployment Failed"
-        to: ${{ secrets.ALERT_EMAIL_LIST }}
+        to: ${{ secrets.ALERT_EMAIL_LIST || 'devops@banking.enterprise.com' }}
         from: "CI/CD Pipeline <noreply@banking.enterprise.com>"
         body: |
           Deployment failed for Enterprise Banking System.
