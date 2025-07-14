@@ -1,5 +1,6 @@
 package com.amanahfi.platform.shared.domain;
 
+import com.amanahfi.shared.domain.money.Money;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

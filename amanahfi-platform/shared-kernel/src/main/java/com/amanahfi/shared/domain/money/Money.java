@@ -34,6 +34,13 @@ public final class Money {
     @NotNull
     private final String currency;
 
+    /**
+     * Gets the currency code (alias for getCurrency for backward compatibility)
+     */
+    public String getCurrencyCode() {
+        return currency;
+    }
+
     @JsonCreator
     private Money(@JsonProperty("amount") BigDecimal amount, 
                   @JsonProperty("currency") String currency) {
@@ -63,6 +70,43 @@ public final class Money {
      */
     public static Money zero(String currency) {
         return new Money(BigDecimal.ZERO, currency);
+    }
+
+    // MENAT Region Currency Factory Methods
+    public static Money aed(BigDecimal amount) {
+        return new Money(amount, "AED");
+    }
+
+    public static Money sar(BigDecimal amount) {
+        return new Money(amount, "SAR");
+    }
+
+    public static Money usd(BigDecimal amount) {
+        return new Money(amount, "USD");
+    }
+
+    public static Money eur(BigDecimal amount) {
+        return new Money(amount, "EUR");
+    }
+
+    public static Money qar(BigDecimal amount) {
+        return new Money(amount, "QAR");
+    }
+
+    public static Money kwd(BigDecimal amount) {
+        return new Money(amount, "KWD");
+    }
+
+    public static Money bhd(BigDecimal amount) {
+        return new Money(amount, "BHD");
+    }
+
+    public static Money tryLira(BigDecimal amount) {
+        return new Money(amount, "TRY");
+    }
+
+    public static Money pkr(BigDecimal amount) {
+        return new Money(amount, "PKR");
     }
 
     /**
