@@ -108,12 +108,18 @@ class ComplianceCheckTest {
     void shouldPerformAutomatedAmlScreening() {
         // Given
         ComplianceCheck amlCheck = createAmlCheck();
-        AmlScreeningResult screeningResult = new AmlScreeningResult(
-            "AML-SCREEN-001",
-            RiskScore.LOW,
-            "No matches found in sanctions lists",
-            List.of()
-        );
+        AmlScreeningResult screeningResult = AmlScreeningResult.builder()
+            .screeningId("AML-SCREEN-001")
+            .entityId("CUST-001")
+            .providerId("EXTERNAL-AML")
+            .riskScore(RiskScore.LOW)
+            .summary("No matches found in sanctions lists")
+            .findings(List.of())
+            .watchlistMatches(List.of())
+            .recommendations(List.of())
+            .screeningDate(LocalDateTime.now())
+            .highRisk(false)
+            .build();
 
         // When
         amlCheck.performAutomatedScreening(screeningResult);
@@ -147,12 +153,18 @@ class ComplianceCheckTest {
     void shouldEscalateHighRiskCasesForManualReview() {
         // Given
         ComplianceCheck check = createAmlCheck();
-        AmlScreeningResult highRiskResult = new AmlScreeningResult(
-            "AML-SCREEN-002",
-            RiskScore.HIGH,
-            "Potential match found in sanctions list",
-            List.of("Sanctions list match: 85% confidence")
-        );
+        AmlScreeningResult highRiskResult = AmlScreeningResult.builder()
+            .screeningId("AML-SCREEN-002")
+            .entityId("CUST-002")
+            .providerId("EXTERNAL-AML")
+            .riskScore(RiskScore.HIGH)
+            .summary("Potential match found in sanctions list")
+            .findings(List.of("Sanctions list match: 85% confidence"))
+            .watchlistMatches(List.of("OFAC-SANCTIONS"))
+            .recommendations(List.of("Manual review required"))
+            .screeningDate(LocalDateTime.now())
+            .highRisk(true)
+            .build();
 
         // When
         check.performAutomatedScreening(highRiskResult);
@@ -351,12 +363,18 @@ class ComplianceCheckTest {
 
     private ComplianceCheck createHighRiskCheck() {
         ComplianceCheck check = createAmlCheck();
-        AmlScreeningResult highRiskResult = new AmlScreeningResult(
-            "AML-SCREEN-HIGH",
-            RiskScore.HIGH,
-            "High-risk indicators detected",
-            List.of("Multiple risk factors")
-        );
+        AmlScreeningResult highRiskResult = AmlScreeningResult.builder()
+            .screeningId("AML-SCREEN-HIGH")
+            .entityId("CUST-HIGH")
+            .providerId("EXTERNAL-AML")
+            .riskScore(RiskScore.HIGH)
+            .summary("High-risk indicators detected")
+            .findings(List.of("Multiple risk factors"))
+            .watchlistMatches(List.of("HIGH-RISK-LIST"))
+            .recommendations(List.of("Enhanced due diligence required"))
+            .screeningDate(LocalDateTime.now())
+            .highRisk(true)
+            .build();
         check.performAutomatedScreening(highRiskResult);
         return check;
     }
@@ -369,11 +387,17 @@ class ComplianceCheckTest {
     }
 
     private AmlScreeningResult createLowRiskScreeningResult() {
-        return new AmlScreeningResult(
-            "AML-SCREEN-LOW",
-            RiskScore.LOW,
-            "No adverse findings",
-            List.of()
-        );
+        return AmlScreeningResult.builder()
+            .screeningId("AML-SCREEN-LOW")
+            .entityId("CUST-LOW")
+            .providerId("EXTERNAL-AML")
+            .riskScore(RiskScore.LOW)
+            .summary("No adverse findings")
+            .findings(List.of())
+            .watchlistMatches(List.of())
+            .recommendations(List.of())
+            .screeningDate(LocalDateTime.now())
+            .highRisk(false)
+            .build();
     }
 }
