@@ -56,9 +56,18 @@ public class Customer extends AggregateRoot<CustomerId> {
         if (lastName == null || lastName.trim().isEmpty()) {
             throw new IllegalArgumentException("Last name cannot be null or empty");
         }
-        if (email == null || !email.contains("@")) {
+        if (email == null || !isValidEmail(email)) {
             throw new IllegalArgumentException("Email must be valid");
         }
+    }
+    
+    private static boolean isValidEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        // Basic email validation: contains @ and has text before and after @
+        int atIndex = email.indexOf('@');
+        return atIndex > 0 && atIndex < email.length() - 1 && email.indexOf('@', atIndex + 1) == -1;
     }
     
     @Override
@@ -99,7 +108,7 @@ public class Customer extends AggregateRoot<CustomerId> {
     }
     
     public void updateContactInformation(String email, String phoneNumber) {
-        if (email != null && email.contains("@")) {
+        if (email != null && isValidEmail(email)) {
             this.email = email;
         }
         if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {

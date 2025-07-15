@@ -54,6 +54,9 @@ public final class CreditProfile implements ValueObject {
     }
     
     public boolean canBorrow(Money amount) {
+        if (amount == null || amount.isNegative() || amount.isZero()) {
+            return false;
+        }
         return getAvailableCredit().compareTo(amount) >= 0;
     }
     

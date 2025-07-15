@@ -166,27 +166,176 @@ public class Loan extends AggregateRoot<LoanId> {
         addDomainEvent(new LoanCancelledEvent(loanId, customerId, reason));
     }
     
-    public void makePayment(Money paymentAmount) {
+    /**
+     * Process a payment against the loan
+     * 
+     * Refactored following GRASP principles:
+     * - Single Responsibility: Each method has one clear purpose
+     * - Low Coupling: Minimal dependencies between methods
+     * - High Cohesion: All methods work together for payment processing
+     * 
+     * @param paymentAmount The amount to be paid
+     * @return PaymentResult containing payment processing details
+     */
+    public PaymentResult makePayment(Money paymentAmount) {
+        validatePaymentPreconditions(paymentAmount);
+        
+        PaymentDistribution distribution = distributePaymentAcrossInstallments(paymentAmount);
+        updateLoanBalance(distribution);
+        updateLoanStatus();
+        publishPaymentEvents(distribution);
+        
+        return createPaymentResult(distribution);
+    }
+
+    /**
+     * Validate all preconditions for payment processing
+     * 
+     * Single Responsibility: Only validates payment preconditions
+     */
+    private void validatePaymentPreconditions(Money paymentAmount) {
+        validateLoanStatusForPayment();
+        validatePaymentAmount(paymentAmount);
+        validatePaymentAgainstBalance(paymentAmount);
+    }
+
+    /**
+     * Validate loan status allows payments
+     */
+    private void validateLoanStatusForPayment() {
         if (!status.canAcceptPayments()) {
-            throw new IllegalStateException("Loan cannot accept payments in current status: " + status);
+            throw new IllegalStateException(
+                String.format("Loan cannot accept payments in current status: %s", status)
+            );
+        }
+    }
+
+    /**
+     * Validate payment amount is positive
+     */
+    private void validatePaymentAmount(Money paymentAmount) {
+        if (paymentAmount == null) {
+            throw new IllegalArgumentException("Payment amount cannot be null");
         }
         if (paymentAmount.isNegative() || paymentAmount.isZero()) {
             throw new IllegalArgumentException("Payment amount must be positive");
         }
+    }
+
+    /**
+     * Validate payment doesn't exceed outstanding balance
+     */
+    private void validatePaymentAgainstBalance(Money paymentAmount) {
         if (paymentAmount.compareTo(outstandingBalance) > 0) {
-            throw new IllegalArgumentException("Payment amount cannot exceed outstanding balance");
+            throw new IllegalArgumentException(
+                String.format("Payment amount (%s) cannot exceed outstanding balance (%s)", 
+                    paymentAmount, outstandingBalance)
+            );
         }
-        
+    }
+
+    /**
+     * Distribute payment across loan installments
+     * 
+     * High Cohesion: Focused on payment distribution logic
+     */
+    private PaymentDistribution distributePaymentAcrossInstallments(Money paymentAmount) {
         Money previousBalance = this.outstandingBalance;
-        this.outstandingBalance = this.outstandingBalance.subtract(paymentAmount);
-        this.updatedAt = LocalDateTime.now();
+        Money principalPayment = calculatePrincipalPayment(paymentAmount);
+        Money interestPayment = calculateInterestPayment(paymentAmount);
         
+        PaymentDistribution distribution = PaymentDistribution.builder()
+            .totalPayment(paymentAmount)
+            .principalPayment(principalPayment)
+            .interestPayment(interestPayment)
+            .previousBalance(previousBalance)
+            .paymentDate(LocalDate.now())
+            .build();
+            
+        distribution.validate();
+        return distribution;
+    }
+
+    /**
+     * Calculate principal portion of payment
+     */
+    private Money calculatePrincipalPayment(Money paymentAmount) {
+        // Simplified: For now, entire payment goes to principal
+        // In a more sophisticated system, this would account for
+        // accrued interest, payment allocation rules, etc.
+        return paymentAmount;
+    }
+
+    /**
+     * Calculate interest portion of payment
+     */
+    private Money calculateInterestPayment(Money paymentAmount) {
+        // Simplified: No interest calculation for now
+        // In production, this would calculate accrued interest
+        return Money.aed(BigDecimal.ZERO);
+    }
+
+    /**
+     * Update loan balance with payment distribution
+     * 
+     * Single Responsibility: Only updates financial balances
+     */
+    private void updateLoanBalance(PaymentDistribution distribution) {
+        this.outstandingBalance = this.outstandingBalance.subtract(distribution.getPrincipalPayment());
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Update loan status based on current balance
+     * 
+     * Information Expert: Loan knows its own status rules
+     */
+    private void updateLoanStatus() {
         if (this.outstandingBalance.isZero()) {
             this.status = LoanStatus.FULLY_PAID;
+        }
+        // Could add other status transitions here (e.g., CURRENT, OVERDUE)
+    }
+
+    /**
+     * Publish relevant domain events for payment processing
+     * 
+     * Low Coupling: Encapsulates event publishing logic
+     */
+    private void publishPaymentEvents(PaymentDistribution distribution) {
+        // Publish payment made event
+        addDomainEvent(new LoanPaymentMadeEvent(
+            loanId, 
+            customerId, 
+            distribution.getTotalPayment(),
+            distribution.getPreviousBalance(),
+            outstandingBalance
+        ));
+        
+        // Publish fully paid event if applicable
+        if (this.outstandingBalance.isZero()) {
             addDomainEvent(new LoanFullyPaidEvent(loanId, customerId));
         }
-        
-        addDomainEvent(new LoanPaymentMadeEvent(loanId, customerId, paymentAmount, previousBalance, outstandingBalance));
+    }
+
+    /**
+     * Create comprehensive payment result
+     * 
+     * Creator Pattern: Loan creates its own payment results
+     */
+    private PaymentResult createPaymentResult(PaymentDistribution distribution) {
+        PaymentResult result = PaymentResult.builder()
+            .loanId(loanId)
+            .paymentId(PaymentId.generate())
+            .paymentDistribution(distribution)
+            .newOutstandingBalance(outstandingBalance)
+            .loanStatus(status)
+            .paymentProcessedAt(LocalDateTime.now())
+            .success(true)
+            .build();
+            
+        result.validate();
+        return result;
     }
     
     private LocalDate calculateMaturityDate() {
@@ -199,6 +348,11 @@ public class Loan extends AggregateRoot<LoanId> {
     
     public Money calculateMonthlyPayment() {
         if (loanTerm.getMonths() == 0) {
+            return principalAmount;
+        }
+        
+        // Business rule: For very short-term loans (1 month), return principal only
+        if (loanTerm.getMonths() == 1) {
             return principalAmount;
         }
         

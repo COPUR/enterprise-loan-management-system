@@ -22,6 +22,10 @@ public final class AccountId implements ValueObject {
         return new AccountId(value);
     }
     
+    public static AccountId generate() {
+        return new AccountId("ACC-" + java.util.UUID.randomUUID().toString());
+    }
+    
     public String getValue() {
         return value;
     }
