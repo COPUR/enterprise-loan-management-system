@@ -33,8 +33,8 @@ public class TestSecurityConfig {
             .headers(headers -> headers
                 .frameOptions(frameOptions -> frameOptions.mode(XFrameOptionsServerHttpHeadersWriter.Mode.DENY))
                 .contentTypeOptions(Customizer.withDefaults())
-                .httpStrictTransportSecurity(Customizer.withDefaults())
-                .referrerPolicy(ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                .referrerPolicy(referrerPolicy -> referrerPolicy
+                    .policy(ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
             )
             
             // Allow all requests for testing
@@ -49,13 +49,15 @@ public class TestSecurityConfig {
     @Primary
     public DPoPTokenValidator testDPoPTokenValidator() {
         return new DPoPTokenValidator() {
-            @Override
-            public DPoPValidationResult validateDPoPToken(String dpopToken, String httpMethod, String httpUrl, String accessToken) {
+            public reactor.core.publisher.Mono<DPoPValidationResult> validateDPoPToken(
+                    String dPoPToken, 
+                    String accessToken,
+                    org.springframework.web.server.ServerWebExchange exchange) {
                 // Return validation failure for invalid tokens in tests
-                if ("invalid-dpop-token".equals(dpopToken)) {
-                    return DPoPValidationResult.invalid("Invalid DPoP token", "test-nonce-123");
+                if ("invalid-dpop-token".equals(dPoPToken)) {
+                    return reactor.core.publisher.Mono.just(DPoPValidationResult.invalid("Invalid DPoP token"));
                 }
-                return DPoPValidationResult.valid();
+                return reactor.core.publisher.Mono.just(DPoPValidationResult.valid());
             }
         };
     }

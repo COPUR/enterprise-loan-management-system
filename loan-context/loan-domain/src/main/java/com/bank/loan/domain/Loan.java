@@ -7,6 +7,8 @@ import com.bank.shared.kernel.domain.Money;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -16,6 +18,11 @@ import java.util.Objects;
  * and business rules for loan lifecycle management.
  */
 public class Loan extends AggregateRoot<LoanId> {
+    
+    private static final Money MIN_LOAN_AMOUNT = Money.aed(new BigDecimal("1000.00"));
+    private static final Money MAX_LOAN_AMOUNT = Money.aed(new BigDecimal("500000.00"));
+    private static final int MIN_INSTALLMENTS = 6;
+    private static final int MAX_INSTALLMENTS = 60;
     
     private LoanId loanId;
     private CustomerId customerId;
@@ -28,14 +35,18 @@ public class Loan extends AggregateRoot<LoanId> {
     private LocalDate disbursementDate;
     private LocalDate maturityDate;
     private Money outstandingBalance;
+    private List<LoanInstallment> installments;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
     // Private constructor for JPA
-    protected Loan() {}
+    protected Loan() {
+        this.installments = new ArrayList<>();
+    }
     
     private Loan(LoanId loanId, CustomerId customerId, Money principalAmount,
                 InterestRate interestRate, LoanTerm loanTerm) {
+        this();
         this.loanId = Objects.requireNonNull(loanId, "Loan ID cannot be null");
         this.customerId = Objects.requireNonNull(customerId, "Customer ID cannot be null");
         this.principalAmount = Objects.requireNonNull(principalAmount, "Principal amount cannot be null");
@@ -53,9 +64,24 @@ public class Loan extends AggregateRoot<LoanId> {
         addDomainEvent(new LoanCreatedEvent(loanId, customerId, principalAmount));
     }
     
+    private Loan(LoanId loanId, CustomerId customerId, Money principalAmount,
+                InterestRate interestRate, LoanTerm loanTerm, boolean generateInstallments) {
+        this(loanId, customerId, principalAmount, interestRate, loanTerm);
+        
+        if (generateInstallments) {
+            validateInstallmentGenerationRules();
+            generateInstallments();
+        }
+    }
+    
     public static Loan create(LoanId loanId, CustomerId customerId, Money principalAmount,
                              InterestRate interestRate, LoanTerm loanTerm) {
         return new Loan(loanId, customerId, principalAmount, interestRate, loanTerm);
+    }
+    
+    public static Loan createWithInstallments(LoanId loanId, CustomerId customerId, Money principalAmount,
+                                            InterestRate interestRate, LoanTerm loanTerm) {
+        return new Loan(loanId, customerId, principalAmount, interestRate, loanTerm, true);
     }
     
     private void validateLoanData() {
@@ -67,6 +93,25 @@ public class Loan extends AggregateRoot<LoanId> {
         }
         if (loanTerm.getMonths() <= 0) {
             throw new IllegalArgumentException("Loan term must be positive");
+        }
+    }
+    
+    private void validateInstallmentGenerationRules() {
+        if (principalAmount.compareTo(MIN_LOAN_AMOUNT) < 0) {
+            throw new IllegalArgumentException(
+                String.format("Loan amount must be at least %s", MIN_LOAN_AMOUNT));
+        }
+        if (principalAmount.compareTo(MAX_LOAN_AMOUNT) > 0) {
+            throw new IllegalArgumentException(
+                String.format("Loan amount cannot exceed %s", MAX_LOAN_AMOUNT));
+        }
+        if (loanTerm.getMonths() < MIN_INSTALLMENTS) {
+            throw new IllegalArgumentException(
+                String.format("Loan term must be at least %d months", MIN_INSTALLMENTS));
+        }
+        if (loanTerm.getMonths() > MAX_INSTALLMENTS) {
+            throw new IllegalArgumentException(
+                String.format("Loan term cannot exceed %d months", MAX_INSTALLMENTS));
         }
     }
     
@@ -369,5 +414,56 @@ public class Loan extends AggregateRoot<LoanId> {
         BigDecimal paymentFactor = numerator.divide(denominator, 10, java.math.RoundingMode.HALF_UP);
         
         return principalAmount.multiply(paymentFactor);
+    }
+    
+    // Archive business logic methods
+    public List<LoanInstallment> getInstallments() {
+        return new ArrayList<>(installments);
+    }
+    
+    public Money getTotalInstallmentAmount() {
+        return installments.stream()
+            .map(LoanInstallment::getAmount)
+            .reduce(Money.zero(principalAmount.getCurrency()), Money::add);
+    }
+    
+    public Money getTotalInterest() {
+        return getTotalInstallmentAmount().subtract(principalAmount);
+    }
+    
+    public Money getRemainingInstallmentAmount() {
+        return installments.stream()
+            .filter(installment -> !installment.isPaid())
+            .map(LoanInstallment::getAmount)
+            .reduce(Money.zero(principalAmount.getCurrency()), Money::add);
+    }
+    
+    public int getRemainingInstallments() {
+        return (int) installments.stream()
+            .filter(installment -> !installment.isPaid())
+            .count();
+    }
+    
+    public boolean isFullyPaid() {
+        return installments.stream().allMatch(LoanInstallment::isPaid);
+    }
+    
+    public List<LoanInstallment> getOverdueInstallments() {
+        LocalDate today = LocalDate.now();
+        return installments.stream()
+            .filter(installment -> !installment.isPaid() && installment.getDueDate().isBefore(today))
+            .toList();
+    }
+    
+    private void generateInstallments() {
+        Money monthlyPayment = calculateMonthlyPayment();
+        LocalDate currentDueDate = applicationDate.plusMonths(1);
+        
+        for (int i = 1; i <= loanTerm.getMonths(); i++) {
+            LoanInstallment installment = LoanInstallment.create(
+                loanId, customerId, i, monthlyPayment, currentDueDate);
+            installments.add(installment);
+            currentDueDate = currentDueDate.plusMonths(1);
+        }
     }
 }

@@ -4,6 +4,8 @@ import com.bank.shared.kernel.domain.AggregateRoot;
 import com.bank.shared.kernel.domain.CustomerId;
 import com.bank.shared.kernel.domain.Money;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -28,6 +30,17 @@ public class Payment extends AggregateRoot<PaymentId> {
     private LocalDateTime createdAt;
     private LocalDateTime completedAt;
     private LocalDateTime updatedAt;
+    
+    // Loan payment specific fields
+    private LoanId loanId;
+    private Money scheduledAmount;
+    private Money actualAmount;
+    private Money principalAmount;
+    private Money interestAmount;
+    private Money penaltyAmount;
+    private LocalDate scheduledDate;
+    private LocalDateTime actualPaymentDate;
+    private String transactionReference;
     
     // Private constructor for JPA
     protected Payment() {}
@@ -57,12 +70,68 @@ public class Payment extends AggregateRoot<PaymentId> {
         return new Payment(paymentId, customerId, fromAccountId, toAccountId, amount, paymentType, description);
     }
     
+    // Loan payment specific constructor
+    private Payment(PaymentId paymentId, CustomerId customerId, LoanId loanId, Money scheduledAmount, LocalDate scheduledDate) {
+        if (paymentId == null) {
+            throw new IllegalArgumentException("Payment ID cannot be null");
+        }
+        if (customerId == null) {
+            throw new IllegalArgumentException("Customer ID cannot be null");
+        }
+        if (loanId == null) {
+            throw new IllegalArgumentException("Loan ID cannot be null");
+        }
+        if (scheduledAmount == null) {
+            throw new IllegalArgumentException("Scheduled amount cannot be null");
+        }
+        
+        this.paymentId = paymentId;
+        this.customerId = customerId;
+        this.loanId = loanId;
+        this.scheduledAmount = scheduledAmount;
+        this.scheduledDate = scheduledDate;
+        this.amount = scheduledAmount;
+        this.paymentType = PaymentType.LOAN_PAYMENT;
+        this.status = PaymentStatus.PENDING;
+        this.penaltyAmount = Money.zero(scheduledAmount.getCurrency());
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        
+        validateLoanPaymentData();
+        
+        // Domain event
+        addDomainEvent(new LoanPaymentCreatedEvent(paymentId, customerId, loanId, scheduledAmount));
+    }
+    
+    // Loan payment with interest calculation constructor
+    private Payment(PaymentId paymentId, CustomerId customerId, LoanId loanId, Money scheduledAmount, 
+                   Money outstandingBalance, BigDecimal monthlyInterestRate) {
+        this(paymentId, customerId, loanId, scheduledAmount, LocalDate.now());
+        calculateAmounts(outstandingBalance, monthlyInterestRate);
+    }
+    
+    public static Payment createLoanPayment(PaymentId paymentId, CustomerId customerId, LoanId loanId, 
+                                          Money scheduledAmount, LocalDate scheduledDate) {
+        return new Payment(paymentId, customerId, loanId, scheduledAmount, scheduledDate);
+    }
+    
+    public static Payment createLoanPayment(PaymentId paymentId, CustomerId customerId, LoanId loanId, 
+                                          Money scheduledAmount, Money outstandingBalance, BigDecimal monthlyInterestRate) {
+        return new Payment(paymentId, customerId, loanId, scheduledAmount, outstandingBalance, monthlyInterestRate);
+    }
+    
     private void validatePaymentData() {
         if (amount.isNegative() || amount.isZero()) {
             throw new IllegalArgumentException("Payment amount must be positive");
         }
-        if (fromAccountId.equals(toAccountId)) {
+        if (fromAccountId != null && toAccountId != null && fromAccountId.equals(toAccountId)) {
             throw new IllegalArgumentException("From and to accounts cannot be the same");
+        }
+    }
+    
+    private void validateLoanPaymentData() {
+        if (scheduledAmount.isNegative() || scheduledAmount.isZero()) {
+            throw new IllegalArgumentException("Scheduled amount must be positive");
         }
     }
     
@@ -92,6 +161,15 @@ public class Payment extends AggregateRoot<PaymentId> {
     }
     
     public Money getTotalAmount() {
+        if (loanId != null) {
+            // For loan payments, total includes penalty
+            Money base = actualAmount != null ? actualAmount : scheduledAmount;
+            if (base != null && penaltyAmount != null) {
+                return base.add(penaltyAmount);
+            }
+            return base;
+        }
+        // Regular payment logic
         return amount.add(fee);
     }
     
@@ -186,5 +264,107 @@ public class Payment extends AggregateRoot<PaymentId> {
     
     public boolean isPending() {
         return status == PaymentStatus.PENDING;
+    }
+    
+    // Loan payment specific getters
+    public LoanId getLoanId() {
+        return loanId;
+    }
+    
+    public Money getScheduledAmount() {
+        return scheduledAmount;
+    }
+    
+    public Money getActualAmount() {
+        return actualAmount;
+    }
+    
+    public Money getPrincipalAmount() {
+        return principalAmount;
+    }
+    
+    public Money getInterestAmount() {
+        return interestAmount;
+    }
+    
+    public Money getPenaltyAmount() {
+        return penaltyAmount;
+    }
+    
+    public LocalDate getScheduledDate() {
+        return scheduledDate;
+    }
+    
+    public LocalDateTime getActualPaymentDate() {
+        return actualPaymentDate;
+    }
+    
+    public String getTransactionReference() {
+        return transactionReference;
+    }
+    
+    
+    // Loan payment specific business logic methods
+    public void calculateAmounts(Money outstandingBalance, BigDecimal monthlyInterestRate) {
+        if (scheduledAmount != null && monthlyInterestRate != null && outstandingBalance != null) {
+            // Calculate interest portion
+            this.interestAmount = outstandingBalance.multiply(monthlyInterestRate);
+            
+            // Calculate principal portion
+            this.principalAmount = scheduledAmount.subtract(interestAmount);
+            
+            // Ensure principal is not negative
+            if (principalAmount.isNegative()) {
+                this.principalAmount = Money.zero(scheduledAmount.getCurrency());
+                this.interestAmount = scheduledAmount;
+            }
+        }
+    }
+    
+    public void applyLatePenalty(BigDecimal penaltyRate) {
+        if (isLate() && scheduledAmount != null) {
+            this.penaltyAmount = scheduledAmount.multiply(penaltyRate);
+        }
+    }
+    
+    public boolean isLate() {
+        return scheduledDate != null && 
+               LocalDate.now().isAfter(scheduledDate) && 
+               !isCompleted();
+    }
+    
+    public void markAsCompleted(Money actualAmount, String transactionRef) {
+        if (!canBeCompleted()) {
+            throw new IllegalStateException("Payment cannot be completed in current status: " + status);
+        }
+        
+        this.actualAmount = actualAmount;
+        this.actualPaymentDate = LocalDateTime.now();
+        this.status = PaymentStatus.COMPLETED;
+        this.transactionReference = transactionRef;
+        this.completedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        
+        addDomainEvent(new LoanPaymentCompletedEvent(paymentId, customerId, loanId, actualAmount));
+    }
+    
+    public void markAsFailed(String reason) {
+        if (!canBeFailed()) {
+            throw new IllegalStateException("Payment cannot be failed in current status: " + status);
+        }
+        
+        this.status = PaymentStatus.FAILED;
+        this.failureReason = reason;
+        this.updatedAt = LocalDateTime.now();
+        
+        addDomainEvent(new LoanPaymentFailedEvent(paymentId, customerId, loanId, reason));
+    }
+    
+    private boolean canBeCompleted() {
+        return status == PaymentStatus.PENDING || status == PaymentStatus.PROCESSING;
+    }
+    
+    private boolean canBeFailed() {
+        return status == PaymentStatus.PENDING || status == PaymentStatus.PROCESSING;
     }
 }

@@ -446,6 +446,136 @@ class CustomerTest {
     }
 
     @Nested
+    @DisplayName("Credit Score-Based Credit Limit Calculation - Archive Business Logic")
+    class CreditScoreBasedCreditLimitTests {
+
+        @Test
+        @DisplayName("Should calculate credit limit based on credit score and monthly income")
+        void shouldCalculateCreditLimitBasedOnCreditScoreAndMonthlyIncome() {
+            // High credit score (750+) should get 5x multiplier
+            Money monthlyIncome = Money.aed(new BigDecimal("10000"));
+            Integer highCreditScore = 780;
+            Money expectedHighCreditLimit = Money.aed(new BigDecimal("50000")); // 10000 * 5
+            
+            Customer highScoreCustomer = Customer.createWithCreditScore(
+                CustomerId.generate(), "High", "Score", "high@example.com", 
+                "+971501234567", monthlyIncome, highCreditScore);
+                
+            assertEquals(expectedHighCreditLimit, highScoreCustomer.getCreditProfile().getCreditLimit());
+        }
+
+        @Test
+        @DisplayName("Should use 4x multiplier for medium credit score (650-749)")
+        void shouldUseFourTimesMultiplierForMediumCreditScore() {
+            Money monthlyIncome = Money.aed(new BigDecimal("8000"));
+            Integer mediumCreditScore = 700;
+            Money expectedMediumCreditLimit = Money.aed(new BigDecimal("32000")); // 8000 * 4
+            
+            Customer mediumScoreCustomer = Customer.createWithCreditScore(
+                CustomerId.generate(), "Medium", "Score", "medium@example.com", 
+                "+971501234567", monthlyIncome, mediumCreditScore);
+                
+            assertEquals(expectedMediumCreditLimit, mediumScoreCustomer.getCreditProfile().getCreditLimit());
+        }
+
+        @Test
+        @DisplayName("Should use 3x multiplier for low credit score (below 650)")
+        void shouldUseThreeTimesMultiplierForLowCreditScore() {
+            Money monthlyIncome = Money.aed(new BigDecimal("5000"));
+            Integer lowCreditScore = 600;
+            Money expectedLowCreditLimit = Money.aed(new BigDecimal("15000")); // 5000 * 3
+            
+            Customer lowScoreCustomer = Customer.createWithCreditScore(
+                CustomerId.generate(), "Low", "Score", "low@example.com", 
+                "+971501234567", monthlyIncome, lowCreditScore);
+                
+            assertEquals(expectedLowCreditLimit, lowScoreCustomer.getCreditProfile().getCreditLimit());
+        }
+
+        @Test
+        @DisplayName("Should reject credit score below minimum (300)")
+        void shouldRejectCreditScoreBelowMinimum() {
+            Money monthlyIncome = Money.aed(new BigDecimal("5000"));
+            Integer invalidCreditScore = 250;
+            
+            assertThrows(IllegalArgumentException.class, () ->
+                Customer.createWithCreditScore(
+                    CustomerId.generate(), "Invalid", "Score", "invalid@example.com", 
+                    "+971501234567", monthlyIncome, invalidCreditScore)
+            );
+        }
+
+        @Test
+        @DisplayName("Should reject credit score above maximum (850)")
+        void shouldRejectCreditScoreAboveMaximum() {
+            Money monthlyIncome = Money.aed(new BigDecimal("5000"));
+            Integer invalidCreditScore = 900;
+            
+            assertThrows(IllegalArgumentException.class, () ->
+                Customer.createWithCreditScore(
+                    CustomerId.generate(), "Invalid", "Score", "invalid@example.com", 
+                    "+971501234567", monthlyIncome, invalidCreditScore)
+            );
+        }
+
+        @Test
+        @DisplayName("Should reject monthly income below minimum (1000)")
+        void shouldRejectMonthlyIncomeBelowMinimum() {
+            Money lowIncome = Money.aed(new BigDecimal("800"));
+            Integer validCreditScore = 650;
+            
+            assertThrows(IllegalArgumentException.class, () ->
+                Customer.createWithCreditScore(
+                    CustomerId.generate(), "Low", "Income", "low@example.com", 
+                    "+971501234567", lowIncome, validCreditScore)
+            );
+        }
+
+        @Test
+        @DisplayName("Should update credit limit when credit score changes")
+        void shouldUpdateCreditLimitWhenCreditScoreChanges() {
+            Money monthlyIncome = Money.aed(new BigDecimal("10000"));
+            Integer initialCreditScore = 600;
+            
+            Customer customer = Customer.createWithCreditScore(
+                CustomerId.generate(), "Update", "Score", "update@example.com", 
+                "+971501234567", monthlyIncome, initialCreditScore);
+                
+            // Initial credit limit should be 10000 * 3 = 30000
+            assertEquals(Money.aed(new BigDecimal("30000")), customer.getCreditProfile().getCreditLimit());
+            
+            // Update credit score to high range
+            Integer newCreditScore = 780;
+            customer.updateCreditScore(newCreditScore);
+            
+            // New credit limit should be 10000 * 5 = 50000
+            assertEquals(Money.aed(new BigDecimal("50000")), customer.getCreditProfile().getCreditLimit());
+        }
+
+        @Test
+        @DisplayName("Should assess loan eligibility based on credit score")
+        void shouldAssessLoanEligibilityBasedOnCreditScore() {
+            Money monthlyIncome = Money.aed(new BigDecimal("10000"));
+            Integer goodCreditScore = 700;
+            
+            Customer customer = Customer.createWithCreditScore(
+                CustomerId.generate(), "Eligible", "Customer", "eligible@example.com", 
+                "+971501234567", monthlyIncome, goodCreditScore);
+                
+            Money loanAmount = Money.aed(new BigDecimal("20000"));
+            assertTrue(customer.isEligibleForLoan(loanAmount));
+            
+            // Customer with credit score below 600 should not be eligible
+            Integer poorCreditScore = 550;
+            Customer poorCreditCustomer = Customer.createWithCreditScore(
+                CustomerId.generate(), "Poor", "Credit", "poor@example.com", 
+                "+971501234567", monthlyIncome, poorCreditScore);
+                
+            assertFalse(poorCreditCustomer.isEligibleForLoan(loanAmount));
+        }
+    }
+
+    @Nested
     @DisplayName("Edge Cases and Property-Based Testing")
     class EdgeCasesTests {
 

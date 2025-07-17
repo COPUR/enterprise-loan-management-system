@@ -1,6 +1,7 @@
 package com.bank.customer.application;
 
 import com.bank.customer.application.dto.CreateCustomerRequest;
+import com.bank.customer.application.dto.CreateCustomerRequestWithCreditScore;
 import com.bank.customer.application.dto.CustomerResponse;
 import com.bank.customer.domain.Customer;
 import com.bank.customer.domain.CustomerRepository;
@@ -105,6 +106,86 @@ public class CustomerManagementService {
             .orElseThrow(() -> CustomerNotFoundException.withId(customerId));
         
         customer.releaseCredit(amount);
+        Customer savedCustomer = customerRepository.save(customer);
+        
+        return CustomerResponse.from(savedCustomer);
+    }
+    
+    /**
+     * Archive Business Logic: Create customer with credit score and monthly income
+     */
+    public CustomerResponse createCustomerWithCreditScore(CreateCustomerRequestWithCreditScore request) {
+        // Validate request
+        request.validate();
+        
+        // Check for duplicate email
+        if (customerRepository.existsByEmail(request.email())) {
+            throw new IllegalArgumentException("Customer with email " + request.email() + " already exists");
+        }
+        
+        // Create customer with credit score
+        Customer customer = Customer.createWithCreditScore(
+            CustomerId.generate(),
+            request.firstName(),
+            request.lastName(),
+            request.email(),
+            request.phoneNumber(),
+            request.monthlyIncome(),
+            request.creditScore()
+        );
+        
+        // Save customer
+        Customer savedCustomer = customerRepository.save(customer);
+        
+        return CustomerResponse.from(savedCustomer);
+    }
+    
+    /**
+     * Archive Business Logic: Check loan eligibility based on credit score
+     */
+    @Transactional(readOnly = true)
+    public boolean isEligibleForLoan(String customerId, Money loanAmount) {
+        CustomerId id = CustomerId.of(customerId);
+        Customer customer = customerRepository.findById(id)
+            .orElseThrow(() -> CustomerNotFoundException.withId(customerId));
+        
+        return customer.isEligibleForLoan(loanAmount);
+    }
+    
+    /**
+     * Archive Business Logic: Update customer credit score
+     */
+    public CustomerResponse updateCreditScore(String customerId, Integer newCreditScore) {
+        CustomerId id = CustomerId.of(customerId);
+        Customer customer = customerRepository.findById(id)
+            .orElseThrow(() -> CustomerNotFoundException.withId(customerId));
+        
+        customer.updateCreditScore(newCreditScore);
+        Customer savedCustomer = customerRepository.save(customer);
+        
+        return CustomerResponse.from(savedCustomer);
+    }
+    
+    /**
+     * Archive Business Logic: Find customer by email
+     */
+    @Transactional(readOnly = true)
+    public CustomerResponse findCustomerByEmail(String email) {
+        Customer customer = customerRepository.findByEmail(email)
+            .orElseThrow(() -> new CustomerNotFoundException("Customer not found with email: " + email));
+        
+        return CustomerResponse.from(customer);
+    }
+    
+    /**
+     * Archive Business Logic: Update customer contact information
+     */
+    public CustomerResponse updateContactInformation(String customerId, String newEmail, String newPhoneNumber) {
+        CustomerId id = CustomerId.of(customerId);
+        Customer customer = customerRepository.findById(id)
+            .orElseThrow(() -> CustomerNotFoundException.withId(customerId));
+        
+        customer.updateContactInformation(newEmail, newPhoneNumber);
         Customer savedCustomer = customerRepository.save(customer);
         
         return CustomerResponse.from(savedCustomer);

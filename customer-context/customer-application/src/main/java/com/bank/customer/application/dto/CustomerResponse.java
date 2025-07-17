@@ -16,6 +16,8 @@ public record CustomerResponse(
     BigDecimal usedCredit,
     BigDecimal availableCredit,
     String status,
+    Integer creditScore,
+    BigDecimal monthlyIncome,
     Instant createdAt,
     Instant lastModifiedAt
 ) {
@@ -31,6 +33,8 @@ public record CustomerResponse(
             customer.getCreditProfile().getUsedCredit().getAmount(),
             customer.getCreditProfile().getAvailableCredit().getAmount(),
             "ACTIVE", // Default status
+            customer.getCreditScore(),
+            customer.getMonthlyIncome() != null ? customer.getMonthlyIncome().getAmount() : null,
             customer.getCreatedAt().atZone(java.time.ZoneOffset.UTC).toInstant(),
             customer.getUpdatedAt().atZone(java.time.ZoneOffset.UTC).toInstant()
         );

@@ -10,6 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -582,5 +583,225 @@ class PaymentTest {
         if (payment.isFailed()) trueCount++;
         
         assertTrue(trueCount <= 1, "Multiple status queries returned true simultaneously");
+    }
+    
+    @Nested
+    @DisplayName("Loan Payment Processing - Archive Business Logic")
+    class LoanPaymentProcessingTests {
+
+        @Test
+        @DisplayName("Should create loan payment with proper amount calculation")
+        void shouldCreateLoanPaymentWithProperAmountCalculation() {
+            // Given
+            PaymentId loanPaymentId = PaymentId.generate();
+            CustomerId loanCustomerId = CustomerId.generate();
+            LoanId loanId = LoanId.generate();
+            Money scheduledAmount = Money.aed(new BigDecimal("5000"));
+            Money outstandingBalance = Money.aed(new BigDecimal("100000"));
+            BigDecimal monthlyInterestRate = new BigDecimal("0.01"); // 1% monthly
+            
+            // When
+            Payment loanPayment = Payment.createLoanPayment(
+                loanPaymentId, loanCustomerId, loanId, scheduledAmount, 
+                outstandingBalance, monthlyInterestRate);
+            
+            // Then
+            assertNotNull(loanPayment);
+            assertEquals(loanPaymentId, loanPayment.getId());
+            assertEquals(loanCustomerId, loanPayment.getCustomerId());
+            assertEquals(loanId, loanPayment.getLoanId());
+            assertEquals(scheduledAmount, loanPayment.getScheduledAmount());
+            
+            // Verify interest and principal calculations
+            Money expectedInterest = Money.aed(new BigDecimal("1000")); // 100000 * 0.01
+            Money expectedPrincipal = Money.aed(new BigDecimal("4000")); // 5000 - 1000
+            
+            assertEquals(expectedInterest, loanPayment.getInterestAmount());
+            assertEquals(expectedPrincipal, loanPayment.getPrincipalAmount());
+        }
+
+        @Test
+        @DisplayName("Should handle principal-only payment when interest calculation results in negative principal")
+        void shouldHandlePrincipalOnlyPaymentWhenInterestCalculationResultsInNegativePrincipal() {
+            // Given
+            PaymentId loanPaymentId = PaymentId.generate();
+            CustomerId loanCustomerId = CustomerId.generate();
+            LoanId loanId = LoanId.generate();
+            Money scheduledAmount = Money.aed(new BigDecimal("500"));
+            Money outstandingBalance = Money.aed(new BigDecimal("100000"));
+            BigDecimal monthlyInterestRate = new BigDecimal("0.01"); // 1% monthly = 1000 interest
+            
+            // When
+            Payment loanPayment = Payment.createLoanPayment(
+                loanPaymentId, loanCustomerId, loanId, scheduledAmount, 
+                outstandingBalance, monthlyInterestRate);
+            
+            // Then - When interest (1000) > scheduled amount (500), principal should be 0
+            Money expectedInterest = scheduledAmount; // All payment goes to interest
+            Money expectedPrincipal = Money.aed(BigDecimal.ZERO);
+            
+            assertEquals(expectedInterest, loanPayment.getInterestAmount());
+            assertEquals(expectedPrincipal, loanPayment.getPrincipalAmount());
+        }
+
+        @Test
+        @DisplayName("Should apply late penalty when payment is overdue")
+        void shouldApplyLatePenaltyWhenPaymentIsOverdue() {
+            // Given
+            PaymentId loanPaymentId = PaymentId.generate();
+            CustomerId loanCustomerId = CustomerId.generate();
+            LoanId loanId = LoanId.generate();
+            Money scheduledAmount = Money.aed(new BigDecimal("1000"));
+            LocalDate pastDueDate = LocalDate.now().minusDays(10);
+            
+            // When
+            Payment loanPayment = Payment.createLoanPayment(
+                loanPaymentId, loanCustomerId, loanId, scheduledAmount, pastDueDate);
+            
+            BigDecimal penaltyRate = new BigDecimal("0.05"); // 5% penalty
+            loanPayment.applyLatePenalty(penaltyRate);
+            
+            // Then
+            assertTrue(loanPayment.isLate());
+            Money expectedPenalty = Money.aed(new BigDecimal("50")); // 1000 * 0.05
+            assertEquals(expectedPenalty, loanPayment.getPenaltyAmount());
+        }
+
+        @Test
+        @DisplayName("Should not apply late penalty when payment is not overdue")
+        void shouldNotApplyLatePenaltyWhenPaymentIsNotOverdue() {
+            // Given
+            PaymentId loanPaymentId = PaymentId.generate();
+            CustomerId loanCustomerId = CustomerId.generate();
+            LoanId loanId = LoanId.generate();
+            Money scheduledAmount = Money.aed(new BigDecimal("1000"));
+            LocalDate futureDueDate = LocalDate.now().plusDays(10);
+            
+            // When
+            Payment loanPayment = Payment.createLoanPayment(
+                loanPaymentId, loanCustomerId, loanId, scheduledAmount, futureDueDate);
+            
+            BigDecimal penaltyRate = new BigDecimal("0.05");
+            loanPayment.applyLatePenalty(penaltyRate);
+            
+            // Then
+            assertFalse(loanPayment.isLate());
+            assertEquals(Money.aed(BigDecimal.ZERO), loanPayment.getPenaltyAmount());
+        }
+
+        @Test
+        @DisplayName("Should calculate total amount including penalty")
+        void shouldCalculateTotalAmountIncludingPenalty() {
+            // Given
+            PaymentId loanPaymentId = PaymentId.generate();
+            CustomerId loanCustomerId = CustomerId.generate();
+            LoanId loanId = LoanId.generate();
+            Money scheduledAmount = Money.aed(new BigDecimal("1000"));
+            LocalDate pastDueDate = LocalDate.now().minusDays(5);
+            
+            // When
+            Payment loanPayment = Payment.createLoanPayment(
+                loanPaymentId, loanCustomerId, loanId, scheduledAmount, pastDueDate);
+            
+            BigDecimal penaltyRate = new BigDecimal("0.03"); // 3% penalty
+            loanPayment.applyLatePenalty(penaltyRate);
+            
+            // Then
+            Money expectedPenalty = Money.aed(new BigDecimal("30")); // 1000 * 0.03
+            Money expectedTotal = Money.aed(new BigDecimal("1030")); // 1000 + 30
+            
+            assertEquals(expectedPenalty, loanPayment.getPenaltyAmount());
+            assertEquals(expectedTotal, loanPayment.getTotalAmount());
+        }
+
+        @Test
+        @DisplayName("Should mark loan payment as completed with actual amount")
+        void shouldMarkLoanPaymentAsCompletedWithActualAmount() {
+            // Given
+            PaymentId loanPaymentId = PaymentId.generate();
+            CustomerId loanCustomerId = CustomerId.generate();
+            LoanId loanId = LoanId.generate();
+            Money scheduledAmount = Money.aed(new BigDecimal("1000"));
+            
+            Payment loanPayment = Payment.createLoanPayment(
+                loanPaymentId, loanCustomerId, loanId, scheduledAmount, LocalDate.now());
+            
+            // When
+            Money actualAmount = Money.aed(new BigDecimal("1050"));
+            String transactionRef = "TXN-12345";
+            loanPayment.markAsCompleted(actualAmount, transactionRef);
+            
+            // Then
+            assertTrue(loanPayment.isCompleted());
+            assertEquals(actualAmount, loanPayment.getActualAmount());
+            assertEquals(transactionRef, loanPayment.getTransactionReference());
+            assertNotNull(loanPayment.getActualPaymentDate());
+        }
+
+        @Test
+        @DisplayName("Should mark loan payment as failed with reason")
+        void shouldMarkLoanPaymentAsFailedWithReason() {
+            // Given
+            PaymentId loanPaymentId = PaymentId.generate();
+            CustomerId loanCustomerId = CustomerId.generate();
+            LoanId loanId = LoanId.generate();
+            Money scheduledAmount = Money.aed(new BigDecimal("1000"));
+            
+            Payment loanPayment = Payment.createLoanPayment(
+                loanPaymentId, loanCustomerId, loanId, scheduledAmount, LocalDate.now());
+            
+            // When
+            String failureReason = "Insufficient funds";
+            loanPayment.markAsFailed(failureReason);
+            
+            // Then
+            assertTrue(loanPayment.isFailed());
+            assertEquals(failureReason, loanPayment.getFailureReason());
+        }
+
+        @Test
+        @DisplayName("Should validate payment status state transitions")
+        void shouldValidatePaymentStatusStateTransitions() {
+            // Given
+            PaymentId loanPaymentId = PaymentId.generate();
+            CustomerId loanCustomerId = CustomerId.generate();
+            LoanId loanId = LoanId.generate();
+            Money scheduledAmount = Money.aed(new BigDecimal("1000"));
+            
+            Payment loanPayment = Payment.createLoanPayment(
+                loanPaymentId, loanCustomerId, loanId, scheduledAmount, LocalDate.now());
+            
+            // When & Then - Test valid transitions
+            assertTrue(loanPayment.isPending());
+            
+            loanPayment.markAsCompleted(scheduledAmount, "TXN-123");
+            assertTrue(loanPayment.isCompleted());
+            
+            // Cannot mark completed payment as failed
+            assertThrows(IllegalStateException.class, () ->
+                loanPayment.markAsFailed("Cannot fail completed payment"));
+        }
+
+        @Test
+        @DisplayName("Should validate payment creation with required fields")
+        void shouldValidatePaymentCreationWithRequiredFields() {
+            // Given
+            PaymentId loanPaymentId = PaymentId.generate();
+            CustomerId loanCustomerId = CustomerId.generate();
+            LoanId loanId = LoanId.generate();
+            
+            // When & Then - Test null validations
+            assertThrows(IllegalArgumentException.class, () ->
+                Payment.createLoanPayment(null, loanCustomerId, loanId, Money.aed(new BigDecimal("1000")), LocalDate.now()));
+            
+            assertThrows(IllegalArgumentException.class, () ->
+                Payment.createLoanPayment(loanPaymentId, null, loanId, Money.aed(new BigDecimal("1000")), LocalDate.now()));
+            
+            assertThrows(IllegalArgumentException.class, () ->
+                Payment.createLoanPayment(loanPaymentId, loanCustomerId, null, Money.aed(new BigDecimal("1000")), LocalDate.now()));
+            
+            assertThrows(IllegalArgumentException.class, () ->
+                Payment.createLoanPayment(loanPaymentId, loanCustomerId, loanId, null, LocalDate.now()));
+        }
     }
 }

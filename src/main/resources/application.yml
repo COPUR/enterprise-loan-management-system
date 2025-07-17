@@ -44,9 +44,9 @@ spring:
   
   security:
     user:
-      name: admin
-      password: admin
-      roles: ADMIN
+      name: ${SECURITY_USER_NAME:admin}
+      password: ${SECURITY_USER_PASSWORD:}
+      roles: ${SECURITY_USER_ROLES:ADMIN}
   
   sql:
     init:
@@ -83,7 +83,7 @@ spring:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driverClassName: org.h2.Driver
     username: sa
-    password: password
+    password: ${TEST_DATABASE_PASSWORD:}
   
   jpa:
     hibernate:
@@ -95,8 +95,8 @@ spring:
   
   security:
     user:
-      name: testuser
-      password: testpass
+      name: ${TEST_USER_NAME:testuser}
+      password: ${TEST_USER_PASSWORD:}
 
 logging:
   level:

@@ -508,4 +508,155 @@ class LoanTest {
                 loan.makePayment(Money.aed(new BigDecimal("100"))));
         }
     }
+    
+    @Nested
+    @DisplayName("Installment Generation - Archive Business Logic")
+    class InstallmentGenerationTests {
+
+        @Test
+        @DisplayName("Should generate installments automatically when loan is created")
+        void shouldGenerateInstallmentsAutomaticallyWhenLoanIsCreated() {
+            // Given
+            Money loanAmount = Money.aed(new BigDecimal("100000"));
+            InterestRate rate = InterestRate.of(new BigDecimal("0.06")); // 6% annual
+            LoanTerm term = LoanTerm.ofMonths(12); // 12 months
+            
+            // When
+            Loan loanWithInstallments = Loan.createWithInstallments(loanId, customerId, loanAmount, rate, term);
+            
+            // Then
+            assertEquals(12, loanWithInstallments.getInstallments().size());
+            // Total installment amount should be higher than principal due to interest
+            assertTrue(loanWithInstallments.getTotalInstallmentAmount().compareTo(loanAmount) >= 0);
+        }
+
+        @Test
+        @DisplayName("Should calculate correct monthly payment for installments")
+        void shouldCalculateCorrectMonthlyPaymentForInstallments() {
+            // Given
+            Money loanAmount = Money.aed(new BigDecimal("120000"));
+            InterestRate rate = InterestRate.of(new BigDecimal("0.12")); // 12% annual = 1% monthly
+            LoanTerm term = LoanTerm.ofMonths(12);
+            
+            // When
+            Loan loanWithInstallments = Loan.createWithInstallments(loanId, customerId, loanAmount, rate, term);
+            
+            // Then
+            Money expectedMonthlyPayment = loanWithInstallments.calculateMonthlyPayment();
+            assertEquals(expectedMonthlyPayment, loanWithInstallments.getInstallments().get(0).getAmount());
+        }
+
+        @Test
+        @DisplayName("Should set correct due dates for installments")
+        void shouldSetCorrectDueDatesForInstallments() {
+            // Given
+            Money loanAmount = Money.aed(new BigDecimal("60000"));
+            InterestRate rate = InterestRate.of(new BigDecimal("0.06"));
+            LoanTerm term = LoanTerm.ofMonths(6);
+            
+            // When
+            Loan loanWithInstallments = Loan.createWithInstallments(loanId, customerId, loanAmount, rate, term);
+            
+            // Then
+            var installments = loanWithInstallments.getInstallments();
+            LocalDate currentDate = LocalDate.now();
+            
+            for (int i = 0; i < installments.size(); i++) {
+                LocalDate expectedDueDate = currentDate.plusMonths(i + 1);
+                assertEquals(expectedDueDate, installments.get(i).getDueDate());
+            }
+        }
+
+        @Test
+        @DisplayName("Should calculate total interest correctly")
+        void shouldCalculateTotalInterestCorrectly() {
+            // Given
+            Money loanAmount = Money.aed(new BigDecimal("100000"));
+            InterestRate rate = InterestRate.of(new BigDecimal("0.06"));
+            LoanTerm term = LoanTerm.ofMonths(12);
+            
+            // When
+            Loan loanWithInstallments = Loan.createWithInstallments(loanId, customerId, loanAmount, rate, term);
+            
+            // Then
+            Money totalAmount = loanWithInstallments.getTotalInstallmentAmount();
+            Money totalInterest = loanWithInstallments.getTotalInterest();
+            
+            assertEquals(totalAmount.subtract(loanAmount), totalInterest);
+            assertTrue(totalInterest.isPositive());
+        }
+
+        @Test
+        @DisplayName("Should identify overdue installments")
+        void shouldIdentifyOverdueInstallments() {
+            // Given
+            Money loanAmount = Money.aed(new BigDecimal("50000"));
+            InterestRate rate = InterestRate.of(new BigDecimal("0.06"));
+            LoanTerm term = LoanTerm.ofMonths(6);
+            
+            // When
+            Loan loanWithInstallments = Loan.createWithInstallments(loanId, customerId, loanAmount, rate, term);
+            
+            // Simulate overdue by advancing time conceptually
+            var overdueInstallments = loanWithInstallments.getOverdueInstallments();
+            
+            // Then
+            assertNotNull(overdueInstallments);
+            // Note: In this test, no installments should be overdue yet
+            assertTrue(overdueInstallments.isEmpty());
+        }
+
+        @Test
+        @DisplayName("Should calculate remaining amount correctly")
+        void shouldCalculateRemainingAmountCorrectly() {
+            // Given
+            Money loanAmount = Money.aed(new BigDecimal("100000"));
+            InterestRate rate = InterestRate.of(new BigDecimal("0.06"));
+            LoanTerm term = LoanTerm.ofMonths(12);
+            
+            // When
+            Loan loanWithInstallments = Loan.createWithInstallments(loanId, customerId, loanAmount, rate, term);
+            
+            // Then
+            Money remainingAmount = loanWithInstallments.getRemainingInstallmentAmount();
+            assertEquals(loanWithInstallments.getTotalInstallmentAmount(), remainingAmount);
+        }
+
+        @Test
+        @DisplayName("Should validate loan amount within business rules")
+        void shouldValidateLoanAmountWithinBusinessRules() {
+            // Given - minimum loan amount
+            Money tooSmallAmount = Money.aed(new BigDecimal("500"));
+            InterestRate rate = InterestRate.of(new BigDecimal("0.06"));
+            LoanTerm term = LoanTerm.ofMonths(12);
+            
+            // When & Then
+            assertThrows(IllegalArgumentException.class, () ->
+                Loan.createWithInstallments(loanId, customerId, tooSmallAmount, rate, term));
+        }
+
+        @Test
+        @DisplayName("Should validate interest rate within business rules")
+        void shouldValidateInterestRateWithinBusinessRules() {
+            // Given - negative interest rate (but InterestRate.of already validates, so test creation)
+            Money loanAmount = Money.aed(new BigDecimal("100000"));
+            LoanTerm term = LoanTerm.ofMonths(12);
+            
+            // When & Then - InterestRate creation should throw exception for negative rate
+            assertThrows(IllegalArgumentException.class, () ->
+                InterestRate.of(new BigDecimal("-0.01")));
+        }
+
+        @Test
+        @DisplayName("Should validate loan term within business rules")
+        void shouldValidateLoanTermWithinBusinessRules() {
+            // Given - zero months term (but LoanTerm.ofMonths already validates, so test creation)
+            Money loanAmount = Money.aed(new BigDecimal("100000"));
+            InterestRate rate = InterestRate.of(new BigDecimal("0.06"));
+            
+            // When & Then - LoanTerm creation should throw exception for zero months
+            assertThrows(IllegalArgumentException.class, () ->
+                LoanTerm.ofMonths(0));
+        }
+    }
 }

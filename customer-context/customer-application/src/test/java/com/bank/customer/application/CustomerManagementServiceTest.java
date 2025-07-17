@@ -1,6 +1,7 @@
 package com.bank.customer.application;
 
 import com.bank.customer.application.dto.CreateCustomerRequest;
+import com.bank.customer.application.dto.CreateCustomerRequestWithCreditScore;
 import com.bank.customer.application.dto.CustomerResponse;
 import com.bank.customer.domain.Customer;
 import com.bank.customer.domain.CustomerRepository;
@@ -297,5 +298,239 @@ class CustomerManagementServiceTest {
         
         verify(customerRepository).findById(customerId);
         verify(customerRepository).save(any(Customer.class));
+    }
+    
+    @Test
+    @DisplayName("Archive Business Logic: Should create customer with credit score and monthly income")
+    void shouldCreateCustomerWithCreditScoreAndMonthlyIncome() {
+        // Given
+        CreateCustomerRequestWithCreditScore request = new CreateCustomerRequestWithCreditScore(
+            "John", "Doe", "john.doe@example.com", "+1-555-123-4567",
+            Money.aed(new BigDecimal("10000")), 720
+        );
+        
+        CustomerId customerId = CustomerId.generate();
+        Customer expectedCustomer = Customer.createWithCreditScore(
+            customerId, request.firstName(), request.lastName(), 
+            request.email(), request.phoneNumber(), request.monthlyIncome(), request.creditScore()
+        );
+        
+        when(customerRepository.existsByEmail(request.email())).thenReturn(false);
+        when(customerRepository.save(any(Customer.class))).thenReturn(expectedCustomer);
+        
+        // When
+        CustomerResponse response = customerService.createCustomerWithCreditScore(request);
+        
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.firstName()).isEqualTo("John");
+        assertThat(response.lastName()).isEqualTo("Doe");
+        assertThat(response.email()).isEqualTo("john.doe@example.com");
+        assertThat(response.creditScore()).isEqualTo(720);
+        assertThat(response.monthlyIncome()).isEqualByComparingTo(new BigDecimal("10000"));
+        
+        verify(customerRepository).existsByEmail(request.email());
+        verify(customerRepository).save(any(Customer.class));
+    }
+    
+    @Test
+    @DisplayName("Archive Business Logic: Should check loan eligibility based on credit score")
+    void shouldCheckLoanEligibilityBasedOnCreditScore() {
+        // Given
+        CustomerId customerId = CustomerId.of("CUST-12345678");
+        Customer customer = Customer.createWithCreditScore(
+            customerId, "Jane", "Smith", "jane.smith@example.com", "+1-555-987-6543",
+            Money.aed(new BigDecimal("8000")), 680
+        );
+        
+        Money loanAmount = Money.aed(new BigDecimal("20000"));
+        
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        
+        // When
+        boolean isEligible = customerService.isEligibleForLoan(customerId.getValue(), loanAmount);
+        
+        // Then
+        assertThat(isEligible).isTrue(); // Credit score >= 600 and amount within limit
+        
+        verify(customerRepository).findById(customerId);
+    }
+    
+    @Test
+    @DisplayName("Archive Business Logic: Should reject loan eligibility for low credit score")
+    void shouldRejectLoanEligibilityForLowCreditScore() {
+        // Given
+        CustomerId customerId = CustomerId.of("CUST-12345678");
+        Customer customer = Customer.createWithCreditScore(
+            customerId, "Bob", "Johnson", "bob.johnson@example.com", "+1-555-555-5555",
+            Money.aed(new BigDecimal("5000")), 580 // Below 600 threshold
+        );
+        
+        Money loanAmount = Money.aed(new BigDecimal("10000"));
+        
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        
+        // When
+        boolean isEligible = customerService.isEligibleForLoan(customerId.getValue(), loanAmount);
+        
+        // Then
+        assertThat(isEligible).isFalse(); // Credit score < 600
+        
+        verify(customerRepository).findById(customerId);
+    }
+    
+    @Test
+    @DisplayName("Archive Business Logic: Should update customer credit score")
+    void shouldUpdateCustomerCreditScore() {
+        // Given
+        CustomerId customerId = CustomerId.of("CUST-12345678");
+        Customer customer = Customer.createWithCreditScore(
+            customerId, "Alice", "Brown", "alice.brown@example.com", "+1-555-111-2222",
+            Money.aed(new BigDecimal("6000")), 650
+        );
+        
+        Integer newCreditScore = 750;
+        
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        
+        // When
+        CustomerResponse response = customerService.updateCreditScore(customerId.getValue(), newCreditScore);
+        
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.creditScore()).isEqualTo(750);
+        // Credit limit should be recalculated: 6000 * 5 = 30000 (for score >= 750)
+        assertThat(response.creditLimit()).isEqualByComparingTo(new BigDecimal("30000"));
+        
+        verify(customerRepository).findById(customerId);
+        verify(customerRepository).save(any(Customer.class));
+    }
+    
+    @Test
+    @DisplayName("Archive Business Logic: Should find customer by email")
+    void shouldFindCustomerByEmail() {
+        // Given
+        CustomerId customerId = CustomerId.of("CUST-12345678");
+        Customer customer = Customer.createWithCreditScore(
+            customerId, "Charlie", "Davis", "charlie.davis@example.com", "+1-555-333-4444",
+            Money.aed(new BigDecimal("7000")), 700
+        );
+        
+        String email = "charlie.davis@example.com";
+        
+        when(customerRepository.findByEmail(email)).thenReturn(Optional.of(customer));
+        
+        // When
+        CustomerResponse response = customerService.findCustomerByEmail(email);
+        
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.email()).isEqualTo(email);
+        assertThat(response.firstName()).isEqualTo("Charlie");
+        assertThat(response.lastName()).isEqualTo("Davis");
+        
+        verify(customerRepository).findByEmail(email);
+    }
+    
+    @Test
+    @DisplayName("Archive Business Logic: Should update customer contact information")
+    void shouldUpdateCustomerContactInformation() {
+        // Given
+        CustomerId customerId = CustomerId.of("CUST-12345678");
+        Customer customer = Customer.createWithCreditScore(
+            customerId, "David", "Wilson", "david.wilson@example.com", "+1-555-777-8888",
+            Money.aed(new BigDecimal("9000")), 720
+        );
+        
+        String newEmail = "david.wilson.new@example.com";
+        String newPhone = "+1-555-999-0000";
+        
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        
+        // When
+        CustomerResponse response = customerService.updateContactInformation(
+            customerId.getValue(), newEmail, newPhone);
+        
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.email()).isEqualTo(newEmail);
+        assertThat(response.phoneNumber()).isEqualTo(newPhone);
+        
+        verify(customerRepository).findById(customerId);
+        verify(customerRepository).save(any(Customer.class));
+    }
+    
+    @Test
+    @DisplayName("Archive Business Logic: Should validate customer creation with duplicate email")
+    void shouldValidateCustomerCreationWithDuplicateEmail() {
+        // Given
+        CreateCustomerRequestWithCreditScore request = new CreateCustomerRequestWithCreditScore(
+            "John", "Duplicate", "existing@example.com", "+1-555-123-4567",
+            Money.aed(new BigDecimal("5000")), 650
+        );
+        
+        when(customerRepository.existsByEmail(request.email())).thenReturn(true);
+        
+        // When & Then
+        assertThatThrownBy(() -> customerService.createCustomerWithCreditScore(request))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("already exists");
+        
+        verify(customerRepository).existsByEmail(request.email());
+        verify(customerRepository, never()).save(any(Customer.class));
+    }
+    
+    @Test
+    @DisplayName("Archive Business Logic: Should handle customer not found scenarios")
+    void shouldHandleCustomerNotFoundScenarios() {
+        // Given
+        String nonExistentCustomerId = "CUST-NONEXISTENT";
+        
+        when(customerRepository.findById(CustomerId.of(nonExistentCustomerId))).thenReturn(Optional.empty());
+        
+        // When & Then
+        assertThatThrownBy(() -> customerService.updateCreditScore(nonExistentCustomerId, 750))
+            .isInstanceOf(CustomerNotFoundException.class);
+        
+        assertThatThrownBy(() -> customerService.isEligibleForLoan(nonExistentCustomerId, Money.aed(new BigDecimal("10000"))))
+            .isInstanceOf(CustomerNotFoundException.class);
+        
+        verify(customerRepository, times(2)).findById(CustomerId.of(nonExistentCustomerId));
+    }
+    
+    @Test
+    @DisplayName("Archive Business Logic: Should validate credit score creation with invalid data")
+    void shouldValidateCreditScoreCreationWithInvalidData() {
+        // Given - Invalid credit score
+        CreateCustomerRequestWithCreditScore invalidRequest = new CreateCustomerRequestWithCreditScore(
+            "John", "Doe", "john.doe@example.com", "+1-555-123-4567",
+            Money.aed(new BigDecimal("5000")), 900 // Invalid credit score > 850
+        );
+        
+        // When & Then
+        assertThatThrownBy(() -> customerService.createCustomerWithCreditScore(invalidRequest))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Credit score must be between 300 and 850");
+        
+        verify(customerRepository, never()).save(any(Customer.class));
+    }
+    
+    @Test
+    @DisplayName("Archive Business Logic: Should validate credit score creation with null monthly income")
+    void shouldValidateCreditScoreCreationWithNullMonthlyIncome() {
+        // Given - Null monthly income
+        CreateCustomerRequestWithCreditScore invalidRequest = new CreateCustomerRequestWithCreditScore(
+            "John", "Doe", "john.doe@example.com", "+1-555-123-4567",
+            null, 720 // Null monthly income
+        );
+        
+        // When & Then
+        assertThatThrownBy(() -> customerService.createCustomerWithCreditScore(invalidRequest))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Monthly income must be positive");
+        
+        verify(customerRepository, never()).save(any(Customer.class));
     }
 }
