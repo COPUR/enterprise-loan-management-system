@@ -1,0 +1,457 @@
+name: Enterprise Banking CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, release/* ]
+  pull_request:
+    branches: [ main, develop ]
+  release:
+    types: [ created ]
+
+env:
+  REGISTRY: ghcr.io
+  JAVA_VERSION: '17'
+  GRADLE_VERSION: '8.5'
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  # Code Quality & Security Scanning
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Run Checkstyle
+        run: ./gradlew checkstyleMain checkstyleTest
+
+      - name: Run SpotBugs
+        run: ./gradlew spotbugsMain spotbugsTest
+
+      - name: Run PMD
+        run: ./gradlew pmdMain pmdTest
+
+      - name: SonarCloud Scan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonarqube --info
+
+      - name: Upload Code Quality Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-quality-reports
+          path: |
+            build/reports/checkstyle/
+            build/reports/spotbugs/
+            build/reports/pmd/
+
+  # Security Scanning
+  security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: OWASP Dependency Check
+        run: ./gradlew dependencyCheckAnalyze
+
+      - name: Upload OWASP reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: owasp-reports
+          path: build/reports/dependency-check-report.html
+
+  # Unit & Integration Tests
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    needs: [code-quality]
+    strategy:
+      matrix:
+        module: [customer-context, loan-context, payment-context, shared-infrastructure]
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Run Unit Tests
+        run: ./gradlew :${{ matrix.module }}:test
+
+      - name: Run Integration Tests
+        run: ./gradlew :${{ matrix.module }}:integrationTest
+
+      - name: Generate Test Report
+        if: always()
+        run: ./gradlew :${{ matrix.module }}:jacocoTestReport
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{ matrix.module }}
+          path: |
+            ${{ matrix.module }}/build/test-results/
+            ${{ matrix.module }}/build/reports/jacoco/
+
+      - name: Publish Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Test Results - ${{ matrix.module }}
+          path: '${{ matrix.module }}/build/test-results/**/*.xml'
+          reporter: java-junit
+
+  # End-to-End Tests
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Start services with Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml -f docker-compose.test.yml up -d
+          ./scripts/wait-for-services.sh
+
+      - name: Run API Tests
+        run: |
+          npm install -g newman
+          newman run postman/Enterprise-Banking-API.postman_collection.json \
+            -e postman/Enterprise-Environment.postman_environment.json \
+            --reporters cli,junit \
+            --reporter-junit-export results/newman-results.xml
+
+      - name: Run Performance Tests
+        run: |
+          docker run --rm \
+            -v $PWD/k6:/scripts \
+            -v $PWD/results:/results \
+            --network host \
+            grafana/k6 run /scripts/performance-test.js \
+            --out json=/results/k6-results.json
+
+      - name: Upload E2E Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: e2e-test-results
+          path: results/
+
+      - name: Stop services
+        if: always()
+        run: docker-compose down -v
+
+  # Build & Package
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [test, security-scan]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+
+      - name: Build Docker images
+        run: |
+          ./gradlew jibDockerBuild \
+            --image=${{ env.REGISTRY }}/${{ github.repository }}/customer-service:${{ github.sha }} \
+            --image=${{ env.REGISTRY }}/${{ github.repository }}/loan-service:${{ github.sha }} \
+            --image=${{ env.REGISTRY }}/${{ github.repository }}/payment-service:${{ github.sha }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            */build/libs/*.jar
+            docker-compose.yml
+            k8s/
+
+  # Container Security Scan
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    needs: [build]
+    strategy:
+      matrix:
+        service: [customer-service, loan-service, payment-service]
+    steps:
+      - name: Run Trivy container scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.service }}:${{ github.sha }}'
+          format: 'sarif'
+          output: 'container-scan-${{ matrix.service }}.sarif'
+
+      - name: Upload scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'container-scan-${{ matrix.service }}.sarif'
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, e2e-tests, container-scan]
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.banking.example.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push images to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          for service in customer-service loan-service payment-service; do
+            docker tag ${{ env.REGISTRY }}/${{ github.repository }}/${service}:${{ github.sha }} \
+              $ECR_REGISTRY/${{ github.repository }}/${service}:staging
+            docker push $ECR_REGISTRY/${{ github.repository }}/${service}:staging
+          done
+
+      - name: Deploy to EKS
+        run: |
+          aws eks update-kubeconfig --name banking-staging-cluster
+          kubectl set image deployment/customer-service customer-service=$ECR_REGISTRY/${{ github.repository }}/customer-service:staging -n banking
+          kubectl set image deployment/loan-service loan-service=$ECR_REGISTRY/${{ github.repository }}/loan-service:staging -n banking
+          kubectl set image deployment/payment-service payment-service=$ECR_REGISTRY/${{ github.repository }}/payment-service:staging -n banking
+          kubectl rollout status deployment/customer-service -n banking
+          kubectl rollout status deployment/loan-service -n banking
+          kubectl rollout status deployment/payment-service -n banking
+
+      - name: Run Smoke Tests
+        run: |
+          ./scripts/smoke-tests.sh https://staging.banking.example.com
+
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Staging deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://banking.example.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Promote images to production
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          for service in customer-service loan-service payment-service; do
+            docker pull $ECR_REGISTRY/${{ github.repository }}/${service}:staging
+            docker tag $ECR_REGISTRY/${{ github.repository }}/${service}:staging \
+              $ECR_REGISTRY/${{ github.repository }}/${service}:production
+            docker push $ECR_REGISTRY/${{ github.repository }}/${service}:production
+          done
+
+      - name: Blue-Green Deployment
+        run: |
+          aws eks update-kubeconfig --name banking-production-cluster
+          
+          # Deploy to green environment
+          kubectl apply -f k8s/production/green-deployment.yaml
+          
+          # Wait for green deployment to be ready
+          kubectl wait --for=condition=available --timeout=600s deployment/customer-service-green -n banking
+          kubectl wait --for=condition=available --timeout=600s deployment/loan-service-green -n banking
+          kubectl wait --for=condition=available --timeout=600s deployment/payment-service-green -n banking
+          
+          # Run health checks on green environment
+          ./scripts/health-check.sh green
+          
+          # Switch traffic to green
+          kubectl patch service customer-service -n banking -p '{"spec":{"selector":{"version":"green"}}}'
+          kubectl patch service loan-service -n banking -p '{"spec":{"selector":{"version":"green"}}}'
+          kubectl patch service payment-service -n banking -p '{"spec":{"selector":{"version":"green"}}}'
+          
+          # Scale down blue deployment
+          kubectl scale deployment customer-service-blue loan-service-blue payment-service-blue --replicas=0 -n banking
+
+      - name: Database Migration
+        run: |
+          kubectl apply -f k8s/jobs/db-migration.yaml
+          kubectl wait --for=condition=complete --timeout=600s job/db-migration -n banking
+
+      - name: Update CDN
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      - name: Production Smoke Tests
+        run: |
+          ./scripts/smoke-tests.sh https://banking.example.com
+          ./scripts/synthetic-monitoring.sh
+
+      - name: Create Release Notes
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${new Date().toISOString().split('T')[0]}`,
+              name: `Production Release ${new Date().toISOString().split('T')[0]}`,
+              body: 'Automated production release',
+              draft: false,
+              prerelease: false
+            });
+
+      - name: Notify Teams
+        if: always()
+        run: |
+          ./scripts/notify-teams.sh ${{ job.status }}
+
+  # Rollback Capability
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    if: failure() && github.ref == 'refs/heads/main'
+    needs: [deploy-production]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Rollback to Blue
+        run: |
+          aws eks update-kubeconfig --name banking-production-cluster
+          
+          # Scale up blue deployment
+          kubectl scale deployment customer-service-blue loan-service-blue payment-service-blue --replicas=3 -n banking
+          
+          # Switch traffic back to blue
+          kubectl patch service customer-service -n banking -p '{"spec":{"selector":{"version":"blue"}}}'
+          kubectl patch service loan-service -n banking -p '{"spec":{"selector":{"version":"blue"}}}'
+          kubectl patch service payment-service -n banking -p '{"spec":{"selector":{"version":"blue"}}}'
+          
+          # Remove green deployment
+          kubectl delete deployment customer-service-green loan-service-green payment-service-green -n banking
+
+      - name: Notify Emergency Rollback
+        run: |
+          ./scripts/notify-emergency.sh "Production rollback executed"

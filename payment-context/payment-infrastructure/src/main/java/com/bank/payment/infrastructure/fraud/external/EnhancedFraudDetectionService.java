@@ -6,6 +6,7 @@ import com.bank.payment.domain.Payment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.Executor;
 
 /**
  * Enhanced Fraud Detection Service that integrates with external providers
@@ -26,14 +28,17 @@ public class EnhancedFraudDetectionService implements FraudDetectionService {
     private static final Logger logger = LoggerFactory.getLogger(EnhancedFraudDetectionService.class);
 
     private final ExternalFraudDetectionClient externalClient;
+    private final Executor fraudExecutor;
 
     // Risk thresholds
     private static final int HIGH_RISK_THRESHOLD = 75;
     private static final int BLOCK_THRESHOLD = 90;
     private static final int EXTERNAL_SERVICE_TIMEOUT_SECONDS = 5;
 
-    public EnhancedFraudDetectionService(ExternalFraudDetectionClient externalClient) {
+    public EnhancedFraudDetectionService(ExternalFraudDetectionClient externalClient,
+                                        @Qualifier("fraudExecutor") Executor fraudExecutor) {
         this.externalClient = externalClient;
+        this.fraudExecutor = fraudExecutor;
     }
 
     @Override
@@ -153,8 +158,9 @@ public class EnhancedFraudDetectionService implements FraudDetectionService {
             CompletableFuture<FraudReportResponse> reportFuture = 
                 externalClient.reportFraudCase(report);
 
-            reportFuture.thenAccept(response -> 
-                logger.info("Fraud case reported successfully with case ID: {}", response.getCaseId())
+            reportFuture.thenAcceptAsync(response -> 
+                logger.info("Fraud case reported successfully with case ID: {}", response.getCaseId()), 
+                fraudExecutor
             ).exceptionally(throwable -> {
                 logger.error("Failed to report fraud case: {}", throwable.getMessage());
                 return null;

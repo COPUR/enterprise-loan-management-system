@@ -1,0 +1,341 @@
+# Alertmanager Configuration for Enterprise Banking System
+# This configuration handles alert routing, grouping, and notification delivery
+
+global:
+  # Global SMTP configuration for email notifications
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'banking-alerts@example.com'
+  smtp_auth_username: 'banking-alerts@example.com'
+  smtp_auth_password: 'smtp-password'
+  smtp_require_tls: true
+
+  # Global Slack configuration
+  slack_api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+
+  # Global PagerDuty configuration
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+# Templates for notification messages
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Alert routing configuration
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default-receiver'
+  
+  routes:
+    # Critical alerts - immediate response required
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 5s
+      group_interval: 5s
+      repeat_interval: 15m
+      routes:
+        # Security critical alerts
+        - match:
+            category: security
+          receiver: 'security-team'
+        # Business critical alerts
+        - match:
+            category: business
+          receiver: 'business-team'
+        # Infrastructure critical alerts
+        - match:
+            category: availability
+          receiver: 'infrastructure-team'
+        # Compliance critical alerts
+        - match:
+            category: regulatory
+          receiver: 'compliance-team'
+
+    # High severity alerts
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      routes:
+        # Performance warnings
+        - match:
+            category: performance
+          receiver: 'performance-team'
+        # Resource warnings
+        - match:
+            category: resource
+          receiver: 'infrastructure-team'
+        # Business KPI warnings
+        - match:
+            category: kpi
+          receiver: 'business-team'
+
+    # Platform-specific routing
+    - match:
+        team: platform
+      receiver: 'platform-team'
+      routes:
+        - match:
+            category: database
+          receiver: 'database-team'
+        - match:
+            category: cache
+          receiver: 'cache-team'
+        - match:
+            category: messaging
+          receiver: 'messaging-team'
+
+    # Domain-specific routing
+    - match:
+        team: loans
+      receiver: 'loans-team'
+    - match:
+        team: payments
+      receiver: 'payments-team'
+    - match:
+        team: security
+      receiver: 'security-team'
+    - match:
+        team: compliance
+      receiver: 'compliance-team'
+
+    # Maintenance windows - suppress alerts
+    - match:
+        maintenance: 'true'
+      receiver: 'null'
+
+# Inhibition rules - suppress alerts based on conditions
+inhibit_rules:
+  # Suppress warning alerts when critical alerts are firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+
+  # Suppress individual service alerts when service is down
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match_re:
+      alertname: '.*'
+    equal: ['service']
+
+  # Suppress database connection alerts when database is down
+  - source_match:
+      alertname: 'DatabaseDown'
+    target_match:
+      alertname: 'DatabaseConnectionPoolExhausted'
+    equal: ['instance']
+
+# Receiver configurations
+receivers:
+  # Default receiver for non-matched alerts
+  - name: 'default-receiver'
+    email_configs:
+      - to: 'banking-oncall@example.com'
+        subject: 'Banking Platform Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Instance: {{ .Labels.instance }}
+          {{ end }}
+
+  # Critical alerts receiver
+  - name: 'critical-alerts'
+    slack_configs:
+      - api_url: '{{ .slack_api_url }}'
+        channel: '#banking-critical-alerts'
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          *Instance:* {{ .Labels.instance }}
+          {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+          {{ if .Annotations.dashboard_url }}*Dashboard:* {{ .Annotations.dashboard_url }}{{ end }}
+          {{ end }}
+    pagerduty_configs:
+      - routing_key: 'banking-platform-critical'
+        severity: 'critical'
+        client: 'Banking Platform Monitoring'
+        client_url: 'https://grafana.banking.example.com'
+        description: '{{ .GroupLabels.alertname }}: {{ .Annotations.summary }}'
+        details:
+          firing: '{{ .Alerts.Firing | len }}'
+          resolved: '{{ .Alerts.Resolved | len }}'
+          instances: '{{ range .Alerts }}{{ .Labels.instance }} {{ end }}'
+    email_configs:
+      - to: 'banking-oncall@example.com'
+        subject: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        body: |
+          CRITICAL ALERT DETECTED
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt }}
+          {{ if .Annotations.runbook_url }}Runbook: {{ .Annotations.runbook_url }}{{ end }}
+          {{ if .Annotations.dashboard_url }}Dashboard: {{ .Annotations.dashboard_url }}{{ end }}
+          {{ end }}
+
+  # Warning alerts receiver
+  - name: 'warning-alerts'
+    slack_configs:
+      - api_url: '{{ .slack_api_url }}'
+        channel: '#banking-alerts'
+        title: '⚠️ WARNING: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          *Instance:* {{ .Labels.instance }}
+          {{ if .Annotations.dashboard_url }}*Dashboard:* {{ .Annotations.dashboard_url }}{{ end }}
+          {{ end }}
+
+  # Security team receiver
+  - name: 'security-team'
+    slack_configs:
+      - api_url: '{{ .slack_api_url }}'
+        channel: '#security-alerts'
+        title: '🔒 SECURITY: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Security Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Action Required:* {{ .Annotations.action }}
+          *Instance:* {{ .Labels.instance }}
+          {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+    pagerduty_configs:
+      - routing_key: 'banking-security-alerts'
+        severity: 'critical'
+        client: 'Banking Security Monitoring'
+        description: 'Security Alert: {{ .GroupLabels.alertname }}'
+    email_configs:
+      - to: 'security-team@example.com'
+        subject: '🔒 SECURITY ALERT: {{ .GroupLabels.alertname }}'
+        body: |
+          SECURITY ALERT DETECTED
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Action Required: {{ .Annotations.action }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt }}
+          {{ end }}
+
+  # Business team receiver
+  - name: 'business-team'
+    slack_configs:
+      - api_url: '{{ .slack_api_url }}'
+        channel: '#business-alerts'
+        title: '📊 BUSINESS: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Business Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Impact:* {{ .Annotations.impact }}
+          {{ if .Annotations.dashboard_url }}*Dashboard:* {{ .Annotations.dashboard_url }}{{ end }}
+          {{ end }}
+    email_configs:
+      - to: 'business-team@example.com'
+        subject: '📊 BUSINESS ALERT: {{ .GroupLabels.alertname }}'
+
+  # Infrastructure team receiver
+  - name: 'infrastructure-team'
+    slack_configs:
+      - api_url: '{{ .slack_api_url }}'
+        channel: '#infrastructure-alerts'
+        title: '🏗️ INFRASTRUCTURE: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Infrastructure Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Instance:* {{ .Labels.instance }}
+          {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+    email_configs:
+      - to: 'infrastructure-team@example.com'
+        subject: '🏗️ INFRASTRUCTURE ALERT: {{ .GroupLabels.alertname }}'
+
+  # Compliance team receiver
+  - name: 'compliance-team'
+    slack_configs:
+      - api_url: '{{ .slack_api_url }}'
+        channel: '#compliance-alerts'
+        title: '⚖️ COMPLIANCE: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Compliance Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Impact:* {{ .Annotations.impact }}
+          *Action Required:* {{ .Annotations.action }}
+          {{ end }}
+    pagerduty_configs:
+      - routing_key: 'banking-compliance-alerts'
+        severity: 'critical'
+        client: 'Banking Compliance Monitoring'
+        description: 'Compliance Alert: {{ .GroupLabels.alertname }}'
+    email_configs:
+      - to: 'compliance-team@example.com'
+        subject: '⚖️ COMPLIANCE ALERT: {{ .GroupLabels.alertname }}'
+
+  # Domain-specific team receivers
+  - name: 'loans-team'
+    slack_configs:
+      - api_url: '{{ .slack_api_url }}'
+        channel: '#loans-alerts'
+        title: '🏦 LOANS: {{ .GroupLabels.alertname }}'
+    email_configs:
+      - to: 'loans-team@example.com'
+        subject: '🏦 LOANS ALERT: {{ .GroupLabels.alertname }}'
+
+  - name: 'payments-team'
+    slack_configs:
+      - api_url: '{{ .slack_api_url }}'
+        channel: '#payments-alerts'
+        title: '💳 PAYMENTS: {{ .GroupLabels.alertname }}'
+    email_configs:
+      - to: 'payments-team@example.com'
+        subject: '💳 PAYMENTS ALERT: {{ .GroupLabels.alertname }}'
+
+  - name: 'platform-team'
+    slack_configs:
+      - api_url: '{{ .slack_api_url }}'
+        channel: '#platform-alerts'
+        title: '🔧 PLATFORM: {{ .GroupLabels.alertname }}'
+    email_configs:
+      - to: 'platform-team@example.com'
+        subject: '🔧 PLATFORM ALERT: {{ .GroupLabels.alertname }}'
+
+  - name: 'database-team'
+    slack_configs:
+      - api_url: '{{ .slack_api_url }}'
+        channel: '#database-alerts'
+        title: '🗃️ DATABASE: {{ .GroupLabels.alertname }}'
+    email_configs:
+      - to: 'database-team@example.com'
+        subject: '🗃️ DATABASE ALERT: {{ .GroupLabels.alertname }}'
+
+  - name: 'performance-team'
+    slack_configs:
+      - api_url: '{{ .slack_api_url }}'
+        channel: '#performance-alerts'
+        title: '⚡ PERFORMANCE: {{ .GroupLabels.alertname }}'
+    email_configs:
+      - to: 'performance-team@example.com'
+        subject: '⚡ PERFORMANCE ALERT: {{ .GroupLabels.alertname }}'
+
+  # Null receiver for maintenance windows
+  - name: 'null'

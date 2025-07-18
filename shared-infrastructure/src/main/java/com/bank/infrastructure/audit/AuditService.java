@@ -47,9 +47,9 @@ public class AuditService {
     }
     
     /**
-     * Log audit event asynchronously
+     * Log audit event asynchronously using virtual threads
      */
-    @Async
+    @Async("auditExecutor")
     public CompletableFuture<AuditEventEntity> logAuditEventAsync(AuditEventEntity event) {
         try {
             AuditEventEntity savedEvent = logAuditEvent(event);

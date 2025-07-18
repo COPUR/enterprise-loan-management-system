@@ -241,90 +241,119 @@ gantt
 
 ## 📅 **Phase 4: Java 24 Migration (Week 7-9)**
 
-### **Week 7: Java 24 Core Features**
+### **⚠️ Strategic Note: Java 24 is NOT LTS**
+- **Java 24**: March 2025 (6-month support only)
+- **Java 25**: September 2025 (LTS - 3-year support)
+- **Recommendation**: Consider skipping Java 24 and targeting Java 25 LTS
 
-#### **Day 31-32: Environment Preparation**
-- [ ] Set up Java 24 EA in test environment
-- [ ] Update Docker images for Java 24
-- [ ] Configure CI/CD for dual Java versions
-- [ ] Create feature toggles for Java 24 features
+### **Week 7: Java 24 Core Features (Conditional)**
 
-#### **Day 33-34: Virtual Thread Enhancements**
-**Synchronized Block Optimization:**
+#### **Day 31-32: LTS Strategy Decision**
+- [ ] Evaluate Java 24 vs Java 25 LTS strategy
+- [ ] Assess business risk of non-LTS version
+- [ ] Consider Java 24 for performance testing only
+- [ ] Make final decision on Java 24 adoption
+
+#### **Day 33-34: Java 24 Performance Validation (If Proceeding)**
+**Virtual Thread Unpinning (JEP 491 - Permanent):**
 - [ ] Identify all synchronized blocks
 - [ ] Remove virtual thread workarounds
 - [ ] Test unpinned virtual threads
-- [ ] Benchmark improvements
+- [ ] Benchmark 200% performance improvement
 
-**Monitoring Implementation:**
-- [ ] Implement VirtualThreadSchedulerMXBean
-- [ ] Create monitoring dashboards
-- [ ] Add alerting rules
-- [ ] Test monitoring accuracy
+**Stream Gatherers (JEP 485 - Permanent):**
+- [ ] Create custom gatherers for banking operations
+- [ ] Implement transaction windowing
+- [ ] Update data processing pipelines
+- [ ] Performance testing with 20-40% improvement
 
-#### **Day 35: Stream Gatherers**
-**Implementation Tasks:**
-- [ ] Create custom gatherers for:
-  - [ ] Transaction windowing
-  - [ ] Balance calculations
-  - [ ] Risk aggregations
-  - [ ] Report generations
-- [ ] Update existing stream operations
-- [ ] Performance testing
+#### **Day 35: Memory Optimization**
+**Compact Object Headers (JEP 450 - Experimental):**
+- [ ] Enable experimental compact headers
+- [ ] Measure 10-20% memory reduction
+- [ ] Test deployment density improvements
+- [ ] Validate stability in banking workloads
 
-### **Week 8: Advanced Features**
+### **Week 8: Advanced Features (Java 24 Conditional)**
 
-#### **Day 36-37: Quantum Cryptography**
-**ML-KEM Implementation:**
-- [ ] Implement key encapsulation service
-- [ ] Update TLS configurations
+#### **Day 36-37: Quantum Cryptography (JEP 496/497 - Permanent)**
+**ML-KEM Implementation (JEP 496):**
+- [ ] Implement quantum-resistant key encapsulation
+- [ ] Update TLS configurations for post-quantum crypto
 - [ ] Create key rotation strategy
-- [ ] Test quantum resistance
+- [ ] Test quantum resistance for banking security
 
-**ML-DSA Implementation:**
-- [ ] Implement digital signature service
-- [ ] Update document signing
-- [ ] Create signature verification
-- [ ] Test signature integrity
+**ML-DSA Implementation (JEP 497):**
+- [ ] Implement quantum-resistant digital signatures
+- [ ] Update document signing for legal contracts
+- [ ] Create signature verification system
+- [ ] Test signature integrity for audit compliance
 
-#### **Day 38-39: Language Features**
-- [ ] Implement primitive patterns
-- [ ] Update module imports
-- [ ] Flexible constructor bodies
-- [ ] Scoped values implementation
-- [ ] Structured concurrency adoption
+#### **Day 38-39: Preview Features Evaluation**
+**Key Derivation Function API (JEP 478 - Preview):**
+- [ ] Evaluate KDF API for password security
+- [ ] Test HMAC-based key derivation
+- [ ] Implement Argon2 for user authentication
+- [ ] Banking-specific key management
 
-#### **Day 40: Memory Optimization**
-- [ ] Enable compact object headers
-- [ ] Profile memory usage
-- [ ] Optimize object allocation
-- [ ] Update GC configurations
-- [ ] Benchmark improvements
+**Scoped Values (JEP 487 - 4th Preview):**
+- [ ] Replace ThreadLocal with scoped values
+- [ ] Implement request context passing
+- [ ] Test with virtual threads
+- [ ] Improve microservices architecture
 
-### **Week 9: Testing & Deployment**
+#### **Day 40: Structured Concurrency (JEP 499 - 4th Preview)**
+**Banking Transaction Coordination:**
+- [ ] Implement structured concurrency for multi-service transactions
+- [ ] Create error handling for distributed operations
+- [ ] Test transaction rollback scenarios
+- [ ] Validate observability improvements
 
-#### **Day 41-42: Comprehensive Testing**
-**Test Categories:**
+### **Week 9: Testing & Strategic Decision**
+
+#### **Day 41-42: Java 24 vs Java 25 LTS Decision**
+**Strategic Analysis:**
+- [ ] Compare Java 24 benefits vs LTS support requirements
+- [ ] Evaluate 6-month support window risk
+- [ ] Assess September 2025 Java 25 LTS timeline
+- [ ] Consider Java 24 for performance testing only
+- [ ] Make final architectural decision
+
+**If Proceeding with Java 24:**
 - [ ] Unit tests (all modules)
-- [ ] Integration tests
-- [ ] Performance tests
-- [ ] Security tests
-- [ ] Load tests
-- [ ] Chaos engineering tests
+- [ ] Integration tests with new features
+- [ ] Performance tests with virtual threads
+- [ ] Security tests with quantum crypto
+- [ ] Load tests with stream gatherers
 
-#### **Day 43-44: Performance Optimization**
-- [ ] JVM tuning for Java 24
-- [ ] Virtual thread optimization
-- [ ] Memory optimization
-- [ ] GC tuning
-- [ ] Database connection pooling
+#### **Day 43-44: Production Readiness Assessment**
+**Java 24 Readiness (If Applicable):**
+- [ ] JVM tuning for Java 24 features
+- [ ] Virtual thread optimization for banking workloads
+- [ ] Memory optimization with compact headers
+- [ ] GC tuning for low-latency payments
+- [ ] Database connection pooling optimization
 
-#### **Day 45: Production Preparation**
-- [ ] Create deployment plan
-- [ ] Update runbooks
+**Java 25 LTS Preparation (Alternative):**
+- [ ] Plan Java 25 LTS migration timeline
+- [ ] Prepare for September 2025 release
+- [ ] Test Java 24 features in staging
+- [ ] Document lessons learned
+
+#### **Day 45: Strategic Implementation**
+**Option A: Java 24 Production (High Risk)**
+- [ ] Create deployment plan for Java 24
+- [ ] Update runbooks for new features
 - [ ] Prepare rollback procedures
 - [ ] Schedule maintenance window
 - [ ] Final security audit
+
+**Option B: Java 25 LTS Preparation (Recommended)**
+- [ ] Maintain Java 21 LTS in production
+- [ ] Test Java 24 features in development
+- [ ] Prepare for Java 25 LTS migration
+- [ ] Document Java 24 evaluation results
+- [ ] Plan September 2025 LTS upgrade
 
 ---
 

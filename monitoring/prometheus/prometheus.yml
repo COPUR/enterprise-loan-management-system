@@ -1,94 +1,500 @@
+# Prometheus Configuration for Enterprise Banking System
+# This configuration monitors all critical components of the banking infrastructure
+
 global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+  scrape_interval: 15s          # Default scrape interval
+  evaluation_interval: 15s      # How frequently to evaluate rules
+  scrape_timeout: 10s           # Global scrape timeout
+  
+  # External labels attached to all time series and alerts
   external_labels:
-    cluster: 'enterprise-loan-system'
+    cluster: 'enterprise-banking-cluster'
     environment: 'production'
-
-rule_files:
-  - "rules/*.yml"
-
+    region: 'us-east-1'
+    service: 'loan-management-system'
+    
+# Alerting configuration
 alerting:
   alertmanagers:
     - static_configs:
         - targets:
           - alertmanager:9093
+      # Alert relabeling for enhanced routing
+      relabel_configs:
+        - source_labels: [__address__]
+          target_label: __param_target
+        - source_labels: [__param_target]
+          target_label: instance
+        - target_label: __address__
+          replacement: alertmanager:9093
+  
+  # Alert manager timeout and retry configuration
+  alert_relabel_configs:
+    - source_labels: [severity]
+      regex: 'critical|high'
+      target_label: priority
+      replacement: 'P1'
+    - source_labels: [severity]
+      regex: 'medium'
+      target_label: priority
+      replacement: 'P2'
+    - source_labels: [severity]
+      regex: 'low|info'
+      target_label: priority
+      replacement: 'P3'
 
+# Rule files for alerts and recording rules
+rule_files:
+  - "rules/*.yml"
+  - "/etc/prometheus/rules/*.yml"
+
+# Scrape configurations for all components
 scrape_configs:
-  # Enterprise Loan Management Application
-  - job_name: 'loan-management-app'
+  #===========================================
+  # Kubernetes Service Discovery
+  #===========================================
+  
+  # Kubernetes API server metrics
+  - job_name: 'kubernetes-apiservers'
+    kubernetes_sd_configs:
+      - role: endpoints
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: default;kubernetes;https
+
+  # Kubernetes nodes monitoring
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+      - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics
+
+  # Kubernetes pods monitoring
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # Kubernetes services monitoring
+  - job_name: 'kubernetes-services'
+    kubernetes_sd_configs:
+      - role: service
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_service_name]
+        action: replace
+        target_label: kubernetes_service_name
+
+  #===========================================
+  # Banking Application Services
+  #===========================================
+  
+  # Customer Context Service
+  - job_name: 'customer-service'
     metrics_path: '/actuator/prometheus'
     scrape_interval: 10s
     static_configs:
-      - targets: ['localhost:5000']
+      - targets: 
+        - 'customer-service:8081'
+        - 'customer-service-replica-1:8081'
+        - 'customer-service-replica-2:8081'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+      - target_label: service
+        replacement: 'customer-management'
     metric_relabel_configs:
       - source_labels: [__name__]
-        regex: 'loan_.*|customer_.*|payment_.*'
-        target_label: business_metric
-        replacement: 'true'
+        regex: 'customer_.*|credit_score_.*|kyc_.*'
+        target_label: domain
+        replacement: 'customer'
 
-  # PostgreSQL Database Metrics
-  - job_name: 'postgresql'
+  # Loan Context Service
+  - job_name: 'loan-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: 
+        - 'loan-service:8082'
+        - 'loan-service-replica-1:8082'
+        - 'loan-service-replica-2:8082'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+      - target_label: service
+        replacement: 'loan-management'
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'loan_.*|installment_.*|interest_.*'
+        target_label: domain
+        replacement: 'loan'
+
+  # Payment Context Service
+  - job_name: 'payment-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: 
+        - 'payment-service:8083'
+        - 'payment-service-replica-1:8083'
+        - 'payment-service-replica-2:8083'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+      - target_label: service
+        replacement: 'payment-processing'
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'payment_.*|transaction_.*|settlement_.*'
+        target_label: domain
+        replacement: 'payment'
+
+  # API Gateway
+  - job_name: 'api-gateway'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['api-gateway:8080']
+    relabel_configs:
+      - target_label: service
+        replacement: 'api-gateway'
+
+  #===========================================
+  # Database Monitoring
+  #===========================================
+  
+  # PostgreSQL Primary Database
+  - job_name: 'postgresql-primary'
     static_configs:
       - targets: ['postgres-exporter:9187']
     scrape_interval: 15s
+    relabel_configs:
+      - target_label: database_role
+        replacement: 'primary'
+      - target_label: database_type
+        replacement: 'postgresql'
     metric_relabel_configs:
       - source_labels: [__name__]
-        regex: 'pg_stat_database_.*'
-        target_label: database_metric
-        replacement: 'true'
+        regex: 'pg_.*'
+        target_label: subsystem
+        replacement: 'database'
 
-  # Redis Cache Metrics
-  - job_name: 'redis'
+  # PostgreSQL Replica Databases
+  - job_name: 'postgresql-replicas'
     static_configs:
-      - targets: ['redis-exporter:9121']
+      - targets: 
+        - 'postgres-replica-1-exporter:9187'
+        - 'postgres-replica-2-exporter:9187'
+    scrape_interval: 15s
+    relabel_configs:
+      - target_label: database_role
+        replacement: 'replica'
+      - target_label: database_type
+        replacement: 'postgresql'
+
+  # MongoDB for Document Storage
+  - job_name: 'mongodb'
+    static_configs:
+      - targets: ['mongodb-exporter:9216']
+    scrape_interval: 15s
+    relabel_configs:
+      - target_label: database_type
+        replacement: 'mongodb'
+
+  #===========================================
+  # Infrastructure Components
+  #===========================================
+  
+  # Redis Cache Clusters
+  - job_name: 'redis-cache'
+    static_configs:
+      - targets: 
+        - 'redis-master-exporter:9121'
+        - 'redis-slave-1-exporter:9121'
+        - 'redis-slave-2-exporter:9121'
+    scrape_interval: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: 'redis-master.*'
+        target_label: redis_role
+        replacement: 'master'
+      - source_labels: [__address__]
+        regex: 'redis-slave.*'
+        target_label: redis_role
+        replacement: 'slave'
+
+  # Apache Kafka Message Broker
+  - job_name: 'kafka-cluster'
+    static_configs:
+      - targets: 
+        - 'kafka-broker-1:9308'
+        - 'kafka-broker-2:9308'
+        - 'kafka-broker-3:9308'
+    scrape_interval: 15s
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: 'kafka-broker-(\d+).*'
+        target_label: broker_id
+        replacement: '$1'
+
+  # Kafka Connect for Data Pipelines
+  - job_name: 'kafka-connect'
+    static_configs:
+      - targets: ['kafka-connect:8083']
+    metrics_path: '/metrics'
     scrape_interval: 15s
 
-  # Apache Kafka Metrics
-  - job_name: 'kafka'
+  # Elasticsearch for Search and Analytics
+  - job_name: 'elasticsearch'
     static_configs:
-      - targets: ['kafka-exporter:9308']
+      - targets: 
+        - 'elasticsearch-node-1:9200'
+        - 'elasticsearch-node-2:9200'
+        - 'elasticsearch-node-3:9200'
+    metrics_path: '/_prometheus/metrics'
     scrape_interval: 15s
 
-  # System Metrics (Node Exporter)
-  - job_name: 'node-exporter'
+  # NGINX Load Balancers
+  - job_name: 'nginx-ingress'
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: 
+        - 'nginx-ingress-controller:9113'
+        - 'nginx-internal-lb:9113'
+    scrape_interval: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '.*ingress.*'
+        target_label: nginx_type
+        replacement: 'ingress'
+      - source_labels: [__address__]
+        regex: '.*internal.*'
+        target_label: nginx_type
+        replacement: 'internal'
+
+  # HAProxy for Database Load Balancing
+  - job_name: 'haproxy'
+    static_configs:
+      - targets: ['haproxy-stats:8404']
+    metrics_path: '/metrics'
     scrape_interval: 10s
 
-  # Application Load Balancer
-  - job_name: 'nginx'
+  #===========================================
+  # Security and Compliance Monitoring
+  #===========================================
+  
+  # FAPI 2.0 Security Metrics
+  - job_name: 'fapi-security'
+    metrics_path: '/api/v1/monitoring/security/fapi'
+    scrape_interval: 30s
     static_configs:
-      - targets: ['nginx-exporter:9113']
-    scrape_interval: 15s
+      - targets: ['security-service:8084']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'fapi_.*|dpop_.*|par_.*|security_.*'
+        target_label: security_domain
+        replacement: 'fapi2'
 
+  # Compliance and Audit Metrics
+  - job_name: 'compliance-metrics'
+    metrics_path: '/api/v1/monitoring/compliance'
+    scrape_interval: 60s
+    static_configs:
+      - targets: ['compliance-service:8085']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'compliance_.*|audit_.*|regulatory_.*'
+        target_label: compliance_domain
+        replacement: 'banking'
+
+  # TDD Coverage and Quality Metrics
+  - job_name: 'code-quality'
+    metrics_path: '/api/v1/monitoring/quality'
+    scrape_interval: 300s
+    static_configs:
+      - targets: ['quality-service:8086']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'tdd_.*|coverage_.*|quality_.*'
+        target_label: quality_domain
+        replacement: 'engineering'
+
+  #===========================================
+  # System and Infrastructure Metrics
+  #===========================================
+  
+  # Node Exporters for System Metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets:
+        - 'node-exporter-app-1:9100'
+        - 'node-exporter-app-2:9100'
+        - 'node-exporter-app-3:9100'
+        - 'node-exporter-db-1:9100'
+        - 'node-exporter-db-2:9100'
+        - 'node-exporter-cache-1:9100'
+        - 'node-exporter-kafka-1:9100'
+        - 'node-exporter-kafka-2:9100'
+        - 'node-exporter-kafka-3:9100'
+    scrape_interval: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '.*app.*'
+        target_label: node_type
+        replacement: 'application'
+      - source_labels: [__address__]
+        regex: '.*db.*'
+        target_label: node_type
+        replacement: 'database'
+      - source_labels: [__address__]
+        regex: '.*cache.*'
+        target_label: node_type
+        replacement: 'cache'
+      - source_labels: [__address__]
+        regex: '.*kafka.*'
+        target_label: node_type
+        replacement: 'messaging'
+
+  # Container Metrics via cAdvisor
+  - job_name: 'cadvisor'
+    kubernetes_sd_configs:
+      - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
+  # JVM Metrics for Java Applications
+  - job_name: 'jvm-metrics'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+        - 'customer-service:8081'
+        - 'loan-service:8082'
+        - 'payment-service:8083'
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'jvm_.*|java_.*'
+        target_label: metric_type
+        replacement: 'jvm'
+
+  #===========================================
+  # Self-Monitoring
+  #===========================================
+  
   # Prometheus Self-Monitoring
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+    scrape_interval: 5s
 
-  # Banking Compliance Metrics
-  - job_name: 'compliance-metrics'
-    metrics_path: '/api/v1/monitoring/compliance'
-    scrape_interval: 30s
+  # Grafana Monitoring
+  - job_name: 'grafana'
     static_configs:
-      - targets: ['localhost:5000']
-    metric_relabel_configs:
-      - source_labels: [__name__]
-        regex: 'banking_compliance_.*|fapi_security_.*|tdd_coverage_.*'
-        target_label: compliance_metric
-        replacement: 'true'
+      - targets: ['grafana:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
 
-  # FAPI Security Metrics
-  - job_name: 'fapi-security'
-    metrics_path: '/api/v1/monitoring/security'
-    scrape_interval: 30s
+  # Alertmanager Monitoring
+  - job_name: 'alertmanager'
     static_configs:
-      - targets: ['localhost:5000']
+      - targets: ['alertmanager:9093']
+    scrape_interval: 15s
 
-# Remote storage configuration for long-term retention
+#===========================================
+# Remote Storage Configuration
+#===========================================
+
+# Remote write for long-term storage
 remote_write:
   - url: "http://victoria-metrics:8428/api/v1/write"
+    remote_timeout: 30s
     queue_config:
+      capacity: 100000
+      max_shards: 30
+      min_shards: 5
       max_samples_per_send: 10000
       batch_send_deadline: 5s
+      min_backoff: 30ms
+      max_backoff: 100ms
+    metadata_config:
+      send: true
+      send_interval: 1m
+
+# Remote read for historical data
+remote_read:
+  - url: "http://victoria-metrics:8428/api/v1/read"
+    remote_timeout: 1m
+    read_recent: true
+
+#===========================================
+# Storage Configuration
+#===========================================
+
+# Storage retention settings
+storage:
+  tsdb:
+    retention.time: 15d
+    retention.size: 50GB
+    wal_compression: true

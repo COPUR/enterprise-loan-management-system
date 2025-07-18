@@ -1,0 +1,363 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Payment Processing Metrics",
+    "tags": ["banking", "payments", "transactions"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Payment Transaction Volume",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(payment_transactions_total[5m])) by (payment_type)",
+            "legendFormat": "{{ payment_type }} Transactions/min"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Payment Success Rate",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "sum(rate(payment_transactions_successful_total[1h])) / sum(rate(payment_transactions_total[1h]))",
+            "legendFormat": "Success Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 0.95
+                },
+                {
+                  "color": "green",
+                  "value": 0.98
+                }
+              ]
+            },
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Payment Processing Time",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(payment_processing_duration_seconds_bucket[5m])) by (le, payment_type))",
+            "legendFormat": "{{ payment_type }} p95 Processing Time"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "s"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Payment Status Distribution",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(payment_status_count) by (status)",
+            "legendFormat": "{{ status }}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "short"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        }
+      },
+      {
+        "id": 5,
+        "title": "Payment Amount Trends",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(payment_amount_total[5m])) by (payment_type)",
+            "legendFormat": "{{ payment_type }} Amount/min"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "currencyUSD"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        }
+      },
+      {
+        "id": 6,
+        "title": "Payment Gateway Performance",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(payment_gateway_requests_total[5m])) by (gateway)",
+            "legendFormat": "{{ gateway }} Requests/min"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        }
+      },
+      {
+        "id": 7,
+        "title": "Failed Payment Analysis",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "sum(rate(payment_failures_total[1h])) by (failure_reason)",
+            "legendFormat": "{{ failure_reason }}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 24
+        }
+      },
+      {
+        "id": 8,
+        "title": "Payment Fraud Detection",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(payment_fraud_detected_total[5m]))",
+            "legendFormat": "Fraud Detections/min"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 1
+                },
+                {
+                  "color": "red",
+                  "value": 10
+                }
+              ]
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 24
+        }
+      },
+      {
+        "id": 9,
+        "title": "Payment Settlement Status",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(payment_settlements_total[5m])) by (settlement_status)",
+            "legendFormat": "{{ settlement_status }} Settlements"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 32
+        }
+      },
+      {
+        "id": 10,
+        "title": "Payment Method Performance",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "sum(rate(payment_method_usage_total[5m])) by (payment_method)",
+            "legendFormat": "{{ payment_method }}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "spectrum"
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 32
+        }
+      },
+      {
+        "id": 11,
+        "title": "Payment Security Metrics",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(payment_security_checks_total[5m])) by (check_type)",
+            "legendFormat": "{{ check_type }} Checks/min"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 40
+        }
+      },
+      {
+        "id": 12,
+        "title": "Payment Reconciliation Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(payment_reconciliation_pending_count)",
+            "legendFormat": "Pending Reconciliations"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 100
+                },
+                {
+                  "color": "red",
+                  "value": 1000
+                }
+              ]
+            },
+            "unit": "short"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 40
+        }
+      }
+    ],
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "version": 1
+  }
+}

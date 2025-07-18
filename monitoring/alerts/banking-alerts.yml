@@ -1,0 +1,332 @@
+groups:
+  # Application Alerts
+  - name: banking_application_alerts
+    interval: 30s
+    rules:
+      # High Error Rate Alert
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{status=~"5..",job="banking-services"}[5m])) by (app, instance)
+            /
+            sum(rate(http_server_requests_seconds_count{job="banking-services"}[5m])) by (app, instance)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          category: availability
+        annotations:
+          summary: "High error rate detected for {{ $labels.app }}"
+          description: "{{ $labels.app }} on {{ $labels.instance }} has error rate of {{ $value | humanizePercentage }} (threshold: 5%)"
+          runbook_url: "https://wiki.banking.example.com/runbooks/high-error-rate"
+          dashboard_url: "https://grafana.banking.example.com/d/app-errors/application-errors?var-app={{ $labels.app }}"
+
+      # Service Down Alert
+      - alert: ServiceDown
+        expr: up{job="banking-services"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+          category: availability
+        annotations:
+          summary: "Service {{ $labels.app }} is down"
+          description: "{{ $labels.app }} instance {{ $labels.instance }} has been down for more than 2 minutes"
+          runbook_url: "https://wiki.banking.example.com/runbooks/service-down"
+
+      # High Response Time Alert
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_server_requests_seconds_bucket{job="banking-services"}[5m])) by (app, le)
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          category: performance
+        annotations:
+          summary: "High response time for {{ $labels.app }}"
+          description: "95th percentile response time for {{ $labels.app }} is {{ $value | humanizeDuration }} (threshold: 1s)"
+          dashboard_url: "https://grafana.banking.example.com/d/app-performance/application-performance?var-app={{ $labels.app }}"
+
+      # Pod Restart Alert
+      - alert: PodRestartingTooOften
+        expr: |
+          rate(kube_pod_container_status_restarts_total{namespace="banking"}[15m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          category: stability
+        annotations:
+          summary: "Pod {{ $labels.pod }} is restarting frequently"
+          description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has restarted {{ $value | humanize }} times in the last 15 minutes"
+          runbook_url: "https://wiki.banking.example.com/runbooks/pod-crashes"
+
+      # Memory Pressure Alert
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            container_memory_working_set_bytes{namespace="banking",container!=""}
+            / 
+            container_spec_memory_limit_bytes{namespace="banking",container!=""}
+          ) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          category: resource
+        annotations:
+          summary: "High memory usage for {{ $labels.container }}"
+          description: "Container {{ $labels.container }} in pod {{ $labels.pod }} is using {{ $value | humanizePercentage }} of its memory limit"
+
+  # Business Metric Alerts
+  - name: banking_business_alerts
+    interval: 1m
+    rules:
+      # Loan Processing Failure
+      - alert: LoanProcessingFailureRate
+        expr: |
+          (
+            sum(rate(loan_processing_failed_total[5m]))
+            /
+            sum(rate(loan_processing_total[5m]))
+          ) > 0.02
+        for: 5m
+        labels:
+          severity: critical
+          team: loans
+          category: business
+        annotations:
+          summary: "High loan processing failure rate"
+          description: "Loan processing failure rate is {{ $value | humanizePercentage }} (threshold: 2%)"
+          impact: "Customers unable to get loan approvals"
+          dashboard_url: "https://grafana.banking.example.com/d/loan-metrics/loan-processing"
+
+      # Payment Processing Delays
+      - alert: PaymentProcessingDelay
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(payment_processing_duration_seconds_bucket[5m])) by (le)
+          ) > 30
+        for: 10m
+        labels:
+          severity: warning
+          team: payments
+          category: business
+        annotations:
+          summary: "Payment processing is slow"
+          description: "95th percentile payment processing time is {{ $value | humanizeDuration }} (threshold: 30s)"
+          impact: "Customer payments may be delayed"
+
+      # Low Conversion Rate
+      - alert: LowLoanConversionRate
+        expr: |
+          (
+            sum(rate(loan_applications_approved_total[1h]))
+            /
+            sum(rate(loan_applications_submitted_total[1h]))
+          ) < 0.1
+        for: 30m
+        labels:
+          severity: warning
+          team: business
+          category: kpi
+        annotations:
+          summary: "Low loan application conversion rate"
+          description: "Loan conversion rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+          impact: "Business KPI below target"
+
+      # Fraud Detection Alert
+      - alert: SuspiciousFraudActivity
+        expr: |
+          sum(rate(fraud_detection_triggered_total[5m])) > 10
+        for: 5m
+        labels:
+          severity: critical
+          team: security
+          category: security
+        annotations:
+          summary: "High fraud detection rate"
+          description: "{{ $value | humanize }} fraud alerts triggered in the last 5 minutes"
+          action: "Investigate potential security breach"
+          runbook_url: "https://wiki.banking.example.com/runbooks/fraud-investigation"
+
+  # Infrastructure Alerts
+  - name: banking_infrastructure_alerts
+    interval: 30s
+    rules:
+      # Database Connection Pool Exhaustion
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          (
+            hikaricp_connections_active{job="banking-services"}
+            /
+            hikaricp_connections_max{job="banking-services"}
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          category: database
+        annotations:
+          summary: "Database connection pool nearly exhausted for {{ $labels.app }}"
+          description: "{{ $labels.app }} is using {{ $value | humanizePercentage }} of available database connections"
+          runbook_url: "https://wiki.banking.example.com/runbooks/db-connection-pool"
+
+      # Redis Memory Usage
+      - alert: RedisHighMemoryUsage
+        expr: |
+          (
+            redis_memory_used_bytes{job="redis"}
+            /
+            redis_memory_max_bytes{job="redis"}
+          ) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          category: cache
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis instance {{ $labels.instance }} is using {{ $value | humanizePercentage }} of available memory"
+
+      # Kafka Lag Alert
+      - alert: KafkaConsumerLag
+        expr: |
+          kafka_consumer_lag_sum{job="kafka"} > 10000
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          category: messaging
+        annotations:
+          summary: "High Kafka consumer lag for {{ $labels.topic }}"
+          description: "Consumer group {{ $labels.consumergroup }} has lag of {{ $value | humanize }} messages on topic {{ $labels.topic }}"
+
+      # Disk Space Alert
+      - alert: DiskSpaceRunningLow
+        expr: |
+          (
+            node_filesystem_avail_bytes{mountpoint="/",job="node-exporter"}
+            /
+            node_filesystem_size_bytes{mountpoint="/",job="node-exporter"}
+          ) < 0.15
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+          category: resource
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Node {{ $labels.instance }} has only {{ $value | humanizePercentage }} disk space remaining"
+
+      # Certificate Expiry Alert
+      - alert: CertificateExpiryWarning
+        expr: |
+          probe_ssl_earliest_cert_expiry{job="blackbox-http"} - time() < 30 * 24 * 3600
+        for: 1h
+        labels:
+          severity: warning
+          team: security
+          category: certificate
+        annotations:
+          summary: "SSL certificate expiring soon for {{ $labels.instance }}"
+          description: "Certificate for {{ $labels.instance }} will expire in {{ $value | humanizeDuration }}"
+          action: "Renew certificate before expiry"
+
+  # Security Alerts
+  - name: banking_security_alerts
+    interval: 30s
+    rules:
+      # Authentication Failures
+      - alert: HighAuthenticationFailureRate
+        expr: |
+          sum(rate(authentication_failures_total[5m])) by (app) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: security
+          category: authentication
+        annotations:
+          summary: "High authentication failure rate for {{ $labels.app }}"
+          description: "{{ $value | humanize }} authentication failures per second detected"
+          action: "Possible brute force attack"
+
+      # DDoS Detection
+      - alert: PossibleDDoSAttack
+        expr: |
+          sum(rate(nginx_http_requests_total[1m])) > 10000
+        for: 2m
+        labels:
+          severity: critical
+          team: security
+          category: ddos
+        annotations:
+          summary: "Possible DDoS attack detected"
+          description: "Request rate is {{ $value | humanize }} requests per second"
+          action: "Enable DDoS mitigation"
+          runbook_url: "https://wiki.banking.example.com/runbooks/ddos-response"
+
+      # Suspicious API Usage
+      - alert: SuspiciousAPIUsagePattern
+        expr: |
+          sum(rate(api_requests_total{status="403"}[5m])) by (client_id) > 50
+        for: 5m
+        labels:
+          severity: warning
+          team: security
+          category: api_abuse
+        annotations:
+          summary: "Suspicious API usage from client {{ $labels.client_id }}"
+          description: "Client {{ $labels.client_id }} has {{ $value | humanize }} forbidden requests per minute"
+
+  # Compliance Alerts
+  - name: banking_compliance_alerts
+    interval: 1m
+    rules:
+      # PCI DSS Compliance
+      - alert: PCIDSSComplianceViolation
+        expr: |
+          pci_dss_compliance_score < 0.95
+        for: 10m
+        labels:
+          severity: critical
+          team: compliance
+          category: regulatory
+        annotations:
+          summary: "PCI DSS compliance score below threshold"
+          description: "Current compliance score is {{ $value | humanizePercentage }} (threshold: 95%)"
+          impact: "Regulatory compliance at risk"
+          action: "Review and fix compliance issues immediately"
+
+      # Data Retention Violation
+      - alert: DataRetentionViolation
+        expr: |
+          data_retention_violation_count > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: compliance
+          category: data_governance
+        annotations:
+          summary: "Data retention policy violation detected"
+          description: "{{ $value | humanize }} records found violating retention policy"
+          action: "Archive or delete data as per policy"
+
+      # Audit Log Failure
+      - alert: AuditLogFailure
+        expr: |
+          sum(rate(audit_log_write_failures_total[5m])) > 0
+        for: 2m
+        labels:
+          severity: critical
+          team: compliance
+          category: audit
+        annotations:
+          summary: "Audit log writing is failing"
+          description: "Audit log failures detected: {{ $value | humanize }} failures per second"
+          impact: "Compliance audit trail compromised"
+          action: "Fix audit logging immediately"

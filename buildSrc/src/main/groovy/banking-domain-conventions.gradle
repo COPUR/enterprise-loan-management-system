@@ -1,0 +1,249 @@
+plugins {
+    id 'banking-java-conventions'
+}
+
+dependencies {
+    // Domain-specific dependencies
+    implementation 'org.javamoney:moneta:1.4.2'
+    implementation 'javax.money:money-api:1.1'
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    implementation 'org.apache.commons:commons-lang3:3.14.0'
+    
+    // Jackson for JSON processing
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.16.0'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.0'
+    
+    // Web dependencies for shared kernel
+    implementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+    implementation 'org.springframework:spring-web:6.0.13'
+    implementation 'org.springframework.security:spring-security-core:6.2.0'
+    
+    // Domain events
+    implementation 'org.springframework:spring-context:6.0.13'
+    implementation 'org.springframework:spring-tx:6.0.13'
+    
+    // Time handling
+    implementation 'org.threeten:threeten-extra:1.7.2'
+    
+    // Testing domain objects
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+    testImplementation 'net.jqwik:jqwik:1.8.2'
+    testImplementation 'com.tngtech.archunit:archunit-junit5'
+}
+
+// Domain-specific test configuration
+test {
+    useJUnitPlatform {
+        includeTags 'unit', 'domain', 'banking-domain'
+        excludeTags 'integration', 'functional'
+    }
+    
+    // Domain tests should be fast
+    timeout = Duration.ofMinutes(5)
+    
+    // Property-based testing with jqwik
+    systemProperty 'jqwik.tries.default', '100'
+    systemProperty 'jqwik.shrinking.mode', 'FULL'
+    systemProperty 'jqwik.reporting.usejunitplatform', 'true'
+    
+    // Domain-specific test properties
+    systemProperty 'banking.domain.test.mode', 'true'
+    systemProperty 'banking.domain.strict.validation', 'true'
+}
+
+// ArchUnit tests for domain layer
+tasks.register('domainArchitectureTest', Test) {
+    description = 'Run domain architecture tests'
+    group = 'verification'
+    
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    
+    useJUnitPlatform {
+        includeTags 'architecture', 'domain-architecture'
+        excludeTags 'unit', 'integration'
+    }
+    
+    systemProperty 'banking.architecture.test.mode', 'domain'
+    
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+}
+
+// Property-based testing
+tasks.register('propertyTest', Test) {
+    description = 'Run property-based tests'
+    group = 'verification'
+    
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    
+    useJUnitPlatform {
+        includeTags 'property', 'property-based'
+        excludeTags 'unit', 'integration'
+    }
+    
+    systemProperty 'jqwik.tries.default', '1000'
+    systemProperty 'jqwik.shrinking.mode', 'FULL'
+    systemProperty 'jqwik.reporting.usejunitplatform', 'true'
+    
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+}
+
+// Domain model validation
+tasks.register('domainModelValidation') {
+    description = 'Validate domain model consistency'
+    group = 'verification'
+    
+    doLast {
+        println "Validating domain model for ${project.name}"
+        
+        // Check for proper aggregate roots
+        def aggregateRoots = fileTree("${projectDir}/src/main/java").matching {
+            include '**/*AggregateRoot.java'
+            include '**/*Aggregate.java'
+        }
+        
+        if (aggregateRoots.isEmpty()) {
+            logger.warn("No aggregate roots found in ${project.name}")
+        } else {
+            logger.info("Found ${aggregateRoots.size()} aggregate roots in ${project.name}")
+        }
+        
+        // Check for value objects
+        def valueObjects = fileTree("${projectDir}/src/main/java").matching {
+            include '**/*ValueObject.java'
+            include '**/*Value.java'
+        }
+        
+        logger.info("Found ${valueObjects.size()} value objects in ${project.name}")
+        
+        // Check for domain events
+        def domainEvents = fileTree("${projectDir}/src/main/java").matching {
+            include '**/*Event.java'
+            include '**/*DomainEvent.java'
+        }
+        
+        logger.info("Found ${domainEvents.size()} domain events in ${project.name}")
+    }
+}
+
+// Banking domain specific validations
+tasks.register('bankingDomainValidation') {
+    description = 'Validate banking domain rules'
+    group = 'banking'
+    
+    doLast {
+        println "Validating banking domain rules for ${project.name}"
+        
+        // Check for monetary calculations
+        def moneyClasses = fileTree("${projectDir}/src/main/java").matching {
+            include '**/*Money*.java'
+            include '**/*Amount*.java'
+            include '**/*Currency*.java'
+        }
+        
+        if (moneyClasses.isEmpty() && project.name.contains('payment')) {
+            logger.warn("No money-related classes found in payment context")
+        }
+        
+        // Check for Islamic finance compliance
+        if (project.name.contains('murabaha') || project.name.contains('islamic')) {
+            def islamicClasses = fileTree("${projectDir}/src/main/java").matching {
+                include '**/*Islamic*.java'
+                include '**/*Sharia*.java'
+                include '**/*Murabaha*.java'
+                include '**/*Halal*.java'
+            }
+            
+            if (islamicClasses.isEmpty()) {
+                logger.warn("No Islamic finance classes found in ${project.name}")
+            } else {
+                logger.info("Found ${islamicClasses.size()} Islamic finance classes in ${project.name}")
+            }
+        }
+        
+        // Check for proper exception handling
+        def exceptionClasses = fileTree("${projectDir}/src/main/java").matching {
+            include '**/*Exception.java'
+            include '**/*Error.java'
+        }
+        
+        logger.info("Found ${exceptionClasses.size()} exception classes in ${project.name}")
+    }
+}
+
+// Task dependencies
+check.dependsOn domainArchitectureTest, propertyTest, domainModelValidation, bankingDomainValidation
+domainArchitectureTest.mustRunAfter test
+propertyTest.mustRunAfter domainArchitectureTest
+domainModelValidation.mustRunAfter propertyTest
+bankingDomainValidation.mustRunAfter domainModelValidation
+
+// Ensure domain layer compilation
+tasks.withType(JavaCompile) {
+    options.compilerArgs += [
+        '-Xlint:deprecation',
+        '-Xlint:unchecked',
+        '-parameters'
+    ]
+    
+    doFirst {
+        println "Compiling domain layer: ${project.name}"
+    }
+}
+
+// Domain-specific documentation
+javadoc {
+    options.windowTitle = "${project.name} Domain API"
+    options.docTitle = "${project.name} Domain API Documentation"
+    options.header = "<b>${project.name} Domain Layer</b>"
+    
+    // Domain-specific tags
+    options.tags = [
+        'aggregate:a:Aggregate Root:',
+        'valueobject:a:Value Object:',
+        'entity:a:Entity:',
+        'domainevent:a:Domain Event:',
+        'invariant:a:Invariant:',
+        'businessrule:a:Business Rule:'
+    ]
+    
+    // Include domain-specific packages
+    include '**/domain/**'
+    include '**/model/**'
+    include '**/entity/**'
+    include '**/valueobject/**'
+    include '**/event/**'
+    
+    // Exclude infrastructure concerns
+    exclude '**/infrastructure/**'
+    exclude '**/web/**'
+    exclude '**/rest/**'
+    exclude '**/config/**'
+}
+
+// Domain testing best practices
+tasks.withType(Test) {
+    // Domain tests should be deterministic
+    systemProperty 'banking.domain.test.deterministic', 'true'
+    
+    // Enable property-based testing
+    systemProperty 'jqwik.enabled', 'true'
+    
+    // Domain-specific test configuration
+    systemProperty 'banking.domain.validation.strict', 'true'
+    systemProperty 'banking.domain.events.enabled', 'true'
+    
+    // Ensure clean state between tests
+    systemProperty 'banking.domain.test.cleanup', 'true'
+}

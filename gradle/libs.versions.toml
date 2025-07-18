@@ -1,0 +1,432 @@
+# Version catalog for enterprise banking system
+# Gradle 8.14.3 with Java 24 migration support
+
+[versions]
+# Core platform versions
+java = "17"
+spring-boot = "3.2.0"
+spring-cloud = "2023.0.0"
+spring-dependency-management = "1.1.4"
+
+# Core Spring Framework
+spring-framework = "6.1.0"
+spring-security = "6.2.0"
+spring-data = "3.2.0"
+spring-integration = "6.2.0"
+spring-cloud-gateway = "4.1.0"
+spring-cloud-openfeign = "4.1.0"
+spring-cloud-circuit-breaker = "3.1.0"
+spring-cloud-config = "4.1.0"
+spring-cloud-sleuth = "3.1.5"
+spring-cloud-stream = "4.1.0"
+spring-cloud-contract = "4.0.4"
+
+# Database & Persistence
+postgresql = "42.7.1"
+h2 = "2.2.224"
+flyway = "10.4.1"
+liquibase = "4.25.1"
+hibernate = "6.4.0.Final"
+redis = "7.2.3"
+jedis = "5.1.0"
+lettuce = "6.3.0.RELEASE"
+
+# Message Queue & Streaming
+kafka = "3.6.1"
+apache-kafka = "3.6.1"
+spring-kafka = "3.1.0"
+rabbitmq = "3.12.10"
+activemq = "6.0.1"
+
+# Security & Authentication
+oauth2-resource-server = "6.2.0"
+oauth2-jose = "6.2.0"
+nimbus-jose-jwt = "9.37.3"
+oauth2-oidc-sdk = "11.9.1"
+bouncycastle-provider = "1.77"
+bouncycastle-pkix = "1.77"
+keycloak = "23.0.3"
+okta-spring-boot = "3.0.5"
+
+# Monitoring & Observability
+micrometer = "1.12.0"
+micrometer-tracing = "1.2.0"
+zipkin = "2.24.0"
+sleuth = "3.1.5"
+prometheus = "1.12.0"
+grafana = "10.2.2"
+jaeger = "1.52.0"
+opentelemetry = "1.33.0"
+actuator = "3.2.0"
+
+# Testing Framework
+junit = "5.10.1"
+mockito = "5.8.0"
+assertj = "3.24.2"
+testcontainers = "1.19.3"
+archunit = "1.2.1"
+rest-assured = "5.4.0"
+wiremock = "2.35.1"
+awaitility = "4.2.0"
+jqwik = "1.8.2"
+
+# Code Quality & Analysis
+spotbugs = "5.2.1"
+checkstyle = "10.12.7"
+pmd = "6.55.0"
+jacoco = "0.8.11"
+sonarqube = "4.4.1.3373"
+owasp-dependency-check = "9.0.7"
+
+# Build & Deployment
+gradle = "8.14.3"
+docker-compose = "2.23.3"
+kubernetes = "1.29.0"
+helm = "3.13.3"
+istio = "1.20.0"
+envoy = "1.28.0"
+
+# Serialization & Data Processing
+jackson = "2.16.0"
+gson = "2.10.1"
+protobuf = "3.25.1"
+avro = "1.11.3"
+json-schema-validator = "1.0.87"
+
+# Utilities & Commons
+commons-lang3 = "3.14.0"
+commons-collections4 = "4.4"
+commons-io = "2.15.1"
+commons-codec = "1.16.0"
+commons-csv = "1.10.0"
+apache-commons-math3 = "3.6.1"
+guava = "32.1.3-jre"
+vavr = "0.10.4"
+mapstruct = "1.5.5.Final"
+
+# Financial & Banking Libraries
+java-money = "1.4.2"
+java-money-ri = "1.4.2"
+iban4j = "3.2.7-RELEASE"
+currency-converter = "3.0.0"
+
+# Performance & Benchmarking
+jmh = "1.37"
+caffeine = "3.1.8"
+ehcache = "3.10.8"
+hazelcast = "5.3.6"
+
+# Development & Documentation
+lombok = "1.18.30"
+mapstruct-processor = "1.5.5.Final"
+swagger-annotations = "2.2.20"
+springdoc-openapi = "2.3.0"
+openapi-generator = "7.2.0"
+springdoc-openapi-starter-webmvc-ui = "2.3.0"
+
+# Cloud & Infrastructure
+aws-java-sdk = "2.21.29"
+gcp-libraries = "26.28.0"
+azure-sdk = "1.2.18"
+docker-java = "3.3.4"
+
+# Template & View
+thymeleaf = "3.1.2.RELEASE"
+freemarker = "2.3.32"
+
+# Validation
+hibernate-validator = "8.0.1.Final"
+javax-validation = "2.0.1.Final"
+
+# Resilience & Circuit Breaker
+resilience4j = "2.2.0"
+
+# Logging
+slf4j = "2.0.9"
+logback = "1.4.14"
+log4j2 = "2.22.0"
+logstash-logback-encoder = "7.4"
+
+# Cache
+redis-embedded = "0.6"
+jedis-mock = "1.1.0"
+
+# Islamic Banking Specific
+islamic-calendar = "1.0.0"
+zakat-calculator = "1.2.0"
+sukuk-calculator = "1.1.0"
+
+# DevOps & CI/CD
+gradle-enterprise = "3.16.1"
+gradle-build-scan = "3.16.1"
+github-actions = "1.0.0"
+jenkins = "2.426.1"
+
+[libraries]
+# Spring Boot Starters
+spring-boot-starter = { group = "org.springframework.boot", name = "spring-boot-starter", version.ref = "spring-boot" }
+spring-boot-starter-web = { group = "org.springframework.boot", name = "spring-boot-starter-web", version.ref = "spring-boot" }
+spring-boot-starter-webflux = { group = "org.springframework.boot", name = "spring-boot-starter-webflux", version.ref = "spring-boot" }
+spring-boot-starter-data-jpa = { group = "org.springframework.boot", name = "spring-boot-starter-data-jpa", version.ref = "spring-boot" }
+spring-boot-starter-data-redis = { group = "org.springframework.boot", name = "spring-boot-starter-data-redis", version.ref = "spring-boot" }
+spring-boot-starter-security = { group = "org.springframework.boot", name = "spring-boot-starter-security", version.ref = "spring-boot" }
+spring-boot-starter-oauth2-resource-server = { group = "org.springframework.boot", name = "spring-boot-starter-oauth2-resource-server", version.ref = "spring-boot" }
+spring-boot-starter-actuator = { group = "org.springframework.boot", name = "spring-boot-starter-actuator", version.ref = "spring-boot" }
+spring-boot-starter-test = { group = "org.springframework.boot", name = "spring-boot-starter-test", version.ref = "spring-boot" }
+spring-boot-starter-validation = { group = "org.springframework.boot", name = "spring-boot-starter-validation", version.ref = "spring-boot" }
+spring-boot-starter-cache = { group = "org.springframework.boot", name = "spring-boot-starter-cache", version.ref = "spring-boot" }
+spring-boot-starter-aop = { group = "org.springframework.boot", name = "spring-boot-starter-aop", version.ref = "spring-boot" }
+spring-boot-starter-kafka = { group = "org.springframework.kafka", name = "spring-kafka", version.ref = "spring-kafka" }
+
+# Spring Cloud
+spring-cloud-starter-gateway = { group = "org.springframework.cloud", name = "spring-cloud-starter-gateway", version.ref = "spring-cloud-gateway" }
+spring-cloud-starter-openfeign = { group = "org.springframework.cloud", name = "spring-cloud-starter-openfeign", version.ref = "spring-cloud-openfeign" }
+spring-cloud-starter-circuitbreaker-resilience4j = { group = "org.springframework.cloud", name = "spring-cloud-starter-circuitbreaker-resilience4j", version.ref = "spring-cloud-circuit-breaker" }
+spring-cloud-starter-config = { group = "org.springframework.cloud", name = "spring-cloud-starter-config", version.ref = "spring-cloud-config" }
+spring-cloud-starter-sleuth = { group = "org.springframework.cloud", name = "spring-cloud-starter-sleuth", version.ref = "spring-cloud-sleuth" }
+spring-cloud-starter-stream-kafka = { group = "org.springframework.cloud", name = "spring-cloud-starter-stream-kafka", version.ref = "spring-cloud-stream" }
+spring-cloud-contract-verifier = { group = "org.springframework.cloud", name = "spring-cloud-contract-verifier", version.ref = "spring-cloud-contract" }
+spring-cloud-starter-contract-stub-runner = { group = "org.springframework.cloud", name = "spring-cloud-starter-contract-stub-runner", version.ref = "spring-cloud-contract" }
+
+# Resilience4j Dependencies
+resilience4j-spring-boot3 = { group = "io.github.resilience4j", name = "resilience4j-spring-boot3", version.ref = "resilience4j" }
+resilience4j-circuitbreaker = { group = "io.github.resilience4j", name = "resilience4j-circuitbreaker", version.ref = "resilience4j" }
+resilience4j-retry = { group = "io.github.resilience4j", name = "resilience4j-retry", version.ref = "resilience4j" }
+
+# Database Dependencies
+postgresql-driver = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
+h2-database = { group = "com.h2database", name = "h2", version.ref = "h2" }
+flyway-core = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyway" }
+liquibase-core = { group = "org.liquibase", name = "liquibase-core", version.ref = "liquibase" }
+hibernate-core = { group = "org.hibernate", name = "hibernate-core", version.ref = "hibernate" }
+redis-embedded = { group = "it.ozimov", name = "embedded-redis", version.ref = "redis-embedded" }
+jedis = { group = "redis.clients", name = "jedis", version.ref = "jedis" }
+lettuce-core = { group = "io.lettuce", name = "lettuce-core", version.ref = "lettuce" }
+
+# Security Dependencies
+spring-security-core = { group = "org.springframework.security", name = "spring-security-core", version.ref = "spring-security" }
+spring-security-config = { group = "org.springframework.security", name = "spring-security-config", version.ref = "spring-security" }
+spring-security-web = { group = "org.springframework.security", name = "spring-security-web", version.ref = "spring-security" }
+spring-security-oauth2-resource-server = { group = "org.springframework.security", name = "spring-security-oauth2-resource-server", version.ref = "oauth2-resource-server" }
+spring-security-oauth2-jose = { group = "org.springframework.security", name = "spring-security-oauth2-jose", version.ref = "oauth2-jose" }
+spring-security-test = { group = "org.springframework.security", name = "spring-security-test", version.ref = "spring-security" }
+nimbus-jose-jwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version.ref = "nimbus-jose-jwt" }
+oauth2-oidc-sdk = { group = "com.nimbusds", name = "oauth2-oidc-sdk", version.ref = "oauth2-oidc-sdk" }
+bouncycastle-provider = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle-provider" }
+bouncycastle-pkix = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle-pkix" }
+keycloak-admin-client = { group = "org.keycloak", name = "keycloak-admin-client", version.ref = "keycloak" }
+
+# Monitoring Dependencies
+micrometer-core = { group = "io.micrometer", name = "micrometer-core", version.ref = "micrometer" }
+micrometer-registry-prometheus = { group = "io.micrometer", name = "micrometer-registry-prometheus", version.ref = "micrometer" }
+micrometer-tracing = { group = "io.micrometer", name = "micrometer-tracing", version.ref = "micrometer-tracing" }
+zipkin-reporter-brave = { group = "io.zipkin.reporter2", name = "zipkin-reporter-brave", version.ref = "zipkin" }
+logstash-logback-encoder = { group = "net.logstash.logback", name = "logstash-logback-encoder", version.ref = "logstash-logback-encoder" }
+opentelemetry-api = { group = "io.opentelemetry", name = "opentelemetry-api", version.ref = "opentelemetry" }
+opentelemetry-instrumentation-spring-boot = { group = "io.opentelemetry.instrumentation", name = "opentelemetry-spring-boot-starter", version.ref = "opentelemetry" }
+
+# Testing Dependencies
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
+junit-jupiter-params = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit" }
+junit-vintage-engine = { group = "org.junit.vintage", name = "junit-vintage-engine", version.ref = "junit" }
+junit-platform-suite = { group = "org.junit.platform", name = "junit-platform-suite", version.ref = "junit" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockito" }
+mockito-inline = { group = "org.mockito", name = "mockito-inline", version.ref = "mockito" }
+assertj-core = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+testcontainers-junit-jupiter = { group = "org.testcontainers", name = "junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgresql = { group = "org.testcontainers", name = "postgresql", version.ref = "testcontainers" }
+testcontainers-kafka = { group = "org.testcontainers", name = "kafka", version.ref = "testcontainers" }
+testcontainers-redis = { group = "org.testcontainers", name = "redis", version.ref = "testcontainers" }
+archunit-junit5 = { group = "com.tngtech.archunit", name = "archunit-junit5", version.ref = "archunit" }
+rest-assured = { group = "io.rest-assured", name = "rest-assured", version.ref = "rest-assured" }
+rest-assured-json-path = { group = "io.rest-assured", name = "json-path", version.ref = "rest-assured" }
+rest-assured-xml-path = { group = "io.rest-assured", name = "xml-path", version.ref = "rest-assured" }
+rest-assured-json-schema-validator = { group = "io.rest-assured", name = "json-schema-validator", version.ref = "rest-assured" }
+wiremock-jre8 = { group = "com.github.tomakehurst", name = "wiremock-jre8", version.ref = "wiremock" }
+awaitility = { group = "org.awaitility", name = "awaitility", version.ref = "awaitility" }
+jqwik = { group = "net.jqwik", name = "jqwik", version.ref = "jqwik" }
+jqwik-time = { group = "net.jqwik", name = "jqwik-time", version.ref = "jqwik" }
+jqwik-web = { group = "net.jqwik", name = "jqwik-web", version.ref = "jqwik" }
+
+# Serialization & Data Processing
+jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson" }
+jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
+jackson-datatype-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+protobuf-java = { group = "com.google.protobuf", name = "protobuf-java", version.ref = "protobuf" }
+avro = { group = "org.apache.avro", name = "avro", version.ref = "avro" }
+json-schema-validator = { group = "com.networknt", name = "json-schema-validator", version.ref = "json-schema-validator" }
+
+# Utilities
+commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commons-lang3" }
+commons-collections4 = { group = "org.apache.commons", name = "commons-collections4", version.ref = "commons-collections4" }
+commons-io = { group = "commons-io", name = "commons-io", version.ref = "commons-io" }
+commons-codec = { group = "commons-codec", name = "commons-codec", version.ref = "commons-codec" }
+commons-csv = { group = "org.apache.commons", name = "commons-csv", version.ref = "commons-csv" }
+apache-commons-math3 = { group = "org.apache.commons", name = "commons-math3", version.ref = "apache-commons-math3" }
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+vavr = { group = "io.vavr", name = "vavr", version.ref = "vavr" }
+mapstruct = { group = "org.mapstruct", name = "mapstruct", version.ref = "mapstruct" }
+mapstruct-processor = { group = "org.mapstruct", name = "mapstruct-processor", version.ref = "mapstruct-processor" }
+
+# Financial & Banking Libraries
+java-money-api = { group = "javax.money", name = "money-api", version.ref = "java-money" }
+java-money-ri = { group = "org.javamoney", name = "moneta", version.ref = "java-money-ri" }
+iban4j = { group = "org.iban4j", name = "iban4j", version.ref = "iban4j" }
+
+# Performance & Benchmarking
+jmh-core = { group = "org.openjdk.jmh", name = "jmh-core", version.ref = "jmh" }
+jmh-generator-annprocess = { group = "org.openjdk.jmh", name = "jmh-generator-annprocess", version.ref = "jmh" }
+caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
+ehcache = { group = "org.ehcache", name = "ehcache", version.ref = "ehcache" }
+hazelcast = { group = "com.hazelcast", name = "hazelcast", version.ref = "hazelcast" }
+
+# Development & Documentation
+lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
+swagger-annotations = { group = "io.swagger.core.v3", name = "swagger-annotations", version.ref = "swagger-annotations" }
+springdoc-openapi-starter-webmvc-ui = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
+openapi-generator = { group = "org.openapitools", name = "openapi-generator", version.ref = "openapi-generator" }
+
+# Code Quality
+owasp-dependency-check = { group = "org.owasp", name = "dependency-check-gradle", version.ref = "owasp-dependency-check" }
+
+# Validation
+hibernate-validator = { group = "org.hibernate.validator", name = "hibernate-validator", version.ref = "hibernate-validator" }
+javax-validation-api = { group = "javax.validation", name = "validation-api", version.ref = "javax-validation" }
+
+# Logging
+slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
+logback-core = { group = "ch.qos.logback", name = "logback-core", version.ref = "logback" }
+
+# Reporting
+allure-junit5 = { group = "io.qameta.allure", name = "allure-junit5", version = "2.25.0" }
+allure-rest-assured = { group = "io.qameta.allure", name = "allure-rest-assured", version = "2.25.0" }
+
+# Cloud & Infrastructure
+aws-java-sdk-core = { group = "software.amazon.awssdk", name = "aws-core", version.ref = "aws-java-sdk" }
+aws-java-sdk-s3 = { group = "software.amazon.awssdk", name = "s3", version.ref = "aws-java-sdk" }
+aws-java-sdk-dynamodb = { group = "software.amazon.awssdk", name = "dynamodb", version.ref = "aws-java-sdk" }
+docker-java-core = { group = "com.github.docker-java", name = "docker-java-core", version.ref = "docker-java" }
+docker-java-transport-httpclient5 = { group = "com.github.docker-java", name = "docker-java-transport-httpclient5", version.ref = "docker-java" }
+
+[bundles]
+# Spring Boot Basic Bundle
+spring-boot-basic = ["spring-boot-starter", "spring-boot-starter-web", "spring-boot-starter-actuator"]
+
+# Spring Boot Web Bundle
+spring-boot-web = ["spring-boot-starter-web", "spring-boot-starter-validation", "spring-boot-starter-security"]
+
+# Spring Boot Data Bundle
+spring-boot-data = ["spring-boot-starter-data-jpa", "spring-boot-starter-data-redis", "postgresql-driver", "h2-database"]
+
+# Spring Boot Security Bundle
+spring-boot-security = ["spring-boot-starter-security", "spring-boot-starter-oauth2-resource-server", "spring-security-test"]
+
+# Spring Cloud Bundle
+spring-cloud-basic = ["spring-cloud-starter-gateway", "spring-cloud-starter-openfeign", "spring-cloud-starter-circuitbreaker-resilience4j"]
+
+# Testing Bundle
+testing-basic = ["junit-jupiter", "mockito-core", "assertj-core", "spring-boot-starter-test"]
+
+# Testing Advanced Bundle
+testing-advanced = ["junit-jupiter", "junit-jupiter-params", "mockito-core", "mockito-junit-jupiter", "assertj-core", "testcontainers-junit-jupiter", "rest-assured", "wiremock-jre8", "awaitility"]
+
+# Banking Core Bundle
+banking-core = ["java-money-api", "java-money-ri", "iban4j"]
+
+# Security Advanced Bundle
+security-advanced = ["spring-security-core", "spring-security-config", "spring-security-web", "nimbus-jose-jwt", "oauth2-oidc-sdk", "bouncycastle-provider", "bouncycastle-pkix"]
+
+# Monitoring Bundle
+monitoring = ["micrometer-core", "micrometer-registry-prometheus", "micrometer-tracing", "zipkin-reporter-brave"]
+
+# Utilities Bundle
+utilities = ["commons-lang3", "commons-collections4", "commons-io", "guava", "vavr", "mapstruct"]
+
+# Performance Bundle
+performance = ["jmh-core", "jmh-generator-annprocess", "caffeine"]
+
+# Jackson Bundle
+jackson = ["jackson-core", "jackson-databind", "jackson-annotations", "jackson-datatype-jsr310"]
+
+# Testcontainers Bundle
+testcontainers = ["testcontainers-junit-jupiter", "testcontainers-postgresql", "testcontainers-kafka", "testcontainers-redis"]
+
+# Kafka Bundle
+kafka = ["spring-boot-starter-kafka", "spring-cloud-starter-stream-kafka"]
+
+# Contract Testing Bundle
+contract-testing = ["spring-cloud-contract-verifier", "spring-cloud-starter-contract-stub-runner"]
+
+# Architecture Testing Bundle
+architecture-testing = ["archunit-junit5", "jqwik", "jqwik-time", "jqwik-web"]
+
+# Property Testing Bundle
+property-testing = ["jqwik", "jqwik-time", "jqwik-web"]
+
+# Islamic Banking Bundle
+islamic-banking = ["java-money-api", "java-money-ri"]
+
+# Documentation Bundle
+documentation = ["springdoc-openapi-starter-webmvc-ui", "swagger-annotations"]
+
+# Development Bundle
+development = ["lombok", "mapstruct", "mapstruct-processor"]
+
+# Cloud Bundle
+cloud = ["aws-java-sdk-core", "aws-java-sdk-s3", "docker-java-core"]
+
+# Validation Bundle
+validation = ["hibernate-validator", "javax-validation-api"]
+
+# Logging Bundle
+logging = ["slf4j-api", "logback-classic", "logback-core"]
+
+# Reporting Bundle
+reporting = ["allure-junit5", "allure-rest-assured"]
+
+[plugins]
+# Spring Boot Plugins
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+
+# Code Quality Plugins
+spotbugs = { id = "com.github.spotbugs", version.ref = "spotbugs" }
+checkstyle = { id = "checkstyle" }
+pmd = { id = "pmd" }
+jacoco = { id = "jacoco" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
+owasp-dependency-check = { id = "org.owasp.dependencycheck", version.ref = "owasp-dependency-check" }
+
+# Testing Plugins
+jmh = { id = "me.champeau.jmh", version = "0.7.2" }
+
+# Documentation Plugins
+openapi-generator = { id = "org.openapi.generator", version.ref = "openapi-generator" }
+
+# Build Plugins
+gradle-enterprise = { id = "com.gradle.enterprise", version.ref = "gradle-enterprise" }
+gradle-build-scan = { id = "com.gradle.build-scan", version.ref = "gradle-build-scan" }
+
+# Docker Plugins
+docker-compose = { id = "com.avast.gradle.docker-compose", version = "0.17.6" }
+docker = { id = "com.bmuschko.docker-java-application", version = "9.4.0" }
+
+# Protobuf Plugin
+protobuf = { id = "com.google.protobuf", version = "0.9.4" }
+
+# Avro Plugin
+avro = { id = "com.github.davidmc24.gradle.plugin.avro", version = "1.9.1" }
+
+# Lombok Plugin
+lombok = { id = "io.freefair.lombok", version = "8.4" }
+
+# Banking Convention Plugins (Custom)
+banking-java-conventions = { id = "banking-java-conventions" }
+banking-spring-conventions = { id = "banking-spring-conventions" }
+banking-domain-conventions = { id = "banking-domain-conventions" }
+banking-security-conventions = { id = "banking-security-conventions" }
+banking-testing-conventions = { id = "banking-testing-conventions" }

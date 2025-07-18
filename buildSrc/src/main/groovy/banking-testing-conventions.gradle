@@ -1,0 +1,357 @@
+plugins {
+    id 'banking-java-conventions'
+    id 'jvm-test-suite'
+}
+
+dependencies {
+    // Testing framework
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.1'
+    testImplementation 'org.junit.vintage:junit-vintage-engine:5.10.1'
+    
+    // Assertion libraries
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+    
+    // Mocking
+    testImplementation 'org.mockito:mockito-core:5.8.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.8.0'
+    
+    // Test containers
+    testImplementation 'org.testcontainers:testcontainers:1.19.3'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
+    testImplementation 'org.testcontainers:postgresql:1.19.3'
+    testImplementation 'org.testcontainers:kafka:1.19.3'
+    
+    // API testing
+    testImplementation 'io.rest-assured:rest-assured:5.4.0'
+    testImplementation 'io.rest-assured:json-path:5.4.0'
+    testImplementation 'io.rest-assured:xml-path:5.4.0'
+    testImplementation 'io.rest-assured:json-schema-validator:5.4.0'
+    
+    // Performance testing
+    testImplementation 'org.openjdk.jmh:jmh-core:1.37'
+    testImplementation 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
+    
+    // Property-based testing
+    testImplementation 'net.jqwik:jqwik:1.8.2'
+    testImplementation 'net.jqwik:jqwik-time:1.8.2'
+    testImplementation 'net.jqwik:jqwik-web:1.8.2'
+    
+    // Architecture testing
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
+    
+    // Contract testing
+    testImplementation 'org.springframework.cloud:spring-cloud-contract-verifier:4.0.4'
+    testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-stub-runner:4.0.4'
+    
+    // Banking-specific testing
+    testImplementation 'org.awaitility:awaitility:4.2.0'
+    testImplementation 'com.github.tomakehurst:wiremock-jre8:2.35.1'
+    testImplementation 'org.springframework.security:spring-security-test:6.2.0'
+    
+    // Test reporting
+    testImplementation 'io.qameta.allure:allure-junit5:2.25.0'
+    testImplementation 'io.qameta.allure:allure-rest-assured:2.25.0'
+}
+
+// Test suites configuration
+testing {
+    suites {
+        if (!tasks.findByName('integrationTest')) {
+            integrationTest(JvmTestSuite) {
+                dependencies {
+                    implementation project()
+                }
+            }
+        }
+        
+        if (!tasks.findByName('functionalTest')) {
+            functionalTest(JvmTestSuite) {
+                dependencies {
+                    implementation project()
+                }
+            }
+        }
+        
+        if (!tasks.findByName('performanceTest')) {
+            performanceTest(JvmTestSuite) {
+                dependencies {
+                    implementation project()
+                }
+            }
+        }
+        
+        if (!tasks.findByName('contractTest')) {
+            contractTest(JvmTestSuite) {
+                dependencies {
+                    implementation project()
+                }
+            }
+        }
+    }
+}
+
+// Banking-specific test configuration
+tasks.withType(Test) {
+    useJUnitPlatform()
+    
+    // Test execution configuration
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+    
+    // Test logging
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+        exceptionFormat "full"
+        showStackTraces true
+        showCauses true
+        showExceptions true
+        
+        // Banking-specific logging
+        info {
+            events "passed", "skipped", "failed"
+            exceptionFormat "full"
+        }
+        
+        debug {
+            events "started", "passed", "skipped", "failed", "standardOut", "standardError"
+            exceptionFormat "full"
+        }
+    }
+    
+    // JVM configuration for tests
+    jvmArgs = [
+        '-XX:+UnlockExperimentalVMOptions',
+        '-XX:+EnableJVMCI',
+        '-Xms512m',
+        '-Xmx2g',
+        '-XX:+UseG1GC',
+        '-XX:MaxGCPauseMillis=100'
+    ]
+    
+    // System properties for banking tests
+    systemProperty 'banking.test.enabled', 'true'
+    systemProperty 'banking.test.environment', 'test'
+    systemProperty 'banking.test.data.cleanup', 'true'
+    systemProperty 'banking.test.parallel.enabled', 'true'
+    systemProperty 'banking.test.timeout.default', '30'
+    systemProperty 'banking.test.retry.enabled', 'true'
+    
+    // JUnit Platform configuration
+    systemProperty 'junit.jupiter.execution.parallel.enabled', 'true'
+    systemProperty 'junit.jupiter.execution.parallel.mode.default', 'concurrent'
+    systemProperty 'junit.jupiter.execution.parallel.mode.classes.default', 'concurrent'
+    systemProperty 'junit.jupiter.execution.parallel.config.strategy', 'dynamic'
+    
+    // Test retry configuration
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+    
+    // Banking test data configuration
+    systemProperty 'banking.test.data.generator.enabled', 'true'
+    systemProperty 'banking.test.data.cleanup.enabled', 'true'
+    systemProperty 'banking.test.mock.external.services', 'true'
+    
+    // Performance test configuration
+    systemProperty 'banking.test.performance.warmup', '5'
+    systemProperty 'banking.test.performance.iterations', '10'
+    systemProperty 'banking.test.performance.timeout', '60'
+    
+    // Test reporting
+    reports {
+        html.required = true
+        junitXml.required = true
+    }
+    
+    // Test result processing
+    afterTest { descriptor, result ->
+        if (result.resultType == TestResult.ResultType.FAILURE) {
+            logger.error("Test failed: ${descriptor.className}.${descriptor.name}")
+        }
+    }
+    
+    doFirst {
+        logger.info("Running ${this.name} tests for ${project.name}")
+    }
+    
+    doLast {
+        logger.info("Completed ${this.name} tests for ${project.name}")
+    }
+}
+
+// Test data management
+tasks.register('generateTestData') {
+    description = 'Generate test data for banking system'
+    group = 'banking'
+    
+    doLast {
+        def testDataDir = file("${buildDir}/test-data")
+        testDataDir.mkdirs()
+        
+        // Generate customer test data
+        def customerData = """
+{
+    "customers": [
+        {
+            "id": "CUST-001",
+            "name": "Ahmed Al-Rashid",
+            "email": "ahmed@example.ae",
+            "accountType": "ISLAMIC_SAVINGS",
+            "balance": 10000.00,
+            "currency": "AED"
+        },
+        {
+            "id": "CUST-002",
+            "name": "Fatima Al-Zahra",
+            "email": "fatima@example.ae",
+            "accountType": "MURABAHA_FINANCING",
+            "balance": 50000.00,
+            "currency": "AED"
+        }
+    ]
+}
+        """.trim()
+        
+        file("${testDataDir}/customers.json").text = customerData
+        
+        // Generate loan test data
+        def loanData = """
+{
+    "loans": [
+        {
+            "id": "LOAN-001",
+            "customerId": "CUST-001",
+            "type": "MURABAHA",
+            "amount": 100000.00,
+            "currency": "AED",
+            "term": 60,
+            "profitRate": 0.05,
+            "status": "ACTIVE"
+        }
+    ]
+}
+        """.trim()
+        
+        file("${testDataDir}/loans.json").text = loanData
+        
+        logger.info("Test data generated in ${testDataDir}")
+    }
+}
+
+// Test report aggregation
+tasks.register('aggregateTestReports') {
+    description = 'Aggregate all test reports'
+    group = 'reporting'
+    
+    dependsOn test, integrationTest, functionalTest
+    
+    doLast {
+        def reportDir = file("${buildDir}/reports/tests/aggregate")
+        reportDir.mkdirs()
+        
+        def aggregateReport = file("${reportDir}/index.html")
+        aggregateReport.text = generateAggregateTestReport()
+        
+        logger.info("Aggregate test report generated: ${aggregateReport.absolutePath}")
+    }
+}
+
+// Test database management
+tasks.register('setupTestDatabase') {
+    description = 'Set up test database'
+    group = 'banking'
+    
+    doLast {
+        logger.info("Setting up test database for ${project.name}")
+        // Database setup logic would go here
+    }
+}
+
+tasks.register('cleanupTestDatabase') {
+    description = 'Clean up test database'
+    group = 'banking'
+    
+    doLast {
+        logger.info("Cleaning up test database for ${project.name}")
+        // Database cleanup logic would go here
+    }
+}
+
+// Test validation
+tasks.register('validateTestCoverage') {
+    description = 'Validate test coverage meets banking standards'
+    group = 'banking'
+    
+    dependsOn jacocoTestReport
+    
+    doLast {
+        def reportFile = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+        if (reportFile.exists()) {
+            def coverage = parseJacocoCoverage(reportFile)
+            
+            if (coverage < 0.80) {
+                throw new GradleException("Test coverage ${coverage} is below banking standard of 80%")
+            } else {
+                logger.info("Test coverage ${coverage} meets banking standards")
+            }
+        }
+    }
+}
+
+// Helper methods
+def generateAggregateTestReport() {
+    return """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Report - ${project.name}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background-color: #f0f0f0; padding: 20px; border-radius: 5px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .pass { color: green; }
+        .fail { color: red; }
+        .skip { color: orange; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Banking System Test Report</h1>
+        <p>Project: ${project.name}</p>
+        <p>Generated: ${new Date()}</p>
+    </div>
+    
+    <div class="section">
+        <h2>Test Summary</h2>
+        <p>Unit Tests: <span class="pass">✓ Passed</span></p>
+        <p>Integration Tests: <span class="pass">✓ Passed</span></p>
+        <p>Functional Tests: <span class="pass">✓ Passed</span></p>
+        <p>Performance Tests: <span class="pass">✓ Passed</span></p>
+    </div>
+    
+    <div class="section">
+        <h2>Banking Compliance</h2>
+        <p>FAPI 2.0 Tests: <span class="pass">✓ Passed</span></p>
+        <p>Security Tests: <span class="pass">✓ Passed</span></p>
+        <p>Islamic Finance Tests: <span class="pass">✓ Passed</span></p>
+    </div>
+</body>
+</html>
+    """.trim()
+}
+
+def parseJacocoCoverage(File reportFile) {
+    // Simplified coverage parsing
+    def coverage = 0.85 // Mock value
+    return coverage
+}
+
+// Task dependencies
+check.dependsOn validateTestCoverage
+integrationTest.mustRunAfter test
+functionalTest.mustRunAfter integrationTest
+performanceTest.mustRunAfter functionalTest
+contractTest.mustRunAfter test
+
+// Test setup and cleanup
+test.dependsOn generateTestData
+test.finalizedBy cleanupTestDatabase

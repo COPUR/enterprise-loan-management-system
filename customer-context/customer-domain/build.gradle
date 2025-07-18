@@ -5,17 +5,16 @@
 // Pure domain layer with no external dependencies
 // =================================================================
 
+plugins {
+    id 'banking-domain-conventions'
+    id 'banking-testing-conventions'
+}
+
 description = 'Customer Domain - Core customer business logic and domain model'
 
 dependencies {
-    // Domain Dependencies Only
-    // No infrastructure or framework dependencies in domain layer
-    
     // Domain Events (from shared kernel)
     api project(':shared-kernel')
     
-    // Testing
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.assertj:assertj-core'
+    // (Most dependencies are provided by convention plugins)
 }

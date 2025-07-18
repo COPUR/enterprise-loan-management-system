@@ -1,0 +1,200 @@
+plugins {
+    id 'java-library'
+    id 'jacoco'
+    id 'checkstyle'
+    id 'pmd'
+    id 'com.github.spotbugs'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://repo.spring.io/milestone'
+    }
+}
+
+dependencies {
+    // Common dependencies for all Java projects
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'ch.qos.logback:logback-classic:1.4.14'
+    implementation 'org.apache.commons:commons-lang3:3.14.0'
+    implementation 'com.google.guava:guava:32.1.3-jre'
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    
+    // Annotation processing
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    
+    // Testing
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+    testImplementation 'org.mockito:mockito-core:5.8.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.8.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+    
+    // Test configuration
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        showStackTraces true
+        showCauses true
+        showExceptions true
+    }
+    
+    // JVM arguments for tests
+    jvmArgs = [
+        '-XX:+UnlockExperimentalVMOptions',
+        '-XX:+EnableJVMCI',
+        '-Xms512m',
+        '-Xmx2g'
+    ]
+    
+    // System properties for tests
+    systemProperty 'junit.jupiter.execution.parallel.enabled', 'true'
+    systemProperty 'junit.jupiter.execution.parallel.mode.default', 'concurrent'
+    systemProperty 'junit.jupiter.execution.parallel.mode.classes.default', 'concurrent'
+    
+    // Fail fast on first test failure
+    failFast = false
+    
+    // Test output
+    outputs.upToDateWhen { false }
+}
+
+// Banking-specific conventions
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += [
+        '-parameters',
+        '-Xlint:deprecation',
+        '-Xlint:unchecked',
+        '-Werror'
+    ]
+}
+
+// Code quality configurations
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+    
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                '**/config/**',
+                '**/dto/**',
+                '**/model/**',
+                '**/*Application.*',
+                '**/*Config.*',
+                '**/*Test.*'
+            ])
+        }))
+    }
+}
+
+// Test coverage enforcement
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.80
+            }
+        }
+        rule {
+            enabled = true
+            element = 'CLASS'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.75
+            }
+            excludes = [
+                '*.config.*',
+                '*.dto.*',
+                '*.model.*',
+                '*Application',
+                '*Config',
+                '*Test'
+            ]
+        }
+    }
+}
+
+// PMD configuration
+pmd {
+    toolVersion = "6.55.0"
+    ignoreFailures = false
+    ruleSetFiles = files("${rootDir}/config/pmd/banking-rules.xml")
+    ruleSets = []
+}
+
+// Checkstyle configuration
+checkstyle {
+    toolVersion = '10.12.4'
+    configFile = file("${rootDir}/config/checkstyle/banking-checkstyle.xml")
+    ignoreFailures = false
+    maxWarnings = 0
+    maxErrors = 0
+}
+
+// SpotBugs configuration
+spotbugs {
+    toolVersion = '4.8.3'
+    effort = 'max'
+    reportLevel = 'low'
+    ignoreFailures = false
+}
+
+// Documentation
+javadoc {
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.encoding = 'UTF-8'
+    options.charSet = 'UTF-8'
+    options.author = true
+    options.version = true
+    options.windowTitle = "Banking System API Documentation"
+    options.docTitle = "Banking System API Documentation"
+}
+
+// Ensure proper task dependencies
+check.dependsOn jacocoTestCoverageVerification
+build.dependsOn check
+
+// Banking-specific task configuration
+tasks.named('compileJava') {
+    doFirst {
+        println "Compiling ${project.name} with Java toolchain ${java.toolchain.languageVersion.get()}"
+    }
+}
+
+tasks.named('test') {
+    doFirst {
+        println "Running tests for ${project.name}"
+    }
+    
+    doLast {
+        println "Test execution completed for ${project.name}"
+    }
+}
