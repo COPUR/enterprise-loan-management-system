@@ -6,6 +6,9 @@ server:
 
 # Database Configuration
 spring:
+  threads:
+    virtual:
+      enabled: true
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/banking_dev}
     username: ${DATABASE_USERNAME:postgres}
@@ -57,6 +60,15 @@ spring:
 
 # Banking Business Configuration
 banking:
+  threads:
+    virtual:
+      enabled: true
+      scheduled-pool-size: 10
+      fallback-core-pool-size: 10
+      fallback-max-pool-size: 50
+      fallback-queue-capacity: 100
+      fallback-keep-alive-seconds: 60
+      shutdown-timeout-seconds: 30
   business:
     loan:
       interest-rate:

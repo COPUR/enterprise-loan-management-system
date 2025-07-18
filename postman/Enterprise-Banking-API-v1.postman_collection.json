@@ -1,0 +1,839 @@
+{
+  "info": {
+    "name": "Enterprise Banking API v1",
+    "description": "Comprehensive API collection for enterprise banking platform testing",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "oauth2",
+    "oauth2": [
+      {
+        "key": "tokenName",
+        "value": "Banking API Token",
+        "type": "string"
+      },
+      {
+        "key": "clientId",
+        "value": "{{client_id}}",
+        "type": "string"
+      },
+      {
+        "key": "clientSecret",
+        "value": "{{client_secret}}",
+        "type": "string"
+      },
+      {
+        "key": "accessTokenUrl",
+        "value": "{{auth_url}}/oauth/token",
+        "type": "string"
+      },
+      {
+        "key": "grant_type",
+        "value": "client_credentials",
+        "type": "string"
+      },
+      {
+        "key": "scope",
+        "value": "banking:read banking:write",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.banking.example.com",
+      "type": "string"
+    },
+    {
+      "key": "api_version",
+      "value": "v1",
+      "type": "string"
+    },
+    {
+      "key": "customer_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "loan_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "payment_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Get OAuth Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains access token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.access_token).to.exist;",
+                  "    pm.environment.set(\"access_token\", jsonData.access_token);",
+                  "});",
+                  "",
+                  "pm.test(\"Token type is Bearer\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token_type).to.eql(\"Bearer\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "{{client_secret}}"
+                },
+                {
+                  "key": "scope",
+                  "value": "banking:read banking:write"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{auth_url}}/oauth/token",
+              "host": ["{{auth_url}}"],
+              "path": ["oauth", "token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Checks",
+      "item": [
+        {
+          "name": "System Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"System is healthy\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"UP\");",
+                  "});",
+                  "",
+                  "pm.test(\"Database is healthy\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.components.database.status).to.eql(\"UP\");",
+                  "});",
+                  "",
+                  "pm.test(\"Redis is healthy\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.components.redis.status).to.eql(\"UP\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/actuator/health",
+              "host": ["{{base_url}}"],
+              "path": ["actuator", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer Management",
+      "item": [
+        {
+          "name": "Create Customer",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set(\"idempotency_key\", pm.variables.replaceIn(\"{{$randomUUID}}\"));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains customer ID\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.customerId).to.exist;",
+                  "    pm.environment.set(\"customer_id\", jsonData.data.customerId);",
+                  "});",
+                  "",
+                  "pm.test(\"Customer data is correct\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.firstName).to.eql(\"Ahmad\");",
+                  "    pm.expect(jsonData.data.lastName).to.eql(\"Al-Rashid\");",
+                  "    pm.expect(jsonData.data.email).to.eql(\"ahmad.rashid@email.com\");",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains HATEOAS links\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data._links).to.exist;",
+                  "    pm.expect(jsonData.data._links.self).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "X-Idempotency-Key",
+                "value": "{{idempotency_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ahmad\",\n  \"lastName\": \"Al-Rashid\",\n  \"email\": \"ahmad.rashid@email.com\",\n  \"phone\": \"+971501234567\",\n  \"initialCreditLimit\": {\n    \"amount\": 50000,\n    \"currency\": \"AED\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "customers"]
+            }
+          }
+        },
+        {
+          "name": "Get Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Customer ID matches\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.customerId).to.eql(pm.environment.get(\"customer_id\"));",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 500ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/customers/{{customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "customers", "{{customer_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Customer Credit Limit",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set(\"idempotency_key\", pm.variables.replaceIn(\"{{$randomUUID}}\"));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Credit limit updated\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.creditLimit.amount).to.eql(75000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "X-Idempotency-Key",
+                "value": "{{idempotency_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newCreditLimit\": {\n    \"amount\": 75000,\n    \"currency\": \"AED\"\n  },\n  \"reason\": \"Increased income verification\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/customers/{{customer_id}}/credit-limit",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "customers", "{{customer_id}}", "credit-limit"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loan Management",
+      "item": [
+        {
+          "name": "Create Loan Application",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set(\"idempotency_key\", pm.variables.replaceIn(\"{{$randomUUID}}\"));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains loan ID\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.loanId).to.exist;",
+                  "    pm.environment.set(\"loan_id\", jsonData.data.loanId);",
+                  "});",
+                  "",
+                  "pm.test(\"Loan status is pending\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.status).to.eql(\"PENDING_APPROVAL\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "X-Idempotency-Key",
+                "value": "{{idempotency_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"amount\": {\n    \"amount\": 100000,\n    \"currency\": \"AED\"\n  },\n  \"term\": {\n    \"months\": 60\n  },\n  \"purpose\": \"Home purchase\",\n  \"requestedInterestRate\": 0.055\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "loans"]
+            }
+          }
+        },
+        {
+          "name": "Approve Loan",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set(\"idempotency_key\", pm.variables.replaceIn(\"{{$randomUUID}}\"));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Loan status is approved\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.status).to.eql(\"APPROVED\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "X-Idempotency-Key",
+                "value": "{{idempotency_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approvedAmount\": {\n    \"amount\": 100000,\n    \"currency\": \"AED\"\n  },\n  \"interestRate\": 0.055,\n  \"approvalNotes\": \"Standard approval based on credit score\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/loans/{{loan_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "loans", "{{loan_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Get Loan Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Loan ID matches\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.loanId).to.eql(pm.environment.get(\"loan_id\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/loans/{{loan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "loans", "{{loan_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Amortization Schedule",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Schedule contains installments\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.installments).to.exist;",
+                  "    pm.expect(jsonData.data.installments.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/loans/{{loan_id}}/amortization-schedule",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "loans", "{{loan_id}}", "amortization-schedule"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment Processing",
+      "item": [
+        {
+          "name": "Make Payment",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set(\"idempotency_key\", pm.variables.replaceIn(\"{{$randomUUID}}\"));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains payment ID\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.paymentId).to.exist;",
+                  "    pm.environment.set(\"payment_id\", jsonData.data.paymentId);",
+                  "});",
+                  "",
+                  "pm.test(\"Payment amount is correct\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.amount.amount).to.eql(2500);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "X-Idempotency-Key",
+                "value": "{{idempotency_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanId\": \"{{loan_id}}\",\n  \"amount\": {\n    \"amount\": 2500,\n    \"currency\": \"AED\"\n  },\n  \"paymentMethod\": \"BANK_TRANSFER\",\n  \"reference\": \"Monthly payment January 2024\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "payments"]
+            }
+          }
+        },
+        {
+          "name": "Get Payment Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Payment ID matches\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.paymentId).to.eql(pm.environment.get(\"payment_id\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/payments/{{payment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "payments", "{{payment_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Islamic Banking",
+      "item": [
+        {
+          "name": "Create Murabaha Contract",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set(\"idempotency_key\", pm.variables.replaceIn(\"{{$randomUUID}}\"));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains contract ID\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.contractId).to.exist;",
+                  "    pm.environment.set(\"contract_id\", jsonData.data.contractId);",
+                  "});",
+                  "",
+                  "pm.test(\"Contract is Sharia compliant\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.shariahCompliant).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "X-Idempotency-Key",
+                "value": "{{idempotency_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"assetDetails\": {\n    \"type\": \"REAL_ESTATE\",\n    \"description\": \"Residential property in Dubai\",\n    \"value\": {\n      \"amount\": 1000000,\n      \"currency\": \"AED\"\n    }\n  },\n  \"financing\": {\n    \"amount\": 800000,\n    \"currency\": \"AED\"\n  },\n  \"profitRate\": 0.04,\n  \"term\": {\n    \"months\": 120\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/islamic/murabaha",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "islamic", "murabaha"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Performance Tests",
+      "item": [
+        {
+          "name": "Load Test - Get Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 200ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains required fields\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.customerId).to.exist;",
+                  "    pm.expect(jsonData.data.firstName).to.exist;",
+                  "    pm.expect(jsonData.data.lastName).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/customers/{{customer_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "customers", "{{customer_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Add X-Request-ID header for tracing",
+          "pm.request.headers.add({",
+          "    key: 'X-Request-ID',",
+          "    value: pm.variables.replaceIn('{{$randomUUID}}'))",
+          "});",
+          "",
+          "// Add timestamp for performance tracking",
+          "pm.environment.set('request_start_time', Date.now());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global response time tracking",
+          "var startTime = pm.environment.get('request_start_time');",
+          "if (startTime) {",
+          "    var responseTime = Date.now() - startTime;",
+          "    console.log('Total request time: ' + responseTime + 'ms');",
+          "}",
+          "",
+          "// Check for required security headers",
+          "pm.test('Security headers present', function () {",
+          "    pm.response.to.have.header('X-Content-Type-Options');",
+          "    pm.response.to.have.header('X-Frame-Options');",
+          "    pm.response.to.have.header('X-Request-ID');",
+          "});",
+          "",
+          "// Check for FAPI compliance headers",
+          "if (pm.response.headers.has('X-FAPI-Interaction-ID')) {",
+          "    pm.test('FAPI headers present', function () {",
+          "        pm.response.to.have.header('X-FAPI-Interaction-ID');",
+          "        pm.response.to.have.header('X-FAPI-Auth-Date');",
+          "    });",
+          "}",
+          "",
+          "// Rate limiting header checks",
+          "if (pm.response.headers.has('X-RateLimit-Limit')) {",
+          "    pm.test('Rate limit headers present', function () {",
+          "        pm.response.to.have.header('X-RateLimit-Limit');",
+          "        pm.response.to.have.header('X-RateLimit-Remaining');",
+          "        pm.response.to.have.header('X-RateLimit-Reset');",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ]
+}
