@@ -1,5 +1,6 @@
 # Enterprise Banking System - Functional Testing Environment
-# Simplified setup for comprehensive regression testing
+# Comprehensive setup for enterprise banking with Islamic finance testing
+# Includes MFA, Security Audit, Sharia Compliance, and CBDC support
 
 services:
   # === DATABASE ===
@@ -11,6 +12,10 @@ services:
       POSTGRES_USER: banking_test
       POSTGRES_PASSWORD: banking_test_pass
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      # Islamic Banking Extensions
+      POSTGRES_EXTENSIONS: "pgcrypto,uuid-ossp"
+      # UAE/Islamic Banking Timezone
+      TZ: "Asia/Dubai"
     ports:
       - "5433:5432"
     volumes:
@@ -29,7 +34,7 @@ services:
   redis-test:
     image: redis:7-alpine
     container_name: banking-redis-test
-    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru --appendonly yes
     ports:
       - "6380:6379"
     volumes:
@@ -59,7 +64,7 @@ services:
         condition: service_healthy
     environment:
       # Spring Configuration
-      SPRING_PROFILES_ACTIVE: test,docker
+      SPRING_PROFILES_ACTIVE: test,docker,islamic-banking
       SERVER_PORT: 8080
       
       # Database Configuration
@@ -74,9 +79,53 @@ services:
       # Disable complex features for testing
       SPRING_CLOUD_CONFIG_ENABLED: false
       
-      # Banking Configuration
+      # Enterprise Banking Configuration
       LOAN_MAX_AMOUNT: 5000000
       TRANSACTION_DAILY_LIMIT: 50000
+      
+      # Islamic Banking Configuration
+      ISLAMIC_BANKING_ENABLED: true
+      MASRUFI_FRAMEWORK_ENABLED: true
+      SHARIA_COMPLIANCE_ENABLED: true
+      SHARIA_COMPLIANCE_STRICT_MODE: true
+      UAE_CBDC_ENABLED: true
+      UAE_TIMEZONE: "Asia/Dubai"
+      
+      # Multi-Factor Authentication
+      MFA_ENABLED: true
+      MFA_TOTP_ENABLED: true
+      MFA_SMS_ENABLED: true
+      MFA_EMAIL_ENABLED: true
+      
+      # Security Audit Configuration
+      SECURITY_AUDIT_ENABLED: true
+      SECURITY_AUDIT_LOG_LEVEL: INFO
+      
+      # FAPI 2.0 Security Configuration
+      FAPI_ENABLED: true
+      OAUTH2_ENABLED: true
+      DPOP_ENABLED: true
+      
+      # Supported Currencies for Testing
+      SUPPORTED_CURRENCIES: "AED,USD,EUR,SAR,QAR,KWD,BHD"
+      DEFAULT_CURRENCY: "AED"
+      
+      # Islamic Finance Products
+      MURABAHA_ENABLED: true
+      MUSHARAKAH_ENABLED: true
+      IJARAH_ENABLED: true
+      SALAM_ENABLED: true
+      ISTISNA_ENABLED: true
+      
+      # Compliance and Regulatory
+      CBUAE_COMPLIANCE_ENABLED: true
+      VARA_COMPLIANCE_ENABLED: true
+      HSA_COMPLIANCE_ENABLED: true
+      
+      # Analytics and Monitoring
+      ISLAMIC_BANKING_ANALYTICS_ENABLED: true
+      BUSINESS_INTELLIGENCE_ENABLED: true
+      REAL_TIME_MONITORING_ENABLED: true
       
       # Application Metadata
       APP_NAME: "Enterprise Loan Management System - Test"

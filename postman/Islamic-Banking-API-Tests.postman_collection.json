@@ -1,0 +1,808 @@
+{
+  "info": {
+    "name": "Islamic Banking API Tests - AmanahFi Platform",
+    "description": "Comprehensive API test collection for Islamic banking features including MFA, Security Audit, Sharia compliance, UAE CBDC, and Masrufi Framework",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "oauth2",
+    "oauth2": [
+      {
+        "key": "tokenName",
+        "value": "Islamic Banking API Token",
+        "type": "string"
+      },
+      {
+        "key": "clientId",
+        "value": "{{islamic_client_id}}",
+        "type": "string"
+      },
+      {
+        "key": "clientSecret",
+        "value": "{{islamic_client_secret}}",
+        "type": "string"
+      },
+      {
+        "key": "accessTokenUrl",
+        "value": "{{base_url}}/oauth/token",
+        "type": "string"
+      },
+      {
+        "key": "grant_type",
+        "value": "client_credentials",
+        "type": "string"
+      },
+      {
+        "key": "scope",
+        "value": "islamic-banking:read islamic-banking:write sharia-compliance:read mfa:read security-audit:read uae-cbdc:read masrufi:read",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.amanahfi.ae",
+      "type": "string"
+    },
+    {
+      "key": "api_version",
+      "value": "v1",
+      "type": "string"
+    },
+    {
+      "key": "customer_id",
+      "value": "CUST-UAE-001",
+      "type": "string"
+    },
+    {
+      "key": "murabaha_contract_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "islamic_account_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mfa_session_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sharia_compliance_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "uae_cbdc_wallet_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Multi-Factor Authentication",
+      "item": [
+        {
+          "name": "Initialize MFA Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"MFA session created\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.sessionId).to.exist;",
+                  "    pm.environment.set(\"mfa_session_id\", jsonData.sessionId);",
+                  "});",
+                  "",
+                  "pm.test(\"MFA types available\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.availableMfaTypes).to.include('TOTP');",
+                  "    pm.expect(jsonData.availableMfaTypes).to.include('SMS');",
+                  "    pm.expect(jsonData.availableMfaTypes).to.include('EMAIL');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"requestedMfaTypes\": [\"TOTP\", \"SMS\", \"EMAIL\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/mfa/initialize",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "mfa", "initialize"]
+            }
+          }
+        },
+        {
+          "name": "Verify TOTP Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"TOTP verification successful\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.verified).to.be.true;",
+                  "    pm.expect(jsonData.mfaType).to.eql('TOTP');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{mfa_session_id}}\",\n  \"mfaType\": \"TOTP\",\n  \"code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/mfa/verify",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "mfa", "verify"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sharia Compliance",
+      "item": [
+        {
+          "name": "Calculate Sharia Compliance Score",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Compliance score calculated\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.overallScore).to.be.a('number');",
+                  "    pm.expect(jsonData.overallScore).to.be.at.least(0);",
+                  "    pm.expect(jsonData.overallScore).to.be.at.most(1);",
+                  "});",
+                  "",
+                  "pm.test(\"Sharia compliance components present\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.ribaFreeScore).to.exist;",
+                  "    pm.expect(jsonData.ghararFreeScore).to.exist;",
+                  "    pm.expect(jsonData.assetBackedScore).to.exist;",
+                  "    pm.expect(jsonData.halalnessScore).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              },
+              {
+                "key": "X-Sharia-Compliant",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"evaluationPeriod\": \"LAST_30_DAYS\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/sharia-compliance/calculate-score",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "sharia-compliance", "calculate-score"]
+            }
+          }
+        },
+        {
+          "name": "Validate Islamic Product Compliance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Product compliance validated\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.compliant).to.be.true;",
+                  "    pm.expect(jsonData.productType).to.eql('MURABAHA');",
+                  "});",
+                  "",
+                  "pm.test(\"Compliance violations check\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.violations).to.be.an('array');",
+                  "    pm.expect(jsonData.violations).to.have.lengthOf(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              },
+              {
+                "key": "X-Sharia-Compliant",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productType\": \"MURABAHA\",\n  \"assetDescription\": \"Toyota Camry 2024\",\n  \"assetCost\": 80000,\n  \"profitMargin\": 0.15,\n  \"currency\": \"AED\",\n  \"maturityMonths\": 36\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/sharia-compliance/validate-product",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "sharia-compliance", "validate-product"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Islamic Finance Products",
+      "item": [
+        {
+          "name": "Create Murabaha Contract",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Murabaha contract created\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.contractId).to.exist;",
+                  "    pm.expect(jsonData.contractType).to.eql('MURABAHA');",
+                  "    pm.environment.set(\"murabaha_contract_id\", jsonData.contractId);",
+                  "});",
+                  "",
+                  "pm.test(\"Sharia compliance verified\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.shariaCompliant).to.be.true;",
+                  "    pm.expect(jsonData.shariaBoard).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              },
+              {
+                "key": "X-Sharia-Compliant",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"assetDescription\": \"Toyota Camry 2024\",\n  \"assetCost\": {\n    \"amount\": 80000,\n    \"currency\": \"AED\"\n  },\n  \"profitMargin\": 0.15,\n  \"maturityDate\": \"2027-12-31\",\n  \"supplier\": \"Toyota Dealer UAE\",\n  \"deliveryAddress\": \"Dubai, UAE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/islamic-finance/murabaha/create",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "islamic-finance", "murabaha", "create"]
+            }
+          }
+        },
+        {
+          "name": "Get Murabaha Contract Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Contract details retrieved\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.contractId).to.exist;",
+                  "    pm.expect(jsonData.installmentSchedule).to.be.an('array');",
+                  "    pm.expect(jsonData.outstandingBalance).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/islamic-finance/murabaha/{{murabaha_contract_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "islamic-finance", "murabaha", "{{murabaha_contract_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "UAE CBDC Operations",
+      "item": [
+        {
+          "name": "Create UAE CBDC Wallet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"UAE CBDC wallet created\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.walletId).to.exist;",
+                  "    pm.expect(jsonData.currency).to.eql('UAE-CBDC');",
+                  "    pm.environment.set(\"uae_cbdc_wallet_id\", jsonData.walletId);",
+                  "});",
+                  "",
+                  "pm.test(\"Wallet is Sharia compliant\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.shariaCompliant).to.be.true;",
+                  "    pm.expect(jsonData.interestBearing).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              },
+              {
+                "key": "X-UAE-CBDC",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"walletType\": \"UAE_CBDC\",\n  \"currency\": \"UAE-CBDC\",\n  \"initialBalance\": 0,\n  \"kycCompliant\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/uae-cbdc/wallet/create",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "uae-cbdc", "wallet", "create"]
+            }
+          }
+        },
+        {
+          "name": "UAE CBDC Instant Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Payment processed instantly\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('COMPLETED');",
+                  "    pm.expect(jsonData.settlementTime).to.be.below(5000); // Less than 5 seconds",
+                  "});",
+                  "",
+                  "pm.test(\"Islamic banking compliance\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.shariaCompliant).to.be.true;",
+                  "    pm.expect(jsonData.interestCharged).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              },
+              {
+                "key": "X-UAE-CBDC",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromWalletId\": \"{{uae_cbdc_wallet_id}}\",\n  \"toWalletId\": \"WALLET-UAE-CBDC-002\",\n  \"amount\": {\n    \"value\": 1000,\n    \"currency\": \"UAE-CBDC\"\n  },\n  \"description\": \"Islamic banking payment\",\n  \"purpose\": \"TRADE_SETTLEMENT\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/uae-cbdc/payment/instant",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "uae-cbdc", "payment", "instant"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Islamic Banking Analytics",
+      "item": [
+        {
+          "name": "Get Islamic Product Performance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Analytics data retrieved\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.productType).to.exist;",
+                  "    pm.expect(jsonData.metrics).to.be.an('object');",
+                  "    pm.expect(jsonData.timestamp).to.exist;",
+                  "});",
+                  "",
+                  "pm.test(\"Performance metrics available\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.metrics.totalContracts).to.be.a('number');",
+                  "    pm.expect(jsonData.metrics.averageProfitMargin).to.be.a('number');",
+                  "    pm.expect(jsonData.metrics.completionRate).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/islamic-banking/analytics/product-performance?productType=MURABAHA",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "islamic-banking", "analytics", "product-performance"],
+              "query": [
+                {
+                  "key": "productType",
+                  "value": "MURABAHA"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Business Intelligence Metrics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Business metrics retrieved\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.businessMetrics).to.be.an('object');",
+                  "    pm.expect(jsonData.timestamp).to.exist;",
+                  "});",
+                  "",
+                  "pm.test(\"Islamic banking KPIs present\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var metrics = jsonData.businessMetrics;",
+                  "    pm.expect(metrics.totalIslamicCustomers).to.be.a('number');",
+                  "    pm.expect(metrics.averageComplianceScore).to.be.a('number');",
+                  "    pm.expect(metrics.islamicProductPortfolioValue).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/islamic-banking/analytics/business-metrics",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "islamic-banking", "analytics", "business-metrics"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security Audit",
+      "item": [
+        {
+          "name": "Get Security Audit Log",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Audit log retrieved\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.auditEvents).to.be.an('array');",
+                  "    pm.expect(jsonData.totalEvents).to.be.a('number');",
+                  "});",
+                  "",
+                  "pm.test(\"Security events properly logged\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.auditEvents.length > 0) {",
+                  "        var event = jsonData.auditEvents[0];",
+                  "        pm.expect(event.eventType).to.exist;",
+                  "        pm.expect(event.timestamp).to.exist;",
+                  "        pm.expect(event.userId).to.exist;",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/security-audit/events?customerId={{customer_id}}&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "security-audit", "events"],
+              "query": [
+                {
+                  "key": "customerId",
+                  "value": "{{customer_id}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Checks",
+      "item": [
+        {
+          "name": "Islamic Banking Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Islamic banking services healthy\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('UP');",
+                  "    pm.expect(jsonData.components).to.be.an('object');",
+                  "});",
+                  "",
+                  "pm.test(\"All components operational\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.components.masrufiFramework.status).to.eql('UP');",
+                  "    pm.expect(jsonData.components.shariaCompliance.status).to.eql('UP');",
+                  "    pm.expect(jsonData.components.islamicBankingAnalytics.status).to.eql('UP');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/actuator/health/islamic-banking",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "actuator", "health", "islamic-banking"]
+            }
+          }
+        },
+        {
+          "name": "MFA Service Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"MFA service healthy\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('UP');",
+                  "    pm.expect(jsonData.components.mfaService.status).to.eql('UP');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Islamic-Banking",
+                "value": "true"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/{{api_version}}/actuator/health/mfa",
+              "host": ["{{base_url}}"],
+              "path": ["{{api_version}}", "actuator", "health", "mfa"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// Set Islamic Banking compliance headers",
+          "pm.request.headers.add({",
+          "    key: 'X-Islamic-Banking',",
+          "    value: 'true'",
+          "});",
+          "",
+          "// Set UAE timezone",
+          "pm.request.headers.add({",
+          "    key: 'X-Timezone',",
+          "    value: 'Asia/Dubai'",
+          "});",
+          "",
+          "// Set request timestamp",
+          "pm.request.headers.add({",
+          "    key: 'X-Request-Timestamp',",
+          "    value: new Date().toISOString()",
+          "});"
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          "// Global test to check Islamic Banking compliance headers",
+          "pm.test(\"Islamic Banking compliance headers present\", function () {",
+          "    pm.expect(pm.response.headers.has('X-Islamic-Banking')).to.be.true;",
+          "});",
+          "",
+          "// Global test to check response time",
+          "pm.test(\"Response time is acceptable\", function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "// Global test for security headers",
+          "pm.test(\"Security headers present\", function () {",
+          "    pm.expect(pm.response.headers.has('X-Content-Type-Options')).to.be.true;",
+          "    pm.expect(pm.response.headers.has('X-Frame-Options')).to.be.true;",
+          "});"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ]
+}

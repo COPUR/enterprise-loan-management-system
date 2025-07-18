@@ -36,13 +36,27 @@ RUN_PERFORMANCE_TESTS=${RUN_PERFORMANCE_TESTS:-true}
 RUN_SECURITY_TESTS=${RUN_SECURITY_TESTS:-true}
 RUN_REGRESSION_TESTS=${RUN_REGRESSION_TESTS:-true}
 
+# Islamic Banking test suite selection
+RUN_ISLAMIC_BANKING_TESTS=${RUN_ISLAMIC_BANKING_TESTS:-true}
+RUN_SHARIA_COMPLIANCE_TESTS=${RUN_SHARIA_COMPLIANCE_TESTS:-true}
+RUN_UAE_CBDC_TESTS=${RUN_UAE_CBDC_TESTS:-true}
+RUN_MFA_TESTS=${RUN_MFA_TESTS:-true}
+RUN_SECURITY_AUDIT_TESTS=${RUN_SECURITY_AUDIT_TESTS:-true}
+
 # Color codes
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
 NC='\033[0m'
+
+# Islamic Banking emojis
+ISLAMIC_EMOJI="🕌"
+UAE_EMOJI="🇦🇪"
+SECURITY_EMOJI="🔒"
+COMPLIANCE_EMOJI="✅"
 
 # ============================================
 # UTILITY FUNCTIONS
@@ -79,6 +93,11 @@ setup_test_environment() {
     mkdir -p "${MASTER_RESULTS_DIR}/performance-tests"
     mkdir -p "${MASTER_RESULTS_DIR}/security-tests"
     mkdir -p "${MASTER_RESULTS_DIR}/regression-tests"
+    mkdir -p "${MASTER_RESULTS_DIR}/islamic-banking-tests"
+    mkdir -p "${MASTER_RESULTS_DIR}/sharia-compliance-tests"
+    mkdir -p "${MASTER_RESULTS_DIR}/uae-cbdc-tests"
+    mkdir -p "${MASTER_RESULTS_DIR}/mfa-tests"
+    mkdir -p "${MASTER_RESULTS_DIR}/security-audit-tests"
     mkdir -p "${MASTER_RESULTS_DIR}/consolidated-reports"
     
     # Initialize test execution log

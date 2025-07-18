@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "Enterprise Banking API v1",
-    "description": "Comprehensive API collection for enterprise banking platform testing",
-    "version": "1.0.0",
+    "name": "Enterprise Banking API v1 - Islamic Banking Edition",
+    "description": "Comprehensive API collection for enterprise banking platform testing with Islamic banking, MFA, Security Audit, Sharia compliance, and UAE CBDC support",
+    "version": "1.0.0-islamic-banking",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -35,7 +35,7 @@
       },
       {
         "key": "scope",
-        "value": "banking:read banking:write",
+        "value": "banking:read banking:write islamic-banking:read islamic-banking:write sharia-compliance:read mfa:read security-audit:read",
         "type": "string"
       }
     ]
@@ -43,7 +43,7 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "https://api.banking.example.com",
+      "value": "https://api.amanahfi.ae",
       "type": "string"
     },
     {
@@ -63,6 +63,31 @@
     },
     {
       "key": "payment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "murabaha_contract_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "islamic_account_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mfa_session_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sharia_compliance_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "uae_cbdc_wallet_id",
       "value": "",
       "type": "string"
     }

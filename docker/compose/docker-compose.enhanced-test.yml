@@ -1,5 +1,6 @@
 # Enhanced Enterprise Banking System - Local Development Testing
 # Docker Compose configuration for testing Dockerfiles and service mesh simulation
+# Includes Islamic Banking, MFA, Security Audit, and UAE CBDC support
 
 services:
   # === DATABASE TIER ===
@@ -11,6 +12,10 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+      # Islamic Banking Extensions
+      POSTGRES_EXTENSIONS: "pgcrypto,uuid-ossp,pg_stat_statements"
+      # UAE/Islamic Banking Timezone
+      TZ: "Asia/Dubai"
     ports:
       - "5432:5432"
     volumes:
@@ -27,7 +32,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: banking-redis-test
-    command: redis-server --requirepass redis123 --maxmemory 256mb
+    command: redis-server --requirepass redis123 --maxmemory 512mb --maxmemory-policy allkeys-lru --appendonly yes
     ports:
       - "6379:6379"
     volumes:
@@ -119,9 +124,59 @@ services:
       BIAN_COMPLIANCE_ENABLED: "true"
       AUDIT_ENABLED: "true"
       
+      # Islamic Banking Configuration
+      MASRUFI_FRAMEWORK_ENABLED: "true"
+      SHARIA_COMPLIANCE_ENABLED: "true"
+      SHARIA_COMPLIANCE_STRICT_MODE: "true"
+      UAE_CBDC_ENABLED: "true"
+      UAE_TIMEZONE: "Asia/Dubai"
+      
+      # Multi-Factor Authentication
+      MFA_ENABLED: "true"
+      MFA_TOTP_ENABLED: "true"
+      MFA_SMS_ENABLED: "true"
+      MFA_EMAIL_ENABLED: "true"
+      MFA_HARDWARE_TOKEN_ENABLED: "true"
+      MFA_BIOMETRIC_ENABLED: "true"
+      
+      # Security Audit Configuration
+      SECURITY_AUDIT_ENABLED: "true"
+      SECURITY_AUDIT_LOG_LEVEL: "INFO"
+      SECURITY_AUDIT_RETENTION_DAYS: "365"
+      
+      # FAPI 2.0 Security Configuration
+      OAUTH2_ENABLED: "true"
+      DPOP_ENABLED: "true"
+      RATE_LIMITING_ENABLED: "true"
+      
+      # Supported Currencies
+      SUPPORTED_CURRENCIES: "AED,USD,EUR,SAR,QAR,KWD,BHD"
+      DEFAULT_CURRENCY: "AED"
+      
+      # Islamic Finance Products
+      MURABAHA_ENABLED: "true"
+      MUSHARAKAH_ENABLED: "true"
+      IJARAH_ENABLED: "true"
+      SALAM_ENABLED: "true"
+      ISTISNA_ENABLED: "true"
+      QARD_HASSAN_ENABLED: "true"
+      
+      # Compliance and Regulatory
+      CBUAE_COMPLIANCE_ENABLED: "true"
+      VARA_COMPLIANCE_ENABLED: "true"
+      HSA_COMPLIANCE_ENABLED: "true"
+      PCI_DSS_COMPLIANCE_ENABLED: "true"
+      
+      # Analytics and Monitoring
+      ISLAMIC_BANKING_ANALYTICS_ENABLED: "true"
+      BUSINESS_INTELLIGENCE_ENABLED: "true"
+      REAL_TIME_MONITORING_ENABLED: "true"
+      CUSTOMER_JOURNEY_ANALYTICS_ENABLED: "true"
+      
       # AI/ML Configuration
       AI_CREDIT_SCORING_ENABLED: "true"
       ML_RISK_ASSESSMENT_ENABLED: "true"
+      ISLAMIC_FINANCE_ML_ENABLED: "true"
       
       # Security Configuration
       JWT_SECRET: enhanced_banking_jwt_secret_key_for_testing
@@ -282,13 +337,30 @@ services:
       banking-app-enhanced:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: test,functional
+      SPRING_PROFILES_ACTIVE: test,functional,islamic-banking
       FUNCTIONAL_TESTS_ENABLED: "true"
       BIAN_TESTS_ENABLED: "true"
       FAPI_TESTS_ENABLED: "true"
       ISLAMIC_BANKING_TESTS_ENABLED: "true"
       AI_INTEGRATION_TESTS_ENABLED: "true"
       TEST_TARGET_URL: http://banking-app-enhanced:8080
+      
+      # Islamic Banking Test Configuration
+      MASRUFI_FRAMEWORK_TESTS_ENABLED: "true"
+      SHARIA_COMPLIANCE_TESTS_ENABLED: "true"
+      UAE_CBDC_TESTS_ENABLED: "true"
+      MFA_TESTS_ENABLED: "true"
+      SECURITY_AUDIT_TESTS_ENABLED: "true"
+      
+      # Test Data Configuration
+      TEST_CUSTOMERS_COUNT: "100"
+      TEST_ISLAMIC_CONTRACTS_COUNT: "50"
+      TEST_TRANSACTION_VOLUME: "1000"
+      
+      # Performance Test Configuration
+      PERFORMANCE_TESTS_ENABLED: "true"
+      LOAD_TEST_DURATION: "300"
+      CONCURRENT_USERS: "50"
     volumes:
       - functional_test_reports:/app/test-reports
       - functional_test_logs:/app/logs
