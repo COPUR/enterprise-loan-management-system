@@ -1,0 +1,230 @@
+plugins {
+    id 'banking-java-conventions'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+dependencies {
+    // Spring Boot Core
+    implementation 'org.springframework.boot:spring-boot-starter:3.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-web:3.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-validation:3.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator:3.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-aop:3.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-cache:3.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:3.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-security:3.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server:3.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux:3.2.0'
+    
+    // Spring Cloud
+    implementation 'org.springframework.cloud:spring-cloud-starter-config:4.1.0'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap:4.1.0'
+    implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer:4.1.0'
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j:3.1.0'
+    
+    // Database
+    implementation 'org.postgresql:postgresql:42.6.0'
+    implementation 'org.flywaydb:flyway-core:9.22.3'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis:3.2.0'
+    
+    // Messaging
+    implementation 'org.springframework.kafka:spring-kafka:3.1.0'
+    implementation 'org.springframework.boot:spring-boot-starter-amqp:3.2.0'
+    
+    // Monitoring and Observability
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.12.0'
+    implementation 'io.micrometer:micrometer-tracing-bridge-brave:1.2.0'
+    implementation 'io.zipkin.reporter2:zipkin-reporter-brave:2.16.4'
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+    
+    // Banking specific
+    implementation 'org.javamoney:moneta:1.4.2'
+    implementation 'javax.money:money-api:1.1'
+    
+    // JSON Processing
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'com.fasterxml.jackson.module:jackson-module-parameter-names'
+    
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:kafka'
+    testImplementation 'io.rest-assured:rest-assured'
+    testImplementation 'io.rest-assured:json-path'
+    testImplementation 'io.rest-assured:xml-path'
+    testImplementation 'com.tngtech.archunit:archunit-junit5'
+    testImplementation 'org.awaitility:awaitility:4.2.0'
+}
+
+// Spring Boot specific configurations
+springBoot {
+    buildInfo {
+        properties {
+            additional = [
+                'banking.system.version': version,
+                'banking.system.build.time': new Date().format('yyyy-MM-dd HH:mm:ss'),
+                'banking.system.build.user': System.getProperty('user.name'),
+                'banking.system.git.branch': getGitBranch(),
+                'banking.system.git.commit': getGitCommit()
+            ]
+        }
+    }
+}
+
+// Custom tasks for banking system
+tasks.register('generateBankingInfo') {
+    group = 'banking'
+    description = 'Generate banking system information'
+    
+    doLast {
+        def infoFile = file("${buildDir}/banking-info.properties")
+        infoFile.parentFile.mkdirs()
+        
+        infoFile.text = """
+# Banking System Information
+system.name=${project.name}
+system.version=${project.version}
+system.build.time=${new Date().format('yyyy-MM-dd HH:mm:ss')}
+system.build.user=${System.getProperty('user.name')}
+system.java.version=${System.getProperty('java.version')}
+system.gradle.version=${gradle.gradleVersion}
+system.spring.boot.version=${dependencyManagement.importedProperties['spring-boot.version']}
+""".trim()
+    }
+}
+
+// Banking-specific test configuration
+tasks.named('test') {
+    // Banking system specific test properties
+    systemProperty 'banking.test.mode', 'true'
+    systemProperty 'banking.test.database.url', 'jdbc:h2:mem:testdb'
+    systemProperty 'banking.test.redis.enabled', 'false'
+    systemProperty 'banking.test.kafka.enabled', 'false'
+    
+    // Test groups
+    useJUnitPlatform {
+        includeTags 'unit', 'integration', 'banking'
+        excludeTags 'slow', 'external'
+    }
+    
+    // Additional test outputs
+    reports {
+        html.required = true
+        junitXml.required = true
+    }
+}
+
+// Integration test configuration
+tasks.register('integrationTest', Test) {
+    description = 'Run integration tests'
+    group = 'verification'
+    
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    
+    useJUnitPlatform {
+        includeTags 'integration', 'banking-integration'
+        excludeTags 'unit'
+    }
+    
+    systemProperty 'banking.test.mode', 'integration'
+    systemProperty 'spring.profiles.active', 'test,integration'
+    
+    // Integration tests might take longer
+    timeout = Duration.ofMinutes(15)
+    
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+}
+
+// Functional test configuration
+tasks.register('functionalTest', Test) {
+    description = 'Run functional tests'
+    group = 'verification'
+    
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    
+    useJUnitPlatform {
+        includeTags 'functional', 'banking-functional', 'end-to-end'
+        excludeTags 'unit', 'integration'
+    }
+    
+    systemProperty 'banking.test.mode', 'functional'
+    systemProperty 'spring.profiles.active', 'test,functional'
+    
+    // Functional tests might take even longer
+    timeout = Duration.ofMinutes(30)
+    
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+}
+
+// Security test configuration
+tasks.register('securityTest', Test) {
+    description = 'Run security tests'
+    group = 'verification'
+    
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    
+    useJUnitPlatform {
+        includeTags 'security', 'banking-security', 'fapi'
+        excludeTags 'unit', 'integration'
+    }
+    
+    systemProperty 'banking.test.mode', 'security'
+    systemProperty 'spring.profiles.active', 'test,security'
+    
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+}
+
+// Helper methods
+def getGitBranch() {
+    try {
+        def process = "git rev-parse --abbrev-ref HEAD".execute()
+        process.waitFor()
+        return process.exitValue() == 0 ? process.text.trim() : 'unknown'
+    } catch (Exception e) {
+        return 'unknown'
+    }
+}
+
+def getGitCommit() {
+    try {
+        def process = "git rev-parse HEAD".execute()
+        process.waitFor()
+        return process.exitValue() == 0 ? process.text.trim().take(7) : 'unknown'
+    } catch (Exception e) {
+        return 'unknown'
+    }
+}
+
+// Task dependencies
+build.dependsOn generateBankingInfo
+check.dependsOn integrationTest, functionalTest, securityTest
+
+// Banking system specific configurations
+tasks.withType(JavaCompile) {
+    options.compilerArgs += [
+        '-parameters'
+    ]
+}
+
+// Ensure proper ordering
+integrationTest.mustRunAfter test
+functionalTest.mustRunAfter integrationTest
+securityTest.mustRunAfter functionalTest

@@ -1,0 +1,271 @@
+version: '3.8'
+
+services:
+  # Prometheus - Metrics collection and storage
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: banking-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=50GB'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--log.level=info'
+    networks:
+      - banking-monitoring
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.banking.local`)"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+
+  # Grafana - Visualization and dashboards
+  grafana:
+    image: grafana/grafana:10.0.3
+    container_name: banking-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_USERS_ALLOW_ORG_CREATE=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    networks:
+      - banking-monitoring
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.banking.local`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+  # Alertmanager - Alert routing and notification
+  alertmanager:
+    image: prom/alertmanager:v0.25.0
+    container_name: banking-alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./alertmanager/templates:/etc/alertmanager/templates:ro
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+      - '--log.level=info'
+    networks:
+      - banking-monitoring
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.alertmanager.rule=Host(`alertmanager.banking.local`)"
+      - "traefik.http.services.alertmanager.loadbalancer.server.port=9093"
+
+  # Node Exporter - System metrics collection
+  node-exporter:
+    image: prom/node-exporter:v1.6.1
+    container_name: banking-node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - banking-monitoring
+
+  # cAdvisor - Container metrics collection
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: banking-cadvisor
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    networks:
+      - banking-monitoring
+
+  # PostgreSQL Exporter - Database metrics
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.12.0
+    container_name: banking-postgres-exporter
+    restart: unless-stopped
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://monitoring:monitoring_password@postgres:5432/banking?sslmode=disable
+    networks:
+      - banking-monitoring
+      - banking-network
+
+  # Redis Exporter - Cache metrics
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.52.0
+    container_name: banking-redis-exporter
+    restart: unless-stopped
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    networks:
+      - banking-monitoring
+      - banking-network
+
+  # Blackbox Exporter - Endpoint monitoring
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.24.0
+    container_name: banking-blackbox-exporter
+    restart: unless-stopped
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    command:
+      - '--config.file=/etc/blackbox_exporter/config.yml'
+    networks:
+      - banking-monitoring
+
+  # Loki - Log aggregation
+  loki:
+    image: grafana/loki:2.8.3
+    container_name: banking-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    command:
+      - '-config.file=/etc/loki/local-config.yaml'
+    networks:
+      - banking-monitoring
+
+  # Promtail - Log collection agent
+  promtail:
+    image: grafana/promtail:2.8.3
+    container_name: banking-promtail
+    restart: unless-stopped
+    volumes:
+      - ./promtail/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command:
+      - '-config.file=/etc/promtail/config.yml'
+    networks:
+      - banking-monitoring
+
+  # Jaeger - Distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:1.47.0
+    container_name: banking-jaeger
+    restart: unless-stopped
+    ports:
+      - "14268:14268"
+      - "16686:16686"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+    networks:
+      - banking-monitoring
+
+  # Victoria Metrics - Long-term storage
+  victoria-metrics:
+    image: victoriametrics/victoria-metrics:v1.91.3
+    container_name: banking-victoria-metrics
+    restart: unless-stopped
+    ports:
+      - "8428:8428"
+    volumes:
+      - victoria_metrics_data:/victoria-metrics-data
+    command:
+      - '--storageDataPath=/victoria-metrics-data'
+      - '--httpListenAddr=:8428'
+      - '--retentionPeriod=12m'
+      - '--maxLabelsPerTimeseries=50'
+    networks:
+      - banking-monitoring
+
+  # Karma - Alertmanager dashboard
+  karma:
+    image: ghcr.io/prymitive/karma:v0.118
+    container_name: banking-karma
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    environment:
+      - ALERTMANAGER_URI=http://alertmanager:9093
+      - CONFIG_FILE=/karma.yaml
+    volumes:
+      - ./karma/karma.yaml:/karma.yaml:ro
+    networks:
+      - banking-monitoring
+
+  # Traefik - Reverse proxy for monitoring services
+  traefik:
+    image: traefik:v2.10
+    container_name: banking-traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "8081:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+    networks:
+      - banking-monitoring
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.banking.local`)"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+
+# Volumes for persistent data
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  alertmanager_data:
+    driver: local
+  loki_data:
+    driver: local
+  victoria_metrics_data:
+    driver: local
+
+# Networks
+networks:
+  banking-monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  banking-network:
+    external: true

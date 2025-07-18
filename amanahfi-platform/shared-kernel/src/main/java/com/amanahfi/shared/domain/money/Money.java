@@ -257,6 +257,14 @@ public final class Money {
         }
     }
 
+    /**
+     * Formatted string representation with currency symbol
+     * @return formatted string with currency symbol (e.g., "USD 100.00")
+     */
+    public String toFormattedString() {
+        return String.format("%s %s", currency, amount.toPlainString());
+    }
+
     @Override
     public String toString() {
         return String.format("%s %s", currency, amount.toPlainString());

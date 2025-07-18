@@ -3,6 +3,7 @@ package com.amanahfi.platform.security.infrastructure.adapter;
 import com.amanahfi.platform.security.port.out.DPoPNonceStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +43,7 @@ public class DPoPNonceStoreAdapter implements DPoPNonceStore {
     private final SecureRandom secureRandom = new SecureRandom();
     private final ConcurrentHashMap<String, NonceEntry> nonces = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, TokenEntry> tokenIds = new ConcurrentHashMap<>();
-    private final ScheduledExecutorService cleanupScheduler = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService cleanupScheduler;
     
     // Statistics
     private final AtomicLong totalNonces = new AtomicLong(0);
@@ -59,8 +60,10 @@ public class DPoPNonceStoreAdapter implements DPoPNonceStore {
     private static final long TOKEN_VALIDITY_HOURS = 24;
     private static final long CLEANUP_INTERVAL_MINUTES = 5;
     
-    public DPoPNonceStoreAdapter(Optional<RedisTemplate<String, Object>> redisTemplate) {
+    public DPoPNonceStoreAdapter(Optional<RedisTemplate<String, Object>> redisTemplate,
+                                @Qualifier("scheduledVirtualThreadExecutor") ScheduledExecutorService scheduledExecutor) {
         this.redisTemplate = redisTemplate;
+        this.cleanupScheduler = scheduledExecutor;
         
         // Start cleanup scheduler only for in-memory mode (Redis handles TTL automatically)
         if (!isRedisAvailable()) {
@@ -415,17 +418,5 @@ public class DPoPNonceStoreAdapter implements DPoPNonceStore {
         }
     }
     
-    // Shutdown hook
-    public void shutdown() {
-        log.info("Shutting down DPoP nonce store cleanup scheduler");
-        cleanupScheduler.shutdown();
-        try {
-            if (!cleanupScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                cleanupScheduler.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            cleanupScheduler.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
+    // Note: Shutdown is handled by the shared virtual thread executor service lifecycle
 }

@@ -7,6 +7,7 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Qualifier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
@@ -14,6 +15,7 @@ import java.util.UUID;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 /**
@@ -34,6 +36,7 @@ public class EventStreamingService {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
     private final EventSchemaRegistry schemaRegistry;
+    private final Executor eventExecutor;
     
     // Event handlers registry for dynamic subscription
     private final Map<String, Consumer<BankingDomainEvent>> eventHandlers = new ConcurrentHashMap<>();
@@ -48,14 +51,16 @@ public class EventStreamingService {
     
     public EventStreamingService(KafkaTemplate<String, String> kafkaTemplate,
                                ObjectMapper objectMapper,
-                               EventSchemaRegistry schemaRegistry) {
+                               EventSchemaRegistry schemaRegistry,
+                               @Qualifier("eventExecutor") Executor eventExecutor) {
         this.kafkaTemplate = kafkaTemplate;
         this.objectMapper = objectMapper;
         this.schemaRegistry = schemaRegistry;
+        this.eventExecutor = eventExecutor;
     }
     
     /**
-     * Publish domain event to appropriate topic
+     * Publish domain event to appropriate topic using virtual threads
      */
     public CompletableFuture<Void> publishEvent(BankingDomainEvent event) {
         return CompletableFuture.runAsync(() -> {
@@ -85,7 +90,7 @@ public class EventStreamingService {
             } catch (Exception e) {
                 throw new EventStreamingException("Failed to publish event: " + event.getEventId(), e);
             }
-        });
+        }, eventExecutor);
     }
     
     /**

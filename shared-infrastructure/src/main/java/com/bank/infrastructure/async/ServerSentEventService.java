@@ -5,6 +5,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
+import org.springframework.beans.factory.annotation.Qualifier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.Duration;
@@ -44,7 +45,7 @@ public class ServerSentEventService {
     private static final Duration HEARTBEAT_INTERVAL = Duration.ofSeconds(30);
     
     public ServerSentEventService(ObjectMapper objectMapper, 
-                                ScheduledExecutorService scheduledExecutor) {
+                                @Qualifier("scheduledVirtualThreadExecutor") ScheduledExecutorService scheduledExecutor) {
         this.objectMapper = objectMapper;
         this.scheduledExecutor = scheduledExecutor;
         

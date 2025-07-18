@@ -1,0 +1,442 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: banking
+  labels:
+    name: banking
+    environment: production
+
+---
+# Customer Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-service
+  namespace: banking
+  labels:
+    app: customer-service
+    version: blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: customer-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: customer-service
+        version: blue
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: customer-service
+      containers:
+      - name: customer-service
+        image: ${ECR_REGISTRY}/enterprise-banking/customer-service:production
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9090
+          name: grpc
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "production"
+        - name: JAVA_OPTS
+          value: "-XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:+HeapDumpOnOutOfMemoryError"
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: host
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: password
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: host
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: kafka-config
+              key: bootstrap-servers
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: app-config
+          mountPath: /config
+          readOnly: true
+        - name: tls-certs
+          mountPath: /certs
+          readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: customer-service-config
+      - name: tls-certs
+        secret:
+          secretName: tls-certificates
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - customer-service
+              topologyKey: kubernetes.io/hostname
+
+---
+# Loan Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loan-service
+  namespace: banking
+  labels:
+    app: loan-service
+    version: blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: loan-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: loan-service
+        version: blue
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: loan-service
+      containers:
+      - name: loan-service
+        image: ${ECR_REGISTRY}/enterprise-banking/loan-service:production
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8081
+          name: http
+        - containerPort: 9091
+          name: grpc
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "production"
+        - name: JAVA_OPTS
+          value: "-XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:+HeapDumpOnOutOfMemoryError"
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: host
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: password
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: host
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: kafka-config
+              key: bootstrap-servers
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8081
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8081
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: app-config
+          mountPath: /config
+          readOnly: true
+        - name: tls-certs
+          mountPath: /certs
+          readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: loan-service-config
+      - name: tls-certs
+        secret:
+          secretName: tls-certificates
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - loan-service
+              topologyKey: kubernetes.io/hostname
+
+---
+# Payment Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: banking
+  labels:
+    app: payment-service
+    version: blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: payment-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: payment-service
+        version: blue
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: payment-service
+      containers:
+      - name: payment-service
+        image: ${ECR_REGISTRY}/enterprise-banking/payment-service:production
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8082
+          name: http
+        - containerPort: 9092
+          name: grpc
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "production"
+        - name: JAVA_OPTS
+          value: "-XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:+HeapDumpOnOutOfMemoryError"
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: host
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: password
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: redis-config
+              key: host
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: kafka-config
+              key: bootstrap-servers
+        - name: PAYMENT_GATEWAY_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: payment-gateway-credentials
+              key: api-key
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8082
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8082
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: app-config
+          mountPath: /config
+          readOnly: true
+        - name: tls-certs
+          mountPath: /certs
+          readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: payment-service-config
+      - name: tls-certs
+        secret:
+          secretName: tls-certificates
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - payment-service
+              topologyKey: kubernetes.io/hostname
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: customer-service-hpa
+  namespace: banking
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: customer-service
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "1000"
+
+---
+# Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: customer-service-pdb
+  namespace: banking
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: customer-service
+
+---
+# Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: banking-network-policy
+  namespace: banking
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: api-gateway
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 8081
+    - protocol: TCP
+      port: 8082
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: banking
+    ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL
+    - protocol: TCP
+      port: 6379  # Redis
+    - protocol: TCP
+      port: 9092  # Kafka
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443   # HTTPS for external APIs
+    - protocol: TCP
+      port: 53    # DNS
+    - protocol: UDP
+      port: 53    # DNS
