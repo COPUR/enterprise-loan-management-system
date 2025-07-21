@@ -1,0 +1,78 @@
+plugins {
+    id 'java-library'
+}
+
+// Base Java configuration - High cohesion for core Java setup
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+}
+
+// Core dependencies - Minimal and focused
+dependencies {
+    // Logging - Essential for all modules
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'ch.qos.logback:logback-classic:1.4.14'
+    
+    // Essential utilities
+    implementation 'org.apache.commons:commons-lang3:3.14.0'
+    
+    // Validation
+    api 'jakarta.validation:jakarta.validation-api:3.0.2'
+    
+    // Lombok - Build-time only
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    
+    // Core testing - Minimal for all modules
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// Compiler configuration - Consistent across all modules
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs.addAll([
+        '-parameters',
+        '-Xlint:deprecation',
+        '-Xlint:unchecked'
+    ])
+    
+    // Configuration cache safe logging
+    options.fork = true
+    options.forkOptions.jvmArgs.addAll(['-Xms256m', '-Xmx512m'])
+}
+
+// Basic test configuration - Configuration cache safe
+test {
+    useJUnitPlatform()
+    
+    // Memory configuration
+    minHeapSize = "512m"
+    maxHeapSize = "2g"
+    
+    // Deterministic configuration
+    systemProperty 'junit.jupiter.execution.parallel.enabled', 'false' // Start simple
+    systemProperty 'java.awt.headless', 'true'
+    
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "short"
+    }
+}
+
+// Documentation configuration
+javadoc {
+    options.encoding = 'UTF-8'
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+    options.addStringOption('Xdoclint:none', '-quiet')
+}

@@ -1,0 +1,94 @@
+plugins {
+    id 'banking-base-conventions'
+    id 'jacoco'
+    id 'checkstyle'
+    id 'pmd'
+    id 'com.github.spotbugs'
+}
+
+// Quality tools configuration - High cohesion for code quality concerns
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+// Jacoco configuration - Configuration cache safe
+jacocoTestReport {
+    dependsOn test
+    
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+    
+    // Static exclusion patterns - no project references
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect { dir ->
+            fileTree(dir: dir, exclude: [
+                '**/config/**',
+                '**/dto/**', 
+                '**/Application.*',
+                '**/*Config.*',
+                '**/*Test.*'
+            ])
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.83 // Banking standard
+            }
+        }
+        
+        rule {
+            element = 'CLASS'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.75
+            }
+            excludes = [
+                '*.config.*',
+                '*.dto.*',
+                '*Application',
+                '*Config',
+                '*Test'
+            ]
+        }
+    }
+}
+
+// PMD configuration
+pmd {
+    toolVersion = "6.55.0"
+    ignoreFailures = false
+    ruleSetFiles = files("${rootProject.projectDir}/config/pmd/banking-rules.xml")
+    ruleSets = []
+}
+
+// Checkstyle configuration  
+checkstyle {
+    toolVersion = '10.12.4'
+    configFile = file("${rootProject.projectDir}/config/checkstyle/banking-checkstyle.xml")
+    ignoreFailures = false
+    maxWarnings = 0
+    maxErrors = 0
+}
+
+// SpotBugs configuration
+spotbugs {
+    toolVersion = '4.8.3'
+    effort = 'max'
+    reportLevel = 'low'
+    ignoreFailures = false
+}
+
+// Task dependencies - Clear dependency chain
+check.dependsOn jacocoTestCoverageVerification

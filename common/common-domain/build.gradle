@@ -1,0 +1,19 @@
+plugins {
+    id 'java-library'
+}
+
+description = 'Common Domain Layer - Shared domain models and value objects'
+
+dependencies {
+    api project(':shared-kernel')
+    
+    // Domain modeling
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+}
+
+test {
+    useJUnitPlatform()
+}

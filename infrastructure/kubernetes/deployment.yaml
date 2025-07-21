@@ -1,0 +1,499 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: open-finance
+  labels:
+    compliance.cbuae.gov.ae/regulation: "C7-2023"
+    security.level: "high"
+    data.classification: "restricted"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: open-finance-config
+  namespace: open-finance
+data:
+  application.yml: |
+    server:
+      port: 8080
+      ssl:
+        enabled: true
+        key-store: /app/certificates/keystore.p12
+        key-store-password: ${KEYSTORE_PASSWORD}
+        key-store-type: PKCS12
+        trust-store: /app/certificates/truststore.p12
+        trust-store-password: ${TRUSTSTORE_PASSWORD}
+    
+    spring:
+      profiles:
+        active: kubernetes
+      datasource:
+        url: jdbc:postgresql://postgres-service:5432/openfinance
+        username: ${POSTGRES_USER}
+        password: ${POSTGRES_PASSWORD}
+        hikari:
+          maximum-pool-size: 20
+          minimum-idle: 5
+          connection-timeout: 30000
+          validation-timeout: 5000
+      
+      redis:
+        cluster:
+          nodes:
+            - redis-cluster-0.redis-cluster-service:7000
+            - redis-cluster-1.redis-cluster-service:7000
+            - redis-cluster-2.redis-cluster-service:7000
+        password: ${REDIS_PASSWORD}
+        timeout: 5000ms
+        jedis:
+          pool:
+            max-active: 20
+            max-idle: 10
+            min-idle: 5
+      
+      data:
+        mongodb:
+          uri: mongodb://mongodb-0.mongodb-service:27017,mongodb-1.mongodb-service:27017,mongodb-2.mongodb-service:27017/openfinance?replicaSet=rs0
+          username: ${MONGO_USER}
+          password: ${MONGO_PASSWORD}
+          auto-index-creation: false
+    
+    keycloak:
+      auth-server-url: https://keycloak-service:8443/auth
+      realm: open-finance
+      resource: open-finance-api
+      ssl-required: external
+      bearer-only: true
+      cors: true
+      
+    cbuae:
+      trust-framework:
+        endpoint: https://trust.cbuae.gov.ae
+        certificate-path: /app/certificates/cbuae-trust.crt
+        validation-interval: PT1H
+        
+    fapi:
+      security:
+        enabled: true
+        dpop-validation: true
+        mtls-required: true
+        request-signature-required: true
+        
+    pci:
+      dss:
+        compliance-mode: strict
+        encryption-algorithm: AES-256-GCM
+        key-rotation-interval: P30D
+        
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,info,metrics,prometheus
+      endpoint:
+        health:
+          show-details: when-authorized
+        metrics:
+          enabled: true
+      metrics:
+        export:
+          prometheus:
+            enabled: true
+            
+    logging:
+      level:
+        com.enterprise.openfinance: INFO
+        org.springframework.security: DEBUG
+        org.keycloak: INFO
+      pattern:
+        file: "%d{ISO8601} [%thread] %-5level %logger{36} - %X{traceId:-} %X{spanId:-} - %msg%n"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: open-finance-secrets
+  namespace: open-finance
+type: Opaque
+stringData:
+  postgres-password: ${POSTGRES_PASSWORD}
+  redis-password: ${REDIS_PASSWORD}
+  mongo-password: ${MONGO_PASSWORD}
+  keycloak-password: ${KEYCLOAK_PASSWORD}
+  keystore-password: ${KEYSTORE_PASSWORD}
+  truststore-password: ${TRUSTSTORE_PASSWORD}
+  cbuae-api-key: ${CBUAE_API_KEY}
+  jwt-signing-key: ${JWT_SIGNING_KEY}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-finance-api
+  namespace: open-finance
+  labels:
+    app: open-finance-api
+    component: api-server
+    version: v1.0.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: open-finance-api
+  template:
+    metadata:
+      labels:
+        app: open-finance-api
+        component: api-server
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: open-finance-service-account
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: open-finance-api
+        image: enterprise/open-finance-api:1.0.0
+        imagePullPolicy: Always
+        ports:
+        - name: https
+          containerPort: 8080
+          protocol: TCP
+        - name: management
+          containerPort: 9090
+          protocol: TCP
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "kubernetes,production"
+        - name: POSTGRES_USER
+          value: "openfinance"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: open-finance-secrets
+              key: postgres-password
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: open-finance-secrets
+              key: redis-password
+        - name: MONGO_USER
+          value: "openfinance"
+        - name: MONGO_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: open-finance-secrets
+              key: mongo-password
+        - name: KEYSTORE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: open-finance-secrets
+              key: keystore-password
+        - name: TRUSTSTORE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: open-finance-secrets
+              key: truststore-password
+        - name: CBUAE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: open-finance-secrets
+              key: cbuae-api-key
+        - name: JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: open-finance-secrets
+              key: jwt-signing-key
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+        - name: certificates-volume
+          mountPath: /app/certificates
+          readOnly: true
+        - name: logs-volume
+          mountPath: /app/logs
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 9090
+            scheme: HTTP
+          initialDelaySeconds: 90
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 9090
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: config-volume
+        configMap:
+          name: open-finance-config
+      - name: certificates-volume
+        secret:
+          secretName: open-finance-certificates
+      - name: logs-volume
+        emptyDir: {}
+      nodeSelector:
+        kubernetes.io/arch: amd64
+        compliance.level: "high-security"
+      tolerations:
+      - key: "compliance-workload"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - open-finance-api
+              topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-finance-api-service
+  namespace: open-finance
+  labels:
+    app: open-finance-api
+spec:
+  type: ClusterIP
+  ports:
+  - name: https
+    port: 443
+    targetPort: 8080
+    protocol: TCP
+  - name: management
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: open-finance-api
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: open-finance-api-ingress
+  namespace: open-finance
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.3"
+    nginx.ingress.kubernetes.io/ssl-ciphers: "ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains";
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+spec:
+  tls:
+  - hosts:
+    - api.openfinance.enterprise.local
+    secretName: open-finance-api-tls
+  rules:
+  - host: api.openfinance.enterprise.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: open-finance-api-service
+            port:
+              number: 443
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: open-finance-service-account
+  namespace: open-finance
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: open-finance
+  name: open-finance-role
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: open-finance-role-binding
+  namespace: open-finance
+subjects:
+- kind: ServiceAccount
+  name: open-finance-service-account
+  namespace: open-finance
+roleRef:
+  kind: Role
+  name: open-finance-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: open-finance-api-pdb
+  namespace: open-finance
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: open-finance-api
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: open-finance-api-hpa
+  namespace: open-finance
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: open-finance-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 25
+        periodSeconds: 60
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: open-finance-network-policy
+  namespace: open-finance
+spec:
+  podSelector:
+    matchLabels:
+      app: open-finance-api
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 9090
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis-cluster
+    ports:
+    - protocol: TCP
+      port: 7000
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mongodb
+    ports:
+    - protocol: TCP
+      port: 27017
+  - to:
+    - podSelector:
+        matchLabels:
+          app: keycloak
+    ports:
+    - protocol: TCP
+      port: 8443
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53

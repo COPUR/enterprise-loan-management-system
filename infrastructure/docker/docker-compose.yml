@@ -1,0 +1,475 @@
+version: '3.8'
+
+services:
+  # === Open Finance Application Services ===
+  
+  open-finance-api:
+    build:
+      context: ../..
+      dockerfile: open-finance-context/Dockerfile
+    container_name: openfinance-api
+    ports:
+      - "8080:8080"
+      - "9090:9090"  # Management port
+    environment:
+      SPRING_PROFILES_ACTIVE: production
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/openfinance
+      SPRING_DATASOURCE_USERNAME: openfinance
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_REDIS_HOST: redis-cluster
+      SPRING_REDIS_PORT: 7000
+      SPRING_MONGODB_URI: mongodb://mongo1:27017,mongo2:27017,mongo3:27017/openfinance?replicaSet=rs0
+      KEYCLOAK_AUTH_SERVER_URL: https://keycloak:8443/auth
+      KEYCLOAK_REALM: open-finance
+      KEYCLOAK_RESOURCE: open-finance-api
+      PROMETHEUS_METRICS_ENABLED: true
+      CBUAE_TRUST_FRAMEWORK_ENDPOINT: https://trust.cbuae.gov.ae
+      FAPI_SECURITY_ENABLED: true
+      PCI_DSS_COMPLIANCE_MODE: strict
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-cluster:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    volumes:
+      - ./certificates:/app/certificates:ro
+      - ./logs:/app/logs
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # === Database Services ===
+  
+  postgres:
+    image: postgres:15-alpine
+    container_name: openfinance-postgres
+    environment:
+      POSTGRES_DB: openfinance
+      POSTGRES_USER: openfinance
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_MULTIPLE_DATABASES: eventstore,readmodels
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+      - ./database/postgresql.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    command: >
+      postgres 
+        -c config_file=/etc/postgresql/postgresql.conf
+        -c log_statement=all
+        -c log_duration=on
+        -c shared_preload_libraries=pg_stat_statements
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openfinance -d openfinance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # === Redis Cluster for Distributed Caching ===
+  
+  redis-cluster:
+    image: redis/redis-stack:7.2.0-v0
+    container_name: openfinance-redis-cluster
+    environment:
+      REDIS_CLUSTER_ENABLED: "yes"
+      REDIS_CLUSTER_REPLICA_COUNT: 1
+      REDIS_CLUSTER_NODE_COUNT: 6
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - "7000-7005:7000-7005"
+      - "17000-17005:17000-17005"
+    volumes:
+      - redis-cluster-data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    command: >
+      redis-server /usr/local/etc/redis/redis.conf
+        --cluster-enabled yes
+        --cluster-config-file nodes.conf
+        --cluster-node-timeout 5000
+        --appendonly yes
+        --requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "--cluster", "check", "127.0.0.1:7000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # === MongoDB Replica Set for Analytics ===
+  
+  mongodb:
+    image: mongo:7.0
+    container_name: openfinance-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: openfinance
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+      - ./mongodb/mongod.conf:/etc/mongod.conf
+      - ./mongodb/init-replica.js:/docker-entrypoint-initdb.d/init-replica.js
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    command: mongod --config /etc/mongod.conf --replSet rs0
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mongo2:
+    image: mongo:7.0
+    container_name: openfinance-mongodb-2
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb2-data:/data/db
+      - ./mongodb/mongod.conf:/etc/mongod.conf
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    command: mongod --config /etc/mongod.conf --replSet rs0
+    depends_on:
+      - mongodb
+
+  mongo3:
+    image: mongo:7.0
+    container_name: openfinance-mongodb-3
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongodb3-data:/data/db
+      - ./mongodb/mongod.conf:/etc/mongod.conf
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    command: mongod --config /etc/mongod.conf --replSet rs0
+    depends_on:
+      - mongodb
+
+  # === Identity and Access Management ===
+  
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: openfinance-keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_HOSTNAME: keycloak.openfinance.local
+      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/tls.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/tls.key
+      KC_FEATURES: fips,token-exchange,admin-fine-grained-authz
+    ports:
+      - "8443:8443"
+      - "8080:8080"
+    volumes:
+      - ./certificates/keycloak-tls.crt:/opt/keycloak/conf/tls.crt:ro
+      - ./certificates/keycloak-tls.key:/opt/keycloak/conf/tls.key:ro
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ./keycloak/custom-themes:/opt/keycloak/themes/custom:ro
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    command: >
+      start 
+        --import-realm
+        --features=fips,token-exchange,admin-fine-grained-authz
+        --spi-user-profile-legacy-user-profile-read-only-attributes=*_RES_ACCESS_MODE
+        --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://localhost:8443/auth/realms/master"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # === Monitoring and Observability ===
+  
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: openfinance-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: openfinance-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_SERVER_ROOT_URL: https://monitoring.openfinance.local
+      GF_SERVER_CERT_FILE: /etc/grafana/ssl/grafana.crt
+      GF_SERVER_CERT_KEY: /etc/grafana/ssl/grafana.key
+      GF_SERVER_PROTOCOL: https
+      GF_DATABASE_TYPE: postgres
+      GF_DATABASE_HOST: postgres:5432
+      GF_DATABASE_NAME: grafana
+      GF_DATABASE_USER: grafana
+      GF_DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./certificates/grafana.crt:/etc/grafana/ssl/grafana.crt:ro
+      - ./certificates/grafana.key:/etc/grafana/ssl/grafana.key:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    depends_on:
+      prometheus:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: openfinance-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=https://alerts.openfinance.local'
+
+  # === API Gateway and Load Balancer ===
+  
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: openfinance-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certificates:/etc/nginx/ssl:ro
+      - ./nginx/logs:/var/log/nginx
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    depends_on:
+      - open-finance-api
+      - keycloak
+      - grafana
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # === Message Broker for Event Sourcing ===
+  
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: openfinance-kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_RETENTION_BYTES: 1073741824
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server=localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: openfinance-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    container_name: openfinance-schema-registry
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    ports:
+      - "8081:8081"
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    depends_on:
+      - kafka
+
+  # === Log Aggregation and Analysis ===
+  
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: openfinance-elasticsearch
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+      xpack.security.enabled: false
+      xpack.security.enrollment.enabled: false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: openfinance-logstash
+    environment:
+      LS_JAVA_OPTS: "-Xmx512m -Xms512m"
+    volumes:
+      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./logstash/patterns:/usr/share/logstash/patterns:ro
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: openfinance-kibana
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      SERVER_HOST: 0.0.0.0
+      SERVER_SSL_ENABLED: true
+      SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/certs/kibana.crt
+      SERVER_SSL_KEY: /usr/share/kibana/config/certs/kibana.key
+    ports:
+      - "5601:5601"
+    volumes:
+      - ./certificates/kibana.crt:/usr/share/kibana/config/certs/kibana.crt:ro
+      - ./certificates/kibana.key:/usr/share/kibana/config/certs/kibana.key:ro
+      - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    networks:
+      - openfinance-network
+    restart: unless-stopped
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-cluster-data:
+    driver: local
+  mongodb-data:
+    driver: local
+  mongodb2-data:
+    driver: local
+  mongodb3-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  alertmanager-data:
+    driver: local
+  kafka-data:
+    driver: local
+  zookeeper-data:
+    driver: local
+  zookeeper-logs:
+    driver: local
+  elasticsearch-data:
+    driver: local
+
+networks:
+  openfinance-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

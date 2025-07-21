@@ -1,0 +1,82 @@
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot' apply false
+    id 'io.spring.dependency-management'
+}
+
+description = 'Open Finance Application - Use cases and application services for Open Finance'
+
+dependencies {
+    // Domain dependency
+    api project(':open-finance-context:open-finance-domain')
+    api project(':shared-kernel')
+    api project(':shared-infrastructure')
+    
+    // Application layer dependencies
+    api 'org.springframework:spring-context'
+    api 'org.springframework:spring-tx'
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    
+    // Saga and event handling
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.springframework.statemachine:spring-statemachine-core'
+    
+    // Mapping
+    implementation 'org.mapstruct:mapstruct'
+    annotationProcessor 'org.mapstruct:mapstruct-processor'
+    
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    
+    // Jackson for serialization
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    
+    // Validation
+    implementation 'jakarta.validation:jakarta.validation-api'
+    implementation 'org.hibernate.validator:hibernate-validator'
+    
+    // Testing - Following project's TDD approach
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+    testImplementation 'org.mockito:mockito-inline'
+    testImplementation 'net.jqwik:jqwik'
+    testImplementation 'org.springframework:spring-test'
+    testImplementation 'org.springframework.boot:spring-boot-test'
+    testImplementation 'com.tngtech.archunit:archunit-junit5'
+    testImplementation 'org.awaitility:awaitility'
+    
+    // TestContainers for integration testing
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:kafka'
+    testImplementation 'org.testcontainers:postgresql'
+}
+
+test {
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter', 'jqwik'
+    }
+    systemProperty 'spring.profiles.active', 'test'
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+}
+
+// TDD-focused architecture testing
+tasks.register('archTest', Test) {
+    useJUnitPlatform {
+        includeTags 'architecture'
+    }
+    systemProperty 'archunit.freeze.store.default.path', 'build/archunit'
+}
+
+// Property-based testing task
+tasks.register('propertyTest', Test) {
+    useJUnitPlatform {
+        includeTags 'property-based'
+    }
+    systemProperty 'jqwik.tries.default', '100'
+    systemProperty 'jqwik.reporting.usejunitplatform', 'true'
+}
+
+check.dependsOn archTest, propertyTest

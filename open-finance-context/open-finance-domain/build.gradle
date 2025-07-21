@@ -1,0 +1,52 @@
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot' apply false
+    id 'io.spring.dependency-management'
+}
+
+description = 'Open Finance Domain - Core business logic for Open Finance integration'
+
+dependencies {
+    // Domain model dependencies
+    api project(':common:common-domain')
+    
+    // Domain event support
+    api 'org.springframework:spring-context:6.1.0'
+    api 'org.springframework:spring-tx:6.1.0'
+    
+    // Value object support
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
+    
+    // Validation
+    api 'jakarta.validation:jakarta.validation-api:3.0.2'
+    implementation libs.hibernate.validator
+    
+    // Jackson for JSON serialization
+    api libs.jackson.annotations
+    implementation libs.jackson.databind
+    implementation libs.jackson.datatype.jsr310
+    
+    // Testing
+    testImplementation project(':common:common-test')
+    testImplementation libs.junit.jupiter
+    testImplementation libs.assertj.core
+    testImplementation libs.mockito.junit.jupiter
+    testImplementation libs.archunit.junit5
+    testImplementation libs.jqwik
+}
+
+test {
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter', 'jqwik'
+    }
+}
+
+// Enforce architectural rules
+tasks.register('archTest', Test) {
+    useJUnitPlatform {
+        includeTags 'architecture'
+    }
+}
+
+check.dependsOn archTest

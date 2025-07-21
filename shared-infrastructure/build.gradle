@@ -8,7 +8,6 @@
 plugins {
     id 'banking-spring-conventions'
     id 'banking-security-conventions'
-    id 'banking-testing-conventions'
 }
 
 description = 'Shared Infrastructure - Cross-cutting infrastructure concerns'

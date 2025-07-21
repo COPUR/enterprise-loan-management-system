@@ -1,0 +1,20 @@
+plugins {
+    id 'java-library'
+}
+
+description = 'Common Infrastructure Layer - Shared infrastructure services'
+
+dependencies {
+    api project(':common:common-domain')
+    api project(':shared-infrastructure')
+    
+    // Infrastructure dependencies
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+}
+
+test {
+    useJUnitPlatform()
+}

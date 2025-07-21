@@ -1,0 +1,25 @@
+plugins {
+    id 'java-library'
+}
+
+description = 'Common Test Layer - Shared test utilities and fixtures'
+
+dependencies {
+    api project(':common:common-domain')
+    api project(':common:common-infrastructure')
+    
+    api 'org.junit.jupiter:junit-jupiter:5.10.1'
+    api 'org.testcontainers:testcontainers:1.19.3'
+    api 'org.testcontainers:junit-jupiter:1.19.3'
+    api 'org.testcontainers:postgresql:1.19.3'
+    api 'org.testcontainers:mongodb:1.19.3'
+    api 'org.mockito:mockito-core:5.8.0'
+    api 'org.assertj:assertj-core:3.24.2'
+    
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+test {
+    useJUnitPlatform()
+}
