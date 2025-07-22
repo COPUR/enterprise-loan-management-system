@@ -1,0 +1,75 @@
+@startuml data-sharing-simple
+
+title Cross-Platform Data Sharing Architecture
+
+actor "Customer" as Customer
+participant "Fintech App" as Fintech
+participant "Open Finance\nGateway" as Gateway  
+participant "Data\nAggregator" as Aggregator
+participant "Enterprise\nLoans" as Loans
+participant "AmanahFi\nPlatform" as Islamic
+participant "Masrufi\nFramework" as Expense
+
+== Cross-Platform Data Request ==
+Fintech -> Gateway: Request financial overview\n(with access token)
+Gateway -> Gateway: Validate token scope\nfor all platforms
+
+Gateway -> Aggregator: Get comprehensive\nfinancial data
+
+== Parallel Data Retrieval ==
+par
+  Aggregator -> Loans: Get loan data
+  note right: Credit history, balances,\npayment schedules
+  Loans --> Aggregator: Loan information
+else
+  Aggregator -> Islamic: Get Islamic finance data  
+  note right: Sharia-compliant investments,\nZakat obligations
+  Islamic --> Aggregator: Islamic portfolio data
+else
+  Aggregator -> Expense: Get expense data
+  note right: Spending patterns,\nbudget adherence
+  Expense --> Aggregator: Financial wellness data
+end
+
+== Data Integration ==
+Aggregator -> Aggregator: Integrate data from\nall 3 platforms
+note right: - Calculate unified metrics\n- Apply cross-platform insights\n- Ensure data consistency
+
+== Unified Response ==
+Aggregator --> Gateway: Comprehensive\nfinancial overview
+note right: Combined response:\n- Total assets & liabilities\n- Islamic compliance status\n- Financial wellness score\n- Predictive insights
+
+Gateway --> Fintech: Unified customer\nfinancial profile
+
+== Real-Time Updates ==
+note over Customer, Expense: Real-time updates via WebSocket
+
+alt Loan Payment
+  Loans -> Gateway: Loan payment processed
+  Gateway -> Fintech: Update: Loan balance changed
+else Islamic Investment
+  Islamic -> Gateway: Investment value updated  
+  Gateway -> Fintech: Update: Portfolio value changed
+else Expense Alert
+  Expense -> Gateway: Budget threshold exceeded
+  Gateway -> Fintech: Alert: Budget limit reached
+end
+
+== Customer Data Export ==
+Customer -> Gateway: Request complete\ndata export (GDPR)
+
+par
+  Gateway -> Loans: Export loan data
+  Loans --> Gateway: Encrypted loan data
+else
+  Gateway -> Islamic: Export Islamic data
+  Islamic --> Gateway: Encrypted Islamic data  
+else
+  Gateway -> Expense: Export expense data
+  Expense --> Gateway: Encrypted expense data
+end
+
+Gateway -> Gateway: Consolidate all\nplatform data
+Gateway --> Customer: Secure download link\nfor complete data export
+
+@enduml

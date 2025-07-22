@@ -1,0 +1,69 @@
+@startuml multi-platform-consent-simple
+
+title Multi-Platform Consent Management Flow
+
+actor Customer
+participant "Third Party\nApp" as TPP
+participant "Open Finance\nHub" as Hub  
+participant "Consent\nService" as Consent
+participant "Enterprise\nLoans" as Loans
+participant "AmanahFi\nPlatform" as Islamic
+participant "Masrufi\nFramework" as Expense
+
+== Consent Initiation ==
+TPP -> Hub: Request cross-platform\ndata access
+Hub -> Consent: Validate scope for\nall 3 platforms
+Consent -> Hub: Consent request created
+
+== Customer Authorization ==
+Hub -> Customer: Display consent form\n(Loans + Islamic + Expense)
+Customer -> Hub: Approve access to\nall platforms
+Hub -> Consent: Create multi-platform consent
+
+== Platform Activation ==
+Consent -> Loans: Activate loan data consent
+Consent -> Islamic: Activate Islamic finance consent  
+Consent -> Expense: Activate expense data consent
+
+Loans --> Consent: ✅ Loan consent active
+Islamic --> Consent: ✅ Islamic consent active
+Expense --> Consent: ✅ Expense consent active
+
+== Token Generation ==
+Consent -> Hub: Generate access token\nwith multi-platform scope
+Hub --> TPP: Access token with\ncross-platform permissions
+
+== Data Access ==
+TPP -> Hub: Request customer data\n(all platforms)
+
+par
+  Hub -> Loans: Get loan data
+  Loans --> Hub: Loan information
+else
+  Hub -> Islamic: Get Islamic finance data
+  Islamic --> Hub: Sharia-compliant data
+else  
+  Hub -> Expense: Get expense data
+  Expense --> Hub: Budget and spending data
+end
+
+Hub -> Hub: Aggregate data from\nall platforms
+Hub --> TPP: Unified financial overview
+
+== Consent Revocation ==
+Customer -> Hub: Revoke consent
+
+par
+  Hub -> Loans: Disable loan data access
+  Loans --> Hub: ✅ Access revoked
+else
+  Hub -> Islamic: Disable Islamic data access  
+  Islamic --> Hub: ✅ Access revoked
+else
+  Hub -> Expense: Disable expense data access
+  Expense --> Hub: ✅ Access revoked
+end
+
+Hub --> Customer: Consent revoked across\nall platforms
+
+@enduml

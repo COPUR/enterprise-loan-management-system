@@ -121,6 +121,13 @@ Documents organized under **docs/enterprisearchitecture/project-management/**:
 | [MasruFi Framework](docs/images/security/framework-integration-architecture.svg) | Framework integration architecture | [Source](docs/puml/masrufi-framework/framework-integration-architecture.puml) |
 | [Islamic Finance Products](docs/images/security/islamic-finance-product-flow.svg) | Islamic finance product lifecycle | [Source](docs/puml/masrufi-framework/islamic-finance-product-flow.puml) |
 
+### Cross-Platform Integration Diagrams
+| Diagram | Description | PlantUML Source |
+|---------|-------------|-----------------|
+| [Open Finance Ecosystem](docs/images/cross-platform/open-finance-ecosystem.svg) | Complete cross-platform Open Finance architecture | [Source](docs/puml/cross-platform/open-finance-ecosystem.puml) |
+| [Multi-Platform Consent Flow](docs/images/cross-platform/multi-platform-consent-simple.svg) | Consent management across all 3 platforms | [Source](docs/puml/cross-platform/multi-platform-consent-simple.puml) |
+| [Cross-Platform Data Sharing](docs/images/cross-platform/data-sharing-simple.svg) | Data sharing and aggregation flows | [Source](docs/puml/cross-platform/data-sharing-simple.puml) |
+
 ## 📈 Key Achievements
 
 ### Project Completion Status

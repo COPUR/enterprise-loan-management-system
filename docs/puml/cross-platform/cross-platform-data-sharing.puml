@@ -1,0 +1,167 @@
+@startuml cross-platform-data-sharing
+!theme aws-orange
+
+title Cross-Platform Data Sharing Sequence
+
+actor "Customer" as customer
+participant "Fintech App" as fintech
+participant "Open Finance Gateway" as gateway
+participant "Consent Service" as consent
+participant "Data Aggregator" as aggregator
+participant "Enterprise Loans" as loans
+participant "AmanahFi Platform" as islamic
+participant "Masrufi Framework" as expense
+participant "Analytics Engine" as analytics
+participant "Event Bus" as events
+
+== Real-Time Cross-Platform Data Request ==
+
+fintech -> gateway: GET /api/v1/financial-overview\n(Bearer token + DPoP proof)
+note right: Request comprehensive\nfinancial overview across\nall customer platforms
+
+gateway -> consent: validateScope(token, "financial-overview")
+consent --> gateway: ✅ Valid scope for all platforms
+
+gateway -> aggregator: aggregateFinancialData(customerId, scope)
+
+== Parallel Data Retrieval ==
+
+par Enterprise Loan Data
+    aggregator -> loans: GET /customers/{id}/loans
+    note right: Request active loans,\ncredit utilization,\npayment history
+    
+    loans -> loans: validateDataAccess(consentId, customerId)
+    loans -> loans: applyDataMinimization(scope)
+    note right: Return only data\nwithin consent scope
+    
+    loans --> aggregator: {\n  "loans": [\n    {\n      "loanId": "LOAN-001",\n      "principal": 50000.00,\n      "remaining": 35000.00,\n      "status": "ACTIVE",\n      "nextPayment": "2025-02-15"\n    }\n  ],\n  "creditUtilization": 0.65\n}
+
+and AmanahFi Islamic Banking Data
+    aggregator -> islamic: GET /customers/{id}/islamic-portfolio
+    note right: Request Sharia-compliant\ninvestments, Sukuk holdings,\nZakat obligations
+    
+    islamic -> islamic: validateShariaDataSharing(consentId)
+    note right: Ensure data sharing\ncomplies with Islamic\nfinancial principles
+    
+    islamic -> islamic: calculateZakatObligations(portfolioData)
+    
+    islamic --> aggregator: {\n  "islamicPortfolio": {\n    "murabaha": 25000.00,\n    "musharakah": 15000.00,\n    "sukuk": 30000.00,\n    "zakatDue": 1750.00,\n    "shariaCompliance": "FULLY_COMPLIANT"\n  }\n}
+
+and Masrufi Expense Management Data
+    aggregator -> expense: GET /customers/{id}/financial-wellness
+    note right: Request spending patterns,\nbudget adherence,\nfinancial goals progress
+    
+    expense -> expense: applyPrivacyFilters(consentId, customerPrefs)
+    note right: Apply customer-defined\nprivacy preferences\nfor expense data
+    
+    expense -> expense: calculateFinancialWellness(spendingData)
+    
+    expense --> aggregator: {\n  "financialWellness": {\n    "monthlyIncome": 8500.00,\n    "monthlyExpenses": 6200.00,\n    "budgetAdherence": 0.85,\n    "savingsRate": 0.27,\n    "emergencyFund": 12000.00,\n    "wellnessScore": 78\n  }\n}
+end
+
+== Data Integration & Enrichment ==
+
+aggregator -> aggregator: integrateMultiPlatformData(loanData, islamicData, expenseData)
+note right: Merge data from all platforms\ninto unified customer profile
+
+aggregator -> aggregator: calculateCrossPlatformMetrics()
+note right: Calculate unified metrics:\n- Total financial exposure\n- Risk-adjusted returns\n- Islamic compliance ratio\n- Cash flow sustainability
+
+aggregator -> analytics: enrichWithAnalytics(integratedData)
+analytics -> analytics: runPredictiveModels(customerProfile)
+note right: Apply ML models for:\n- Spending predictions\n- Investment recommendations\n- Risk assessment
+
+analytics --> aggregator: {\n  "predictiveInsights": {\n    "spendingForecast": 6350.00,\n    "investmentOpportunities": [\n      "Shariah-compliant bonds",\n      "Expense optimization"\n    ],\n    "riskProfile": "MODERATE",\n    "recommendedActions": [\n      "Increase emergency fund",\n      "Consider Murabaha refinancing"\n    ]\n  }\n}
+
+== Cross-Platform Event Processing ==
+
+aggregator -> events: publish(CrossPlatformDataAccessEvent)
+note right: Publish audit event\nfor regulatory compliance
+
+events -> events: routeEvent(topic: "financial-data-access")
+
+par Audit Trail Recording
+    events -> loans: recordDataAccess(customerId, "loan-data", timestamp)
+    loans -> loans: updateAccessLog(auditEntry)
+    
+and Islamic Compliance Logging
+    events -> islamic: recordShariaDataAccess(customerId, timestamp)
+    islamic -> islamic: validateContinuousCompliance()
+    note right: Ensure ongoing\nSharia compliance\nfor data sharing
+    
+and Privacy Compliance Tracking
+    events -> expense: recordPrivacyCompliantAccess(customerId, timestamp)
+    expense -> expense: updatePrivacyAuditLog(auditEntry)
+end
+
+== Unified Response Generation ==
+
+aggregator -> aggregator: generateUnifiedResponse(integratedData, analytics)
+
+aggregator --> gateway: {\n  "customerId": "CUST-12345",\n  "timestamp": "2025-01-22T10:30:00Z",\n  "financialOverview": {\n    "totalAssets": 115000.00,\n    "totalLiabilities": 35000.00,\n    "netWorth": 80000.00,\n    "monthlyIncome": 8500.00,\n    "monthlyExpenses": 6200.00,\n    "creditUtilization": 0.65,\n    "islamicCompliance": "FULLY_COMPLIANT",\n    "financialWellnessScore": 78\n  },\n  "breakdown": {\n    "loans": {...},\n    "islamicPortfolio": {...},\n    "financialWellness": {...},\n    "predictiveInsights": {...}\n  },\n  "dataConsent": {\n    "consentId": "CONSENT-789",\n    "scope": ["loans", "islamic-finance", "expenses"],\n    "expiresAt": "2025-07-22T10:30:00Z"\n  }\n}
+
+gateway -> gateway: applyResponseFiltering(response, tokenScope)
+note right: Apply additional filtering\nbased on specific token scope
+
+gateway --> fintech: 200 OK\n+ Unified Financial Overview JSON
+
+== Real-Time Data Sync (WebSocket) ==
+
+fintech -> gateway: WebSocket /ws/financial-updates\n(with access token)
+
+gateway -> consent: validateWebSocketScope(token, "real-time-updates")
+consent --> gateway: ✅ Valid WebSocket scope
+
+gateway -> events: subscribe(topic: "customer-{customerId}-updates")
+
+note over events : "Real-time updates from all platforms"
+
+alt Loan Payment Processed
+    loans -> events: publish(LoanPaymentProcessed)
+    events -> gateway: LoanPaymentProcessed event
+    gateway -> fintech: WebSocket message:\n{\n  "type": "loan_payment",\n  "loanId": "LOAN-001",\n  "amount": 1250.00,\n  "newBalance": 33750.00\n}
+
+else Islamic Investment Updated  
+    islamic -> events: publish(IslamicInvestmentUpdated)
+    events -> gateway: IslamicInvestmentUpdated event
+    gateway -> fintech: WebSocket message:\n{\n  "type": "islamic_investment",\n  "portfolioValue": 70500.00,\n  "shariaCompliance": "MAINTAINED"\n}
+
+else Expense Budget Alert
+    expense -> events: publish(BudgetThresholdExceeded)
+    events -> gateway: BudgetThresholdExceeded event
+    gateway -> fintech: WebSocket message:\n{\n  "type": "budget_alert",\n  "category": "dining",\n  "spentAmount": 450.00,\n  "budgetLimit": 400.00\n}
+end
+
+== Customer Data Portability (GDPR) ==
+
+customer -> gateway: GET /api/v1/data-export\n(authenticated request)
+note left: Customer requests\ncomplete data export\nacross all platforms
+
+gateway -> consent: validateCustomerDataRights(customerId)
+consent --> gateway: ✅ Data portability rights confirmed
+
+par Complete Data Export
+    gateway -> loans: exportCustomerData(customerId)
+    loans --> gateway: Encrypted loan data package
+    
+and
+    gateway -> islamic: exportCustomerData(customerId)
+    islamic -> islamic: anonymizeNonEssentialData()
+    note right: Respect Islamic privacy\nprinciples in data export
+    islamic --> gateway: Encrypted Islamic finance data
+    
+and  
+    gateway -> expense: exportCustomerData(customerId)
+    expense -> expense: applyDataMinimization()
+    note right: Export only essential\nexpense data per GDPR
+    expense --> gateway: Encrypted expense data
+end
+
+gateway -> gateway: consolidateDataExport(allPlatformData)
+gateway -> gateway: generateSecureDownloadLink(exportPackage)
+
+gateway --> customer: {\n  "exportId": "EXPORT-456",\n  "downloadUrl": "https://secure.bank.com/exports/EXPORT-456",\n  "expiresAt": "2025-01-29T10:30:00Z",\n  "platforms": ["loans", "islamic", "expenses"],\n  "format": "JSON",\n  "encryption": "AES-256-GCM"\n}
+
+note over customer, analytics : "Complete cross-platform data sharing\nwith real-time updates, Islamic compliance,\nand GDPR data portability"
+
+@enduml

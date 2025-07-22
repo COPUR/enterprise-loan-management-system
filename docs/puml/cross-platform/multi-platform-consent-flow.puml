@@ -1,0 +1,169 @@
+@startuml multi-platform-consent-flow
+
+title Multi-Platform Consent Management Flow
+
+participant "Customer" as customer
+participant "Third Party App" as tpp
+participant "Open Finance Hub" as hub
+participant "Consent Management" as consent
+participant "Enterprise Loans" as loans
+participant "AmanahFi Platform" as islamic
+participant "Masrufi Framework" as expense
+participant "Event Store" as events
+participant "CBUAE Framework" as cbuae
+
+== Consent Initiation ==
+
+tpp -> hub: POST /consent/initiate
+note right: Request access to customer data\nacross multiple platforms
+
+hub -> consent: validateConsentRequest(scope, platforms)
+note right: Validate requested scope includes:\n- Loan data (Enterprise)\n- Islamic finance (AmanahFi)\n- Expense data (Masrufi)
+
+consent -> cbuae: validateTPPRegistration(tppId)
+cbuae --> consent: TPP validation result
+
+consent -> hub: ConsentRequest(requestId, scope, platforms)
+
+hub --> tpp: 302 Redirect to consent UI
+note left: Redirect with consent request ID
+
+== Customer Authentication & Authorization ==
+
+customer -> hub: GET /consent/authorize?requestId=123
+hub -> consent: getConsentRequest(requestId)
+consent --> hub: ConsentRequest details
+
+hub -> customer: Display consent form
+note right: Shows data scope across:\n- Enterprise Loan Management\n- AmanahFi Islamic Banking\n- Masrufi Personal Finance
+
+customer -> hub: POST /consent/approve
+note left: Customer approves access to:\n- Credit history & loans\n- Sharia-compliant investments\n- Expense patterns & budgets
+
+== Cross-Platform Scope Validation ==
+
+hub -> loans: validateDataScope(customerId, loanScope)
+loans --> hub: Loan data availability
+
+hub -> islamic: validateDataScope(customerId, islamicScope)
+islamic -> islamic: validateShariaCompliance(dataScope)
+note right: Ensure requested data\nis Sharia-compliant
+islamic --> hub: Islamic data availability
+
+hub -> expense: validateDataScope(customerId, expenseScope)
+expense -> expense: validateBudgetPermissions(dataScope)
+note right: Check budget privacy\nsettings and limits
+expense --> hub: Expense data availability
+
+== Consent Creation & Event Sourcing ==
+
+hub -> consent: createConsent(customerId, tppId, approvedScope)
+
+consent -> events: ConsentCreatedEvent
+note right: Store immutable consent record\nwith platform-specific scopes
+
+consent -> events: LoanDataConsentGranted
+consent -> events: IslamicFinanceConsentGranted  
+consent -> events: ExpenseDataConsentGranted
+
+== Platform-Specific Consent Activation ==
+
+consent -> loans: activateConsentForLoanData(consentId, scope)
+loans -> events: LoanConsentActivated
+note right: Enable loan data sharing\nwith audit trail
+
+consent -> islamic: activateConsentForIslamicData(consentId, scope)
+islamic -> islamic: validateShariaConsentCompliance()
+note right: Ensure consent mechanism\ncomplies with Islamic principles
+islamic -> events: IslamicConsentActivated
+
+consent -> expense: activateConsentForExpenseData(consentId, scope)
+expense -> expense: setupExpenseDataFilters(scope)
+note right: Configure data filters\nbased on privacy preferences
+expense -> events: ExpenseConsentActivated
+
+== Consent Token Generation ==
+
+consent -> hub: ConsentToken(platforms, scopes, expiry)
+hub -> consent: generateAccessToken(consentToken)
+note right: Generate FAPI 2.0 compliant\naccess token with DPoP binding
+
+consent --> hub: AccessToken(sub, scope, platforms)
+hub --> tpp: 302 Redirect with authorization code
+
+== Token Exchange ==
+
+tpp -> hub: POST /token (authorization_code grant)
+note left: Exchange code for access token\nwith DPoP proof
+
+hub -> consent: validateAuthorizationCode(code, tppId)
+consent --> hub: Valid consent reference
+
+hub --> tpp: AccessToken + RefreshToken
+note right: Multi-platform access token\nwith platform-specific scopes
+
+== Cross-Platform Data Access ==
+
+tpp -> hub: GET /accounts (with AccessToken + DPoP)
+note left: Request customer account data\nacross all platforms
+
+hub -> consent: validateTokenScope(token, "accounts")
+consent --> hub: Scope validation result
+
+== Parallel Data Retrieval ==
+
+par Loan Data Access
+    hub -> loans: GET /customer/{id}/accounts
+    loans -> loans: validateConsentScope(consentId, "accounts")
+    loans --> hub: Loan account data
+and Islamic Finance Data Access  
+    hub -> islamic: GET /customer/{id}/islamic-accounts
+    islamic -> islamic: validateShariaDataAccess(consentId)
+    note right: Ensure data access\ncomplies with Islamic rules
+    islamic --> hub: Islamic account data
+and Expense Data Access
+    hub -> expense: GET /customer/{id}/expense-accounts
+    expense -> expense: applyPrivacyFilters(consentId, data)
+    note right: Apply customer privacy\npreferences and filters
+    expense --> hub: Filtered expense data
+end
+
+== Data Aggregation & Response ==
+
+hub -> hub: aggregateMultiPlatformData(loanData, islamicData, expenseData)
+note right: Combine data from all platforms\nwith unified response format
+
+hub -> events: CrossPlatformDataAccessEvent
+note left: Audit cross-platform\ndata access for compliance
+
+hub --> tpp: Unified account data response
+note right: JSON response containing:\n- Loan accounts & balances\n- Islamic investment accounts\n- Expense tracking accounts
+
+== Consent Monitoring & Revocation ==
+
+customer -> hub: GET /consent/active
+hub -> consent: getActiveConsents(customerId)
+consent --> hub: List of active consents
+
+customer -> hub: DELETE /consent/{consentId}
+note left: Customer revokes consent\nacross all platforms
+
+consent -> events: ConsentRevokedEvent
+
+par Platform Consent Revocation
+    consent -> loans: revokeConsent(consentId)
+    loans -> events: LoanConsentRevoked
+and
+    consent -> islamic: revokeConsent(consentId)
+    islamic -> events: IslamicConsentRevoked  
+and
+    consent -> expense: revokeConsent(consentId)
+    expense -> events: ExpenseConsentRevoked
+end
+
+consent -> hub: ConsentRevoked(consentId)
+hub --> customer: 200 OK - Consent revoked
+
+note over customer, cbuae : "Complete cross-platform consent lifecycle\nwith Islamic compliance and expense privacy"
+
+@enduml

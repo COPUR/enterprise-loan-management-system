@@ -1,0 +1,100 @@
+@startuml open-finance-ecosystem
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+!include <C4/C4_Component>
+
+title Cross-Platform Open Finance Ecosystem
+
+Person(customer, "Customer", "Bank customer using multiple platforms")
+Person(fintech, "Third Party Provider", "Fintech accessing data via Open Finance APIs")
+System_Ext(cbuae, "CBUAE Trust Framework", "UAE Central Bank regulation compliance")
+
+System_Boundary(ecosystem, "Open Finance Ecosystem") {
+    
+    Container_Boundary(enterprise, "Enterprise Loan Management System") {
+        Container(openfinance_hub, "Open Finance Hub", "Spring Boot", "Primary consent manager & API gateway")
+        Container(loan_api, "Loan Data APIs", "REST/GraphQL", "Credit, loans, repayment data")
+        Container(consent_mgmt, "Consent Management", "Event Sourcing", "Distributed consent with audit trail")
+        Container(event_store, "Event Store", "PostgreSQL", "Domain events & audit log")
+        Container(auth_server, "FAPI 2.0 Auth", "Keycloak", "OAuth 2.1 + DPoP tokens")
+    }
+    
+    Container_Boundary(amanahfi, "AmanahFi Islamic Banking Platform") {
+        Container(islamic_api, "Islamic Finance APIs", "REST/GraphQL", "Sharia-compliant products & data")
+        Container(sharia_engine, "Sharia Compliance Engine", "Domain Service", "Halal/Haram validation")
+        Container(zakat_calc, "Zakat Calculator", "Domain Service", "Islamic obligation calculations")
+        Container(sukuk_mgmt, "Sukuk Management", "Domain Service", "Islamic bond portfolio")
+    }
+    
+    Container_Boundary(masrufi, "Masrufi Framework") {
+        Container(expense_api, "Expense APIs", "REST/GraphQL", "Personal finance & budgeting")
+        Container(budget_engine, "Budget Engine", "Domain Service", "Spending limits & analytics")
+        Container(cashflow_mgmt, "Cash Flow Management", "Domain Service", "Income vs expenditure")
+        Container(financial_goals, "Financial Goals", "Domain Service", "Savings & investment targets")
+    }
+    
+    Container_Boundary(shared_infra, "Shared Infrastructure") {
+        Container(redis_cluster, "Redis Cluster", "Distributed Cache", "Session management & performance")
+        Container(kafka_cluster, "Kafka Event Bus", "Event Streaming", "Cross-platform event communication")
+        Container(mongo_analytics, "MongoDB Analytics", "Silver Copy", "Cross-platform analytics & reporting")
+        Container(vault, "HashiCorp Vault", "Secret Management", "Certificate & key management")
+    }
+}
+
+System_Ext(other_banks, "Other Banks", "Partner financial institutions")
+System_Ext(government, "Government Services", "UAE government digital services")
+
+' Customer interactions
+Rel(customer, openfinance_hub, "Manages consent", "FAPI 2.0 + mTLS")
+Rel(customer, islamic_api, "Islamic banking", "Sharia-compliant operations")
+Rel(customer, expense_api, "Personal finance", "Budget management")
+
+' Third party access
+Rel(fintech, openfinance_hub, "Accesses customer data", "FAPI 2.0 with consent")
+Rel(openfinance_hub, cbuae, "Compliance validation", "Trust framework integration")
+
+' Cross-platform data flows
+Rel(openfinance_hub, loan_api, "Credit data", "GraphQL Federation")
+Rel(openfinance_hub, islamic_api, "Islamic finance data", "GraphQL Federation")
+Rel(openfinance_hub, expense_api, "Expense data", "GraphQL Federation")
+
+' Authentication & consent
+Rel(openfinance_hub, auth_server, "Token validation", "FAPI 2.0")
+Rel(openfinance_hub, consent_mgmt, "Consent validation", "Event sourcing")
+Rel(consent_mgmt, event_store, "Audit logging", "Immutable events")
+
+' Sharia compliance integration
+Rel(islamic_api, sharia_engine, "Validates compliance", "Domain rules")
+Rel(islamic_api, zakat_calc, "Calculates obligations", "Islamic finance")
+Rel(islamic_api, sukuk_mgmt, "Manages portfolios", "Bond management")
+
+' Expense management integration
+Rel(expense_api, budget_engine, "Budget validation", "Spending rules")
+Rel(expense_api, cashflow_mgmt, "Cash flow analysis", "Financial planning")
+Rel(expense_api, financial_goals, "Goal tracking", "Progress monitoring")
+
+' Shared infrastructure
+Rel(openfinance_hub, redis_cluster, "Caching", "Performance optimization")
+Rel(islamic_api, redis_cluster, "Caching", "Performance optimization")
+Rel(expense_api, redis_cluster, "Caching", "Performance optimization")
+
+Rel(openfinance_hub, kafka_cluster, "Event publishing", "Cross-platform events")
+Rel(islamic_api, kafka_cluster, "Event publishing", "Islamic finance events")
+Rel(expense_api, kafka_cluster, "Event publishing", "Expense events")
+
+Rel(openfinance_hub, mongo_analytics, "Analytics data", "Business intelligence")
+Rel(islamic_api, mongo_analytics, "Analytics data", "Sharia compliance reporting")
+Rel(expense_api, mongo_analytics, "Analytics data", "Financial wellness metrics")
+
+Rel(auth_server, vault, "Certificate management", "mTLS certificates")
+Rel(openfinance_hub, vault, "API keys", "Secure credential storage")
+
+' External integrations
+Rel(openfinance_hub, other_banks, "Bank-to-bank APIs", "Interbank data sharing")
+Rel(openfinance_hub, government, "Government APIs", "Digital identity & KYC")
+
+note right of ecosystem : "Comprehensive Open Finance ecosystem\nwith Islamic banking compliance\nand personal finance management"
+
+note bottom of shared_infra : "Shared infrastructure enables\nreal-time cross-platform\ndata sharing and analytics"
+
+@enduml

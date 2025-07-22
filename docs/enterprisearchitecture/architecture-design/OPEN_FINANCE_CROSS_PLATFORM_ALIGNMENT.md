@@ -77,31 +77,40 @@ Open Finance is a **cross-cutting concern** that enables secure, regulated data 
 
 ## 🔄 **Cross-Platform Data Flow Architecture**
 
-```mermaid
-graph TB
-    subgraph "Open Finance Ecosystem"
-        OF[Open Finance Hub<br/>Enterprise Loan Management]
-        
-        subgraph "Data Providers"
-            ELM[Enterprise Loans<br/>Credit & Lending Data]
-            AMF[AmanahFi Platform<br/>Islamic Finance Data] 
-            MSF[Masrufi Framework<br/>Expense Management Data]
-        end
-        
-        subgraph "External Ecosystem"
-            CBUAE[CBUAE Trust Framework]
-            BANKS[Other Banks & Fintechs]
-            TPP[Third Party Providers]
-        end
-        
-        OF ↔ ELM
-        OF ↔ AMF  
-        OF ↔ MSF
-        OF ↔ CBUAE
-        OF ↔ BANKS
-        OF ↔ TPP
-    end
-```
+### **Open Finance Ecosystem Overview**
+![Open Finance Ecosystem](../../images/cross-platform/open-finance-ecosystem.svg)
+
+**PlantUML Source**: [open-finance-ecosystem.puml](../../puml/cross-platform/open-finance-ecosystem.puml)
+
+### **Multi-Platform Consent Management**
+![Multi-Platform Consent Flow](../../images/cross-platform/multi-platform-consent-simple.svg)
+
+**PlantUML Source**: [multi-platform-consent-simple.puml](../../puml/cross-platform/multi-platform-consent-simple.puml)
+
+### **Cross-Platform Data Sharing**
+![Cross-Platform Data Sharing](../../images/cross-platform/data-sharing-simple.svg)
+
+**PlantUML Source**: [data-sharing-simple.puml](../../puml/cross-platform/data-sharing-simple.puml)
+
+### **Architecture Highlights**
+
+#### **🏗️ Open Finance Ecosystem Components**
+- **Open Finance Hub**: Central consent manager and API gateway
+- **FAPI 2.0 Authentication**: OAuth 2.1 + DPoP token security  
+- **Cross-Platform Event Bus**: Kafka-based event streaming
+- **Distributed Analytics**: MongoDB silver copy for unified insights
+- **Certificate Management**: HashiCorp Vault for mTLS security
+
+#### **📊 Multi-Platform Data Integration**
+- **Enterprise Loans**: Credit history, loan balances, payment schedules
+- **AmanahFi Islamic Banking**: Sharia-compliant investments, Zakat obligations
+- **Masrufi Framework**: Personal budgets, expense analytics, financial wellness
+
+#### **🔒 Security & Compliance**
+- **CBUAE C7/2023 Compliance**: UAE Open Finance regulation adherence
+- **PCI-DSS v4.0**: Payment card industry security standards
+- **Islamic Compliance**: Sharia-compliant data sharing principles
+- **GDPR Data Rights**: Complete data portability and right to be forgotten
 
 ---
 
