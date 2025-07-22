@@ -1,0 +1,181 @@
+@startuml system-architecture-overview
+!theme spacelab
+!define RECTCLASS class #lightblue
+!define COMPONENT component #lightgreen
+!define DATABASE database #lightyellow
+!define QUEUE queue #lightpink
+
+title Enterprise Banking System - Architecture Overview
+
+' External Systems
+package "External Systems" #lightgray {
+  [Central Bank APIs] as CBAPI
+  [Payment Networks] as PayNet
+  [Credit Bureaus] as CreditBureaus
+  [Regulatory Systems] as RegSys
+  [Third Party Providers] as TPP
+}
+
+' Main System Boundaries
+package "Enterprise Banking System" {
+  
+  ' AmanahFi Islamic Banking Platform
+  package "AmanahFi Platform" #lightyellow {
+    [API Gateway] as AmanahGW
+    [Onboarding Context] as OnboardCtx
+    [Accounts Context] as AccountCtx
+    [Payments Context] as PaymentCtx
+    [Murabaha Context] as MurabahaCtx
+    [Compliance Context] as ComplianceCtx
+    [Event Streaming] as EventStream
+  }
+  
+  ' MasruFi Framework
+  package "MasruFi Framework" #lightpink {
+    [Islamic Finance Engine] as IFEngine
+    [Sharia Compliance] as ShariaComp
+    [UAE CBDC Integration] as CBDCInt
+    [Multi-Jurisdiction Support] as MultiJur
+  }
+  
+  ' Core Banking Contexts
+  package "Core Banking Contexts" #lightgreen {
+    [Customer Context] as CustomerCtx
+    [Loan Context] as LoanCtx
+    [Payment Context] as CorePaymentCtx
+    [Risk Context] as RiskCtx
+    [Compliance Context] as CoreComplianceCtx
+    [Open Finance Context] as OpenFinanceCtx
+  }
+  
+  ' Shared Components
+  package "Shared Foundation" #lightcyan {
+    [Shared Kernel] as SharedKernel
+    [Shared Infrastructure] as SharedInfra
+    [Common Domain] as CommonDomain
+    [Common Infrastructure] as CommonInfra
+    [Common Test] as CommonTest
+  }
+  
+  ' Infrastructure Services
+  package "Infrastructure" #lightsteelblue {
+    DATABASE PostgreSQL as DB
+    QUEUE "Apache Kafka" as Kafka
+    [Redis Cache] as Redis
+    [Keycloak IAM] as Keycloak
+    [Istio Service Mesh] as ServiceMesh
+    [Prometheus Monitoring] as Prometheus
+    [Grafana Dashboards] as Grafana
+  }
+}
+
+' Cloud Infrastructure
+package "Cloud Infrastructure" #lightgray {
+  [Kubernetes Cluster] as K8s
+  [AWS EKS / Azure AKS] as CloudPlatform
+  [Terraform IaC] as Terraform
+  [CI/CD Pipeline] as CICD
+}
+
+' Relationships - External Integration
+CBAPI --> AmanahGW : Regulatory APIs
+PayNet --> AmanahGW : Payment Networks
+CreditBureaus --> CustomerCtx : Credit Scoring
+RegSys --> ComplianceCtx : Compliance Reporting
+TPP --> OpenFinanceCtx : Open Banking APIs
+
+' Relationships - Platform Integration
+AmanahGW --> OnboardCtx
+AmanahGW --> AccountCtx
+AmanahGW --> PaymentCtx
+AmanahGW --> MurabahaCtx
+AmanahGW --> ComplianceCtx
+
+OnboardCtx --> EventStream
+AccountCtx --> EventStream
+PaymentCtx --> EventStream
+MurabahaCtx --> EventStream
+ComplianceCtx --> EventStream
+
+' MasruFi Integration
+IFEngine --> MurabahaCtx : Islamic Products
+ShariaComp --> ComplianceCtx : Compliance Rules
+CBDCInt --> PaymentCtx : UAE Digital Dirham
+MultiJur --> ComplianceCtx : Multi-Region Rules
+
+' Core Context Relationships
+CustomerCtx --> LoanCtx : Customer Data
+LoanCtx --> RiskCtx : Risk Assessment
+CorePaymentCtx --> LoanCtx : Loan Payments
+CoreComplianceCtx --> CustomerCtx : KYC/AML
+OpenFinanceCtx --> CorePaymentCtx : Open Banking
+
+' Shared Foundation
+CustomerCtx --> SharedKernel
+LoanCtx --> SharedKernel
+CorePaymentCtx --> SharedKernel
+RiskCtx --> SharedKernel
+CoreComplianceCtx --> SharedKernel
+OnboardCtx --> SharedKernel
+AccountCtx --> SharedKernel
+PaymentCtx --> SharedKernel
+MurabahaCtx --> SharedKernel
+ComplianceCtx --> SharedKernel
+
+SharedKernel --> CommonDomain
+SharedInfra --> CommonInfra
+CommonTest --> CommonInfra
+
+' Infrastructure Dependencies
+SharedInfra --> DB
+SharedInfra --> Kafka
+SharedInfra --> Redis
+SharedInfra --> Keycloak
+
+ServiceMesh --> AmanahGW
+ServiceMesh --> CustomerCtx
+ServiceMesh --> LoanCtx
+ServiceMesh --> CorePaymentCtx
+
+Prometheus --> Grafana
+Prometheus --> ServiceMesh
+
+' Cloud Infrastructure
+K8s --> DB
+K8s --> Kafka
+K8s --> Redis
+K8s --> Keycloak
+K8s --> ServiceMesh
+K8s --> Prometheus
+K8s --> Grafana
+
+CloudPlatform --> K8s
+Terraform --> CloudPlatform
+CICD --> CloudPlatform
+
+' Styling
+skinparam component {
+  BackgroundColor lightblue
+  BorderColor darkblue
+  FontSize 10
+}
+
+skinparam database {
+  BackgroundColor lightyellow
+  BorderColor orange
+}
+
+skinparam queue {
+  BackgroundColor lightpink
+  BorderColor red
+}
+
+note top of AmanahGW : OAuth 2.1 + FAPI 2.0\nZero-Trust Security
+
+note top of ServiceMesh : Istio Service Mesh\nmTLS + Circuit Breakers
+
+note top of EventStream : Event-Driven Architecture\nDomain Events + CQRS
+
+note bottom of SharedKernel : Domain-Driven Design\nValue Objects + Aggregates
+
+@enduml

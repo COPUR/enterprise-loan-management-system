@@ -1,0 +1,278 @@
+@startuml data-protection-layers
+!theme spacelab
+title Data Protection Layers - PCI-DSS v4.0 & GDPR Compliance
+
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam database {
+    BackgroundColor LightYellow
+    BorderColor Orange
+}
+
+package "Data Classification" as classification {
+    component [Public Data] as public
+    component [Internal Data] as internal
+    component [Confidential Data] as confidential
+    component [Restricted Data] as restricted
+    component [PCI Data] as pci
+    
+    note right of classification
+        **Data Classification Levels:**
+        • Public: Marketing materials
+        • Internal: Business operations
+        • Confidential: Customer data
+        • Restricted: PII, financial data
+        • PCI: Cardholder data
+    end note
+}
+
+package "Application-Level Protection" as appprotection {
+    
+    package "Input Protection" as input {
+        component [Input Validation] as validation
+        component [Sanitization] as sanitize
+        component [SQL Injection Prevention] as sqli
+        component [XSS Prevention] as xss
+        component [Parameter Tampering] as tampering
+    }
+    
+    package "Business Logic Protection" as logic {
+        component [Authorization Checks] as authz
+        component [Data Access Control] as dac
+        component [Field-Level Security] as fls
+        component [Method-Level Security] as mls
+        component [Transaction Integrity] as integrity
+    }
+    
+    package "Output Protection" as output {
+        component [Data Masking] as mask
+        component [Tokenization] as token
+        component [Redaction] as redact
+        component [Format Preservation] as preserve
+        component [Response Filtering] as filter
+    }
+}
+
+package "Database-Level Protection" as dbprotection {
+    
+    database "PostgreSQL Secure" as postgres {
+        component [Transparent Data Encryption] as tde
+        component [Column-Level Encryption] as colenc
+        component [Row-Level Security] as rls
+        component [Dynamic Data Masking] as ddm
+        component [Database Audit] as dbaudit
+        
+        note bottom of tde
+            **PostgreSQL Security:**
+            • pgcrypto for column encryption
+            • pg_audit for comprehensive logging
+            • SSL/TLS connections only
+            • Certificate-based authentication
+        end note
+    }
+    
+    database "Redis Secure" as redis {
+        component [Memory Encryption] as memenc
+        component [Persistence Encryption] as persenc
+        component [AUTH + ACL] as redisauth
+        component [TLS Encryption] as redistls
+        component [Key Expiration] as expiry
+        
+        note bottom of redistls
+            **Redis Security:**
+            • TLS 1.3 for all connections
+            • ACL-based access control
+            • Encrypted RDB/AOF files
+            • Memory protection enabled
+        end note
+    }
+    
+    database "MongoDB Secure" as mongo {
+        component [Client-Side Field Encryption] as csfle
+        component [Queryable Encryption] as qe
+        component [Database Authentication] as mongoauth
+        component [Role-Based Access Control] as mongorbac
+        component [Audit Logging] as mongoaudit
+        
+        note bottom of csfle
+            **MongoDB Security:**
+            • Automatic client-side encryption
+            • Encrypted search capabilities
+            • LDAP/Kerberos integration
+            • Field-level access control
+        end note
+    }
+}
+
+package "Encryption & Key Management" as encryption {
+    
+    package "Encryption at Rest" as rest {
+        component [AES-256-GCM] as aes
+        component [ChaCha20-Poly1305] as chacha
+        component [Key Derivation Functions] as kdf
+        component [Salt Generation] as salt
+        component [Envelope Encryption] as envelope
+    }
+    
+    package "Encryption in Transit" as transit {
+        component [TLS 1.3] as tls
+        component [Perfect Forward Secrecy] as pfs
+        component [Certificate Pinning] as pinning
+        component [HSTS Headers] as hsts
+        component [Certificate Transparency] as ct
+    }
+    
+    package "Key Management" as keymanagement {
+        component [AWS KMS] as kms
+        component [HashiCorp Vault] as vault
+        component [Hardware Security Modules] as hsm
+        component [Key Rotation] as rotation
+        component [Key Escrow] as escrow
+        
+        note right of kms
+            **Key Management Features:**
+            • Customer-managed keys (CMK)
+            • Automatic key rotation
+            • Multi-region key replication
+            • Cross-account key sharing
+            • CloudTrail audit logging
+        end note
+    }
+}
+
+package "PCI-DSS v4.0 Specific Controls" as pci_controls {
+    
+    package "Cardholder Data Protection" as cdp {
+        component [PAN Tokenization] as pan_token
+        component [Never Store CVV2] as no_cvv
+        component [Truncate PAN] as truncate
+        component [Secure Deletion] as secure_del
+        component [Cardholder Data Discovery] as cdd
+        
+        note bottom of pan_token
+            **PCI-DSS v4.0 Req 3.3.1:**
+            • PAN rendered unreadable
+            • Strong cryptographic keys
+            • Tokenization or truncation
+            • Secure cryptographic storage
+        end note
+    }
+    
+    package "Sensitive Authentication Data" as sad {
+        component [Never Store Track Data] as no_track
+        component [Never Store CAV2/CID] as no_cav
+        component [Never Store PIN/PIN Block] as no_pin
+        component [Secure Key Management] as secure_keys
+        component [Key Component Authentication] as key_auth
+    }
+    
+    package "Testing & Validation" as testing {
+        component [Vulnerability Scanning] as vulnscan
+        component [Penetration Testing] as pentest
+        component [Code Review] as codereview
+        component [Compliance Validation] as validation_comp
+        component [Quarterly ASV Scans] as asv
+    }
+}
+
+package "GDPR & Privacy Controls" as privacy {
+    
+    package "Privacy by Design" as pbd {
+        component [Data Minimization] as minimize
+        component [Purpose Limitation] as purpose
+        component [Storage Limitation] as storage
+        component [Accuracy Principle] as accuracy
+        component [Integrity & Confidentiality] as ic
+    }
+    
+    package "Data Subject Rights" as dsr {
+        component [Right to Access] as access
+        component [Right to Rectification] as rectify
+        component [Right to Erasure] as erase
+        component [Right to Portability] as portable
+        component [Right to Object] as object
+        
+        note left of erase
+            **Right to be Forgotten:**
+            • Secure deletion procedures
+            • Cascade deletion rules
+            • Backup purging processes
+            • Third-party data removal
+        end note
+    }
+    
+    package "Consent Management" as consent {
+        component [Consent Capture] as capture
+        component [Consent Withdrawal] as withdraw
+        component [Consent Tracking] as track
+        component [Lawful Basis Validation] as lawful
+        component [Cross-Border Transfer] as transfer
+    }
+}
+
+package "Monitoring & Compliance" as monitoring {
+    component [Data Loss Prevention] as dlp
+    component [Database Activity Monitoring] as dam
+    component [File Integrity Monitoring] as fim
+    component [Real-time Alerting] as alerts
+    component [Compliance Dashboards] as dashboard
+    component [Audit Trail Management] as audit
+    
+    note bottom of dlp
+        **Data Loss Prevention:**
+        • Content inspection
+        • Pattern recognition
+        • Data classification tags
+        • Automated response actions
+        • Incident notifications
+    end note
+}
+
+' Data flow through protection layers
+classification --> appprotection : Classified data
+appprotection --> dbprotection : Protected data
+dbprotection --> encryption : Encrypted data
+
+' Application protection flow
+validation --> sanitize : Clean input
+sanitize --> authz : Authorized access
+authz --> dac : Data access
+dac --> mask : Masked output
+
+' Database protection
+postgres --> tde : Transparent encryption
+redis --> memenc : Memory protection
+mongo --> csfle : Field encryption
+
+' Encryption services
+rest --> aes : Strong encryption
+transit --> tls : Secure transport
+keymanagement --> kms : Key services
+
+' PCI compliance
+cdp --> pan_token : Tokenized PAN
+sad --> no_cvv : No sensitive data
+testing --> vulnscan : Security validation
+
+' Privacy compliance
+pbd --> minimize : Minimal data
+dsr --> access : Subject access
+consent --> capture : Consent records
+
+' Monitoring integration
+dbprotection --> dam : Database monitoring
+encryption --> fim : File monitoring
+pci_controls --> dlp : Loss prevention
+privacy --> audit : Privacy audit
+
+' Cross-layer security
+kms --> postgres : Database keys
+kms --> redis : Cache keys
+kms --> mongo : Document keys
+vault --> hsm : Hardware keys
+
+monitoring --> alerts : Security alerts
+alerts --> dashboard : Compliance view
+dashboard --> audit : Audit reports
+
+@enduml

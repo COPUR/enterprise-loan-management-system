@@ -1,0 +1,128 @@
+@startuml loan-context-architecture
+!theme spacelab
+title Loan Context - Hexagonal Architecture
+
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam component {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+}
+skinparam interface {
+    BackgroundColor LightGreen
+    BorderColor DarkGreen
+}
+
+package "External Systems" as ext {
+    component [Credit Bureau] as cb
+    component [Risk Engine] as risk
+    component [Payment Gateway] as pg
+    component [Document Service] as docs
+    component [Notification Service] as notif
+}
+
+package "Loan Context" as lc {
+    package "Application Layer" as app {
+        component [LoanApplicationService] as las
+        component [CreditAssessmentService] as cas
+        component [PaymentProcessingService] as pps
+        component [LoanServicingService] as lss
+    }
+    
+    package "Domain Layer" as domain {
+        component [Loan] as loan
+        component [Customer] as customer
+        component [Payment] as payment
+        component [CreditScore] as credit
+        component [LoanRepository] as loanRepo
+        component [PaymentRepository] as payRepo
+    }
+    
+    package "Infrastructure Layer" as infra {
+        database "PostgreSQL" as db
+        component [JPA Adapters] as jpa
+        component [Kafka Publisher] as kafka
+        component [REST Controllers] as rest
+        component [Event Handlers] as events
+    }
+}
+
+package "Input Ports" as inputs {
+    interface "Loan API" as loanAPI
+    interface "Payment API" as payAPI
+    interface "Assessment API" as assessAPI
+}
+
+package "Output Ports" as outputs {
+    interface "Credit Bureau Port" as cbPort
+    interface "Risk Assessment Port" as riskPort
+    interface "Payment Port" as payPort
+    interface "Document Port" as docPort
+    interface "Event Port" as eventPort
+}
+
+' Input connections
+loanAPI --> las
+payAPI --> pps
+assessAPI --> cas
+
+' Application to Domain
+las --> loan
+las --> customer
+las --> loanRepo
+cas --> credit
+cas --> customer
+pps --> payment
+pps --> payRepo
+lss --> loan
+lss --> payment
+
+' Domain to Infrastructure
+loanRepo --> jpa
+payRepo --> jpa
+jpa --> db
+
+' Output Port connections
+las --> eventPort
+cas --> cbPort
+cas --> riskPort
+pps --> payPort
+las --> docPort
+
+' External connections through adapters
+cbPort --> cb
+riskPort --> risk
+payPort --> pg
+docPort --> docs
+eventPort --> kafka
+eventPort --> notif
+
+' REST API
+rest --> loanAPI
+rest --> payAPI
+rest --> assessAPI
+
+' Event handling
+events --> kafka
+events --> las
+events --> pps
+
+note right of domain
+    Domain Layer contains:
+    - Aggregate Roots (Loan, Customer)
+    - Value Objects (LoanId, Amount)
+    - Domain Services
+    - Repository Interfaces
+    - Domain Events
+end note
+
+note left of infra
+    Infrastructure Layer:
+    - Database Adapters
+    - External Service Clients
+    - Message Publishers
+    - REST Controllers
+    - Event Handlers
+end note
+
+@enduml

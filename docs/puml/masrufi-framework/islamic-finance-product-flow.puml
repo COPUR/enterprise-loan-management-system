@@ -1,0 +1,165 @@
+@startuml islamic-finance-product-flow
+!theme spacelab
+
+title MasruFi Framework - Islamic Finance Product Selection Flow
+
+actor Customer
+participant "Product Selector" as ProductSelector
+participant "Sharia Engine" as ShariaEngine
+participant "Risk Service" as RiskService
+participant "Product Config" as ProductConfig
+participant "Contract Generator" as ContractGen
+participant "Approval Workflow" as ApprovalWF
+participant "Settlement Engine" as Settlement
+
+== Product Selection & Configuration ==
+
+Customer -> ProductSelector : Request Islamic Finance\n(Purpose: Car Purchase, Amount: 80K AED)
+activate ProductSelector
+
+ProductSelector -> ProductSelector : Analyze Customer Requirements
+
+alt Asset Purchase (Car, House, Equipment)
+    ProductSelector -> ProductSelector : Recommend Murabaha\nAsset-backed financing
+    ProductSelector -> ShariaEngine : Validate Asset Permissibility
+    activate ShariaEngine
+    ShariaEngine -> ShariaEngine : Check Halal Asset Database
+    ShariaEngine --> ProductSelector : Asset: HALAL ✅
+    deactivate ShariaEngine
+
+else Business Partnership Investment
+    ProductSelector -> ProductSelector : Recommend Musharakah\nProfit/Loss sharing
+    ProductSelector -> RiskService : Assess Business Risk
+    activate RiskService
+    RiskService --> ProductSelector : Risk Level: ACCEPTABLE
+    deactivate RiskService
+
+else Equipment/Vehicle Usage
+    ProductSelector -> ProductSelector : Recommend Ijarah\nLeasing arrangement
+    ProductSelector -> ProductConfig : Configure Lease Terms
+    activate ProductConfig
+    ProductConfig --> ProductSelector : Lease Configuration Ready
+    deactivate ProductConfig
+
+else Agricultural/Commodity Financing
+    ProductSelector -> ProductSelector : Recommend Salam\nForward sale financing
+    ProductSelector -> ShariaEngine : Validate Commodity Type
+    ShariaEngine --> ProductSelector : Commodity: COMPLIANT ✅
+
+else Construction/Manufacturing Project
+    ProductSelector -> ProductSelector : Recommend Istisna\nProject financing
+    ProductSelector -> ProductConfig : Configure Project Milestones
+    ProductConfig --> ProductSelector : Project Configuration Ready
+
+else Social/Emergency Financing
+    ProductSelector -> ProductSelector : Recommend Qard Hassan\nBenevolent loan
+    ProductSelector -> ShariaEngine : Validate Social Purpose
+    ShariaEngine --> ProductSelector : Purpose: APPROVED ✅
+end
+
+ProductSelector --> Customer : Islamic Finance Product Recommended\n(Product Type + Terms)
+deactivate ProductSelector
+
+== Product Customization & Risk Assessment ==
+
+Customer -> ProductConfig : Accept Product Recommendation
+activate ProductConfig
+
+ProductConfig -> RiskService : Comprehensive Risk Assessment
+activate RiskService
+RiskService -> RiskService : Calculate Islamic Risk Score
+RiskService --> ProductConfig : Risk Score: 750/1000 (GOOD)
+deactivate RiskService
+
+ProductConfig -> ShariaEngine : Final Sharia Compliance Check
+activate ShariaEngine
+ShariaEngine -> ShariaEngine : Comprehensive Sharia Validation
+ShariaEngine --> ProductConfig : Sharia Compliance: APPROVED ✅
+deactivate ShariaEngine
+
+ProductConfig --> Customer : Product Customization Complete\n(Sharia-Compliant Terms)
+deactivate ProductConfig
+
+== Contract Generation & Approval ==
+
+Customer -> ContractGen : Proceed with Contract Generation
+activate ContractGen
+
+ContractGen -> ContractGen : Generate Islamic Finance Contract
+
+ContractGen -> ApprovalWF : Submit for Sharia Board Approval
+activate ApprovalWF
+
+ApprovalWF -> ApprovalWF : Sharia Supervisory Board Review
+ApprovalWF -> ApprovalWF : Risk Committee Approval
+ApprovalWF -> ApprovalWF : Compliance Officer Sign-off
+
+ApprovalWF --> ContractGen : Contract Approved\n(Reference: SSB-2024-002)
+deactivate ApprovalWF
+
+ContractGen --> Customer : Islamic Finance Contract Ready\n(Sharia-Compliant & Approved)
+deactivate ContractGen
+
+== Settlement & Activation ==
+
+Customer -> Settlement : Accept Contract & Proceed
+activate Settlement
+
+alt Murabaha Settlement
+    Settlement -> Settlement : Bank Purchases Asset
+    Settlement -> Settlement : Transfer Asset to Customer
+    Settlement -> Settlement : Activate Installment Schedule
+
+else Musharakah Settlement
+    Settlement -> Settlement : Joint Investment Setup
+    Settlement -> Settlement : Capital Contribution
+    Settlement -> Settlement : Profit-Sharing Activation
+
+else Ijarah Settlement
+    Settlement -> Settlement : Asset Lease Activation
+    Settlement -> Settlement : Rental Schedule Setup
+    Settlement -> Settlement : Maintenance Agreement
+
+else Salam Settlement
+    Settlement -> Settlement : Advance Payment Processing
+    Settlement -> Settlement : Delivery Schedule Setup
+    Settlement -> Settlement : Quality Specifications
+
+else Istisna Settlement
+    Settlement -> Settlement : Project Milestone Setup
+    Settlement -> Settlement : Progressive Payment Schedule
+    Settlement -> Settlement : Delivery Timeline
+
+else Qard Hassan Settlement
+    Settlement -> Settlement : Interest-Free Loan Disbursement
+    Settlement -> Settlement : Flexible Repayment Setup
+    Settlement -> Settlement : Social Impact Tracking
+end
+
+Settlement --> Customer : Islamic Finance Product Activated\n(Sharia-Compliant & Operational)
+deactivate Settlement
+
+== Ongoing Management ==
+
+loop Product Lifecycle Management
+    Customer -> ProductSelector : Ongoing Services
+    ProductSelector -> ShariaEngine : Continuous Compliance Monitoring
+    ShariaEngine -> Settlement : Performance Tracking
+    Settlement -> Customer : Regular Statements & Updates
+    
+    alt Early Settlement Request
+        Customer -> Settlement : Request Early Settlement
+        Settlement -> ShariaEngine : Calculate Sharia-Compliant Discount
+        ShariaEngine --> Settlement : Discount Approved
+        Settlement --> Customer : Early Settlement Offer
+    end
+    
+    alt Refinancing Request
+        Customer -> ProductSelector : Request Refinancing
+        ProductSelector -> ShariaEngine : Validate Refinancing Terms
+        ShariaEngine --> ProductSelector : Refinancing: COMPLIANT
+        ProductSelector --> Customer : Refinancing Options Available
+    end
+end
+
+@enduml

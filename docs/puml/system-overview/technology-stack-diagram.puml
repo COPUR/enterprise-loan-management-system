@@ -1,0 +1,187 @@
+@startuml technology-stack-diagram
+!theme spacelab
+
+title Enterprise Banking System - Technology Stack
+
+' Application Layer
+package "Application Layer" #lightblue {
+  rectangle "Spring Boot 3.2.0" as SpringBoot #lightblue
+  rectangle "Spring Security 6.2.0" as SpringSec #lightblue
+  rectangle "Spring Data JPA 2023.1.0" as SpringData #lightblue
+  rectangle "Spring Cloud Gateway" as SpringGW #lightblue
+  rectangle "Spring WebFlux" as WebFlux #lightblue
+  rectangle "Jackson 2.16.0" as Jackson #lightblue
+  rectangle "MapStruct 1.5.5" as MapStruct #lightblue
+}
+
+' Framework Layer
+package "Framework Layer" #lightgreen {
+  rectangle "Java 21 LTS" as Java21 #lightgreen
+  rectangle "Gradle 8.14+" as Gradle #lightgreen
+  rectangle "JUnit 5" as JUnit #lightgreen
+  rectangle "Testcontainers" as TestContainers #lightgreen
+  rectangle "AssertJ" as AssertJ #lightgreen
+  rectangle "Mockito" as Mockito #lightgreen
+}
+
+' Security & Authentication
+package "Security Layer" #lightsteelblue {
+  rectangle "OAuth 2.1" as OAuth #lightsteelblue
+  rectangle "JWT / JWE" as JWT #lightsteelblue
+  rectangle "FAPI 2.0" as FAPI #lightsteelblue
+  rectangle "DPoP (RFC 9449)" as DPoP #lightsteelblue
+  rectangle "Keycloak 22+" as Keycloak #lightsteelblue
+  rectangle "Multi-Factor Auth" as MFA #lightsteelblue
+}
+
+' Data Layer
+package "Data Layer" #lightyellow {
+  rectangle "PostgreSQL 15+" as PostgreSQL #lightcoral
+  rectangle "Redis 7.0+" as Redis #lightpink
+  rectangle "H2 Database" as H2 #lightcoral
+}
+
+' Event Streaming & Messaging
+package "Event Streaming" #lightpink {
+  rectangle "Apache Kafka 3.5+" as Kafka #lightpink
+  rectangle "Spring Kafka" as SpringKafka #lightblue
+}
+
+' Infrastructure Layer
+package "Infrastructure Layer" #lightgray {
+  rectangle "Docker 24+" as Docker #lightgray
+  rectangle "Docker Compose" as DockerCompose #lightgray
+  rectangle "Kubernetes 1.28+" as K8s #lightgray
+  rectangle "Istio Service Mesh" as Istio #lightgray
+  rectangle "Helm Charts" as Helm #lightgray
+  rectangle "Kustomize" as Kustomize #lightgray
+}
+
+' Cloud Platforms
+package "Cloud Platforms" #lightsteelblue {
+  rectangle "AWS EKS" as EKS #lightsteelblue
+  rectangle "Azure AKS" as AKS #lightsteelblue
+  rectangle "Google GKE" as GKE #lightsteelblue
+  rectangle "Terraform" as Terraform #lightsteelblue
+  rectangle "AWS RDS" as RDS #lightsteelblue
+  rectangle "Azure Database" as AzureDB #lightsteelblue
+}
+
+' Monitoring & Observability
+package "Monitoring Stack" #lightyellow {
+  rectangle "Prometheus" as Prometheus #lightyellow
+  rectangle "Grafana" as Grafana #lightyellow
+  rectangle "Micrometer" as Micrometer #lightblue
+  rectangle "Spring Actuator" as Actuator #lightblue
+  rectangle "ELK Stack" as ELK #lightyellow
+}
+
+' Development & CI/CD
+package "Development Tools" #lightcyan {
+  rectangle "Git" as Git #lightcyan
+  rectangle "GitHub Actions" as GHActions #lightcyan
+  rectangle "SonarQube" as SonarQube #lightcyan
+  rectangle "OWASP Dependency Check" as OWASP #lightcyan
+  rectangle "Checkstyle" as Checkstyle #lightcyan
+  rectangle "SpotBugs" as SpotBugs #lightcyan
+  rectangle "JaCoCo" as JaCoCo #lightcyan
+}
+
+' Islamic Banking Extensions
+package "Islamic Banking Stack" #lightgoldenrodyellow {
+  rectangle "MasruFi Framework" as MasruFi #lightgoldenrodyellow
+  rectangle "AmanahFi Platform" as AmanahFi #lightgoldenrodyellow
+  rectangle "UAE CBDC Integration" as CBDC #lightgoldenrodyellow
+  rectangle "Sharia Compliance Engine" as ShariaEngine #lightgoldenrodyellow
+}
+
+' External Integrations
+package "External Systems" #lavender {
+  rectangle "Central Bank APIs" as CBAPIs #lavender
+  rectangle "Payment Networks" as PaymentNets #lavender
+  rectangle "Credit Bureaus" as CreditBureaus #lavender
+  rectangle "Regulatory Systems" as RegSystems #lavender
+  rectangle "Open Banking APIs" as OpenBanking #lavender
+}
+
+' Dependencies
+
+' Application Dependencies
+SpringBoot --> Java21
+SpringSec --> OAuth
+SpringData --> PostgreSQL
+SpringGW --> WebFlux
+Jackson --> SpringBoot
+MapStruct --> SpringBoot
+
+' Security Dependencies
+OAuth --> JWT
+JWT --> FAPI
+FAPI --> DPoP
+Keycloak --> OAuth
+MFA --> Keycloak
+
+' Data Dependencies
+SpringData --> PostgreSQL
+Redis --> SpringBoot
+PostgreSQL --> HikariCP : Connection Pool
+SpringBoot --> H2
+
+' Event Streaming Dependencies
+Kafka --> SpringKafka
+SpringKafka --> SpringBoot
+
+' Infrastructure Dependencies
+Docker --> SpringBoot
+DockerCompose --> Docker
+K8s --> Docker
+Istio --> K8s
+Helm --> K8s
+Kustomize --> K8s
+
+' Cloud Platform Dependencies
+EKS --> K8s
+AKS --> K8s
+GKE --> K8s
+Terraform --> EKS
+Terraform --> AKS
+RDS --> PostgreSQL
+AzureDB --> PostgreSQL
+
+' Monitoring Dependencies
+Prometheus --> Micrometer
+Micrometer --> Actuator
+Actuator --> SpringBoot
+Grafana --> Prometheus
+ELK --> SpringBoot
+
+' Development Tools Dependencies
+Git --> GHActions
+GHActions --> SonarQube
+GHActions --> OWASP
+GHActions --> Checkstyle
+GHActions --> SpotBugs
+JaCoCo --> JUnit
+
+' Islamic Banking Dependencies
+MasruFi --> SpringBoot
+AmanahFi --> MasruFi
+CBDC --> AmanahFi
+ShariaEngine --> MasruFi
+
+' External System Dependencies
+CBAPIs --> SpringGW
+PaymentNets --> SpringGW
+CreditBureaus --> SpringGW
+RegSystems --> SpringGW
+OpenBanking --> SpringGW
+
+' Version Notes
+note top of Java21 : **LTS Version**\nLatest Long Term Support
+note top of SpringBoot : **Production Ready**\nEnterprise Grade Framework
+note top of PostgreSQL : **ACID Compliant**\nHigh Performance Database
+note top of Kafka : **Event Streaming**\nHigh Throughput Messaging
+note top of Istio : **Service Mesh**\nZero-Trust Security
+note top of Prometheus : **Cloud Native**\nCNCF Graduated Project
+
+@enduml

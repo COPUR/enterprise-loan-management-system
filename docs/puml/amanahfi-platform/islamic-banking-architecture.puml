@@ -1,0 +1,120 @@
+@startuml islamic-banking-architecture
+!theme spacelab
+
+title AmanahFi Platform - Islamic Banking Architecture
+
+' External Islamic Finance Ecosystem
+package "Islamic Finance Ecosystem" #lightgoldenrodyellow {
+  rectangle "Central Bank of UAE" as CBUAE #lightgoldenrodyellow
+  rectangle "UAE Higher Sharia Authority" as HSA #lightgoldenrodyellow
+  rectangle "VARA (Virtual Assets)" as VARA #lightgoldenrodyellow
+  rectangle "UAE Digital Dirham" as CBDC #lightgoldenrodyellow
+  rectangle "Islamic Banks Network" as IslamicBanks #lightgoldenrodyellow
+  rectangle "Sharia Supervisory Board" as SSB #lightgoldenrodyellow
+}
+
+' AmanahFi Platform Core
+package "AmanahFi Islamic Banking Platform" #lightgreen {
+  
+  ' API Gateway with Islamic Compliance
+  rectangle "Islamic API Gateway" as IslamicGateway #lightgreen
+  
+  ' Core Islamic Banking Contexts
+  package "Islamic Banking Contexts" #lightcyan {
+    
+    rectangle "Onboarding Context" as OnboardingCtx #lightcyan
+    rectangle "Accounts Context" as AccountsCtx #lightcyan
+    rectangle "Payments Context" as PaymentsCtx #lightcyan
+    rectangle "Murabaha Context" as MurabahaCtx #lightcyan
+    rectangle "Compliance Context" as ComplianceCtx #lightcyan
+  }
+  
+  ' Shared Islamic Infrastructure
+  package "Islamic Infrastructure" #lightyellow {
+    
+    rectangle "Shared Kernel" as SharedKernel #lightyellow
+    rectangle "Event Streaming" as EventStreaming #lightyellow
+    rectangle "Sharia Compliance Engine" as ShariaEngine #lightyellow
+  }
+}
+
+' MasruFi Framework Integration
+package "MasruFi Framework" #lightpink {
+  rectangle "Islamic Product Factory" as ProductFactory #lightpink
+  rectangle "Multi-Jurisdiction Engine" as MultiJurisdiction #lightpink
+}
+
+' Data Layer
+package "Islamic Banking Data Layer" #lightcoral {
+  database "PostgreSQL" as DB #lightcoral
+  database "Redis Cache" as Cache #lightpink
+}
+
+' External Integration Points
+OnboardingCtx --> CBUAE : Customer Verification
+ComplianceCtx --> HSA : Sharia Compliance Reporting
+PaymentsCtx --> CBDC : UAE Digital Dirham Settlement
+MurabahaCtx --> SSB : Contract Approval
+ComplianceCtx --> VARA : Virtual Asset Compliance
+PaymentsCtx --> IslamicBanks : Interbank Settlement
+
+' Internal Context Relationships
+IslamicGateway --> OnboardingCtx : Customer Onboarding
+IslamicGateway --> AccountsCtx : Account Management
+IslamicGateway --> PaymentsCtx : Payment Processing
+IslamicGateway --> MurabahaCtx : Islamic Financing
+IslamicGateway --> ComplianceCtx : Compliance Checks
+
+OnboardingCtx --> AccountsCtx : Account Creation
+AccountsCtx --> PaymentsCtx : Account Payments
+PaymentsCtx --> MurabahaCtx : Contract Payments
+ComplianceCtx --> OnboardingCtx : KYC Validation
+ComplianceCtx --> AccountsCtx : Account Compliance
+ComplianceCtx --> PaymentsCtx : Payment Compliance
+ComplianceCtx --> MurabahaCtx : Contract Compliance
+
+' Shared Infrastructure Dependencies
+OnboardingCtx --> SharedKernel : Islamic Domain Objects
+AccountsCtx --> SharedKernel : Money Value Objects
+PaymentsCtx --> SharedKernel : Currency Support
+MurabahaCtx --> SharedKernel : Profit Calculations
+ComplianceCtx --> SharedKernel : Compliance Events
+
+OnboardingCtx --> EventStreaming : Customer Events
+AccountsCtx --> EventStreaming : Account Events
+PaymentsCtx --> EventStreaming : Payment Events
+MurabahaCtx --> EventStreaming : Contract Events
+ComplianceCtx --> EventStreaming : Compliance Events
+
+OnboardingCtx --> ShariaEngine : Customer Validation
+AccountsCtx --> ShariaEngine : Account Validation
+PaymentsCtx --> ShariaEngine : Payment Validation
+MurabahaCtx --> ShariaEngine : Contract Validation
+
+' MasruFi Framework Integration
+ProductFactory --> MurabahaCtx : Islamic Product Definitions
+MultiJurisdiction --> ComplianceCtx : Multi-Region Rules
+ProductFactory --> AccountsCtx : Account Product Types
+
+' Data Layer Dependencies
+OnboardingCtx --> DB : Customer Persistence
+AccountsCtx --> DB : Account Persistence
+PaymentsCtx --> DB : Payment Persistence
+MurabahaCtx --> DB : Contract Persistence
+ComplianceCtx --> DB : Compliance Persistence
+
+OnboardingCtx --> Cache : Customer Cache
+AccountsCtx --> Cache : Account Cache
+PaymentsCtx --> Cache : Payment Cache
+ShariaEngine --> Cache : Rules Cache
+
+' Key Features
+note top of IslamicGateway : **Islamic Banking Features**\n- Sharia Compliance Validation\n- FAPI 2.0 Security Standards\n- UAE Regulatory Compliance\n- CBDC Integration Ready
+
+note right of ShariaEngine : **Sharia Principles**\n- No Riba (Interest)\n- No Gharar (Uncertainty)\n- Asset-Backed Financing\n- Profit & Loss Sharing\n- Halal Asset Validation
+
+note bottom of EventStreaming : **Event-Driven Architecture**\n- Domain Events\n- CQRS Pattern\n- Event Sourcing\n- Cross-Context Communication\n- Audit Trail
+
+note left of DB : **Islamic Banking Data**\n- Sharia-Compliant Schema\n- Audit Trails (7 years)\n- Regulatory Reporting\n- Multi-Currency Support\n- GDPR + UAE DPA Compliant
+
+@enduml

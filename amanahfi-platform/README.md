@@ -20,6 +20,20 @@ AmanahFi addresses critical market gaps in the Islamic finance technology landsc
 
 The platform implements enterprise-grade architectural patterns ensuring scalability, maintainability, and regulatory compliance:
 
+### Islamic Banking Architecture Diagrams
+
+#### Core Islamic Banking Architecture
+| Diagram | Description | Source |
+|---------|-------------|--------|
+| **[Islamic Banking Architecture](../docs/images/islamic-banking-architecture.svg)** | Complete AmanahFi platform architecture with Sharia compliance | [PlantUML Source](../docs/puml/amanahfi-platform/islamic-banking-architecture.puml) |
+| **[Bounded Context Integration](../docs/images/bounded-context-integration.svg)** | Inter-context communication and integration patterns | [PlantUML Source](../docs/puml/amanahfi-platform/bounded-context-integration.puml) |
+
+#### Islamic Banking Process Flows
+| Diagram | Description | Source |
+|---------|-------------|--------|
+| **[Sharia Compliance Flow](../docs/images/sharia-compliance-flow.svg)** | End-to-end Sharia compliance validation process | [PlantUML Source](../docs/puml/amanahfi-platform/sharia-compliance-flow.puml) |
+| **[CBDC Payment Flow](../docs/images/cbdc-payment-flow.svg)** | UAE Digital Dirham payment processing workflow | [PlantUML Source](../docs/puml/amanahfi-platform/cbdc-payment-flow.puml) |
+
 ### Production-Ready Core Modules
 
 #### 1. Enhanced Enterprise Integration (UPDATED)

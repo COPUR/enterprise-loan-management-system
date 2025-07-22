@@ -1,0 +1,236 @@
+@startuml pci-dss-v4-compliance-architecture
+!theme spacelab
+title PCI-DSS v4.0 Compliance Architecture - Multi-Layer Security
+
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam component {
+    BackgroundColor LightPink
+    BorderColor DarkRed
+}
+skinparam database {
+    BackgroundColor LightYellow
+    BorderColor Orange
+}
+skinparam cloud {
+    BackgroundColor LightGray
+    BorderColor Black
+}
+
+cloud "Internet/External Networks" as internet {
+    component [Client Applications] as clients
+    component [Partner Systems] as partners
+    component [Regulatory Systems] as regulators
+}
+
+package "DMZ - Requirement 1: Network Security" as dmz {
+    component [WAF] as waf
+    component [DDoS Protection] as ddos
+    component [Load Balancer] as lb
+    component [Rate Limiting] as ratelimit
+    
+    note right of waf
+        **PCI-DSS v4.0 Req 1.2.1:**
+        • Web Application Firewall
+        • SQL Injection Prevention
+        • XSS Protection
+        • CSRF Protection
+    end note
+}
+
+package "Service Mesh - Requirement 2: Secure Configurations" as mesh {
+    component [Istio Gateway] as gateway
+    component [mTLS Enforcement] as mtls
+    component [Service Authentication] as svcauth
+    component [Zero Trust Network] as zerotrust
+    
+    note right of mtls
+        **PCI-DSS v4.0 Req 2.2.4:**
+        • Mutual TLS for all services
+        • Certificate-based authentication
+        • Encrypted service-to-service
+        • Zero trust networking
+    end note
+}
+
+package "Application Layer - Requirements 6 & 8" as app {
+    package "Authentication & Authorization" as auth {
+        component [Keycloak OIDC] as keycloak
+        component [OAuth 2.1 + PKCE] as oauth
+        component [DPoP Token Binding] as dpop
+        component [MFA Enforcement] as mfa
+        component [RBAC Engine] as rbac
+    }
+    
+    package "Secure Coding - Req 6" as coding {
+        component [Input Validation] as validation
+        component [Output Encoding] as encoding
+        component [SQL Injection Prevention] as sqli
+        component [CSRF Protection] as csrf
+        component [Secure Session Management] as session
+    }
+    
+    package "API Security - FAPI 2.0" as api {
+        component [FAPI 2.0 Gateway] as fapi
+        component [JWT Validation] as jwt
+        component [Scope Enforcement] as scopes
+        component [Request Signing] as signing
+    }
+}
+
+package "Data Layer - Requirements 3 & 4" as data {
+    package "Encryption at Rest - Req 3" as rest_enc {
+        database "Encrypted PostgreSQL" as pg {
+            component [TDE] as tde
+            component [Column Encryption] as colenc
+            component [Key Rotation] as keyrot
+        }
+        
+        database "Encrypted Redis" as redis {
+            component [Memory Encryption] as memenc
+            component [Encrypted Snapshots] as snapenc
+        }
+        
+        database "Encrypted MongoDB" as mongo {
+            component [Field-Level Encryption] as fieldenc
+            component [Client-Side Encryption] as clientenc
+        }
+    }
+    
+    package "Encryption in Transit - Req 4" as transit_enc {
+        component [TLS 1.3] as tls
+        component [Perfect Forward Secrecy] as pfs
+        component [Certificate Pinning] as pinning
+        component [HSTS Headers] as hsts
+    }
+    
+    package "Key Management - Req 3" as keys {
+        component [AWS KMS] as kms
+        component [HashiCorp Vault] as vault
+        component [Key Derivation] as kdf
+        component [HSM Integration] as hsm
+    }
+}
+
+package "Sensitive Data Protection - Req 3" as protection {
+    component [Tokenization] as token
+    component [Data Masking] as mask
+    component [Format Preserving Encryption] as fpe
+    component [PCI Scope Reduction] as scope
+    
+    note bottom of token
+        **PCI-DSS v4.0 Req 3.4.1:**
+        • Primary Account Numbers (PAN) tokenized
+        • CVV2 never stored
+        • Cardholder data minimization
+        • Secure deletion processes
+    end note
+}
+
+package "Monitoring & Logging - Requirements 10 & 11" as monitoring {
+    component [SIEM] as siem
+    component [Real-time Alerts] as alerts
+    component [Audit Logging] as audit
+    component [File Integrity Monitoring] as fim
+    component [Vulnerability Scanning] as vulnscan
+    component [Penetration Testing] as pentest
+}
+
+package "Access Control - Requirements 7 & 8" as access {
+    component [Principle of Least Privilege] as polp
+    component [Role-Based Access] as rbac2
+    component [Administrative Access] as admin
+    component [Multi-Factor Authentication] as mfa2
+    component [Strong Cryptography] as crypto
+    
+    note right of polp
+        **PCI-DSS v4.0 Req 7.1.1:**
+        • Least privilege access
+        • Need-to-know basis
+        • Regular access reviews
+        • Automated provisioning
+    end note
+}
+
+package "Network Segmentation - Req 1" as network {
+    component [Microsegmentation] as microseg
+    component [Network Isolation] as isolation
+    component [VLAN Separation] as vlan
+    component [Firewall Rules] as firewall
+    
+    note left of microseg
+        **PCI-DSS v4.0 Req 1.2.1:**
+        • Cardholder Data Environment (CDE)
+        • Network segmentation validation
+        • Quarterly penetration testing
+        • Firewall rule reviews
+    end note
+}
+
+' Flow connections
+internet --> dmz
+dmz --> mesh
+mesh --> app
+app --> data
+app --> protection
+
+' Security flows
+clients --> waf : HTTPS
+waf --> ddos : Filtered traffic
+ddos --> lb : Clean traffic
+lb --> ratelimit : Distributed load
+
+gateway --> mtls : Service calls
+mtls --> svcauth : Authenticated
+svcauth --> zerotrust : Authorized
+
+keycloak --> oauth : Authentication
+oauth --> dpop : Token binding
+dpop --> mfa : Multi-factor
+mfa --> rbac : Authorization
+
+validation --> encoding : Sanitized input
+encoding --> sqli : Safe queries
+sqli --> csrf : Protected forms
+csrf --> session : Secure sessions
+
+fapi --> jwt : Token validation
+jwt --> scopes : Scope check
+scopes --> signing : Request signing
+
+pg --> tde : Transparent encryption
+redis --> memenc : Memory protection
+mongo --> fieldenc : Field encryption
+
+tls --> pfs : Forward secrecy
+pfs --> pinning : Certificate validation
+pinning --> hsts : Strict transport
+
+token --> mask : Sensitive data
+mask --> fpe : Format preservation
+fpe --> scope : Scope reduction
+
+siem --> alerts : Real-time monitoring
+alerts --> audit : Compliance logging
+audit --> fim : Integrity monitoring
+
+polp --> rbac2 : Access control
+rbac2 --> admin : Administrative access
+admin --> mfa2 : Strong authentication
+
+microseg --> isolation : Network isolation
+isolation --> vlan : VLAN separation
+vlan --> firewall : Firewall protection
+
+' Key management
+kms --> keyrot : Key rotation
+vault --> kdf : Key derivation
+kdf --> hsm : Hardware security
+
+' Monitoring integration
+monitoring --> app : Application monitoring
+monitoring --> data : Data monitoring
+monitoring --> network : Network monitoring
+monitoring --> access : Access monitoring
+
+@enduml

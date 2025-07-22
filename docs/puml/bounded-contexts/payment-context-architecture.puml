@@ -1,0 +1,143 @@
+@startuml payment-context-architecture
+!theme spacelab
+title Payment Context - Real-time Payment Processing Architecture
+
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam component {
+    BackgroundColor LightCyan
+    BorderColor DarkCyan
+}
+
+package "External Payment Networks" as networks {
+    component [ACH Network] as ach
+    component [Wire Network] as wire
+    component [Card Networks] as cards
+    component [Digital Wallets] as wallets
+    component [CBDC Network] as cbdc
+}
+
+package "Fraud & Risk Services" as fraud {
+    component [Fraud Detection] as fd
+    component [AML Screening] as aml
+    component [Risk Scoring] as rs
+    component [Behavioral Analysis] as ba
+}
+
+package "Payment Context" as pc {
+    package "Application Services" as app {
+        component [PaymentOrchestrator] as po
+        component [FraudValidationService] as fvs
+        component [SettlementService] as ss
+        component [ReconciliationService] as recon
+        component [RefundService] as refund
+    }
+    
+    package "Domain Model" as domain {
+        component [Payment] as payment
+        component [PaymentMethod] as method
+        component [Transaction] as txn
+        component [Settlement] as settlement
+        component [PaymentState] as state
+    }
+    
+    package "Infrastructure" as infra {
+        database "Payment Store" as paydb
+        database "Event Store" as eventdb
+        component [Redis Cache] as cache
+        component [Kafka Streams] as streams
+    }
+}
+
+package "Real-time Features" as realtime {
+    component [Server-Sent Events] as sse
+    component [WebSocket Gateway] as ws
+    component [Push Notifications] as push
+}
+
+package "Compliance & Reporting" as compliance {
+    component [Regulatory Reports] as reports
+    component [Audit Logger] as audit
+    component [Transaction Monitor] as monitor
+}
+
+' Main payment flow
+po --> fvs : validate
+po --> payment : create
+po --> ss : settle
+fvs --> fd : screen
+fvs --> aml : check
+fvs --> rs : score
+
+' Payment processing
+payment --> method
+payment --> txn
+payment --> state
+ss --> settlement
+ss --> networks
+
+' External integrations
+po --> ach : ACH payments
+po --> wire : Wire transfers
+po --> cards : Card payments
+po --> wallets : Digital wallet
+po --> cbdc : CBDC payments
+
+' Fraud and risk
+fvs --> ba : analyze behavior
+fd --> cache : fraud scores
+aml --> monitor : monitor
+
+' Real-time updates
+po --> sse : status updates
+po --> ws : real-time events
+po --> push : notifications
+
+' Data persistence
+payment --> paydb
+txn --> paydb
+settlement --> paydb
+po --> eventdb : events
+po --> streams : event streaming
+
+' Compliance
+po --> audit : log transactions
+ss --> reports : regulatory data
+monitor --> compliance
+
+' Reconciliation
+recon --> paydb : payment data
+recon --> networks : network data
+recon --> reports : reconciliation
+
+' Refunds
+refund --> payment : refund request
+refund --> networks : process refund
+refund --> audit : log refund
+
+note right of domain
+    Payment Domain:
+    • Payment Aggregates
+    • State Machine Pattern
+    • Idempotency Support
+    • Multi-currency Support
+    • Fee Calculations
+end note
+
+note bottom of realtime
+    Real-time Capabilities:
+    • Server-Sent Events (SSE)
+    • WebSocket connections
+    • Push notifications
+    • Live payment tracking
+end note
+
+note left of fraud
+    Fraud Prevention:
+    • Real-time screening
+    • ML-based detection
+    • Behavioral analysis
+    • Risk-based authentication
+end note
+
+@enduml

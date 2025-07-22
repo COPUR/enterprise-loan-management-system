@@ -1,0 +1,162 @@
+@startuml cbdc-payment-flow
+!theme spacelab
+
+title AmanahFi Platform - UAE Digital Dirham (CBDC) Payment Flow
+
+actor "Customer" as Customer
+participant "AmanahFi Mobile App" as MobileApp
+participant "Islamic API Gateway" as Gateway
+participant "CBDC Payment Service" as CBDCService
+participant "Sharia Compliance Validator" as ShariaValidator
+participant "CBDC Wallet Service" as WalletService
+participant "UAE Central Bank\nCBDC Network" as CBDCNetwork
+participant "Risk Monitoring" as RiskMonitor
+participant "AML Service" as AMLService
+participant "Settlement Engine" as Settlement
+participant "Notification Service" as NotificationService
+participant "Audit Trail" as AuditTrail
+
+== CBDC Payment Initiation ==
+
+Customer -> MobileApp : Initiate Payment\n(Amount: 5,000 AED Digital Dirham)
+activate MobileApp
+
+MobileApp -> MobileApp : Biometric Authentication\n(Fingerprint/Face ID)
+MobileApp -> Gateway : Payment Request + Digital Signature
+activate Gateway
+
+Gateway -> Gateway : OAuth 2.1 + DPoP Validation
+Gateway -> ShariaValidator : Validate Islamic Compliance
+activate ShariaValidator
+
+ShariaValidator --> Gateway : Compliance: APPROVED ✅
+deactivate ShariaValidator
+
+Gateway -> CBDCService : Process CBDC Payment
+activate CBDCService
+
+== Pre-Payment Validation ==
+
+CBDCService -> WalletService : Check CBDC Wallet Balance
+activate WalletService
+WalletService -> WalletService : Verify Available Balance\n(Current: 15,000 AED DD)
+WalletService --> CBDCService : Balance: SUFFICIENT ✅
+deactivate WalletService
+
+CBDCService -> AMLService : AML Screening
+activate AMLService
+
+AMLService -> AMLService : Risk Assessment\n(Amount: 5,000 AED < 10,000 AED threshold)
+AMLService --> CBDCService : AML Status: CLEARED ✅\n(Risk Level: LOW)
+deactivate AMLService
+
+CBDCService -> RiskMonitor : Real-time Risk Check
+activate RiskMonitor
+RiskMonitor -> RiskMonitor : Pattern Analysis\n(Velocity, Geography, Behavior)
+RiskMonitor --> CBDCService : Risk Status: ACCEPTABLE ✅
+deactivate RiskMonitor
+
+== CBDC Network Settlement ==
+
+CBDCService -> Settlement : Initiate CBDC Settlement
+activate Settlement
+
+Settlement -> CBDCNetwork : Submit Digital Dirham Transaction
+activate CBDCNetwork
+
+CBDCNetwork -> CBDCNetwork : Validate Digital Signature
+CBDCNetwork -> CBDCNetwork : Execute Blockchain Transaction
+CBDCNetwork -> CBDCNetwork : Update Digital Dirham Ledger
+
+CBDCNetwork --> Settlement : Settlement: COMPLETED ✅\n(Transaction ID: CBDC-2024-001)\n(Time: 2.3 seconds)
+deactivate CBDCNetwork
+
+Settlement --> CBDCService : Settlement Confirmed
+deactivate Settlement
+
+== Post-Payment Processing ==
+
+CBDCService -> WalletService : Update Wallet Balance
+activate WalletService
+WalletService -> WalletService : Deduct Amount\n(New Balance: 10,000 AED DD)
+WalletService --> CBDCService : Balance Updated ✅
+deactivate WalletService
+
+CBDCService -> AuditTrail : Log Payment Transaction
+activate AuditTrail
+AuditTrail -> AuditTrail : Create Immutable Record
+AuditTrail --> CBDCService : Audit Record: CREATED ✅
+deactivate AuditTrail
+
+CBDCService -> NotificationService : Send Payment Confirmation
+activate NotificationService
+NotificationService -> Customer : SMS + Push Notification\n"Payment of 5,000 AED DD successful"
+NotificationService -> Customer : Email Receipt\n(PDF with Islamic Banking Declaration)
+deactivate NotificationService
+
+CBDCService --> Gateway : Payment Status: COMPLETED ✅
+deactivate CBDCService
+
+Gateway --> MobileApp : Payment Confirmation\n(Transaction ID: TXN-2024-001)
+deactivate Gateway
+
+MobileApp --> Customer : Payment Successful ✅\n(Settlement Time: 2.3 seconds)
+deactivate MobileApp
+
+== High-Value Transaction Flow ==
+
+alt High-Value Transaction (≥10,000 AED)
+    AMLService -> AMLService : Enhanced Due Diligence
+    AMLService -> Customer : Additional Verification Required
+    Customer -> AMLService : Provide Purpose of Transaction
+    AMLService -> AMLService : Manual Review Process
+    
+    alt Review Approved
+        AMLService --> CBDCService : AML Status: APPROVED (Enhanced)
+    else Review Rejected
+        AMLService --> CBDCService : AML Status: REJECTED
+        CBDCService --> Gateway : Payment: BLOCKED
+        Gateway --> Customer : Transaction Declined (AML)
+    end
+end
+
+== Error Handling & Resilience ==
+
+alt CBDC Network Unavailable
+    CBDCNetwork --> Settlement : Network Error
+    Settlement -> Settlement : Retry Logic (3 attempts)
+    Settlement -> Settlement : Circuit Breaker Activated
+    Settlement --> CBDCService : Settlement: FAILED (Network Issue)
+    CBDCService --> Gateway : Payment: DEFERRED
+    Gateway --> Customer : Payment Queued (Will retry automatically)
+    
+    loop Retry Mechanism
+        Settlement -> CBDCNetwork : Retry Settlement
+        alt Network Restored
+            CBDCNetwork --> Settlement : Settlement: SUCCESS
+            Settlement --> Customer : Delayed Payment Confirmation
+        end
+    end
+end
+
+alt Insufficient CBDC Balance
+    WalletService --> CBDCService : Balance: INSUFFICIENT ❌
+    CBDCService --> Gateway : Payment: DECLINED (Insufficient Balance)
+    Gateway --> MobileApp : Error: Insufficient Digital Dirham
+    MobileApp --> Customer : Top-up CBDC Wallet Required
+end
+
+== Regulatory Reporting ==
+
+loop Daily/Real-time Reporting
+    AuditTrail -> CBDCNetwork : Daily Transaction Report
+    AuditTrail -> AMLService : AML Transaction Summary
+    AMLService -> AMLService : Generate STR (if suspicious)
+    
+    alt Suspicious Activity Detected
+        AMLService -> CBDCNetwork : Suspicious Transaction Report
+        CBDCNetwork -> CBDCNetwork : Regulatory Escalation
+    end
+end
+
+@enduml

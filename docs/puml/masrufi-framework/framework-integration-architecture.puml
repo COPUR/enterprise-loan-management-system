@@ -1,0 +1,126 @@
+@startuml framework-integration-architecture
+!theme spacelab
+
+title MasruFi Framework - Integration Architecture & Extension Model
+
+' Host Enterprise Banking System
+package "Host Enterprise Banking System" #lightsteelblue {
+  rectangle "Enterprise Loan Management" as EnterpriseCore #lightsteelblue
+  rectangle "Customer Management" as CustomerCore #lightsteelblue
+  rectangle "Payment Processing" as PaymentCore #lightsteelblue
+  rectangle "Risk Management" as RiskCore #lightsteelblue
+  rectangle "Compliance Engine" as ComplianceCore #lightsteelblue
+  rectangle "Core Database" as CoreDB #lightsteelblue
+}
+
+' MasruFi Framework (High Cohesion, Loose Coupling)
+package "MasruFi Framework" #lightpink {
+  
+  ' Framework Facade (Single Entry Point)
+  rectangle "MasruFi Framework Facade" as FrameworkFacade #lightpink
+  
+  ' Islamic Finance Core Services
+  package "Islamic Finance Services" #lightgoldenrodyellow {
+    rectangle "Murabaha Service" as MurabahaService #lightgoldenrodyellow
+    rectangle "Musharakah Service" as MusharakahService #lightgoldenrodyellow
+    rectangle "Ijarah Service" as IjarahService #lightgoldenrodyellow
+    rectangle "Salam Service" as SalamService #lightgoldenrodyellow
+    rectangle "Istisna Service" as IstisnaService #lightgoldenrodyellow
+    rectangle "Qard Hassan Service" as QardService #lightgoldenrodyellow
+  }
+  
+  ' Sharia Compliance Engine
+  rectangle "Sharia Compliance Engine" as ShariaEngine #lightgreen
+  
+  ' Multi-Jurisdiction Support
+  rectangle "Multi-Jurisdiction Engine" as JurisdictionEngine #lightcyan
+  
+  ' UAE CBDC Integration
+  rectangle "UAE CBDC Integration" as CBDCIntegration #lightyellow
+  
+  ' Enterprise Integration Layer
+  rectangle "Enterprise Integration" as EnterpriseIntegration #lightgray
+}
+
+' External Islamic Finance Ecosystem
+package "Islamic Finance Ecosystem" #lightgoldenrodyellow {
+  rectangle "UAE Higher Sharia Authority" as HSA
+  rectangle "Central Bank of UAE" as CBUAE
+  rectangle "Sharia Supervisory Boards" as SSB
+  rectangle "Islamic Banking Network" as IBN
+  rectangle "UAE Digital Dirham Network" as CBDCNetwork
+  rectangle "International Islamic Banks" as IntlIslamic
+}
+
+' Integration Patterns
+
+' Framework Facade Integration
+EnterpriseCore --> FrameworkFacade : **Spring Boot\nAuto-Configuration**
+CustomerCore --> FrameworkFacade : **Service Discovery\n@Autowired Injection**
+PaymentCore --> FrameworkFacade : **Event-Driven\nIntegration**
+RiskCore --> FrameworkFacade : **REST API\nIntegration**
+ComplianceCore --> FrameworkFacade : **Compliance Data\nSynchronization**
+
+' Framework Internal Architecture
+FrameworkFacade --> MurabahaService : **Service\nOrchestration**
+FrameworkFacade --> MusharakahService : **Service\nOrchestration**
+FrameworkFacade --> IjarahService : **Service\nOrchestration**
+FrameworkFacade --> SalamService : **Service\nOrchestration**
+FrameworkFacade --> IstisnaService : **Service\nOrchestration**
+FrameworkFacade --> QardService : **Service\nOrchestration**
+
+FrameworkFacade --> ShariaEngine : **Compliance\nValidation**
+FrameworkFacade --> JurisdictionEngine : **Multi-Region\nRules**
+FrameworkFacade --> CBDCIntegration : **Digital Currency\nOperations**
+FrameworkFacade --> EnterpriseIntegration : **Host System\nIntegration**
+
+' Sharia Compliance Integration
+MurabahaService --> ShariaEngine : **Murabaha\nValidation**
+MusharakahService --> ShariaEngine : **Musharakah\nValidation**
+IjarahService --> ShariaEngine : **Ijarah\nValidation**
+SalamService --> ShariaEngine : **Salam\nValidation**
+IstisnaService --> ShariaEngine : **Istisna\nValidation**
+QardService --> ShariaEngine : **Qard Hassan\nValidation**
+
+' Multi-Jurisdiction Configuration
+ShariaEngine --> JurisdictionEngine : **Regional Rules\nApplication**
+CBDCIntegration --> JurisdictionEngine : **UAE-Specific\nImplementation**
+
+' External Ecosystem Integration
+ShariaEngine ..> HSA : **Sharia Authority\nCompliance**
+JurisdictionEngine ..> CBUAE : **Central Bank\nRegulations**
+MurabahaService ..> SSB : **Supervisory Board\nApproval**
+CBDCIntegration ..> CBDCNetwork : **Digital Dirham\nSettlement**
+JurisdictionEngine ..> IBN : **Islamic Banking\nNetwork**
+JurisdictionEngine ..> IntlIslamic : **International\nStandards**
+
+' Enterprise System Integration
+EnterpriseIntegration --> CustomerCore : **Customer Data\nSynchronization**
+EnterpriseIntegration --> PaymentCore : **Payment\nIntegration**
+EnterpriseIntegration --> ComplianceCore : **Compliance\nReporting**
+EnterpriseIntegration --> CoreDB : **Data\nPersistence**
+
+' Hot-Swappable Business Rules
+note top of ShariaEngine : **Hot-Swappable Rules Engine**\n- Runtime Rule Updates\n- No System Downtime\n- A/B Testing Support\n- Rollback Capabilities\n- Audit Trail
+
+note right of FrameworkFacade : **Spring Boot Auto-Configuration**\n- @EnableMasrufiFframework\n- Automatic Bean Registration\n- Configuration Properties\n- Health Indicators\n- Metrics Integration
+
+note bottom of CBDCIntegration : **UAE Digital Dirham Features**\n- Instant Settlement (≤5 seconds)\n- Blockchain-based Security\n- Smart Contract Integration\n- Multi-signature Support\n- Regulatory Compliance
+
+note left of JurisdictionEngine : **Multi-Jurisdiction Capabilities**\n- Country-Specific Rules\n- Currency Support\n- Regulatory Frameworks\n- Language Localization\n- Time Zone Handling
+
+' Integration Modes
+package "Integration Modes" #lavender {
+  rectangle "Extension Mode" as ExtensionMode #lavender
+  rectangle "Hybrid Mode" as HybridMode #lavender
+  rectangle "Full Integration Mode" as FullMode #lavender
+}
+
+FrameworkFacade ..> ExtensionMode : **Default Mode**
+FrameworkFacade ..> HybridMode : **Migration Mode**
+FrameworkFacade ..> FullMode : **Islamic Bank Mode**
+
+' Quality Attributes
+note top of FrameworkFacade : **Quality Attributes**\n**High Cohesion**: All Islamic finance logic centralized\n**Loose Coupling**: Minimal dependencies on host system\n**Hot-Swappable**: Business rules updated without downtime\n**Multi-Tenant**: Support multiple jurisdictions\n**Event-Driven**: Asynchronous integration patterns
+
+@enduml

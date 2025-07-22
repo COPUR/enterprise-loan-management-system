@@ -1,0 +1,101 @@
+@startuml multi-jurisdiction-support
+!theme spacelab
+
+title MasruFi Framework - Multi-Jurisdiction Islamic Banking Support
+
+' Global Islamic Banking Jurisdictions
+package "Global Islamic Banking Jurisdictions" #lightgoldenrodyellow {
+  
+  rectangle "UAE 🇦🇪" as UAE #lightgreen
+  
+  rectangle "Saudi Arabia 🇸🇦" as KSA #lightcyan
+  rectangle "Malaysia 🇲🇾" as MYS #lightblue
+  rectangle "Qatar 🇶🇦" as QAT #lightyellow
+  rectangle "Kuwait 🇰🇼" as KWT #lightpink
+  rectangle "Bahrain 🇧🇭" as BHR #lightgray
+}
+
+' MasruFi Multi-Jurisdiction Engine
+rectangle "MasruFi Multi-Jurisdiction Engine" as MasrufiEngine #lightsteelblue
+
+' Jurisdiction-Specific Components
+package "Jurisdiction-Specific Adapters" #lavender {
+  rectangle "UAE Adapter" as UAEAdapter #lavender
+  rectangle "KSA Adapter" as KSAAdapter #lavender  
+  rectangle "Malaysia Adapter" as MYSAdapter #lavender
+  rectangle "Qatar Adapter" as QATAdapter #lavender
+  rectangle "Kuwait Adapter" as KWTAdapter #lavender
+  rectangle "Bahrain Adapter" as BHRAdapter #lavender
+}
+
+' Common Islamic Banking Framework
+package "Common Islamic Banking Framework" #lightcyan {
+  rectangle "Sharia Principles Engine" as ShariaCore #lightcyan
+  rectangle "Islamic Product Factory" as ProductFactory #lightcyan
+  rectangle "Multi-Currency Engine" as CurrencyEngine #lightcyan
+  rectangle "Cross-Border Settlement" as CrossBorder #lightcyan
+  rectangle "Regulatory Reporting Hub" as ReportingHub #lightcyan
+}
+
+' Integrations
+MasrufiEngine --> UAEAdapter : **UAE Configuration**
+MasrufiEngine --> KSAAdapter : **KSA Configuration**
+MasrufiEngine --> MYSAdapter : **Malaysia Configuration**
+MasrufiEngine --> QATAdapter : **Qatar Configuration**
+MasrufiEngine --> KWTAdapter : **Kuwait Configuration**
+MasrufiEngine --> BHRAdapter : **Bahrain Configuration**
+
+UAEAdapter --> UAE : **CBUAE/HSA Integration**
+KSAAdapter --> KSA : **SAMA Integration**
+MYSAdapter --> MYS : **BNM Integration**
+QATAdapter --> QAT : **QCB Integration**
+KWTAdapter --> KWT : **CBK Integration**
+BHRAdapter --> BHR : **CBB Integration**
+
+MasrufiEngine --> ShariaCore : **Core Sharia Rules**
+MasrufiEngine --> ProductFactory : **Product Configuration**
+MasrufiEngine --> CurrencyEngine : **Multi-Currency Support**
+MasrufiEngine --> CrossBorder : **Cross-Border Transactions**
+MasrufiEngine --> ReportingHub : **Regulatory Reporting**
+
+' Regional Groupings & Integration
+package "Regional Integration" #lightgoldenrodyellow {
+  rectangle "GCC Islamic Banking Union" as GCC #lightgoldenrodyellow
+  rectangle "ASEAN Islamic Finance" as ASEAN #lightgoldenrodyellow
+  rectangle "OIC Islamic Banking" as OIC #lightgoldenrodyellow
+}
+
+MasrufiEngine ..> GCC : **GCC Integration**
+MasrufiEngine ..> ASEAN : **ASEAN Integration**  
+MasrufiEngine ..> OIC : **OIC Standards**
+
+' Cross-Jurisdictional Use Cases
+package "Cross-Jurisdictional Use Cases" #lightsteelblue {
+  usecase "UAE-KSA Trade Finance" as UseCase1
+  usecase "Malaysia-GCC Investment" as UseCase2
+  usecase "Multi-Country Sukuk" as UseCase3
+  usecase "Hajj/Umrah Financing" as UseCase4
+  usecase "Infrastructure Project Finance" as UseCase5
+  usecase "Cross-Border Real Estate" as UseCase6
+}
+
+MasrufiEngine --> UseCase1 : **UAE-Saudi Trade**
+MasrufiEngine --> UseCase2 : **Malaysia Investment**
+MasrufiEngine --> UseCase3 : **International Sukuk**
+MasrufiEngine --> UseCase4 : **Pilgrimage Finance**
+MasrufiEngine --> UseCase5 : **Infrastructure Projects**
+MasrufiEngine --> UseCase6 : **Real Estate Investment**
+
+' Compliance Matrix
+note top of MasrufiEngine : **Multi-Jurisdiction Compliance Matrix**\n\n**UAE**: CBUAE + HSA + VARA Standards\n**Saudi**: SAMA + Vision 2030 Requirements\n**Malaysia**: BNM + SAC + MIFC Guidelines\n**Qatar**: QCB + National Vision 2030\n**Kuwait**: CBK + KFH Traditional Standards\n**Bahrain**: CBB + AAOIFI Headquarters Standards
+
+' Currency Support
+note right of CurrencyEngine : **Multi-Currency Support**\n\n**Primary Currencies:**\n🇦🇪 AED (UAE Dirham) + CBDC\n🇸🇦 SAR (Saudi Riyal) + Digital Riyal\n🇲🇾 MYR (Malaysian Ringgit)\n🇶🇦 QAR (Qatari Riyal)\n🇰🇼 KWD (Kuwaiti Dinar)\n🇧🇭 BHD (Bahraini Dinar)\n\n**International:**\n💵 USD (US Dollar)\n💶 EUR (Euro)\n💷 GBP (British Pound)
+
+' Sharia Standards Harmonization
+note bottom of ShariaCore : **Sharia Standards Harmonization**\n\n**Global Standards:**\n- AAOIFI (Bahrain-based)\n- IFSB (Malaysia-based)\n- ISRA (Malaysia-based)\n- CIBAFI (Bahrain-based)\n\n**Regional Variations:**\n- UAE: HSA Guidelines\n- Saudi: Shura Council Decisions\n- Malaysia: SAC Rulings\n- GCC: Harmonized Approach
+
+' Technology Architecture
+note left of MasrufiEngine : **Technology Architecture**\n\n**Real-time Rule Switching:**\n- Hot-swappable compliance rules\n- Zero-downtime updates\n- A/B testing capabilities\n- Rollback mechanisms\n\n**Performance:**\n- <100ms rule evaluation\n- 99.99% uptime guarantee\n- Auto-scaling capabilities\n- Multi-region deployment
+
+@enduml

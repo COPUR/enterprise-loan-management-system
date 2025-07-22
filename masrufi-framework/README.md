@@ -55,6 +55,19 @@ The **MasruFi Framework** is a high-cohesion, loosely-coupled extension module t
 - **Database Optimized**: Multi-level caching with partitioning and indexing
 - **Compliance First**: Built-in PCI DSS v4.0 and regulatory compliance
 
+## 📊 Framework Architecture Diagrams
+
+### Integration Architecture
+| Diagram | Description | Source |
+|---------|-------------|--------|
+| **[Framework Integration Architecture](../docs/images/framework-integration-architecture.svg)** | Complete integration model showing how MasruFi extends host systems | [PlantUML Source](../docs/puml/masrufi-framework/framework-integration-architecture.puml) |
+| **[Multi-Jurisdiction Support](../docs/images/multi-jurisdiction-support.svg)** | Global Islamic banking jurisdiction support and compliance | [PlantUML Source](../docs/puml/masrufi-framework/multi-jurisdiction-support.puml) |
+
+### Islamic Finance Process Flows
+| Diagram | Description | Source |
+|---------|-------------|--------|
+| **[Islamic Finance Product Flow](../docs/images/islamic-finance-product-flow.svg)** | End-to-end Islamic finance product selection and lifecycle | [PlantUML Source](../docs/puml/masrufi-framework/islamic-finance-product-flow.puml) |
+
 ## 🚀 Quick Start
 
 ### Prerequisites

@@ -1,0 +1,306 @@
+@startuml implementation-security-controls
+!theme spacelab
+title Implementation Security Controls - Code to Runtime Protection
+
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+
+package "Development Security - Shift Left" as devsec {
+    
+    package "Secure Coding Practices" as coding {
+        component [OWASP Guidelines] as owasp
+        component [Static Code Analysis] as sca
+        component [Dependency Scanning] as depscan
+        component [Secret Detection] as secrets
+        component [Code Quality Gates] as quality
+        
+        note right of sca
+            **Static Analysis Tools:**
+            • SonarQube security rules
+            • SpotBugs vulnerability detection
+            • OWASP dependency check
+            • Semgrep security patterns
+        end note
+    }
+    
+    package "Security Testing" as testing {
+        component [Unit Security Tests] as unittests
+        component [Integration Security Tests] as inttests
+        component [DAST Scanning] as dast
+        component [API Security Tests] as api_tests
+        component [Container Scanning] as container_scan
+    }
+    
+    package "Secure CI/CD Pipeline" as cicd {
+        component [Pipeline Security] as pipe_sec
+        component [Image Signing] as signing
+        component [Vulnerability Gates] as gates
+        component [Compliance Checks] as compliance
+        component [Security Approval] as approval
+        
+        note left of signing
+            **Container Security:**
+            • Cosign image signing
+            • Distroless base images
+            • Security policy enforcement
+            • Runtime security monitoring
+        end note
+    }
+}
+
+package "Runtime Security Controls" as runtime {
+    
+    package "Spring Security Configuration" as spring_sec {
+        component [Security Config] as sec_config
+        component [Method Security] as method_sec
+        component [Web Security] as web_sec
+        component [CSRF Protection] as csrf
+        component [Session Management] as session
+        
+        note bottom of sec_config
+            **Spring Security Features:**
+            • @PreAuthorize annotations
+            • Method-level security
+            • CORS configuration
+            • Security headers
+            • Custom authentication filters
+        end note
+    }
+    
+    package "Input Validation & Output Encoding" as validation {
+        component [Bean Validation] as bean_valid
+        component [Custom Validators] as custom_valid
+        component [XSS Prevention] as xss
+        component [SQL Injection Prevention] as sql_prevent
+        component [Parameter Binding] as param_bind
+    }
+    
+    package "Authentication Implementation" as auth_impl {
+        component [OAuth2 Resource Server] as oauth_resource
+        component [JWT Token Validation] as jwt_valid
+        component [DPoP Proof Validation] as dpop_valid
+        component [Certificate Validation] as cert_valid
+        component [Rate Limiting] as rate_limit
+    }
+}
+
+package "Data Access Security" as data_access {
+    
+    package "JPA Security" as jpa_sec {
+        component [@PreFilter] as pre_filter
+        component [@PostFilter] as post_filter
+        component [Entity Security] as entity_sec
+        component [Query Security] as query_sec
+        component [Transaction Security] as tx_sec
+        
+        note right of entity_sec
+            **JPA Security Annotations:**
+            • @PreAuthorize on repositories
+            • @PostFilter on query results
+            • Row-level security integration
+            • Audit entity listeners
+        end note
+    }
+    
+    package "Database Connection Security" as db_conn {
+        component [Connection Pool Security] as pool_sec
+        component [SSL/TLS Connections] as ssl_conn
+        component [Database Credentials] as db_creds
+        component [Connection Validation] as conn_valid
+        component [Statement Timeout] as timeout
+    }
+    
+    package "Cache Security" as cache_sec {
+        component [Redis AUTH] as redis_auth
+        component [Cache Encryption] as cache_enc
+        component [Session Security] as session_sec
+        component [Cache Invalidation] as cache_invalid
+        component [TTL Management] as ttl
+    }
+}
+
+package "Application Security Features" as app_sec {
+    
+    package "API Security Implementation" as api_impl {
+        component [FAPI 2.0 Filter] as fapi_filter
+        component [Content Negotiation] as content_neg
+        component [Request Validation] as req_valid
+        component [Response Filtering] as resp_filter
+        component [API Versioning] as versioning
+        
+        note bottom of fapi_filter
+            **FAPI 2.0 Implementation:**
+            • DPoP proof validation filter
+            • mTLS certificate extraction
+            • PKCE code verification
+            • Scope-based access control
+            • Request object validation
+        end note
+    }
+    
+    package "Audit & Monitoring" as audit {
+        component [Security Event Logging] as sec_logging
+        component [Performance Monitoring] as perf_mon
+        component [Error Handling] as error_handle
+        component [Metrics Collection] as metrics
+        component [Health Checks] as health
+    }
+    
+    package "Data Protection Implementation" as data_protect {
+        component [Field Encryption] as field_enc
+        component [Tokenization Service] as token_svc
+        component [Data Masking] as mask_svc
+        component [Secure Serialization] as serialization
+        component [Audit Trail] as audit_trail
+    }
+}
+
+package "Infrastructure Security" as infra_sec {
+    
+    package "Container Security" as container {
+        component [Security Contexts] as sec_contexts
+        component [Non-Root User] as non_root
+        component [Resource Limits] as resource_limits
+        component [Network Policies] as net_policies
+        component [Pod Security Standards] as pod_sec
+        
+        note right of sec_contexts
+            **Container Security:**
+            • runAsNonRoot: true
+            • readOnlyRootFilesystem: true
+            • allowPrivilegeEscalation: false
+            • capabilities drop ALL
+        end note
+    }
+    
+    package "Kubernetes Security" as k8s_sec {
+        component [RBAC Policies] as rbac
+        component [Service Accounts] as svc_accounts
+        component [Secrets Management] as secrets_mgmt
+        component [Admission Controllers] as admission
+        component [Policy Enforcement] as policy_enforce
+    }
+    
+    package "Network Security" as net_sec {
+        component [Service Mesh mTLS] as mesh_mtls
+        component [Network Segmentation] as net_seg
+        component [Ingress Security] as ingress_sec
+        component [DNS Security] as dns_sec
+        component [Certificate Management] as cert_mgmt
+    }
+}
+
+package "Monitoring & Incident Response" as monitoring {
+    component [Security Information Event Management] as siem
+    component [Real-time Threat Detection] as threat_detect
+    component [Automated Incident Response] as auto_response
+    component [Forensic Analysis] as forensics
+    component [Compliance Reporting] as compliance_report
+    
+    note bottom of threat_detect
+        **Threat Detection:**
+        • Behavioral analysis
+        • Anomaly detection  
+        • ML-based threat hunting
+        • IOC correlation
+        • Automated response actions
+    end note
+}
+
+' Development to Runtime flow
+devsec --> runtime : Secure code
+runtime --> data_access : Protected access
+data_access --> app_sec : Secured application
+app_sec --> infra_sec : Infrastructure security
+
+' Development security flow
+owasp --> sca : Code analysis
+sca --> depscan : Dependency check
+depscan --> secrets : Secret detection
+secrets --> quality : Quality gates
+
+unittests --> inttests : Integration tests
+inttests --> dast : Dynamic testing
+dast --> api_tests : API security
+api_tests --> container_scan : Container security
+
+pipe_sec --> signing : Image signing
+signing --> gates : Security gates
+gates --> compliance : Compliance check
+compliance --> approval : Security approval
+
+' Runtime security implementation
+sec_config --> method_sec : Method security
+method_sec --> web_sec : Web security
+web_sec --> csrf : CSRF protection
+csrf --> session : Session management
+
+bean_valid --> custom_valid : Custom validation
+custom_valid --> xss : XSS prevention
+xss --> sql_prevent : SQL prevention
+sql_prevent --> param_bind : Parameter binding
+
+oauth_resource --> jwt_valid : JWT validation
+jwt_valid --> dpop_valid : DPoP validation
+dpop_valid --> cert_valid : Certificate validation
+cert_valid --> rate_limit : Rate limiting
+
+' Data access security
+pre_filter --> post_filter : Result filtering
+post_filter --> entity_sec : Entity security
+entity_sec --> query_sec : Query security
+query_sec --> tx_sec : Transaction security
+
+pool_sec --> ssl_conn : SSL connections
+ssl_conn --> db_creds : Secure credentials
+db_creds --> conn_valid : Connection validation
+conn_valid --> timeout : Statement timeout
+
+redis_auth --> cache_enc : Cache encryption
+cache_enc --> session_sec : Session security
+session_sec --> cache_invalid : Cache invalidation
+cache_invalid --> ttl : TTL management
+
+' Application security
+fapi_filter --> content_neg : Content negotiation
+content_neg --> req_valid : Request validation
+req_valid --> resp_filter : Response filtering
+resp_filter --> versioning : API versioning
+
+sec_logging --> perf_mon : Performance monitoring
+perf_mon --> error_handle : Error handling
+error_handle --> metrics : Metrics collection
+metrics --> health : Health checks
+
+field_enc --> token_svc : Tokenization
+token_svc --> mask_svc : Data masking
+mask_svc --> serialization : Secure serialization
+serialization --> audit_trail : Audit trail
+
+' Infrastructure security
+sec_contexts --> non_root : Non-root execution
+non_root --> resource_limits : Resource limits
+resource_limits --> net_policies : Network policies
+net_policies --> pod_sec : Pod security
+
+rbac --> svc_accounts : Service accounts
+svc_accounts --> secrets_mgmt : Secrets management
+secrets_mgmt --> admission : Admission control
+admission --> policy_enforce : Policy enforcement
+
+mesh_mtls --> net_seg : Network segmentation
+net_seg --> ingress_sec : Ingress security
+ingress_sec --> dns_sec : DNS security
+dns_sec --> cert_mgmt : Certificate management
+
+' Monitoring integration
+app_sec --> siem : Security events
+infra_sec --> siem : Infrastructure events
+data_access --> siem : Data access events
+
+siem --> threat_detect : Threat detection
+threat_detect --> auto_response : Automated response
+auto_response --> forensics : Forensic analysis
+forensics --> compliance_report : Compliance reporting
+
+@enduml

@@ -1,0 +1,140 @@
+@startuml sharia-compliance-flow
+!theme spacelab
+
+title AmanahFi Platform - Sharia Compliance Validation Flow
+
+actor "Islamic Banking Customer" as Customer
+participant "Islamic API Gateway" as Gateway
+participant "Sharia Compliance Engine" as ShariaEngine
+participant "Murabaha Service" as MurabahaService
+participant "Asset Verification Service" as AssetService
+participant "Sharia Supervisory Board API" as SSB
+participant "Risk Assessment Service" as RiskService
+participant "Compliance Repository" as ComplianceDB
+participant "UAE Higher Sharia Authority" as HSA
+participant "Audit Service" as AuditService
+
+== Islamic Finance Product Request ==
+
+Customer -> Gateway : Request Murabaha Financing\n(Asset: Toyota Camry, Amount: 80,000 AED)
+activate Gateway
+
+Gateway -> ShariaEngine : Validate Islamic Finance Request
+activate ShariaEngine
+
+note right of ShariaEngine : Sharia Validation Rules:\n1. No Riba (Interest)\n2. No Gharar (Uncertainty)\n3. Asset-Backed Only\n4. Halal Asset Required\n5. Transparent Pricing
+
+ShariaEngine -> AssetService : Verify Asset Permissibility\n(Toyota Camry)
+activate AssetService
+
+AssetService -> AssetService : Check Halal Asset Database
+AssetService --> ShariaEngine : Asset Status: HALAL ✅
+deactivate AssetService
+
+ShariaEngine -> ShariaEngine : Validate Profit Margin\n(Max 25% allowed)
+
+alt Profit Margin <= 25%
+    ShariaEngine -> ShariaEngine : Profit Validation: PASSED ✅
+else Profit Margin > 25%
+    ShariaEngine --> Gateway : Compliance Violation: Excessive Profit
+    Gateway --> Customer : Request Rejected: Non-Sharia Compliant
+end
+
+== Asset Ownership Verification ==
+
+ShariaEngine -> MurabahaService : Initiate Asset Purchase Process
+activate MurabahaService
+
+MurabahaService -> AssetService : Verify Asset Ownership Transfer
+AssetService -> AssetService : Confirm Bank Ownership\n(Required for Murabaha)
+AssetService --> MurabahaService : Ownership Status: CONFIRMED ✅
+
+== Sharia Supervisory Board Approval ==
+
+MurabahaService -> SSB : Request Contract Approval\n(Murabaha Terms)
+activate SSB
+
+SSB -> SSB : Review Contract Terms
+SSB -> SSB : Validate Sharia Compliance
+SSB --> MurabahaService : Approval Status: APPROVED ✅\n(Reference: SSB-2024-001)
+deactivate SSB
+
+== Risk Assessment with Islamic Principles ==
+
+MurabahaService -> RiskService : Assess Customer Risk\n(Islamic Factors)
+activate RiskService
+
+note right of RiskService : Islamic Risk Factors:\n- Income Source (Halal)\n- Debt-to-Income Ratio\n- Asset-to-Debt Ratio\n- Previous Islamic Finance\n- Sharia Compliance History
+
+RiskService -> RiskService : Calculate Risk Score\n(Islamic Banking Model)
+RiskService --> MurabahaService : Risk Assessment: ACCEPTABLE ✅\n(Score: 720/1000)
+deactivate RiskService
+
+== Final Compliance Check ==
+
+MurabahaService -> ShariaEngine : Final Compliance Validation
+ShariaEngine -> ShariaEngine : Comprehensive Sharia Check
+
+note left of ShariaEngine : Final Validation:\n✅ Halal Asset\n✅ Asset Ownership\n✅ Profit Margin\n✅ SSB Approval\n✅ Risk Acceptable\n✅ Contract Terms\n✅ Customer Eligible
+
+ShariaEngine -> ComplianceDB : Store Compliance Record
+activate ComplianceDB
+ComplianceDB --> ShariaEngine : Compliance ID: COMP-2024-001
+deactivate ComplianceDB
+
+ShariaEngine --> MurabahaService : Final Approval: GRANTED ✅
+deactivate ShariaEngine
+
+== Contract Generation & Audit ==
+
+MurabahaService -> MurabahaService : Generate Islamic Contract\n(Murabaha Agreement)
+
+MurabahaService -> AuditService : Log Compliance Event
+activate AuditService
+AuditService -> AuditService : Create Audit Trail
+AuditService -> HSA : Submit Compliance Report\n(If Required)
+activate HSA
+HSA --> AuditService : Report Acknowledged
+deactivate HSA
+AuditService --> MurabahaService : Audit Complete
+deactivate AuditService
+
+MurabahaService --> Gateway : Contract Ready for Signing
+deactivate MurabahaService
+
+Gateway --> Customer : Murabaha Contract Approved\n(Sharia Compliant ✅)
+deactivate Gateway
+
+== Non-Compliance Scenarios ==
+
+alt Haram Asset (e.g., Alcohol, Gambling)
+    AssetService --> ShariaEngine : Asset Status: HARAM ❌
+    ShariaEngine --> Gateway : Rejection: Non-Halal Asset
+    Gateway --> Customer : Request Denied: Asset Not Permissible
+end
+
+alt Excessive Gharar (Uncertainty)
+    ShariaEngine --> Gateway : Rejection: Excessive Uncertainty
+    Gateway --> Customer : Request Denied: Contract Terms Unclear
+end
+
+alt Missing Asset Ownership
+    AssetService --> MurabahaService : Ownership: NOT CONFIRMED ❌
+    MurabahaService --> Gateway : Rejection: Asset Ownership Issue
+    Gateway --> Customer : Request Denied: Ownership Problem
+end
+
+== Compliance Monitoring ==
+
+loop Ongoing Monitoring
+    ShariaEngine -> ComplianceDB : Monitor Compliance Status
+    ComplianceDB -> ShariaEngine : Compliance Metrics
+    
+    alt Compliance Breach Detected
+        ShariaEngine -> AuditService : Compliance Alert
+        AuditService -> HSA : Breach Notification
+        AuditService -> Customer : Compliance Notice
+    end
+end
+
+@enduml

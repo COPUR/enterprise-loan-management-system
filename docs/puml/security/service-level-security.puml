@@ -1,0 +1,250 @@
+@startuml service-level-security
+!theme spacelab
+title Service-Level Security Implementation - Zero Trust Architecture
+
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+
+package "Client Layer" as client {
+    component [Web Client] as webclient
+    component [Mobile App] as mobile
+    component [API Client] as apiclient
+    
+    note right of webclient
+        **Client Security:**
+        • Certificate pinning
+        • OWASP security headers
+        • Content Security Policy
+        • Subresource Integrity
+    end note
+}
+
+package "API Gateway - FAPI 2.0 Security" as gateway {
+    component [Kong Gateway] as kong
+    component [FAPI 2.0 Plugin] as fapi
+    component [Rate Limiting] as rate
+    component [IP Allowlisting] as ip
+    component [JWT Validation] as jwt
+    component [DPoP Validation] as dpop
+    
+    note bottom of fapi
+        **FAPI 2.0 Requirements:**
+        • RFC 9449 DPoP proof validation
+        • mTLS certificate verification
+        • PKCE code challenge
+        • Scope-based authorization
+        • Request object signing
+    end note
+}
+
+package "Service Mesh - Istio" as mesh {
+    component [Envoy Proxy] as envoy
+    component [mTLS Termination] as mtls
+    component [Service Identity] as identity
+    component [Policy Enforcement] as policy
+    component [Telemetry Collection] as telemetry
+    
+    note right of mtls
+        **Mutual TLS:**
+        • Automatic certificate rotation
+        • SPIFFE identity framework
+        • Service-to-service encryption
+        • Zero trust networking
+    end note
+}
+
+package "Authentication Services" as auth {
+    component [Keycloak] as keycloak
+    component [OAuth 2.1 + PKCE] as oauth
+    component [OpenID Connect] as oidc
+    component [Multi-Factor Auth] as mfa
+    component [Biometric Auth] as bio
+    
+    database "Identity Store" as idstore
+    
+    note left of keycloak
+        **Authentication Features:**
+        • Social login integration
+        • Risk-based authentication
+        • Session management
+        • Brute force protection
+        • Account lockout policies
+    end note
+}
+
+package "Business Services" as services {
+    
+    package "Loan Service Security" as loan {
+        component [Authorization Filter] as loanauth
+        component [Input Validation] as loanvalid
+        component [Audit Logger] as loanaudit
+        component [Sensitive Data Handler] as loansensitive
+        
+        note bottom of loansensitive
+            **Loan Data Protection:**
+            • SSN tokenization
+            • Income data encryption
+            • Credit score masking
+            • Document encryption
+        end note
+    }
+    
+    package "Payment Service Security" as payment {
+        component [PCI-DSS Filter] as pcifilter
+        component [Card Data Tokenization] as tokenize
+        component [Fraud Detection] as fraud
+        component [3DS Verification] as threeds
+        component [Transaction Signing] as txnsign
+        
+        note bottom of tokenize
+            **PCI-DSS Compliance:**
+            • PAN tokenization (never store)
+            • CVV2 not stored
+            • Cardholder data minimization
+            • Secure key management
+        end note
+    }
+    
+    package "Customer Service Security" as customer {
+        component [GDPR Compliance] as gdpr
+        component [Data Subject Rights] as dsr
+        component [Consent Management] as consent
+        component [PII Encryption] as pii
+        
+        note bottom of gdpr
+            **Privacy Protection:**
+            • Right to be forgotten
+            • Data portability
+            • Consent tracking
+            • Privacy by design
+        end note
+    }
+}
+
+package "Data Security Layer" as datasec {
+    
+    package "Database Security" as db {
+        database "PostgreSQL" as postgres {
+            component [Row-Level Security] as rls
+            component [Column Encryption] as colenc
+            component [Audit Triggers] as triggers
+            component [Connection Pooling] as pool
+        }
+        
+        database "Redis Secure" as redis {
+            component [AUTH Command] as redisauth
+            component [SSL/TLS] as redistls
+            component [Memory Encryption] as redismem
+            component [Access Control Lists] as redisacl
+        }
+        
+        note right of postgres
+            **Database Security:**
+            • Transparent Data Encryption (TDE)
+            • Database firewall rules
+            • Privileged user monitoring
+            • Query analysis and blocking
+        end note
+    }
+    
+    package "Encryption Services" as encryption {
+        component [AWS KMS] as kms
+        component [Envelope Encryption] as envelope
+        component [Key Rotation] as rotation
+        component [HSM Integration] as hsm
+        
+        note left of kms
+            **Key Management:**
+            • Customer managed keys
+            • Automatic key rotation
+            • Audit key usage
+            • Cross-region replication
+        end note
+    }
+}
+
+package "Security Monitoring" as monitoring {
+    component [SIEM System] as siem
+    component [Real-time Alerting] as alerts
+    component [Behavioral Analytics] as behavioral
+    component [Threat Intelligence] as threat
+    component [Incident Response] as incident
+    
+    note bottom of siem
+        **Security Monitoring:**
+        • 24/7 SOC monitoring
+        • Automated threat detection
+        • Compliance reporting
+        • Forensic capabilities
+    end note
+}
+
+' Client to Gateway
+client --> kong : HTTPS/TLS 1.3
+kong --> fapi : FAPI validation
+kong --> rate : Rate limiting
+kong --> ip : IP filtering
+kong --> jwt : JWT validation
+kong --> dpop : DPoP validation
+
+' Gateway to Service Mesh
+kong --> envoy : Authenticated request
+envoy --> mtls : Service authentication
+envoy --> identity : Service identity
+envoy --> policy : Policy enforcement
+envoy --> telemetry : Security telemetry
+
+' Authentication flow
+kong --> keycloak : Authentication
+keycloak --> oauth : OAuth 2.1
+keycloak --> oidc : OpenID Connect
+keycloak --> mfa : Multi-factor
+keycloak --> bio : Biometric
+keycloak --> idstore : Identity storage
+
+' Service Security
+envoy --> loanauth : Authorized request
+loanauth --> loanvalid : Validated input
+loanvalid --> loanaudit : Audit log
+loanaudit --> loansensitive : Process data
+
+envoy --> pcifilter : PCI validation
+pcifilter --> tokenize : Tokenize cards
+tokenize --> fraud : Fraud check
+fraud --> threeds : 3DS verification
+threeds --> txnsign : Sign transaction
+
+envoy --> gdpr : Privacy check
+gdpr --> dsr : Subject rights
+dsr --> consent : Consent validation
+consent --> pii : Encrypt PII
+
+' Data Security
+services --> rls : Row-level security
+services --> colenc : Column encryption
+services --> triggers : Audit triggers
+services --> pool : Secure connections
+
+services --> redisauth : Redis authentication
+redisauth --> redistls : TLS encryption
+redistls --> redismem : Memory encryption
+redismem --> redisacl : Access control
+
+' Encryption
+datasec --> kms : Key management
+kms --> envelope : Envelope encryption
+envelope --> rotation : Key rotation
+rotation --> hsm : Hardware security
+
+' Monitoring
+services --> siem : Security logs
+datasec --> siem : Data access logs
+mesh --> siem : Network logs
+gateway --> siem : API logs
+
+siem --> alerts : Real-time alerts
+alerts --> behavioral : Behavior analysis
+behavioral --> threat : Threat intel
+threat --> incident : Incident response
+
+@enduml

@@ -1,0 +1,122 @@
+@startuml bounded-context-map
+!theme spacelab
+
+title Enterprise Banking System - Bounded Context Map
+
+' Core Banking Domain
+package "Core Banking Domain" #lightblue {
+  rectangle "Customer Context" as CC #lightblue
+  rectangle "Loan Context" as LC #lightblue
+  rectangle "Payment Context" as PC #lightblue
+  rectangle "Risk Context" as RC #lightblue
+  rectangle "Compliance Context" as CompC #lightblue
+  rectangle "Open Finance Context" as OFC #lightblue
+}
+
+' Islamic Banking Domain (AmanahFi Platform)
+package "Islamic Banking Domain" #lightgreen {
+  rectangle "Onboarding Context" as OnC #lightgreen
+  rectangle "Accounts Context" as AC #lightgreen
+  rectangle "Payments Context" as PayC #lightgreen
+  rectangle "Murabaha Context" as MurC #lightgreen
+  rectangle "Islamic Compliance" as IC #lightgreen
+}
+
+' Shared Domain
+package "Shared Domain" #lightyellow {
+  rectangle "Shared Kernel" as SK #lightyellow
+  rectangle "Common Domain" as CD #lightyellow
+}
+
+' Infrastructure Domain
+package "Infrastructure Domain" #lightgray {
+  rectangle "Shared Infrastructure" as SI #lightgray
+  rectangle "Common Infrastructure" as CI #lightgray
+}
+
+' MasruFi Framework Extension
+package "MasruFi Framework" #lightpink {
+  rectangle "Islamic Finance Engine" as IFE #lightpink
+}
+
+' Context Relationships
+
+' Core Banking Relationships
+CC --> LC : Customer\n[Conformist]
+LC --> RC : Risk Assessment\n[Customer-Supplier]
+PC --> LC : Loan Payments\n[Partnership]
+CompC --> CC : Customer Validation\n[Customer-Supplier]
+CompC --> LC : Loan Compliance\n[Customer-Supplier]
+CompC --> PC : Payment Compliance\n[Customer-Supplier]
+OFC --> PC : Open Banking Payments\n[Customer-Supplier]
+RC --> CC : Customer Risk Profile\n[Customer-Supplier]
+
+' Islamic Banking Relationships
+OnC --> AC : Account Creation\n[Customer-Supplier]
+AC --> PayC : Account Payments\n[Partnership]
+PayC --> MurC : Murabaha Payments\n[Customer-Supplier]
+IC --> OnC : Sharia KYC\n[Customer-Supplier]
+IC --> AC : Account Compliance\n[Customer-Supplier]
+IC --> PayC : Payment Compliance\n[Customer-Supplier]
+IC --> MurC : Contract Compliance\n[Customer-Supplier]
+
+' Cross-Domain Integration
+OnC --> CC : Customer Sync\n[Published Language]
+AC --> PC : Payment Integration\n[Open Host Service]
+PayC --> PC : Settlement Sync\n[Shared Kernel]
+MurC --> LC : Islamic Loan Products\n[Anti-Corruption Layer]
+IC --> CompC : Compliance Sync\n[Partnership]
+
+' MasruFi Framework Integration
+IFE --> MurC : Islamic Products\n[Open Host Service]
+IFE --> IC : Sharia Rules\n[Published Language]
+IFE --> AC : Product Configuration\n[Customer-Supplier]
+
+' Shared Domain Dependencies
+CC --> SK : Value Objects\n[Shared Kernel]
+LC --> SK : Value Objects\n[Shared Kernel]
+PC --> SK : Value Objects\n[Shared Kernel]
+RC --> SK : Value Objects\n[Shared Kernel]
+CompC --> SK : Value Objects\n[Shared Kernel]
+OFC --> SK : Value Objects\n[Shared Kernel]
+
+OnC --> SK : Value Objects\n[Shared Kernel]
+AC --> SK : Value Objects\n[Shared Kernel]
+PayC --> SK : Value Objects\n[Shared Kernel]
+MurC --> SK : Value Objects\n[Shared Kernel]
+IC --> SK : Value Objects\n[Shared Kernel]
+
+CC --> CD : Base Entities\n[Shared Kernel]
+LC --> CD : Base Entities\n[Shared Kernel]
+PC --> CD : Base Entities\n[Shared Kernel]
+RC --> CD : Base Entities\n[Shared Kernel]
+CompC --> CD : Base Entities\n[Shared Kernel]
+
+' Infrastructure Dependencies
+CC --> SI : Event Publishing\n[Published Language]
+LC --> SI : Event Publishing\n[Published Language]
+PC --> SI : Event Publishing\n[Published Language]
+RC --> SI : Event Publishing\n[Published Language]
+CompC --> SI : Event Publishing\n[Published Language]
+OFC --> SI : Event Publishing\n[Published Language]
+
+OnC --> SI : Event Publishing\n[Published Language]
+AC --> SI : Event Publishing\n[Published Language]
+PayC --> SI : Event Publishing\n[Published Language]
+MurC --> SI : Event Publishing\n[Published Language]
+IC --> SI : Event Publishing\n[Published Language]
+
+SI --> CI : Common Infrastructure\n[Shared Kernel]
+
+' Context Details
+note right of CC : Customer Aggregate\nKYC Management\nCustomer Lifecycle\n\nServices:\n- CustomerService\n- KYCService
+
+note right of LC : Loan Aggregate\nLoan Application\nLoan Lifecycle\n\nServices:\n- LoanOriginationService\n- LoanManagementService
+
+note right of OnC : Islamic Customer\nSharia KYC\nUAE Compliance\n\nServices:\n- IslamicOnboardingService\n- UAEComplianceService
+
+note right of MurC : Murabaha Contract\nAsset Management\nProfit Calculation\n\nServices:\n- MurabahaService\n- IslamicFinancingService
+
+note bottom : **Context Map Legend**\n**[Conformist]** - Downstream conforms to upstream\n**[Customer-Supplier]** - Clear upstream/downstream relationship\n**[Partnership]** - Mutual dependency with shared responsibility\n**[Shared Kernel]** - Shared domain model\n**[Published Language]** - Well-defined integration contract\n**[Open Host Service]** - Service provides public API\n**[Anti-Corruption Layer]** - Downstream protects from upstream changes
+
+@enduml

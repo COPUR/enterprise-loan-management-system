@@ -36,20 +36,85 @@ This platform transcends traditional banking systems by implementing a **secure-
 
 ### System Architecture Diagrams
 
+#### Core System Architecture
 | Diagram | Description | Source |
 |---------|-------------|--------|
-| **[Security Architecture](docs/images/Enhanced%20Enterprise%20Banking%20Security%20Architecture.svg)** | Zero-trust security with OAuth 2.1 and mTLS | [PlantUML Source](docs/puml/oauth2-sequence-flow.puml) |
-| **[Service Mesh Architecture](docs/images/Istio%20Service%20Mesh%20Zero-Trust%20Architecture.svg)** | Istio service mesh with circuit breakers | [PlantUML Source](docs/puml/istio-service-mesh-architecture.puml) |
-| **[Microservices Overview](docs/images/Secure%20Microservices%20Architecture%20Overview.svg)** | Complete microservices architecture | [PlantUML Source](docs/puml/secure-microservices-overview.puml) |
-| **[OAuth 2.1 Flow](docs/images/OAuth%202.1%20Authorization%20Code%20Flow%20with%20PKCE.svg)** | Authentication and authorization flow | [PlantUML Source](docs/puml/oauth2-sequence-flow.puml) |
-| **[Keycloak Architecture](docs/images/OAuth%202.1%20Keycloak%20Authentication%20Architecture.svg)** | Identity provider integration | [PlantUML Source](docs/puml/oauth2-keycloak-architecture.puml) |
+| **[System Architecture Overview](docs/images/system-architecture-overview.svg)** | Complete system architecture with all components | [PlantUML Source](docs/puml/system-overview/system-architecture-overview.puml) |
+| **[Bounded Context Map](docs/images/bounded-context-map.svg)** | Domain-driven design context relationships | [PlantUML Source](docs/puml/system-overview/bounded-context-map.puml) |
+| **[Technology Stack](docs/images/technology-stack-diagram.svg)** | Complete technology stack and dependencies | [PlantUML Source](docs/puml/system-overview/technology-stack-diagram.puml) |
+| **[Deployment Architecture](docs/images/deployment-architecture.svg)** | Multi-environment deployment topology | [PlantUML Source](docs/puml/system-overview/deployment-architecture.puml) |
+
+#### Security & Compliance Architecture (PCI-DSS v4.0)
+| Diagram | Description | Source |
+|---------|-------------|--------|
+| **[PCI-DSS v4.0 Compliance Architecture](docs/images/security/pci-dss-v4-compliance-architecture.svg)** | Multi-layer PCI-DSS v4.0 compliance framework | [PlantUML Source](docs/puml/security/pci-dss-v4-compliance-architecture.puml) |
+| **[Service-Level Security](docs/images/security/service-level-security.svg)** | Zero-trust service architecture with FAPI 2.0 | [PlantUML Source](docs/puml/security/service-level-security.puml) |
+| **[Data Protection Layers](docs/images/security/data-protection-layers.svg)** | Comprehensive data protection (PCI-DSS + GDPR) | [PlantUML Source](docs/puml/security/data-protection-layers.puml) |
+| **[Implementation Security Controls](docs/images/security/implementation-security-controls.svg)** | Code-to-runtime security implementation | [PlantUML Source](docs/puml/security/implementation-security-controls.puml) |
+
+#### Bounded Context Architecture
+| Diagram | Description | Source |
+|---------|-------------|--------|
+| **[Loan Context Architecture](docs/images/loan-context-architecture.svg)** | Hexagonal architecture for loan domain | [PlantUML Source](docs/puml/bounded-contexts/loan-context-architecture.puml) |
+| **[Payment Context Architecture](docs/images/payment-context-architecture.svg)** | Real-time payment processing with fraud detection | [PlantUML Source](docs/puml/bounded-contexts/payment-context-architecture.puml) |
+
+## 🔒 PCI-DSS v4.0 Security Architecture
+
+### Multi-Layer Security Framework
+
+The Enterprise Banking System implements **PCI-DSS v4.0 compliance** through a comprehensive multi-layer security architecture:
+
+#### **Layer 1: Network Security (Requirement 1)**
+- **Web Application Firewall (WAF)** with SQL injection and XSS protection
+- **DDoS protection** and rate limiting
+- **Network microsegmentation** with VLAN isolation
+- **Firewall rules** with quarterly penetration testing
+
+#### **Layer 2: Secure Configurations (Requirement 2)**
+- **Mutual TLS (mTLS)** enforcement for all service-to-service communication  
+- **Zero-trust networking** with service mesh (Istio)
+- **Certificate-based authentication** with automatic rotation
+- **Secure default configurations** across all components
+
+#### **Layer 3: Data Protection (Requirements 3 & 4)**
+- **Cardholder data tokenization** - PAN never stored in clear text
+- **CVV2 never stored** - immediate purge after processing
+- **AES-256-GCM encryption** at rest with AWS KMS key management
+- **TLS 1.3 encryption** in transit with Perfect Forward Secrecy
+- **Field-level encryption** for sensitive data (SSN, account numbers)
+
+#### **Layer 4: Access Control (Requirements 7 & 8)**
+- **OAuth 2.1 + PKCE** authentication with FAPI 2.0 compliance
+- **DPoP token binding** (RFC 9449) for proof-of-possession
+- **Multi-factor authentication** with biometric support
+- **Role-based access control (RBAC)** with principle of least privilege
+- **Administrative access controls** with session management
+
+#### **Layer 5: Monitoring & Logging (Requirements 10 & 11)**
+- **SIEM system** with real-time threat detection
+- **24/7 security monitoring** with automated incident response
+- **File integrity monitoring** and vulnerability scanning
+- **Comprehensive audit logging** with tamper-proof storage
+
+### FAPI 2.0 Financial-Grade API Security
+
+| Security Control | Implementation | Standard |
+|------------------|----------------|----------|
+| **Token Binding** | DPoP proof validation (RFC 9449) | FAPI 2.0 |
+| **Mutual TLS** | Certificate-based client authentication | FAPI 2.0 |
+| **PKCE** | Proof Key for Code Exchange | OAuth 2.1 |
+| **Request Signing** | JWS request object signing | FAPI 2.0 |
+| **Scope Enforcement** | Fine-grained permission validation | FAPI 2.0 |
 
 ### Core Design Principles
 
 - **Zero-Trust Security**: Never trust, always verify with mTLS everywhere
+- **Defense in Depth**: Multiple security layers with overlapping controls
+- **Security by Design**: Security embedded in architecture from inception
+- **Continuous Compliance**: Automated compliance validation and reporting
 - **Domain-Driven Design**: Clean separation of business domains and concerns  
 - **Hexagonal Architecture**: Pure domain logic with infrastructure abstraction
-- **OAuth 2.1 Compliance**: Latest security standards with FAPI integration
+- **FAPI 2.0 Compliance**: Financial-grade API security standards
 - **BIAN Alignment**: Banking Industry Architecture Network compliance
 - **Cloud-Native**: Kubernetes-first design with service mesh security
 

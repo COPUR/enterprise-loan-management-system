@@ -1,0 +1,218 @@
+@startuml deployment-architecture
+!theme spacelab
+
+title Enterprise Banking System - Multi-Environment Deployment Architecture
+
+' Production Environment
+package "Production Environment" #lightsteelblue {
+  
+  ' Load Balancer & Ingress
+  cloud "AWS ALB / Azure Load Balancer" as ALB
+  rectangle "Istio Ingress Gateway" as IngressGW #lightyellow
+  rectangle "NGINX Ingress Controller" as NGINX #lightyellow
+  
+  ' Kubernetes Cluster
+  package "Kubernetes Cluster (Multi-AZ)" #lightblue {
+    
+    ' Control Plane
+    package "Control Plane" #lightyellow {
+      rectangle "API Server" as APIServer #lightyellow
+      rectangle "etcd Cluster" as etcd #lightyellow
+      rectangle "Scheduler" as Scheduler #lightyellow
+      rectangle "Controller Manager" as ControllerMgr #lightyellow
+    }
+    
+    ' Istio Service Mesh
+    package "Istio Service Mesh" #lightcyan {
+      rectangle "Istio Pilot" as Pilot #lightcyan
+      rectangle "Istio Citadel" as Citadel #lightcyan
+      rectangle "Istio Galley" as Galley #lightcyan
+      rectangle "Istio Mixer" as Mixer #lightcyan
+      rectangle "Jaeger Tracing" as Jaeger #lightcyan
+    }
+    
+    ' Banking Services Namespace
+    package "banking-system Namespace" #lightgreen {
+      
+      ' AmanahFi Platform Pods
+      package "AmanahFi Platform" #lightgoldenrodyellow {
+        rectangle "API Gateway\n(3 replicas)" as AmanahGWPod #lightgreen
+        rectangle "Onboarding Service\n(2 replicas)" as OnboardPod #lightgreen
+        rectangle "Accounts Service\n(3 replicas)" as AccountsPod #lightgreen
+        rectangle "Payments Service\n(3 replicas)" as PaymentsPod #lightgreen
+        rectangle "Murabaha Service\n(2 replicas)" as MurabahaPod #lightgreen
+        rectangle "Compliance Service\n(2 replicas)" as CompliancePod #lightgreen
+      }
+      
+      ' Core Banking Pods
+      package "Core Banking Services" #lightblue {
+        rectangle "Customer Service\n(3 replicas)" as CustomerPod #lightgreen
+        rectangle "Loan Service\n(3 replicas)" as LoanPod #lightgreen
+        rectangle "Payment Service\n(3 replicas)" as CorePaymentPod #lightgreen
+        rectangle "Risk Service\n(2 replicas)" as RiskPod #lightgreen
+        rectangle "Open Finance Service\n(2 replicas)" as OpenFinancePod #lightgreen
+      }
+      
+      ' Shared Services
+      package "Shared Services" #lightcyan {
+        rectangle "Event Streaming\n(Kafka - 3 replicas)" as KafkaPod #lightgreen
+        rectangle "Cache Service\n(Redis Cluster - 6 replicas)" as RedisPod #lightgreen
+        rectangle "Configuration Service\n(2 replicas)" as ConfigPod #lightgreen
+      }
+    }
+    
+    ' Identity & Security Namespace
+    package "security-system Namespace" #lightpink {
+      rectangle "Keycloak\n(3 replicas)" as KeycloakPod #lightgreen
+      rectangle "OAuth2 Proxy\n(2 replicas)" as OAuthProxyPod #lightgreen
+      rectangle "Certificate Manager\n(1 replica)" as CertManagerPod #lightgreen
+    }
+    
+    ' Monitoring Namespace
+    package "monitoring-system Namespace" #lightyellow {
+      rectangle "Prometheus\n(2 replicas)" as PrometheusPod #lightgreen
+      rectangle "Grafana\n(2 replicas)" as GrafanaPod #lightgreen
+      rectangle "AlertManager\n(3 replicas)" as AlertManagerPod #lightgreen
+      rectangle "ELK Stack\n(Elasticsearch 3, Kibana 2, Logstash 2)" as ELKPod #lightgreen
+    }
+  }
+  
+  ' Database Layer (External)
+  package "Database Layer" #lightcoral {
+    database "PostgreSQL\n(Multi-AZ RDS)" as PostgreSQLProd
+    database "Redis Cluster\n(ElastiCache)" as RedisProd
+  }
+}
+
+' Staging Environment
+package "Staging Environment" #lightgray {
+  package "Staging K8s Cluster" #lightblue {
+    rectangle "AmanahFi Services\n(1 replica each)" as StagingAmanah #lightgreen
+    rectangle "Core Banking Services\n(1 replica each)" as StagingCore #lightgreen
+    rectangle "Shared Services\n(1 replica each)" as StagingShared #lightgreen
+    database "PostgreSQL\n(Single AZ)" as PostgreSQLStaging
+    database "Redis\n(Single Node)" as RedisStaging
+  }
+}
+
+' Development Environment
+package "Development Environment" #lightcyan {
+  package "Local / Dev Cluster" #lightblue {
+    rectangle "All Services\n(1 replica)" as DevServices #lightgreen
+    database "H2 In-Memory\n/ Local PostgreSQL" as DevDB
+    database "Embedded Redis" as DevRedis
+  }
+}
+
+' CI/CD Pipeline
+package "CI/CD Pipeline" #lavender {
+  rectangle "GitHub Actions" as GithubActions #lavender
+  rectangle "Docker Registry\n(ECR/ACR)" as DockerRegistry #lavender
+  rectangle "Helm Chart Repository" as HelmRepo #lavender
+  rectangle "ArgoCD" as ArgoCD #lavender
+  rectangle "Terraform Cloud" as TerraformCloud #lavender
+}
+
+' External Dependencies
+package "External Services" #lightgray {
+  rectangle "AWS/Azure Services" as CloudServices #lightgray
+  rectangle "Central Bank APIs" as CBAPIs #lightgray
+  rectangle "Payment Networks" as PaymentNetworks #lightgray
+  rectangle "Regulatory Systems" as RegulatorySystems #lightgray
+}
+
+' Traffic Flow
+ALB --> IngressGW : HTTPS/443
+ALB --> NGINX : HTTP/80, HTTPS/443
+IngressGW --> AmanahGWPod : mTLS
+NGINX --> CustomerPod : HTTP
+NGINX --> LoanPod : HTTP
+
+' Service Dependencies
+AmanahGWPod --> OnboardPod : gRPC/HTTP
+AmanahGWPod --> AccountsPod : gRPC/HTTP
+AmanahGWPod --> PaymentsPod : gRPC/HTTP
+AmanahGWPod --> MurabahaPod : gRPC/HTTP
+AmanahGWPod --> CompliancePod : gRPC/HTTP
+
+CustomerPod --> LoanPod : HTTP/REST
+LoanPod --> RiskPod : HTTP/REST
+CorePaymentPod --> LoanPod : HTTP/REST
+OpenFinancePod --> CorePaymentPod : HTTP/REST
+
+' Event Streaming
+OnboardPod --> KafkaPod : Kafka Protocol
+AccountsPod --> KafkaPod : Kafka Protocol
+PaymentsPod --> KafkaPod : Kafka Protocol
+MurabahaPod --> KafkaPod : Kafka Protocol
+CompliancePod --> KafkaPod : Kafka Protocol
+
+CustomerPod --> KafkaPod : Kafka Protocol
+LoanPod --> KafkaPod : Kafka Protocol
+CorePaymentPod --> KafkaPod : Kafka Protocol
+RiskPod --> KafkaPod : Kafka Protocol
+
+' Caching
+AccountsPod --> RedisPod : Redis Protocol
+PaymentsPod --> RedisPod : Redis Protocol
+CustomerPod --> RedisPod : Redis Protocol
+LoanPod --> RedisPod : Redis Protocol
+
+' Database Connections
+OnboardPod --> PostgreSQLProd : JDBC/SSL
+AccountsPod --> PostgreSQLProd : JDBC/SSL
+PaymentsPod --> PostgreSQLProd : JDBC/SSL
+MurabahaPod --> PostgreSQLProd : JDBC/SSL
+CompliancePod --> PostgreSQLProd : JDBC/SSL
+
+CustomerPod --> PostgreSQLProd : JDBC/SSL
+LoanPod --> PostgreSQLProd : JDBC/SSL
+CorePaymentPod --> PostgreSQLProd : JDBC/SSL
+RiskPod --> PostgreSQLProd : JDBC/SSL
+OpenFinancePod --> PostgreSQLProd : JDBC/SSL
+
+' Security Integration
+AmanahGWPod --> KeycloakPod : OAuth2/OpenID
+KeycloakPod --> OAuthProxyPod : Token Validation
+CertManagerPod --> IngressGW : TLS Certificates
+
+' Monitoring Integration
+PrometheusPod --> AmanahGWPod : Metrics Scraping
+PrometheusPod --> CustomerPod : Metrics Scraping
+PrometheusPod --> LoanPod : Metrics Scraping
+GrafanaPod --> PrometheusPod : Query
+AlertManagerPod --> PrometheusPod : Alerting
+
+' Service Mesh Integration
+Pilot --> AmanahGWPod : Configuration
+Pilot --> CustomerPod : Configuration
+Pilot --> LoanPod : Configuration
+Citadel --> Pilot : Certificate Management
+Jaeger --> AmanahGWPod : Distributed Tracing
+
+' CI/CD Flow
+GithubActions --> DockerRegistry : Push Images
+GithubActions --> HelmRepo : Push Charts
+ArgoCD --> HelmRepo : Pull Charts
+ArgoCD --> APIServer : Deploy
+TerraformCloud --> CloudServices : Provision Infrastructure
+
+' External Integration
+AmanahGWPod --> CBAPIs : HTTPS/REST
+PaymentsPod --> PaymentNetworks : HTTPS/REST
+CompliancePod --> RegulatorySystems : HTTPS/REST
+
+' Environment Promotion
+StagingAmanah --> AmanahGWPod : Promote to Prod
+StagingCore --> CustomerPod : Promote to Prod
+DevServices --> StagingAmanah : Promote to Staging
+
+' Scaling Policies
+note top of AmanahGWPod : **HPA**: CPU 70%, Memory 80%\n**VPA**: Enabled\n**PDB**: Min Available 2
+note top of CustomerPod : **HPA**: CPU 70%, Memory 80%\n**VPA**: Enabled\n**PDB**: Min Available 2
+note top of KafkaPod : **StatefulSet**\n**Persistent Volumes**\n**Anti-Affinity Rules**
+
+' Security Policies
+note bottom of IngressGW : **mTLS**: Strict Mode\n**Network Policies**: Enabled\n**RBAC**: Fine-grained
+
+@enduml

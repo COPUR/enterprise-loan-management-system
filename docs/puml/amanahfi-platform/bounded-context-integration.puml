@@ -1,0 +1,126 @@
+@startuml bounded-context-integration
+!theme spacelab
+
+title AmanahFi Platform - Bounded Context Integration & Communication
+
+' External Systems
+package "External Islamic Finance Ecosystem" #lightgoldenrodyellow {
+  rectangle "UAE Central Bank" as CBUAE
+  rectangle "Higher Sharia Authority" as HSA
+  rectangle "Sharia Supervisory Board" as SSB
+  rectangle "Islamic Banking Network" as IBN
+  rectangle "UAE Digital Dirham Network" as CBDC
+}
+
+' AmanahFi Platform Contexts
+package "AmanahFi Platform" #lightgreen {
+  
+  rectangle "Onboarding Context" as OnboardingBC #lightcyan
+  rectangle "Accounts Context" as AccountsBC #lightcyan
+  rectangle "Payments Context" as PaymentsBC #lightcyan
+  rectangle "Murabaha Context" as MurabahaBC #lightcyan
+  rectangle "Compliance Context" as ComplianceBC #lightcyan
+  
+  ' Cross-Cutting Concerns
+  rectangle "API Gateway" as APIGateway #lightyellow
+  rectangle "Event Streaming" as EventBus #lightyellow
+}
+
+' MasruFi Framework
+package "MasruFi Framework" #lightpink {
+  rectangle "Islamic Products Engine" as ProductsEngine #lightpink
+  rectangle "Sharia Validation Engine" as ValidationEngine #lightpink
+  rectangle "Multi-Jurisdiction Engine" as JurisdictionEngine #lightpink
+}
+
+' Shared Infrastructure
+package "Shared Infrastructure" #lightgray {
+  database "Islamic Banking Database" as Database
+  rectangle "Redis Cache" as Cache
+  rectangle "Kafka Event Store" as Kafka
+  rectangle "Shared Kernel" as SharedKernel
+}
+
+' Integration Flows
+
+' External System Integrations
+OnboardingBC ..> CBUAE : Emirates ID\nValidation
+ComplianceBC ..> HSA : Sharia Compliance\nReporting
+MurabahaBC ..> SSB : Contract Approval\nWorkflow
+PaymentsBC ..> CBDC : Digital Dirham\nSettlement
+ComplianceBC ..> IBN : AML Data\nSharing
+
+' Context-to-Context Integration (Synchronous)
+APIGateway --> OnboardingBC : HTTP/REST\nCustomer Onboarding
+APIGateway --> AccountsBC : HTTP/REST\nAccount Management  
+APIGateway --> PaymentsBC : HTTP/REST\nPayment Processing
+APIGateway --> MurabahaBC : HTTP/REST\nIslamic Financing
+APIGateway --> ComplianceBC : HTTP/REST\nCompliance Checks
+
+' Direct Context Communication (Synchronous)
+OnboardingBC --> AccountsBC : HTTP/gRPC\nAccount Creation
+AccountsBC --> PaymentsBC : HTTP/gRPC\nPayment Authorization
+PaymentsBC --> MurabahaBC : HTTP/gRPC\nContract Payment
+ComplianceBC <-- OnboardingBC : HTTP/gRPC\nKYC Validation
+ComplianceBC <-- AccountsBC : HTTP/gRPC\nAccount Compliance
+ComplianceBC <-- PaymentsBC : HTTP/gRPC\nPayment Compliance
+ComplianceBC <-- MurabahaBC : HTTP/gRPC\nContract Compliance
+
+' Event-Driven Communication (Asynchronous)
+OnboardingBC ..> EventBus : **CustomerRegistered**\n**KYCCompleted**\n**IslamicPreferenceSet**
+AccountsBC ..> EventBus : **AccountCreated**\n**CBDCWalletActivated**\n**ProfitCalculated**
+PaymentsBC ..> EventBus : **PaymentProcessed**\n**CBDCSettlementCompleted**\n**FeeCalculated**
+MurabahaBC ..> EventBus : **ContractCreated**\n**AssetPurchased**\n**InstallmentDue**
+ComplianceBC ..> EventBus : **ComplianceCheckCompleted**\n**AMLScreeningDone**\n**ShariaValidated**
+
+' Event Subscriptions
+EventBus ..> OnboardingBC : Subscribe:\n**AccountCreated**
+EventBus ..> AccountsBC : Subscribe:\n**CustomerRegistered**\n**ComplianceCheckCompleted**
+EventBus ..> PaymentsBC : Subscribe:\n**AccountCreated**\n**ContractCreated**
+EventBus ..> MurabahaBC : Subscribe:\n**CustomerRegistered**\n**PaymentProcessed**
+EventBus ..> ComplianceBC : Subscribe:\n**CustomerRegistered**\n**AccountCreated**\n**PaymentProcessed**\n**ContractCreated**
+
+' MasruFi Framework Integration
+ProductsEngine --> MurabahaBC : Islamic Product\nDefinitions
+ValidationEngine --> ComplianceBC : Sharia Rules\nEngine
+JurisdictionEngine --> ComplianceBC : Multi-Region\nCompliance
+
+' Shared Infrastructure Dependencies
+OnboardingBC --> Database : Customer Data\nPersistence
+AccountsBC --> Database : Account Data\nPersistence
+PaymentsBC --> Database : Payment Data\nPersistence
+MurabahaBC --> Database : Contract Data\nPersistence
+ComplianceBC --> Database : Compliance Data\nPersistence
+
+OnboardingBC --> Cache : Customer Session\nCaching
+AccountsBC --> Cache : Balance Caching
+PaymentsBC --> Cache : Exchange Rate\nCaching
+ComplianceBC --> Cache : Rules Caching
+
+EventBus --> Kafka : Event Persistence\n& Streaming
+
+OnboardingBC --> SharedKernel : Common Value Objects\n(Money, CustomerId)
+AccountsBC --> SharedKernel : Common Value Objects\n(Money, AccountId)
+PaymentsBC --> SharedKernel : Common Value Objects\n(Money, PaymentId)
+MurabahaBC --> SharedKernel : Common Value Objects\n(Money, ContractId)
+ComplianceBC --> SharedKernel : Common Value Objects\n(ComplianceId)
+
+' Data Flow Patterns
+
+note top of OnboardingBC : **Customer Onboarding Flow**\n1. Customer Registration\n2. Emirates ID Validation (CBUAE)\n3. Islamic Banking Preference\n4. Sharia KYC Process\n5. Account Creation Trigger
+
+note right of AccountsBC : **Account Management Flow**\n1. Receive CustomerRegistered Event\n2. Create Islamic Banking Account\n3. Setup CBDC Wallet\n4. Configure Profit-Sharing\n5. Publish AccountCreated Event
+
+note bottom of PaymentsBC : **Payment Processing Flow**\n1. Validate Sharia Compliance\n2. Check Account Balance\n3. Process CBDC Settlement\n4. Calculate Islamic Fees\n5. Update Account Balance
+
+note left of MurabahaBC : **Islamic Financing Flow**\n1. Asset Permissibility Check\n2. Customer Eligibility\n3. Sharia Supervisory Approval\n4. Contract Generation\n5. Payment Schedule Setup
+
+note top of ComplianceBC : **Compliance Validation Flow**\n1. Real-time Rule Checking\n2. AML/KYC Validation\n3. Sharia Compliance Scoring\n4. Regulatory Reporting\n5. Risk Assessment
+
+' Integration Patterns Legend
+note bottom : **Integration Patterns Used**\n**Synchronous**: HTTP/REST, gRPC for immediate responses\n**Asynchronous**: Domain Events via Kafka for loose coupling\n**Request-Response**: Direct API calls for business operations\n**Publish-Subscribe**: Event-driven communication for decoupling\n**Shared Database**: Common data model for consistency\n**API Gateway**: Single entry point with routing & security
+
+' Quality Attributes
+note top : **Quality Attributes**\n**Consistency**: Eventually consistent via events\n**Availability**: Circuit breakers & fallback mechanisms\n**Scalability**: Independent scaling per context\n**Security**: OAuth 2.1 + FAPI 2.0 compliance\n**Performance**: Caching & async processing\n**Auditability**: Complete event trail for compliance
+
+@enduml
