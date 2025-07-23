@@ -12,7 +12,7 @@ spring:
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/banking_dev}
     username: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:password}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
@@ -37,7 +37,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      password: ${REDIS_PASSWORD}
       database: ${REDIS_DATABASE:0}
       timeout: ${REDIS_TIMEOUT:5000}
       lettuce:
@@ -94,7 +94,7 @@ banking:
 # Security Configuration
 security:
   jwt:
-    secret: ${JWT_SECRET:banking-dev-secret-key-change-in-production}
+    secret: ${JWT_SECRET}
     expiration-hours: ${JWT_EXPIRATION_HOURS:1}
     refresh-expiration-hours: ${JWT_REFRESH_EXPIRATION_HOURS:24}
     issuer: ${JWT_ISSUER:https://dev-auth.bank.com}

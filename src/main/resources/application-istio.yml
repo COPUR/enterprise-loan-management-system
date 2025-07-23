@@ -21,7 +21,7 @@ spring:
     redis:
       host: ${REDIS_HOST:banking-redis}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      password: ${REDIS_PASSWORD}
       timeout: ${REDIS_TIMEOUT:5000ms}
       database: ${REDIS_DATABASE:0}
       cluster:

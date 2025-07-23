@@ -288,6 +288,6 @@ secrets:
   redis:
     password: "secure-redis-password"
   jwt:
-    secret: "secure-jwt-secret-key"
+    # secret: ""  # Must be provided via values override or external secret management
   oauth:
-    clientSecret: "secure-oauth-client-secret"
+    # clientSecret: ""  # Must be provided via values override or external secret management

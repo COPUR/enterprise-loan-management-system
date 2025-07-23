@@ -9,7 +9,7 @@ spring:
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5435/banking_enterprise}
     username: ${DATABASE_USERNAME:banking_enterprise}
-    password: ${DATABASE_PASSWORD:enterprise_banking_pass_2024}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -51,7 +51,7 @@ spring:
         registration:
           keycloak:
             client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_ID:banking-client}
-            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET:banking-client-secret}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET}
             authorization-grant-type: authorization_code
             redirect-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_REDIRECT_URI:http://localhost:8083/login/oauth2/code/keycloak}
             scope: openid,profile,email

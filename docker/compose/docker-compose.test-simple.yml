@@ -69,7 +69,7 @@ services:
       AUDIT_ENABLED: "true"
       
       # Security Configuration
-      JWT_SECRET: enhanced_banking_jwt_secret_key_for_testing
+      JWT_SECRET: ${JWT_SECRET_TEST:-test-jwt-secret-change-for-production}
       
       # Skip validation script
       SKIP_PRESTART_VALIDATION: "true"

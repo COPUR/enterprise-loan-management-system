@@ -45,6 +45,16 @@ private/
 *bearer*
 *auth*
 
+# OAuth and Security Configuration (ADDITIONAL SECURITY)
+*oauth-secret*
+*client-secret*
+*banking-secret*
+*keycloak-secret*
+*app-secret*
+application-*-secret.yml
+application-*-secret.yaml
+application-*-secret.properties
+
 # Environment Configuration Files
 .env
 .env.*

@@ -9,7 +9,7 @@ spring:
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://postgres:5432/banking_system}
     username: ${DATABASE_USERNAME:banking_user}
-    password: ${DATABASE_PASSWORD:banking_secure_pass}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -35,7 +35,7 @@ spring:
     redis:
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:banking_redis_pass}
+      password: ${REDIS_PASSWORD}
       timeout: 10000ms
       database: 0
       jedis:

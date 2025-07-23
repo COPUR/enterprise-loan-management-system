@@ -289,9 +289,11 @@ metadata:
   namespace: banking-system
 type: Opaque
 data:
-  client-id: YmFua2luZy1zeXN0ZW0tZnJvbnRlbmQ=  # banking-system-frontend
-  client-secret: YmFua2luZy1mcm9udGVuZC1zZWNyZXQtMjAyNA==  # banking-frontend-secret-2024
-  cookie-secret: YjJGdmNqVXpiREZFWjNKcFlYTnBVbEZ2Wm05WE1qTT0=  # base64 of random 32 bytes
+  # SECURITY WARNING: These values must be provided via external secret management
+  # Do not commit actual secret values to version control
+  client-id: ""  # Must be provided via kubectl or external secret operator
+  client-secret: ""  # Must be provided via kubectl or external secret operator  
+  cookie-secret: ""  # Must be provided via kubectl or external secret operator
 ---
 # TLS Certificate Secret (Self-signed for testing)
 apiVersion: v1

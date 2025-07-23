@@ -550,7 +550,7 @@ data:
           "enabled": true,
           "alwaysDisplayInConsole": false,
           "clientAuthenticatorType": "client-secret",
-          "secret": "banking-client-secret-2024",
+          "secret": "${KEYCLOAK_CLIENT_SECRET}",
           "redirectUris": [
             "https://banking.local/*",
             "https://app.banking.local/*",
@@ -615,7 +615,7 @@ data:
           "description": "Administrative interface for banking system management",
           "enabled": true,
           "clientAuthenticatorType": "client-secret",
-          "secret": "banking-admin-secret-2024",
+          "secret": "${KEYCLOAK_ADMIN_CLIENT_SECRET}",
           "redirectUris": [
             "https://admin.banking.local/*",
             "http://localhost:3001/*"

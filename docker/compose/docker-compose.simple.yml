@@ -77,7 +77,7 @@ services:
       
       # Security Configuration (Basic)
       SECURITY_ENABLED: false
-      JWT_SECRET: ${JWT_SECRET:-secure_banking_jwt_secret_key_256_bit_minimum}
+      JWT_SECRET: ${JWT_SECRET}
       
       # Banking Configuration
       LOAN_MAX_AMOUNT: ${LOAN_MAX_AMOUNT:-5000000}

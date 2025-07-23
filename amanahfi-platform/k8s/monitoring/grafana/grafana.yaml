@@ -390,7 +390,7 @@ stringData:
   admin-password: "PLACEHOLDER_GRAFANA_ADMIN_PASSWORD"
   secret-key: "PLACEHOLDER_GRAFANA_SECRET_KEY"
   db-password: "PLACEHOLDER_GRAFANA_DB_PASSWORD"
-  oauth-client-secret: "PLACEHOLDER_OAUTH_CLIENT_SECRET"
+  # oauth-client-secret: ""  # Must be provided via external secret management
   smtp-password: "PLACEHOLDER_SMTP_PASSWORD"
   prometheus-auth-password: "PLACEHOLDER_PROMETHEUS_AUTH_PASSWORD"
   prometheus-api-token: "PLACEHOLDER_PROMETHEUS_API_TOKEN"

@@ -179,7 +179,7 @@ services:
       ISLAMIC_FINANCE_ML_ENABLED: "true"
       
       # Security Configuration
-      JWT_SECRET: enhanced_banking_jwt_secret_key_for_testing
+      JWT_SECRET: ${JWT_SECRET_TEST:-test-jwt-secret-change-for-production}
       
       # Performance Configuration
       JAVA_OPTS: >-

@@ -11,7 +11,7 @@ spring:
     # Primary connection for gateway and shared services
     url: jdbc:postgresql://localhost:5432/banking_gateway
     username: ${PGUSER:banking_user}
-    password: ${PGPASSWORD:banking_pass}
+    password: ${PGPASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -118,7 +118,7 @@ microservices:
     database:
       url: jdbc:postgresql://localhost:5432/customer_db
       username: ${PGUSER:banking_user}
-      password: ${PGPASSWORD:banking_pass}
+      password: ${PGPASSWORD}
       schema: customer_db
       pool:
         maximum-pool-size: 15
@@ -130,7 +130,7 @@ microservices:
     database:
       url: jdbc:postgresql://localhost:5432/loan_db
       username: ${PGUSER:banking_user}
-      password: ${PGPASSWORD:banking_pass}
+      password: ${PGPASSWORD}
       schema: loan_db
       pool:
         maximum-pool-size: 15
@@ -142,7 +142,7 @@ microservices:
     database:
       url: jdbc:postgresql://localhost:5432/payment_db
       username: ${PGUSER:banking_user}
-      password: ${PGPASSWORD:banking_pass}
+      password: ${PGPASSWORD}
       schema: payment_db
       pool:
         maximum-pool-size: 15
