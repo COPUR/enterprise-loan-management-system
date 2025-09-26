@@ -12,12 +12,6 @@
 This project may not build or compile out of the box due to its complexity and dependencies on specific configurations. It is recommended to use it as a reference for architectural patterns rather than a ready-to-deploy solution.
 
 
-## Executive Summary
-
-**Ali Copur** presents a comprehensive Enterprise Banking System architecture that addresses the evolving demands of modern financial institutions through strategic modularity and enterprise-grade flexibility. This platform represents a synthesis of decades of financial technology expertise, delivering a robust foundation that seamlessly adapts to diverse organizational requirements while maintaining uncompromising security and regulatory compliance standards.
-
-**Connect with me:** [LinkedIn: linkedin.com/in/acopur](https://linkedin.com/in/acopur) - Open to strategic discussions on enterprise banking architecture and fintech innovation.
-
 ## Enterprise Banking System
 
 The Enterprise Banking System embodies a transformative approach to financial services architecture, engineered with modular microservices that enable institutions to rapidly configure and deploy solutions tailored to their specific market requirements. Built on hexagonal architecture principles and Domain-Driven Design, this platform offers unprecedented flexibility - allowing organizations to selectively implement components ranging from traditional lending operations to cutting-edge Islamic finance modules and CBDC integration.
