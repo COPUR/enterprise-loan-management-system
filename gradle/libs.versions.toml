@@ -74,7 +74,7 @@ jqwik = "1.8.2"
 # Code Quality & Analysis
 spotbugs = "5.2.1"
 checkstyle = "10.12.7"
-pmd = "6.55.0"
+pmd = "7.21.0"
 jacoco = "0.8.14"
 sonarqube = "4.4.1.3373"
 owasp-dependency-check = "9.0.7"

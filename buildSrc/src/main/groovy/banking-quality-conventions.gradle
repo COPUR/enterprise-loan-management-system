@@ -67,7 +67,7 @@ jacocoTestCoverageVerification {
 
 // PMD configuration
 pmd {
-    toolVersion = "6.55.0"
+    toolVersion = "7.21.0"
     ignoreFailures = false
     ruleSetFiles = files("${rootProject.projectDir}/config/pmd/banking-rules.xml")
     ruleSets = []
