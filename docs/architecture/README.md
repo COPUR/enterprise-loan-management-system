@@ -60,12 +60,13 @@ docs/
 - **Ports Pattern**: Clear separation between business logic and external concerns
 
 ### Technology Stack
-- **Framework**: Spring Boot 3.2.0 with Java 25.0.2
+- **Framework**: Spring Boot 3.3.6 with Java 25.0.2
 - **Database**: PostgreSQL with HikariCP connection pooling
 - **Cache**: Redis with Lettuce/Jedis clients
 - **AI Integration**: Spring AI 1.0.0-M3 with OpenAI GPT-4
 - **Security**: Spring Security with FAPI compliance
 - **Monitoring**: Micrometer with Prometheus integration
+- **Build**: Gradle 9.3.1
 
 ### Domain-Driven Design
 - **Bounded Contexts**: Customer Management, Loan Origination, Payment Processing

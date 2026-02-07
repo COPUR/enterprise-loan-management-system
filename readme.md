@@ -3,7 +3,7 @@
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/COPUR/enterprise-loan-management-system)
 [![Security](https://img.shields.io/badge/security-zero--trust-green)](docs/architecture/overview/SECURE_MICROSERVICES_ARCHITECTURE.md)
 [![Architecture](https://img.shields.io/badge/architecture-microservices-blue)](docs/architecture/overview/ARCHITECTURE_CATALOGUE.md)
-[![OAuth 2.1](https://img.shields.io/badge/OAuth-2.1-blue)](docs/security-architecture/README.md)
+[![OAuth 2.1](https://img.shields.io/badge/OAuth-2.1-blue)](docs/architecture/overview/SECURE_MICROSERVICES_ARCHITECTURE.md)
 [![Istio](https://img.shields.io/badge/service--mesh-Istio-blue)](docs/architecture/adr/ADR-005-istio-service-mesh.md)
 [![Java](https://img.shields.io/badge/Java-25.0.2-orange)](https://openjdk.org/projects/jdk/25/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.6-green)](https://spring.io/projects/spring-boot)
@@ -26,17 +26,17 @@ This platform transcends traditional banking systems by implementing a **secure-
 
 ## Architecture Overview
 
-![Enhanced Enterprise Banking Security Architecture](docs/images/Enhanced%20Enterprise%20Banking%20Security%20Architecture.svg)
+![Enhanced Enterprise Banking Security Architecture](docs/images/security/system-architecture-overview.svg)
 
 ### System Architecture Diagrams
 
 #### Core System Architecture
 | Diagram | Description | Source |
 |---------|-------------|--------|
-| **[System Architecture Overview](docs/images/system-architecture-overview.svg)** | Complete system architecture with all components | [PlantUML Source](docs/puml/system-overview/system-architecture-overview.puml) |
-| **[Bounded Context Map](docs/images/bounded-context-map.svg)** | Domain-driven design context relationships | [PlantUML Source](docs/puml/system-overview/bounded-context-map.puml) |
-| **[Technology Stack](docs/images/technology-stack-diagram.svg)** | Complete technology stack and dependencies | [PlantUML Source](docs/puml/system-overview/technology-stack-diagram.puml) |
-| **[Deployment Architecture](docs/images/deployment-architecture.svg)** | Multi-environment deployment topology | [PlantUML Source](docs/puml/system-overview/deployment-architecture.puml) |
+| **[System Architecture Overview](docs/images/security/system-architecture-overview.svg)** | Complete system architecture with all components | [PlantUML Source](docs/puml/system-overview/system-architecture-overview.puml) |
+| **[Bounded Context Map](docs/images/security/bounded-context-map.svg)** | Domain-driven design context relationships | [PlantUML Source](docs/puml/system-overview/bounded-context-map.puml) |
+| **[Technology Stack](docs/images/security/technology-stack-diagram.svg)** | Complete technology stack and dependencies | [PlantUML Source](docs/puml/system-overview/technology-stack-diagram.puml) |
+| **[Deployment Architecture](docs/images/security/deployment-architecture.svg)** | Multi-environment deployment topology | [PlantUML Source](docs/puml/system-overview/deployment-architecture.puml) |
 
 #### Security & Compliance Architecture (PCI-DSS v4.0)
 | Diagram | Description | Source |
@@ -187,27 +187,27 @@ kubectl get svc -n banking-system
 
 | Document | Description | Category |
 |----------|-------------|----------|
-| [Deployment Guide](docs/deployment/DEPLOYMENT_GUIDE.md) | Comprehensive deployment instructions | Operations |
-| [Docker Architecture](docs/DOCKER_ARCHITECTURE.md) | Container strategy and configuration | Operations |
-| [Enhanced Docker Guide](docs/deployment/DOCKER_ENHANCED_GUIDE.md) | Advanced Docker deployment | Operations |
-| [Infrastructure Architecture](docs/infrastructure-architecture/Infrastructure-Architecture-Guide.md) | Infrastructure design and setup | Operations |
+| [Deployment Guide](docs/DEPLOYMENT_GUIDE_COMPREHENSIVE.md) | Comprehensive deployment instructions | Operations |
+| [Container & Runtime Architecture](docs/architecture/decisions/ADR-007-docker-multi-stage-architecture.md) | Container strategy and multi-stage design | Operations |
+| [Local Development Deployment](docs/deployment/local-development.md) | Local environment and runtime setup | Operations |
+| [Infrastructure Architecture](docs/architecture/overview/ARCHITECTURE_CATALOGUE.md) | Infrastructure design and system setup | Operations |
 
 ### Security & Compliance
 
 | Document | Description | Category |
 |----------|-------------|----------|
-| [Security Architecture](docs/security-architecture/README.md) | Comprehensive security implementation | Security |
+| [Security Architecture](docs/architecture/overview/SECURE_MICROSERVICES_ARCHITECTURE.md) | Comprehensive security implementation | Security |
 | [OAuth 2.1 Integration](docs/OAuth2.1-Architecture-Guide.md) | Authentication and authorization guide | Security |
-| [FAPI Compliance](docs/security-architecture/compliance/FAPI_MCP_LLM_INTERFACE_SUMMARY.md) | Financial-grade API compliance | Compliance |
+| [FAPI Compliance](docs/enterprisearchitecture/compliance-security/FAPI2_DPOP_ANALYSIS.md) | Financial-grade API compliance | Compliance |
 
 ### Testing & Quality
 
 | Document | Description | Category |
 |----------|-------------|----------|
-| [End-to-End Test Results](docs/testing/END_TO_END_TEST_RESULTS.md) | Complete system testing validation | Testing |
-| [Functional Test Results](docs/testing/FUNCTIONAL_TEST_RESULTS.md) | Business functionality validation | Testing |
-| [TDD Implementation](docs/testing/TDD_IMPLEMENTATION_SUMMARY.md) | Test-driven development summary | Testing |
-| [Testing Guide](docs/enterprise-governance/quality-assurance/TESTING.md) | Comprehensive testing strategy | Testing |
+| [SIT Integration Report](docs/SIT_INTEGRATION_TEST_REPORT.md) | End-to-end integration testing validation | Testing |
+| [Comprehensive Testing Guide](docs/enterprisearchitecture/implementation-development/README-TESTING.md) | Functional and integration testing strategy | Testing |
+| [TDD Implementation Guide](docs/enterprisearchitecture/implementation-development/TDD_IMPLEMENTATION_GUIDE.md) | Test-driven development summary | Testing |
+| [Testing Strategy](docs/enterprisearchitecture/implementation-development/COMPREHENSIVE_TESTING_STRATEGY.md) | Comprehensive testing strategy | Testing |
 
 ### Developer Guides
 
@@ -216,7 +216,7 @@ kubectl get svc -n banking-system
 | [Development Guide](docs/guides/README-DEV.md) | Local development setup | Development |
 | [Enhanced Enterprise Guide](docs/guides/README-Enhanced-Enterprise.md) | Enterprise features guide | Development |
 | [GraalVM Guide](docs/guides/README-GRAALVM.md) | Native compilation setup | Development |
-| [API Documentation](docs/API-Documentation.md) | REST and GraphQL API reference | Development |
+| [API Documentation](docs/API_DOCUMENTATION_GUIDE.md) | REST and GraphQL API reference | Development |
 
 ---
 

@@ -12,20 +12,25 @@ echo "=============================================================="
 DOCS_ROOT="docs"
 KEY_DOCS=(
     "$DOCS_ROOT/README.md"
+    "$DOCS_ROOT/DOCUMENTATION_INDEX.md"
     "$DOCS_ROOT/architecture/overview/ARCHITECTURE_CATALOGUE.md"
     "$DOCS_ROOT/architecture/overview/SECURE_MICROSERVICES_ARCHITECTURE.md"
-    "$DOCS_ROOT/DOCKER_ARCHITECTURE.md"
-    "$DOCS_ROOT/API-Documentation.md"
+    "$DOCS_ROOT/architecture/MONGODB_BCNF_DKNF_BASELINE.md"
+    "$DOCS_ROOT/API_DOCUMENTATION_GUIDE.md"
+    "$DOCS_ROOT/API_REFERENCE_GUIDE.md"
     "$DOCS_ROOT/OAuth2.1-Architecture-Guide.md"
+    "$DOCS_ROOT/DEPLOYMENT_GUIDE_COMPREHENSIVE.md"
+    "$DOCS_ROOT/COMPREHENSIVE_SYSTEM_ANALYSIS.md"
+    "$DOCS_ROOT/DEPLOYMENT_READY_STATUS.md"
+    "$DOCS_ROOT/KNOWLEDGE_TRANSFER.md"
     "$DOCS_ROOT/architecture/adr/ADR-004-oauth21-authentication.md"
     "$DOCS_ROOT/architecture/adr/ADR-005-istio-service-mesh.md"
     "$DOCS_ROOT/architecture/adr/ADR-006-zero-trust-security.md"
-    "$DOCS_ROOT/deployment/DEPLOYMENT_GUIDE.md"
-    "$DOCS_ROOT/testing/END_TO_END_TEST_RESULTS.md"
-    "$DOCS_ROOT/testing/FUNCTIONAL_TEST_RESULTS.md"
     "$DOCS_ROOT/guides/README-DEV.md"
     "$DOCS_ROOT/guides/README-Enhanced-Enterprise.md"
-    "$DOCS_ROOT/security-architecture/README.md"
+    "$DOCS_ROOT/guides/README-GRAALVM.md"
+    "$DOCS_ROOT/enterprisearchitecture/README.md"
+    "$DOCS_ROOT/enterprisearchitecture/implementation-development/README-TESTING.md"
 )
 
 # Validate file existence
@@ -60,12 +65,12 @@ echo "📂 Validating directory structure..."
 KEY_DIRS=(
     "$DOCS_ROOT/architecture/overview"
     "$DOCS_ROOT/architecture/adr"
+    "$DOCS_ROOT/architecture/decisions"
     "$DOCS_ROOT/deployment"
-    "$DOCS_ROOT/testing"
     "$DOCS_ROOT/guides"
-    "$DOCS_ROOT/security-architecture"
-    "$DOCS_ROOT/images"
+    "$DOCS_ROOT/images/security"
     "$DOCS_ROOT/puml"
+    "$DOCS_ROOT/enterprisearchitecture"
 )
 
 missing_dirs=0
@@ -92,26 +97,33 @@ else
     exit 1
 fi
 
-# Validate README.md in root
+# Validate readme in root
 echo ""
-echo "📋 Validating root README.md..."
-if [[ -f "README.md" ]]; then
-    echo "✅ Root README.md exists"
+echo "📋 Validating root readme..."
+ROOT_README=""
+if [[ -f "readme.md" ]]; then
+    ROOT_README="readme.md"
+elif [[ -f "README.md" ]]; then
+    ROOT_README="README.md"
+fi
+
+if [[ -n "$ROOT_README" ]]; then
+    echo "✅ Root ${ROOT_README} exists"
     
     # Check if it contains the expected sections
-    if grep -q "Enhanced Enterprise Banking System" README.md; then
+    if grep -q "Enterprise Banking System" "$ROOT_README"; then
         echo "✅ Contains correct title"
     else
         echo "❌ Missing expected title"
     fi
     
-    if grep -q "docs/" README.md; then
+    if grep -q "docs/" "$ROOT_README"; then
         echo "✅ Contains documentation references"
     else
         echo "❌ Missing documentation references"
     fi
 else
-    echo "❌ Root README.md is missing"
+    echo "❌ Root README/readme is missing"
     exit 1
 fi
 
@@ -119,7 +131,7 @@ echo ""
 echo "🎯 Documentation organization complete!"
 echo "======================================="
 echo "✅ All documentation properly organized under /docs"
-echo "✅ Root directory contains only README.md"
+echo "✅ Root readme entrypoint is present"
 echo "✅ Documentation structure follows enterprise standards"
 echo "✅ All key architectural documents are accessible"
 
@@ -128,6 +140,6 @@ echo "📚 Quick Access Links:"
 echo "====================="
 echo "Main Architecture: docs/architecture/overview/ARCHITECTURE_CATALOGUE.md"
 echo "Security Architecture: docs/architecture/overview/SECURE_MICROSERVICES_ARCHITECTURE.md"
-echo "Deployment Guide: docs/deployment/DEPLOYMENT_GUIDE.md"
-echo "API Documentation: docs/API-Documentation.md"
+echo "Deployment Guide: docs/DEPLOYMENT_GUIDE_COMPREHENSIVE.md"
+echo "API Documentation: docs/API_DOCUMENTATION_GUIDE.md"
 echo "Documentation Index: docs/README.md"

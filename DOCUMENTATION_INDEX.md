@@ -3,6 +3,15 @@
 ## 📋 Overview
 This project contains comprehensive documentation for the Enterprise Loan Management System, organized according to industry best practices and TOGAF Enterprise Architecture standards.
 
+## 🔄 Recent Updates (February 2026)
+- Upgraded build/runtime baseline documentation to **Gradle 9.3.1** and **OpenJDK 25.0.2**.
+- Added MongoDB analytics normalization guidance:
+  - `docs/architecture/MONGODB_BCNF_DKNF_BASELINE.md`
+- Added MongoDB migration and validation tooling documentation:
+  - `scripts/mongodb/migrate-open-finance-analytics.sh`
+  - `scripts/validation/validate-mongodb-analytics-design.sh`
+- Updated root README and documentation references to current paths.
+
 ## 🏗️ Documentation Structure
 
 ### 📚 Enterprise Architecture (TOGAF ADM)
@@ -47,6 +56,7 @@ Documents organized under **docs/enterprisearchitecture/migration-upgrade/**:
 - `GRADLE_8.14.13_UPGRADE_ANALYSIS.md` - Gradle upgrade analysis
 - `JAVA_MIGRATION_ANALYSIS.md` - Consolidated Java migration analysis (17→21→24)
 - `MIGRATION_BACKUP_CHECKLIST.md` - Migration checklist
+- **Current baseline**: Gradle 9.3.1 + OpenJDK 25.0.2
 
 ### Project Management
 Documents organized under **docs/enterprisearchitecture/project-management/**:
@@ -71,7 +81,7 @@ Documents organized under **docs/enterprisearchitecture/project-management/**:
 
 ### 🔧 For DevOps/SRE
 - [Technology Radar](docs/enterprisearchitecture/technology-radar/current-stack.md) - Technology stack
-- [Deployment Guide](infrastructure/DEPLOYMENT_GUIDE.md) - Infrastructure deployment
+- [Deployment Guide](docs/DEPLOYMENT_GUIDE_COMPREHENSIVE.md) - Infrastructure deployment
 - [Knowledge Transfer](docs/KNOWLEDGE_TRANSFER.md) - System overview and operations
 
 ### 🛡️ For Security/Compliance
@@ -116,7 +126,7 @@ Documents organized under **docs/enterprisearchitecture/project-management/**:
 | Diagram | Description | PlantUML Source |
 |---------|-------------|-----------------|
 | [Islamic Banking (AmanahFi)](docs/images/security/islamic-banking-architecture.svg) | Complete Islamic banking platform architecture | [Source](docs/puml/amanahfi-platform/islamic-banking-architecture.puml) |
-| [CBDC Payment Flow](docs/images/security/cbdc-payment-flow.svg) | UAE Digital Dirham payment processing | [Source](docs/puml/amanahfi-platform/cbdc-payment-flow.svg) |
+| [CBDC Payment Flow](docs/images/security/cbdc-payment-flow.svg) | UAE Digital Dirham payment processing | [Source](docs/puml/amanahfi-platform/cbdc-payment-flow.puml) |
 | [Sharia Compliance Flow](docs/images/security/sharia-compliance-flow.svg) | End-to-end Sharia compliance validation | [Source](docs/puml/amanahfi-platform/sharia-compliance-flow.puml) |
 | [MasruFi Framework](docs/images/security/framework-integration-architecture.svg) | Framework integration architecture | [Source](docs/puml/masrufi-framework/framework-integration-architecture.puml) |
 | [Islamic Finance Products](docs/images/security/islamic-finance-product-flow.svg) | Islamic finance product lifecycle | [Source](docs/puml/masrufi-framework/islamic-finance-product-flow.puml) |
@@ -208,7 +218,7 @@ Documents organized under **docs/enterprisearchitecture/project-management/**:
 ## 🔄 Continuous Improvement
 
 The system is designed for continuous evolution with:
-- **Automated CI/CD**: GitLab pipelines with comprehensive testing
+- **Automated CI/CD**: GitHub Actions pipelines with comprehensive testing
 - **Performance Monitoring**: Prometheus + Grafana observability
 - **Security Scanning**: Automated vulnerability assessments
 - **Compliance Monitoring**: Real-time regulatory compliance checks
@@ -218,7 +228,7 @@ The system is designed for continuous evolution with:
 
 **Project Status**: ✅ **PRODUCTION READY**  
 **Documentation Status**: ✅ **COMPLETE**  
-**Last Updated**: January 2025  
-**Next Review**: March 2025
+**Last Updated**: February 2026  
+**Next Review**: April 2026
 
 For detailed information, start with the [TOGAF Enterprise Architecture README](docs/enterprisearchitecture/README.md).

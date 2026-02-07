@@ -4,6 +4,15 @@
 
 The Enterprise Loan Management System has been successfully transformed with **hexagonal architecture** and comprehensive **Docker/Kubernetes** testing infrastructure. The system is now production-ready with enterprise-grade testing, monitoring, and deployment capabilities.
 
+## Recent Changes (February 2026)
+- Runtime/build baseline aligned to **OpenJDK 25.0.2** and **Gradle 9.3.1**.
+- Full `clean test` validation completed successfully after migration.
+- MongoDB analytics governance added:
+  - `architecture/MONGODB_BCNF_DKNF_BASELINE.md`
+  - `../scripts/mongodb/migrate-open-finance-analytics.sh`
+  - `../scripts/validation/validate-mongodb-analytics-design.sh`
+- Documentation links and indexes synchronized with current repository structure.
+
 ## **Mission Accomplished**
 
 ### **Architectural Transformation - Phase 1 Complete**
