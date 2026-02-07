@@ -1,5 +1,10 @@
 # Migration Backup Checklist - Phase 1 Day 1
 
+## Status Note (February 2026)
+
+This checklist is retained as historical migration preparation context.
+Current repository baseline is already on `Gradle 9.3.1` and `OpenJDK 25.0.2`.
+
 ## ✅ **Pre-Migration Backup Tasks**
 
 ### **1. Git Repository Backup**

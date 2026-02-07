@@ -1,5 +1,13 @@
 # MongoDB BCNF/DKNF Baseline (Open Finance Analytics)
 
+## Recent Enforcement Update (February 2026)
+
+- CI and repository guardrails now treat this document as the canonical normalization baseline for analytics collections.
+- Migration support scripts and validation checks are part of the required delivery path:
+  - `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/scripts/mongodb/migrate-open-finance-analytics.sh`
+  - `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/scripts/validation/validate-mongodb-analytics-design.sh`
+- New analytics schema changes must preserve BCNF/DKNF constraints before merge.
+
 ## Scope
 This baseline applies to MongoDB collections used by the Open Finance analytics silver copy:
 

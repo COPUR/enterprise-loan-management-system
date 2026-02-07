@@ -141,8 +141,7 @@ integrationTest {
     // Longer timeout for integration tests
     timeout = Duration.ofMinutes(15)
     
-    // Ensure containers are properly cleaned up
-    finalizedBy 'cleanupTestContainers'
+    // Cleanup is handled by CI runner lifecycle; keep integration tests config-cache compatible.
 }
 
 // Configure functional testing (task created by banking-testing-conventions)
@@ -167,10 +166,7 @@ performanceTest {
 tasks.register('cleanupTestContainers') {
     description = 'Clean up TestContainers resources'
     doLast {
-        exec {
-            commandLine 'docker', 'system', 'prune', '-f'
-            ignoreExitValue = true
-        }
+        logger.lifecycle('Skipping docker prune in Gradle task to preserve configuration-cache compatibility.')
     }
 }
 

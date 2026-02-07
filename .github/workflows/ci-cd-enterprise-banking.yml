@@ -62,26 +62,28 @@ jobs:
           
     - name: 🏗️ Architecture Tests (ArchUnit)
       run: |
-        # Skip architecture tests due to compilation issues
-        echo "Skipping architecture tests - fixing compilation issues..."
+        ./gradlew clean archTest architectureTest \
+          --no-daemon \
+          --no-configuration-cache \
+          --stacktrace
         
-        # Try basic compilation of working modules only
-        ./gradlew clean :shared-kernel:build :shared-infrastructure:build :amanahfi-platform:onboarding-context:build :amanahfi-platform:accounts-context:build :amanahfi-platform:payments-context:build :amanahfi-platform:murabaha-context:build :amanahfi-platform:compliance-context:build -x test --no-daemon || echo "Compilation has issues, proceeding with warnings..."
-        
-    - name: 📊 Code Quality Analysis (SonarQube)
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    - name: 📊 Static Analysis (PMD)
       run: |
-        echo "Skipping SonarQube analysis - fixing compilation issues..."
+        ./gradlew pmdMain pmdTest \
+          --no-daemon \
+          --no-configuration-cache
           
     - name: 🔍 SpotBugs Security Analysis
       run: |
-        echo "Skipping SpotBugs analysis - fixing compilation issues..."
+        ./gradlew spotbugsMain spotbugsTest \
+          --no-daemon \
+          --no-configuration-cache
           
     - name: 📋 Code Style Check (Checkstyle)
       run: |
-        echo "Skipping Checkstyle analysis - fixing compilation issues..."
+        ./gradlew checkstyleMain checkstyleTest \
+          --no-daemon \
+          --no-configuration-cache
 
   # ==========================================
   # COMPREHENSIVE TESTING SUITE
@@ -146,11 +148,11 @@ jobs:
         REDIS_HOST: localhost
         REDIS_PORT: 6379
       run: |
-        # Run tests only for working modules
-        ./gradlew :shared-kernel:test :shared-infrastructure:test :amanahfi-platform:onboarding-context:test :amanahfi-platform:accounts-context:test :amanahfi-platform:payments-context:test :amanahfi-platform:murabaha-context:test :amanahfi-platform:compliance-context:test \
+        ./gradlew test \
           -Dspring.profiles.active=test \
           -Dtest.database.url=jdbc:postgresql://localhost:5432/banking_test \
-          --no-daemon || echo "Some tests failed, proceeding with warnings..."
+          --no-daemon \
+          --no-configuration-cache
           
     - name: 🔗 Run Integration Tests
       env:
@@ -161,18 +163,23 @@ jobs:
         REDIS_HOST: localhost
         REDIS_PORT: 6379
       run: |
-        # Skip integration tests due to compilation issues
-        echo "Skipping integration tests - fixing compilation issues..."
+        ./gradlew integrationTest \
+          -Dspring.profiles.active=test,integration \
+          -Dtest.database.url=jdbc:postgresql://localhost:5432/banking_test \
+          --no-daemon \
+          --no-configuration-cache
           
     - name: 📊 Generate Test Coverage Report
       run: |
-        # Skip coverage report due to compilation issues
-        echo "Skipping coverage report - fixing compilation issues..."
+        ./gradlew jacocoTestReport \
+          --no-daemon \
+          --no-configuration-cache
           
     - name: 📈 Coverage Quality Gate
       run: |
-        # Skip coverage verification due to compilation issues
-        echo "Skipping coverage verification - fixing compilation issues..."
+        ./gradlew validateBankingTestCoverage \
+          --no-daemon \
+          --no-configuration-cache
           
     - name: 📤 Upload Test Results
       uses: actions/upload-artifact@v4
@@ -212,24 +219,42 @@ jobs:
         distribution: 'temurin'
         
     - name: 🔍 OWASP Dependency Check
+      env:
+        NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
       run: |
-        # Skip dependency check due to compilation issues
-        echo "Skipping OWASP dependency check - fixing compilation issues..."
+        if [ -n "${NVD_API_KEY}" ]; then
+          ./gradlew dependencyCheckAnalyze \
+            --no-daemon \
+            --no-configuration-cache
+        else
+          echo "::warning::NVD_API_KEY is not configured; running dependency-check without feed updates."
+          ./gradlew dependencyCheckAnalyze \
+            --no-daemon \
+            --no-configuration-cache \
+            -DdependencyCheck.autoUpdate=false || echo "::warning::Dependency-check did not complete without NVD feed."
+        fi
           
     - name: 🔐 Secret Scanning
       run: |
-        # Skip secret scanning due to compilation issues
-        echo "Skipping secret scanning - fixing compilation issues..."
+        set -euo pipefail
+        SECRET_PATTERN='(-----BEGIN (RSA|EC|OPENSSH|PRIVATE) KEY-----|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|xox[baprs]-[A-Za-z0-9-]{10,}|aws_secret_access_key)'
+        if rg -n --hidden --glob '!.git' --glob '!**/*.md' --glob '!.env.template' "${SECRET_PATTERN}" .; then
+          echo "Potential hardcoded secrets detected."
+          exit 1
+        fi
+        echo "No hardcoded secrets detected."
         
     - name: 🏦 Banking Compliance Check
       run: |
-        # Skip compliance check due to compilation issues
-        echo "Skipping banking compliance check - fixing compilation issues..."
+        ./gradlew securityTest validateSecurityConfiguration securityCodeScan \
+          --no-daemon \
+          --no-configuration-cache
         
     - name: 🛡️ FAPI Security Validation
       run: |
-        # Skip FAPI security validation due to compilation issues
-        echo "Skipping FAPI security validation - fixing compilation issues..."
+        ./gradlew fapiComplianceTest cryptographyTest securityArchitectureTest \
+          --no-daemon \
+          --no-configuration-cache
           
     - name: 📤 Upload Security Reports
       uses: actions/upload-artifact@v4
