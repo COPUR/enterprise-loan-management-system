@@ -4,22 +4,22 @@
 [versions]
 # Core platform versions
 java = "17"
-spring-boot = "3.2.0"
-spring-cloud = "2023.0.0"
+spring-boot = "3.3.6"
+spring-cloud = "2023.0.6"
 spring-dependency-management = "1.1.7"
 
 # Core Spring Framework
 spring-framework = "6.1.0"
 spring-security = "6.2.0"
-spring-data = "3.2.0"
+spring-data = "3.3.6"
 spring-integration = "6.2.0"
-spring-cloud-gateway = "4.1.0"
-spring-cloud-openfeign = "4.1.0"
-spring-cloud-circuit-breaker = "3.1.0"
-spring-cloud-config = "4.1.0"
+spring-cloud-gateway = "4.1.9"
+spring-cloud-openfeign = "4.1.5"
+spring-cloud-circuit-breaker = "3.1.5"
+spring-cloud-config = "4.1.7"
 spring-cloud-sleuth = "3.1.5"
-spring-cloud-stream = "4.1.0"
-spring-cloud-contract = "4.0.4"
+spring-cloud-stream = "4.1.6"
+spring-cloud-contract = "4.1.6"
 
 # Database & Persistence
 postgresql = "42.7.1"
@@ -57,7 +57,7 @@ prometheus = "1.12.0"
 grafana = "10.2.2"
 jaeger = "1.52.0"
 opentelemetry = "1.33.0"
-actuator = "3.2.0"
+actuator = "3.3.6"
 
 # Testing Framework
 junit = "5.10.1"

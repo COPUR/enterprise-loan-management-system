@@ -23,8 +23,8 @@ subprojects {
     }
 
     ext {
-        springBootVersion = '3.2.0'
-        springCloudVersion = '2023.0.0'
+        springBootVersion = '3.3.6'
+        springCloudVersion = '2023.0.6'
         kafkaVersion = '3.8.0'
         cordaVersion = '5.0.0'
         keycloakVersion = '26.0.0'

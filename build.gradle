@@ -39,8 +39,8 @@ repositories {
 // =================================================================
 ext {
     // Core Framework Versions
-    springBootVersion = '3.2.0'
-    springCloudVersion = '2023.0.0'
+    springBootVersion = '3.3.6'
+    springCloudVersion = '2023.0.6'
     springSecurityVersion = '6.2.0'
     springDataVersion = '2023.1.0'
     

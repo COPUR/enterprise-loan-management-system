@@ -155,7 +155,7 @@ tasks.withType(JavaCompile) {
 // gradle/libs.versions.toml
 [versions]
 spring-boot = "3.2.0"
-spring-cloud = "2023.0.0"
+spring-cloud = "2023.0.6"
 hibernate = "6.3.1"
 kafka = "3.6.0"
 redis = "3.1.5"

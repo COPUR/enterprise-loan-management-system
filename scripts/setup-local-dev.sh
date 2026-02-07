@@ -207,7 +207,7 @@ org.gradle.unsafe.configuration-cache=true
 # Development specific settings
 springBootVersion=3.3.6
 testcontainersVersion=1.19.0
-springCloudVersion=2023.0.0
+springCloudVersion=2023.0.6
 
 # Enable continuous build
 org.gradle.continuous=true
