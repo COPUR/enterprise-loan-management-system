@@ -4,6 +4,11 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
   <description>
-    Baseline PMD ruleset used to keep CI quality tasks executable during migration.
+    Baseline PMD ruleset used for migration-safe quality enforcement.
+    The selected rules are high-signal checks that should be stable across modules.
   </description>
+
+  <rule ref="category/java/errorprone.xml/DoNotCallGarbageCollectionExplicitly" />
+  <rule ref="category/java/errorprone.xml/EqualsNull" />
+  <rule ref="category/java/errorprone.xml/EmptyCatchBlock" />
 </ruleset>
