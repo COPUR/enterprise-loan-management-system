@@ -23,6 +23,11 @@ public interface PaymentRepository {
      * Find payment by ID
      */
     Optional<Payment> findById(PaymentId paymentId);
+
+    /**
+     * Find all payments
+     */
+    List<Payment> findAll();
     
     /**
      * Find all payments for a customer

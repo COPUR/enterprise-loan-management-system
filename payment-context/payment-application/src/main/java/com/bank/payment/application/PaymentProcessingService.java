@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * - FR-011: Payment Status Management
  * - FR-012: Payment Reconciliation
  */
-@Service
+@Service("paymentService")
 @Transactional
 public class PaymentProcessingService {
     
@@ -324,6 +324,6 @@ public class PaymentProcessingService {
             return paymentRepository.findByDateRange(start, end);
         }
 
-        return Collections.emptyList();
+        return paymentRepository.findAll();
     }
 }

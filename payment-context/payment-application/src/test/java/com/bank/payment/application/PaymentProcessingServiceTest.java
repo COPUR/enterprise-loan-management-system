@@ -11,10 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Currency;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -327,6 +328,51 @@ class PaymentProcessingServiceTest {
         assertThat(response.paymentType()).isEqualTo("WIRE_TRANSFER");
         
         verify(paymentRepository).findById(paymentId);
+    }
+
+    @Test
+    @DisplayName("FR-012: Should search all payments when no filters are provided")
+    void shouldSearchAllPaymentsWhenNoFiltersProvided() {
+        // Given
+        Payment payment1 = Payment.create(
+            PaymentId.of("PAY-10000001"),
+            CustomerId.of("CUST-12345678"),
+            AccountId.of("ACC-11111111"),
+            AccountId.of("ACC-22222222"),
+            Money.usd(BigDecimal.valueOf(100)),
+            PaymentType.TRANSFER,
+            "Payment one"
+        );
+        Payment payment2 = Payment.create(
+            PaymentId.of("PAY-10000002"),
+            CustomerId.of("CUST-12345679"),
+            AccountId.of("ACC-11111112"),
+            AccountId.of("ACC-22222223"),
+            Money.usd(BigDecimal.valueOf(200)),
+            PaymentType.TRANSFER,
+            "Payment two"
+        );
+        Payment payment3 = Payment.create(
+            PaymentId.of("PAY-10000003"),
+            CustomerId.of("CUST-12345680"),
+            AccountId.of("ACC-11111113"),
+            AccountId.of("ACC-22222224"),
+            Money.usd(BigDecimal.valueOf(300)),
+            PaymentType.TRANSFER,
+            "Payment three"
+        );
+
+        when(paymentRepository.findAll()).thenReturn(List.of(payment1, payment2, payment3));
+
+        // When
+        Page<PaymentResponse> result = paymentService.searchPayments(
+            null, null, null, null, null, null, null, null, PageRequest.of(0, 2)
+        );
+
+        // Then
+        assertThat(result.getTotalElements()).isEqualTo(3);
+        assertThat(result.getContent()).hasSize(2);
+        verify(paymentRepository).findAll();
     }
     
     @Test

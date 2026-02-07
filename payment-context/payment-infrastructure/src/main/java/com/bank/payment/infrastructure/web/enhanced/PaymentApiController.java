@@ -170,7 +170,7 @@ public class PaymentApiController {
         )
     })
     @PreAuthorize("hasAnyRole('CUSTOMER', 'BANKER', 'ADMIN') and " +
-                 "(#paymentId == @paymentService.getCustomerIdForPayment(#paymentId) or hasRole('BANKER') or hasRole('ADMIN'))")
+                 "(authentication.name == @paymentService.getCustomerIdForPayment(#paymentId) or hasRole('BANKER') or hasRole('ADMIN'))")
     @TracingHeaders
     public ResponseEntity<EntityModel<PaymentResponse>> getPayment(
             @Parameter(description = "Payment identifier", example = "PAY-12345678")

@@ -149,7 +149,7 @@ public class LoanApiController {
         )
     })
     @PreAuthorize("hasAnyRole('CUSTOMER', 'BANKER', 'ADMIN') and " +
-                 "(#loanId == @loanService.getCustomerIdForLoan(#loanId) or hasRole('BANKER') or hasRole('ADMIN'))")
+                 "(authentication.name == @loanService.getCustomerIdForLoan(#loanId) or hasRole('BANKER') or hasRole('ADMIN'))")
     @TracingHeaders
     public ResponseEntity<EntityModel<LoanResponse>> getLoan(
             @Parameter(description = "Loan identifier", example = "LOAN-12345678")
