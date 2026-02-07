@@ -11,4 +11,6 @@
   <rule ref="category/java/errorprone.xml/DoNotCallGarbageCollectionExplicitly" />
   <rule ref="category/java/errorprone.xml/EqualsNull" />
   <rule ref="category/java/errorprone.xml/EmptyCatchBlock" />
+  <rule ref="category/java/errorprone.xml/UseEqualsToCompareStrings" />
+  <rule ref="category/java/errorprone.xml/AssignmentInOperand" />
 </ruleset>
