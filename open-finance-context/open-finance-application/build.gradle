@@ -50,7 +50,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
-    testImplementation 'org.mockito:mockito-inline'
+    testImplementation 'org.mockito:mockito-core'
     testImplementation 'net.jqwik:jqwik'
     testImplementation 'org.springframework:spring-test'
     testImplementation 'org.springframework.boot:spring-boot-test'

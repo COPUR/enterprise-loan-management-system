@@ -155,7 +155,7 @@ dependencies {
     testImplementation libs.testcontainers.junit.jupiter
     testImplementation libs.testcontainers.postgresql
     testImplementation libs.archunit.junit5
-    testImplementation libs.mockito.inline
+    testImplementation libs.mockito.core
     testImplementation libs.awaitility
     testImplementation libs.rest.assured
     testImplementation libs.rest.assured.json.path
@@ -236,6 +236,16 @@ subprojects {
 
     dependencies {
         testRuntimeOnly libs.junit.platform.launcher
+    }
+
+    plugins.withId('io.spring.dependency-management') {
+        dependencyManagement {
+            dependencies {
+                // Override older BOM-managed Byte Buddy versions for JDK 25.
+                dependency 'net.bytebuddy:byte-buddy:1.18.4'
+                dependency 'net.bytebuddy:byte-buddy-agent:1.18.4'
+            }
+        }
     }
     
     // Common test configuration

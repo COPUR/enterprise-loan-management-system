@@ -63,7 +63,6 @@ actuator = "3.2.0"
 junit = "5.10.1"
 junit-platform = "1.10.1"
 mockito = "5.8.0"
-mockito-inline = "5.2.0"
 assertj = "3.24.2"
 testcontainers = "1.19.3"
 archunit = "1.2.1"
@@ -235,7 +234,6 @@ junit-platform-suite = { group = "org.junit.platform", name = "junit-platform-su
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit-platform" }
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockito" }
-mockito-inline = { group = "org.mockito", name = "mockito-inline", version.ref = "mockito-inline" }
 assertj-core = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 testcontainers-junit-jupiter = { group = "org.testcontainers", name = "junit-jupiter", version.ref = "testcontainers" }
 testcontainers-postgresql = { group = "org.testcontainers", name = "postgresql", version.ref = "testcontainers" }

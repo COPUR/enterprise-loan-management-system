@@ -72,7 +72,7 @@ subprojects {
         testImplementation "org.testcontainers:postgresql:${testcontainersVersion}"
         testImplementation "org.testcontainers:kafka:${testcontainersVersion}"
         testImplementation 'org.awaitility:awaitility'
-        testImplementation 'org.mockito:mockito-inline:5.2.0'
+        testImplementation 'org.mockito:mockito-core'
         testImplementation 'org.assertj:assertj-core'
         
         // Islamic Finance Testing
