@@ -15,7 +15,7 @@ dependencies {
     // - JUnit, TestContainers, REST Assured already included
     
     // Additional test to show they don't conflict
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:3.3.6'
 }
 
 // Test that domain-specific tasks work

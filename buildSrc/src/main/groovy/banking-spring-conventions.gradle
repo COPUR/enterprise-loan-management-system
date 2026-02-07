@@ -66,12 +66,20 @@ dependencies {
 springBoot {
     buildInfo {
         properties {
+            // Avoid external process execution during configuration for configuration-cache compatibility.
+            def gitBranch = providers.environmentVariable('GITHUB_REF_NAME')
+                .orElse(providers.environmentVariable('BRANCH_NAME'))
+                .getOrElse('unknown')
+            def gitCommit = providers.environmentVariable('GITHUB_SHA')
+                .orElse(providers.environmentVariable('BUILD_VCS_NUMBER'))
+                .map { sha -> sha.length() > 7 ? sha.substring(0, 7) : sha }
+                .getOrElse('unknown')
             additional = [
                 'banking.system.version': version,
                 'banking.system.build.time': new Date().format('yyyy-MM-dd HH:mm:ss'),
                 'banking.system.build.user': System.getProperty('user.name'),
-                'banking.system.git.branch': getGitBranch(),
-                'banking.system.git.commit': getGitCommit()
+                'banking.system.git.branch': gitBranch,
+                'banking.system.git.commit': gitCommit
             ]
         }
     }
@@ -189,27 +197,6 @@ tasks.register('securityTest', Test) {
     testLogging {
         events "passed", "skipped", "failed"
         showStandardStreams = true
-    }
-}
-
-// Helper methods
-def getGitBranch() {
-    try {
-        def process = "git rev-parse --abbrev-ref HEAD".execute()
-        process.waitFor()
-        return process.exitValue() == 0 ? process.text.trim() : 'unknown'
-    } catch (Exception e) {
-        return 'unknown'
-    }
-}
-
-def getGitCommit() {
-    try {
-        def process = "git rev-parse HEAD".execute()
-        process.waitFor()
-        return process.exitValue() == 0 ? process.text.trim().take(7) : 'unknown'
-    } catch (Exception e) {
-        return 'unknown'
     }
 }
 

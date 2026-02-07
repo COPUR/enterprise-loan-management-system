@@ -15,6 +15,12 @@ sourceSets {
     }
 }
 
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:3.3.6'
+    }
+}
+
 dependencies {
     // Domain dependency
     api project(':open-finance-context:open-finance-domain')
@@ -28,15 +34,15 @@ dependencies {
     
     // Saga and event handling
     implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'org.springframework.statemachine:spring-statemachine-core'
+    implementation 'org.springframework.statemachine:spring-statemachine-core:4.0.1'
     
     // Mapping
-    implementation 'org.mapstruct:mapstruct'
-    annotationProcessor 'org.mapstruct:mapstruct-processor'
+    implementation libs.mapstruct
+    annotationProcessor libs.mapstruct.processor
     
     // Lombok
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
     
     // Jackson for serialization
     implementation 'com.fasterxml.jackson.core:jackson-databind'
@@ -47,15 +53,15 @@ dependencies {
     implementation 'org.hibernate.validator:hibernate-validator'
     
     // Testing - Following project's TDD approach
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.assertj:assertj-core'
-    testImplementation 'org.mockito:mockito-junit-jupiter'
-    testImplementation 'org.mockito:mockito-core'
-    testImplementation 'net.jqwik:jqwik'
+    testImplementation libs.junit.jupiter
+    testImplementation libs.assertj.core
+    testImplementation libs.mockito.junit.jupiter
+    testImplementation libs.mockito.core
+    testImplementation libs.jqwik
     testImplementation 'org.springframework:spring-test'
     testImplementation 'org.springframework.boot:spring-boot-test'
-    testImplementation 'com.tngtech.archunit:archunit-junit5'
-    testImplementation 'org.awaitility:awaitility'
+    testImplementation libs.archunit.junit5
+    testImplementation libs.awaitility
     
     // TestContainers for integration testing
     testImplementation 'org.testcontainers:junit-jupiter'

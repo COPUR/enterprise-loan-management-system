@@ -16,6 +16,12 @@ sourceSets {
     }
 }
 
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:3.3.6'
+    }
+}
+
 dependencies {
     // Internal dependencies
     api project(':open-finance-context:open-finance-application')
@@ -33,10 +39,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     
     // FAPI 2.0 and OAuth 2.1 security
-    implementation 'org.springframework.security:spring-security-oauth2-jose'
+    implementation libs.spring.security.oauth2.jose
     implementation 'org.springframework.security:spring-security-oauth2-client'
-    implementation 'com.nimbusds:nimbus-jose-jwt'
-    implementation 'com.nimbusds:oauth2-oidc-sdk'
+    implementation libs.nimbus.jose.jwt
+    implementation libs.oauth2.oidc.sdk
     
     // Database
     implementation 'org.postgresql:postgresql'
@@ -48,7 +54,7 @@ dependencies {
     
     // Redis for caching and rate limiting
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'io.lettuce:lettuce-core'
+    implementation libs.lettuce.core
     
     // MongoDB for analytics silver copy
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
@@ -62,16 +68,16 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     
     // Certificate management with Vault
-    implementation 'org.springframework.vault:spring-vault-core'
+    implementation 'org.springframework.vault:spring-vault-core:3.1.3'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     
     // Mapping
-    implementation 'org.mapstruct:mapstruct'
-    annotationProcessor 'org.mapstruct:mapstruct-processor'
+    implementation libs.mapstruct
+    annotationProcessor libs.mapstruct.processor
     
     // OpenAPI documentation
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui'
-    implementation 'org.springdoc:springdoc-openapi-starter-common'
+    implementation libs.springdoc.openapi.starter.webmvc.ui
+    implementation 'org.springdoc:springdoc-openapi-starter-common:2.3.0'
     
     // Lombok
     compileOnly libs.lombok
