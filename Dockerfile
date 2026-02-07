@@ -5,7 +5,7 @@
 # ============================================================================
 # Stage 1: Build Environment
 # ============================================================================
-FROM gradle:8.11.1-jdk21-alpine AS builder
+FROM gradle:9.3.1-jdk25-alpine AS builder
 
 # Metadata for enterprise tracking and compliance
 LABEL maintainer="Enterprise Banking Team <team@banking.com>"
@@ -14,7 +14,7 @@ LABEL description="Enterprise Loan Management System - Banking Microservice"
 LABEL vendor="Banking Solutions Inc."
 LABEL build-date="2025-06-19"
 LABEL spring-boot-version="3.3.6"
-LABEL java-version="21"
+LABEL java-version="25.0.2"
 
 # Set working directory
 WORKDIR /app
@@ -39,7 +39,7 @@ RUN gradle clean bootJar buildInfo --no-daemon -x test \
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # Runtime stage - Minimal JRE for production
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM openjdk:25.0.2-jre-alpine AS runtime
 
 # Install security updates and required packages for banking compliance
 RUN apk update \
@@ -85,7 +85,7 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
     CMD /app/healthcheck.sh || exit 1
 
-# Set JVM options for production (Java 21 optimizations with 12-Factor principles)
+# Set JVM options for production (Java 25 optimizations with 12-Factor principles)
 ENV JAVA_OPTS="\
     -server \
     -XX:+UseG1GC \
@@ -231,7 +231,7 @@ CMD ["/app/wait-for-services.sh", "&&", "./gradlew", "fullTestSuite", "--no-daem
 # ============================================================================
 # Stage 5: Kubernetes-Ready Production (final optimized stage)
 # ============================================================================
-FROM eclipse-temurin:21-jre-alpine AS kubernetes
+FROM openjdk:25.0.2-jre-alpine AS kubernetes
 
 # Install Kubernetes-specific tools and dependencies
 RUN apk update && apk add --no-cache \

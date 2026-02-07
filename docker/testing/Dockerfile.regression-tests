@@ -9,7 +9,7 @@
 # - Purpose: Comprehensive regression testing environment
 # ===============================================================
 
-FROM eclipse-temurin:21-jdk-alpine AS test-base
+FROM openjdk:25.0.2-jdk-alpine AS test-base
 
 # Metadata
 LABEL maintainer="Senior QA Engineer <qa-team@banking.example.com>"

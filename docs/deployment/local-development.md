@@ -8,9 +8,9 @@ Ensure you have the following installed on your development machine:
 
 ### Required Software
 
-- **Java 21+** - OpenJDK or Oracle JDK
+- **Java 25.0.2** - OpenJDK
 - **Docker** - Version 20.0+ with Docker Compose
-- **Gradle** - Version 8.0+ (or use the included wrapper)
+- **Gradle** - Version 9.3.1+ (or use the included wrapper)
 - **Git** - For version control
 
 ### Optional but Recommended

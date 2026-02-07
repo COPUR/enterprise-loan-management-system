@@ -32,3 +32,12 @@ else
     echo "❌ Error: hexagonal-architecture-validation.sh not found in scripts/ directory"
     exit 1
 fi
+
+echo ""
+if [ -f "scripts/validation/validate-mongodb-analytics-design.sh" ]; then
+    echo -e "${GREEN}🚀 Validating MongoDB analytics BCNF/DKNF guardrails...${NC}"
+    ./scripts/validation/validate-mongodb-analytics-design.sh
+else
+    echo "❌ Error: validate-mongodb-analytics-design.sh not found in scripts/validation/"
+    exit 1
+fi

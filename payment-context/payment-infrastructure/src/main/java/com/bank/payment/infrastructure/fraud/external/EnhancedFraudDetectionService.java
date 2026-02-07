@@ -41,9 +41,8 @@ public class EnhancedFraudDetectionService implements FraudDetectionService {
         this.fraudExecutor = fraudExecutor;
     }
 
-    @Override
     public void validatePayment(Payment payment) throws FraudDetectedException {
-        logger.info("Starting enhanced fraud validation for payment: {}", payment.getPaymentId());
+        logger.info("Starting enhanced fraud validation for payment: {}", payment.getId());
 
         try {
             // Create external fraud request
@@ -61,16 +60,16 @@ public class EnhancedFraudDetectionService implements FraudDetectionService {
             evaluateFraudResponse(payment, response);
 
             logger.info("Enhanced fraud validation completed for payment: {} with risk score: {}", 
-                payment.getPaymentId(), response.getRiskScore());
+                payment.getId(), response.getRiskScore());
 
         } catch (TimeoutException e) {
             logger.warn("External fraud service timeout for payment: {}, using fallback validation", 
-                payment.getPaymentId());
+                payment.getId());
             performFallbackValidation(payment);
 
         } catch (ExecutionException | InterruptedException e) {
             logger.error("External fraud service error for payment: {}, using fallback validation: {}", 
-                payment.getPaymentId(), e.getMessage());
+                payment.getId(), e.getMessage());
             performFallbackValidation(payment);
 
         } catch (FraudDetectedException e) {
@@ -79,20 +78,58 @@ public class EnhancedFraudDetectionService implements FraudDetectionService {
 
         } catch (Exception e) {
             logger.error("Unexpected error during fraud validation for payment: {}: {}", 
-                payment.getPaymentId(), e.getMessage());
+                payment.getId(), e.getMessage());
             // Don't block payment for unexpected errors, but log for investigation
         }
+    }
+
+    @Override
+    public boolean isValidPayment(Payment payment) {
+        try {
+            validatePayment(payment);
+            return true;
+        } catch (FraudDetectedException ex) {
+            return false;
+        }
+    }
+
+    @Override
+    public int calculateRiskScore(Payment payment) {
+        try {
+            FraudAnalysisResult result = performComprehensiveAnalysis(payment);
+            Integer combined = result.getCombinedRiskScore();
+            if (combined != null) {
+                return combined;
+            }
+            Integer external = result.getExternalRiskScore();
+            return external != null ? external : 50;
+        } catch (Exception e) {
+            return 50;
+        }
+    }
+
+    @Override
+    public boolean exceedsVelocityLimits(Payment payment) {
+        BigDecimal amount = payment.getAmount().getAmount();
+        return amount.compareTo(BigDecimal.valueOf(100000)) > 0;
+    }
+
+    @Override
+    public boolean isSuspiciousPattern(Payment payment) {
+        BigDecimal amount = payment.getAmount().getAmount();
+        return amount.remainder(BigDecimal.valueOf(1000)).compareTo(BigDecimal.ZERO) == 0
+            && amount.compareTo(BigDecimal.valueOf(10000)) > 0;
     }
 
     /**
      * Perform comprehensive fraud analysis including external services
      */
     public FraudAnalysisResult performComprehensiveAnalysis(Payment payment) {
-        logger.info("Performing comprehensive fraud analysis for payment: {}", payment.getPaymentId());
+        logger.info("Performing comprehensive fraud analysis for payment: {}", payment.getId());
 
         FraudAnalysisResult result = FraudAnalysisResult.builder()
-            .paymentId(payment.getPaymentId().getValue())
-            .customerId(payment.getCustomerId())
+            .paymentId(payment.getId().getValue())
+            .customerId(payment.getCustomerId().getValue())
             .timestamp(LocalDateTime.now())
             .build();
 
@@ -133,16 +170,16 @@ public class EnhancedFraudDetectionService implements FraudDetectionService {
      * Report confirmed fraud case to external service
      */
     public void reportFraudCase(Payment payment, String fraudType, String description) {
-        logger.info("Reporting fraud case for payment: {} of type: {}", payment.getPaymentId(), fraudType);
+        logger.info("Reporting fraud case for payment: {} of type: {}", payment.getId(), fraudType);
 
         try {
             FraudCaseReport report = FraudCaseReport.builder()
-                .transactionId(payment.getPaymentId().getValue())
-                .customerId(payment.getCustomerId())
+                .transactionId(payment.getId().getValue())
+                .customerId(payment.getCustomerId().getValue())
                 .caseType("CONFIRMED_FRAUD")
                 .fraudType(fraudType)
                 .amount(payment.getAmount().getAmount())
-                .currency(payment.getAmount().getCurrency())
+                .currency(payment.getAmount().getCurrency().getCurrencyCode())
                 .transactionDate(payment.getCreatedAt())
                 .reportedDate(LocalDateTime.now())
                 .reportedBy("BANK")
@@ -175,14 +212,14 @@ public class EnhancedFraudDetectionService implements FraudDetectionService {
 
     private ExternalFraudRequest buildFraudRequest(Payment payment) {
         return ExternalFraudRequest.builder()
-            .transactionId(payment.getPaymentId().getValue())
-            .customerId(payment.getCustomerId())
+            .transactionId(payment.getId().getValue())
+            .customerId(payment.getCustomerId().getValue())
             .amount(payment.getAmount().getAmount())
-            .currency(payment.getAmount().getCurrency())
-            .paymentMethod(payment.getPaymentMethod().name())
+            .currency(payment.getAmount().getCurrency().getCurrencyCode())
+            .paymentMethod(payment.getPaymentType().name())
             .timestamp(payment.getCreatedAt())
             .customerProfile(ExternalFraudRequest.CustomerProfile.builder()
-                .customerId(payment.getCustomerId())
+                .customerId(payment.getCustomerId().getValue())
                 .customerType("INDIVIDUAL")
                 .isVerified(true)
                 .build())
@@ -205,7 +242,7 @@ public class EnhancedFraudDetectionService implements FraudDetectionService {
 
         if (response.getRiskScore() > HIGH_RISK_THRESHOLD) {
             logger.warn("High risk payment detected: {} with score: {}", 
-                payment.getPaymentId(), response.getRiskScore());
+                payment.getId(), response.getRiskScore());
             // Could trigger additional authentication or manual review
         }
     }
@@ -220,7 +257,7 @@ public class EnhancedFraudDetectionService implements FraudDetectionService {
         }
 
         // Add other basic validations as needed
-        logger.info("Fallback fraud validation completed for payment: {}", payment.getPaymentId());
+        logger.info("Fallback fraud validation completed for payment: {}", payment.getId());
     }
 
     private int calculateCombinedRiskScore(FraudAnalysisResult result) {

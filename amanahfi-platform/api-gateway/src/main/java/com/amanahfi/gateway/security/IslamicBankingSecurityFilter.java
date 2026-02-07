@@ -1,6 +1,5 @@
 package com.amanahfi.gateway.security;
 
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -20,59 +19,69 @@ import org.springframework.http.HttpHeaders;
  * - X-No-Riba: true (confirms no interest-based transactions)
  * - X-Halal-Certified: true
  */
-@Component
 public class IslamicBankingSecurityFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+        exchange.getResponse().beforeCommit(() -> {
             HttpHeaders responseHeaders = exchange.getResponse().getHeaders();
-            
+
+            // Core security headers for FAPI 2.0 compliance
+            responseHeaders.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+            responseHeaders.set("X-Content-Type-Options", "nosniff");
+            responseHeaders.set("X-Frame-Options", "DENY");
+            responseHeaders.set("X-XSS-Protection", "1; mode=block");
+            responseHeaders.set("Content-Security-Policy", "default-src 'self'");
+
             // Islamic Banking Compliance Headers
-            responseHeaders.add("X-Islamic-Banking", "true");
-            responseHeaders.add("X-Sharia-Compliant", "true");
-            responseHeaders.add("X-No-Riba", "true");
-            responseHeaders.add("X-Halal-Certified", "true");
-            
+            responseHeaders.set("X-Islamic-Banking", "true");
+            responseHeaders.set("X-Sharia-Compliant", "true");
+            responseHeaders.set("X-No-Riba", "true");
+            responseHeaders.set("X-Halal-Certified", "true");
+
             // UAE Regulatory Compliance
-            responseHeaders.add("X-Regulatory-Compliance", "CBUAE,VARA,HSA");
-            
+            responseHeaders.set("X-Regulatory-Compliance", "CBUAE,VARA,HSA");
+
             // Islamic Finance Standards
-            responseHeaders.add("X-Islamic-Finance-Standard", "AAOIFI");
-            responseHeaders.add("X-Sharia-Supervisory-Board", "APPROVED");
-            
+            responseHeaders.set("X-Islamic-Finance-Standard", "AAOIFI");
+            responseHeaders.set("X-Sharia-Supervisory-Board", "APPROVED");
+
             // Add specific headers for different Islamic banking products
             String path = exchange.getRequest().getPath().value();
-            
+
             if (path.contains("/murabaha")) {
-                responseHeaders.add("X-Islamic-Product-Type", "MURABAHA");
-                responseHeaders.add("X-Asset-Backed", "true");
-                responseHeaders.add("X-Profit-Sharing", "true");
+                responseHeaders.set("X-Islamic-Product-Type", "MURABAHA");
+                responseHeaders.set("X-Asset-Backed", "true");
+                responseHeaders.set("X-Profit-Sharing", "true");
             }
-            
+
             if (path.contains("/accounts")) {
-                responseHeaders.add("X-Islamic-Account", "true");
-                responseHeaders.add("X-Interest-Free", "true");
+                responseHeaders.set("X-Islamic-Account", "true");
+                responseHeaders.set("X-Interest-Free", "true");
             }
-            
+
             if (path.contains("/payments")) {
-                responseHeaders.add("X-Islamic-Payment", "true");
-                responseHeaders.add("X-Riba-Free", "true");
+                responseHeaders.set("X-Islamic-Payment", "true");
+                responseHeaders.set("X-Riba-Free", "true");
             }
-            
+
             // CBDC compliance for UAE Digital Dirham
             if (path.contains("/cbdc") || path.contains("/digital-dirham")) {
-                responseHeaders.add("X-CBDC-Compliant", "true");
-                responseHeaders.add("X-Digital-Currency", "UAE-DIRHAM");
-                responseHeaders.add("X-Central-Bank", "CBUAE");
+                responseHeaders.set("X-CBDC-Compliant", "true");
+                responseHeaders.set("X-Digital-Currency", "UAE-DIRHAM");
+                responseHeaders.set("X-Central-Bank", "CBUAE");
             }
-            
+
             // Enhanced security for high-value transactions
             if (path.contains("/high-value")) {
-                responseHeaders.add("X-Enhanced-Security", "true");
-                responseHeaders.add("X-Request-Signature-Required", "true");
-                responseHeaders.add("X-Multi-Factor-Auth", "required");
+                responseHeaders.set("X-Enhanced-Security", "true");
+                responseHeaders.set("X-Request-Signature-Required", "true");
+                responseHeaders.set("X-Multi-Factor-Auth", "required");
             }
-        }));
+
+            return Mono.empty();
+        });
+
+        return chain.filter(exchange);
     }
 }

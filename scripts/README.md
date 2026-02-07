@@ -63,6 +63,41 @@ Commands:
 
 Simple one-click script that runs the full hexagonal architecture validation with proper error handling and directory checks.
 
+### 3. `mongodb/migrate-open-finance-analytics.sh`
+**MongoDB BCNF/DKNF migration helper for Open Finance analytics collections**
+
+**Features:**
+- Preflight duplicate detection on business keys
+- Null/missing key checks before unique index creation
+- Idempotent index creation for analytics collections
+
+**Usage:**
+```bash
+# Preflight only
+./scripts/mongodb/migrate-open-finance-analytics.sh
+
+# Preflight + apply indexes
+./scripts/mongodb/migrate-open-finance-analytics.sh --apply
+
+# Explicit connection/database
+MONGO_URI='mongodb://localhost:27017' MONGO_DB='open_finance' \
+  ./scripts/mongodb/migrate-open-finance-analytics.sh --apply
+```
+
+### 4. `validation/validate-mongodb-analytics-design.sh`
+**Static guardrail checks for Mongo analytics BCNF/DKNF rules**
+
+Validates key constraints and domain typing in source code:
+- Unique business keys (`customer_patterns`, `consent_metrics_summary`, `compliance_reports`)
+- Enum enforcement for finite domains
+- Typed map fields (no `Map<String, Object>` for regulated metadata)
+- Controlled denormalization and read/write invariants
+
+**Usage:**
+```bash
+./scripts/validation/validate-mongodb-analytics-design.sh
+```
+
 ##  Validation Criteria
 
 ### Domain Purity Requirements
@@ -181,7 +216,7 @@ find src/main/java -path "*/domain/*/event/*" -name "*Event.java"
 
 ### Prerequisites
 
-1. **Java 21** - Required for compilation
+1. **Java 25.0.2** - Required for compilation
 2. **Gradle** - Build tool (./gradlew)
 3. **Git** - Version control
 4. **Bash** - Shell environment

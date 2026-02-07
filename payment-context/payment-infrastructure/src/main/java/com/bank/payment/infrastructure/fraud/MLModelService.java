@@ -383,7 +383,15 @@ public class MLModelService {
      * Update model performance metrics
      */
     private void updateModelMetrics(double rf, double nn, double gb, double if_, double ensemble) {
-        ModelMetrics metrics = new ModelMetrics(rf, nn, gb, if_, ensemble);
+        ModelMetrics metrics = new ModelMetrics(
+            "ensemble",
+            ensemble,
+            rf,
+            nn,
+            gb,
+            if_,
+            LocalDateTime.now()
+        );
         modelMetricsCache.put("latest", metrics);
         
         // Log metrics for monitoring

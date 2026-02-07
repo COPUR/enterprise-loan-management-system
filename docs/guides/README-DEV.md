@@ -5,8 +5,8 @@ Welcome to the development environment for the Enterprise Loan Management System
 ## Quick Start
 
 ### Prerequisites
-- Java 21+
-- Gradle 8+
+- Java 25.0.2+
+- Gradle 9.3.1+
 - Docker & Docker Compose
 - Git
 
@@ -199,4 +199,3 @@ lsof -ti:8080 | xargs kill -9
 3. **AI Integration**: Enable AI services with API keys
 4. **Testing**: Add comprehensive test coverage
 5. **Documentation**: Update API documentation
-

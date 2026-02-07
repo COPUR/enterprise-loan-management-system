@@ -4,6 +4,7 @@ import com.enterprise.openfinance.domain.event.*;
 import com.enterprise.openfinance.domain.model.consent.ConsentId;
 import com.enterprise.openfinance.domain.model.consent.ConsentScope;
 import com.enterprise.openfinance.domain.model.participant.ParticipantId;
+import com.enterprise.openfinance.infrastructure.analytics.model.ComplianceReport;
 import com.enterprise.shared.domain.CustomerId;
 import net.jqwik.api.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -420,7 +421,7 @@ class MongoConsentAnalyticsServiceTest {
         assertThat(report).isNotNull();
         assertThat(report.getReportDate()).isEqualTo(reportDate);
         assertThat(report.getGeneratedAt()).isNotNull();
-        assertThat(report.getReportType()).isEqualTo("DAILY_COMPLIANCE");
+        assertThat(report.getReportType()).isEqualTo(ComplianceReport.ReportType.DAILY_COMPLIANCE);
         assertThat(report.getComplianceScore()).isGreaterThanOrEqualTo(0.0);
         assertThat(report.getComplianceScore()).isLessThanOrEqualTo(100.0);
     }

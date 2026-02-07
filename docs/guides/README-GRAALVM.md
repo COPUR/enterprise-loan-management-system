@@ -28,9 +28,9 @@ This document provides comprehensive instructions for setting up, building, and 
 - **OS**: Linux, macOS, or Windows (with WSL2)
 
 ### Required Software
-- **Java**: OpenJDK 21 or later
+- **Java**: OpenJDK 25.0.2 or later
 - **GraalVM**: Version 21.0.2 or later
-- **Gradle**: 8.11.1 or later
+- **Gradle**: 9.3.1 or later
 - **Git**: For version control
 
 ## Quick Start

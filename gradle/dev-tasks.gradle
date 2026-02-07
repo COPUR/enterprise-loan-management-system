@@ -44,7 +44,7 @@ task testDev(type: Test) {
     useJUnitPlatform()
     testLogging {
         events "passed", "skipped", "failed"
-        exceptionFormat "full"
+        exceptionFormat = "full"
     }
     
     environment 'SPRING_PROFILES_ACTIVE', 'test,h2'

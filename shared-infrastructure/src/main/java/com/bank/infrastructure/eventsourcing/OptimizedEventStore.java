@@ -1,5 +1,7 @@
 package com.bank.infrastructure.eventsourcing;
 
+import com.bank.infrastructure.event.EventStore;
+import com.bank.infrastructure.eventsourcing.EventStreamPublisher.EventHandler;
 import com.bank.shared.kernel.domain.DomainEvent;
 import com.bank.shared.kernel.domain.AggregateRoot;
 import com.fasterxml.jackson.databind.ObjectMapper;

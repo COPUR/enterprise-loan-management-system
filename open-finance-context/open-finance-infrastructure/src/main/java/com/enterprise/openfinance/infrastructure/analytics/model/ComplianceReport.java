@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -22,6 +24,9 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "compliance_reports")
+@CompoundIndexes({
+    @CompoundIndex(name = "report_date_type_idx", def = "{'reportDate': 1, 'reportType': 1}", unique = true)
+})
 public class ComplianceReport {
     
     @Id
@@ -33,7 +38,7 @@ public class ComplianceReport {
     @Indexed
     private Instant generatedAt;
     
-    private String reportType; // DAILY_COMPLIANCE, WEEKLY_SUMMARY, etc.
+    private ReportType reportType;
     
     private ComplianceMetrics consentMetrics;
     
@@ -41,9 +46,9 @@ public class ComplianceReport {
     
     private Double complianceScore; // 0.0 to 100.0
     
-    private Map<String, Object> regulatoryChecks;
+    private Map<String, Boolean> regulatoryChecks;
     
-    private String status; // GENERATED, REVIEWED, SUBMITTED
+    private ReportStatus status;
     
     private String reviewedBy;
     
@@ -53,6 +58,18 @@ public class ComplianceReport {
     private String cbuaeReportId;
     private Boolean submittedToCBUAE;
     private Instant submissionDate;
+
+    public enum ReportType {
+        DAILY_COMPLIANCE,
+        WEEKLY_SUMMARY,
+        MONTHLY_SUMMARY
+    }
+
+    public enum ReportStatus {
+        GENERATED,
+        REVIEWED,
+        SUBMITTED
+    }
     
     @Data
     @Builder

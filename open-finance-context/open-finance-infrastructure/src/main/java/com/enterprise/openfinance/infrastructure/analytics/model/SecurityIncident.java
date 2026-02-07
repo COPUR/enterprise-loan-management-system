@@ -29,17 +29,17 @@ public class SecurityIncident {
     private String incidentType;
     
     @Indexed
-    private String severity; // HIGH, MEDIUM, LOW
+    private Severity severity;
     
     private String description;
     
-    private Map<String, Object> details;
+    private Map<String, String> details;
     
     @Indexed
     private Instant occurredAt;
     
     @Indexed
-    private String status; // OPEN, INVESTIGATING, RESOLVED, CLOSED
+    private IncidentStatus status;
     
     private String assignedTo;
     
@@ -51,4 +51,17 @@ public class SecurityIncident {
     private String complianceImpact;
     private String notificationsSent;
     private String externalReporting;
+
+    public enum Severity {
+        HIGH,
+        MEDIUM,
+        LOW
+    }
+
+    public enum IncidentStatus {
+        OPEN,
+        INVESTIGATING,
+        RESOLVED,
+        CLOSED
+    }
 }

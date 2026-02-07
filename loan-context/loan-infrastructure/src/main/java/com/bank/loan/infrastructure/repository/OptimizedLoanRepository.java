@@ -3,8 +3,8 @@ package com.bank.loan.infrastructure.repository;
 import com.bank.loan.domain.*;
 import com.bank.shared.kernel.domain.CustomerId;
 import com.bank.shared.kernel.domain.Money;
-import com.bank.infrastructure.repository.OptimizedRepositoryBase;
-import com.bank.infrastructure.caching.MultiLevelCacheService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Optimized Loan Repository Implementation
@@ -27,10 +26,32 @@ import java.util.stream.Collectors;
  * - Risk assessment queries
  */
 @Repository
-public class OptimizedLoanRepository extends OptimizedRepositoryBase<Loan, LoanId> implements LoanRepository {
-    
-    public OptimizedLoanRepository(MultiLevelCacheService cacheService) {
-        super(Loan.class, "loans", cacheService);
+public class OptimizedLoanRepository implements LoanRepository {
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Override
+    public Loan save(Loan loan) {
+        return entityManager.merge(loan);
+    }
+
+    @Override
+    public Optional<Loan> findById(LoanId loanId) {
+        return Optional.ofNullable(entityManager.find(Loan.class, loanId));
+    }
+
+    @Override
+    public boolean existsById(LoanId loanId) {
+        Query query = entityManager.createQuery("SELECT COUNT(l) FROM Loan l WHERE l.id = :id");
+        query.setParameter("id", loanId);
+        return ((Long) query.getSingleResult()) > 0;
+    }
+
+    @Override
+    public void delete(Loan loan) {
+        Loan attached = entityManager.contains(loan) ? loan : entityManager.merge(loan);
+        entityManager.remove(attached);
     }
     
     @Override
@@ -42,22 +63,12 @@ public class OptimizedLoanRepository extends OptimizedRepositoryBase<Loan, LoanI
             ORDER BY l.created_at DESC
             """;
         
-        Map<String, Object> parameters = Map.of("1", customerId.getId());
+        Map<String, Object> parameters = Map.of("1", customerId.getValue());
         return executeNativeQuery(sql, parameters);
     }
     
     @Override
     public List<Loan> findByStatus(LoanStatus status) {
-        // Cache frequently accessed active loans
-        if (status == LoanStatus.ACTIVE) {
-            return cacheService.get(
-                "loans", 
-                "active-loans", 
-                List.class,
-                key -> findByStatusUncached(status)
-            );
-        }
-        
         return findByStatusUncached(status);
     }
     
@@ -192,7 +203,7 @@ public class OptimizedLoanRepository extends OptimizedRepositoryBase<Loan, LoanI
             WHERE l.status = 'ACTIVE' 
             AND (
                 l.principal_amount > 100000 
-                OR l.interest_rate > 0.15 
+                OR l.interest_rate > 15 
                 OR l.maturity_date < CURRENT_DATE + INTERVAL '30 days'
             )
             ORDER BY l.principal_amount DESC, l.interest_rate DESC
@@ -233,7 +244,7 @@ public class OptimizedLoanRepository extends OptimizedRepositoryBase<Loan, LoanI
             """;
         
         Query query = entityManager.createNativeQuery(sql);
-        query.setParameter(1, customerId.getId());
+        query.setParameter(1, customerId.getValue());
         
         Object[] result = (Object[]) query.getSingleResult();
         
@@ -264,30 +275,13 @@ public class OptimizedLoanRepository extends OptimizedRepositoryBase<Loan, LoanI
             WHERE loan_id = ?2
             """;
         
-        Query query = entityManager.createNativeQuery(sql);
-        
-        int batchSize = 0;
         for (Map.Entry<LoanId, LoanStatus> entry : statusUpdates.entrySet()) {
+            Query query = entityManager.createNativeQuery(sql);
             query.setParameter(1, entry.getValue().name());
-            query.setParameter(2, entry.getKey().getId());
-            query.addBatch();
-            
-            if (++batchSize % 50 == 0) {
-                query.executeBatch();
-                entityManager.flush();
-                entityManager.clear();
-            }
+            query.setParameter(2, entry.getKey().getValue());
+            query.executeUpdate();
         }
-        
-        // Execute remaining batch
-        if (batchSize % 50 != 0) {
-            query.executeBatch();
-        }
-        
-        // Clear cache for updated loans
-        statusUpdates.keySet().forEach(loanId -> 
-            cacheService.evict("loans", loanId.getId())
-        );
+        entityManager.flush();
     }
     
     /**
@@ -302,7 +296,7 @@ public class OptimizedLoanRepository extends OptimizedRepositoryBase<Loan, LoanI
         if (criteria.getCustomerId() != null) {
             sql.append(" AND l.customer_id = :customerId");
             countSql.append(" AND l.customer_id = :customerId");
-            parameters.put("customerId", criteria.getCustomerId().getId());
+            parameters.put("customerId", criteria.getCustomerId().getValue());
         }
         
         if (criteria.getStatus() != null) {
@@ -359,35 +353,6 @@ public class OptimizedLoanRepository extends OptimizedRepositoryBase<Loan, LoanI
         return new PageImpl<>(results, pageable, totalCount);
     }
     
-    // Implementation of abstract methods
-    
-    @Override
-    protected String buildFindByIdsQuery(int idCount) {
-        String placeholders = String.join(",", Collections.nCopies(idCount, "?"));
-        return String.format("SELECT * FROM loans WHERE loan_id IN (%s)", placeholders);
-    }
-    
-    @Override
-    protected String buildDeleteByIdsQuery(int idCount) {
-        String placeholders = String.join(",", Collections.nCopies(idCount, "?"));
-        return String.format("DELETE FROM loans WHERE loan_id IN (%s)", placeholders);
-    }
-    
-    @Override
-    protected String getTableName() {
-        return "loans";
-    }
-    
-    @Override
-    protected String getIdColumnName() {
-        return "loan_id";
-    }
-    
-    @Override
-    protected LoanId convertStringToId(String id) {
-        return LoanId.of(id);
-    }
-    
     // Private helper methods
     
     private List<Loan> findByStatusUncached(LoanStatus status) {
@@ -399,6 +364,16 @@ public class OptimizedLoanRepository extends OptimizedRepositoryBase<Loan, LoanI
         
         Map<String, Object> parameters = Map.of("1", status.name());
         return executeNativeQuery(sql, parameters);
+    }
+
+    private List<Loan> executeNativeQuery(String sql, Map<String, Object> parameters) {
+        Query query = entityManager.createNativeQuery(sql, Loan.class);
+        parameters.forEach(query::setParameter);
+
+        @SuppressWarnings("unchecked")
+        List<Loan> results = query.getResultList();
+
+        return results;
     }
     
     /**

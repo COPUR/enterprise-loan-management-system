@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =====================================================
-# Java 21 Health Check Script
+# Java 25 Health Check Script
 # Enterprise Loan Management System
 # =====================================================
 
@@ -135,8 +135,8 @@ check_detailed_health() {
     fi
 }
 
-check_java21_features() {
-    log_info "Checking Java 21 specific features..."
+check_java25_features() {
+    log_info "Checking Java 25 specific features..."
     
     # Check Java version
     local info_response=$(make_request "${SERVICE_URL}${INFO_ENDPOINT}")
@@ -323,7 +323,7 @@ run_comprehensive_health_check() {
     local overall_status=0
     
     echo "==============================================================================="
-    echo "                         Java 21 Health Check Report"
+    echo "                         Java 25 Health Check Report"
     echo "==============================================================================="
     echo "Service URL: $SERVICE_URL"
     echo "Timestamp: $(date)"
@@ -341,8 +341,8 @@ run_comprehensive_health_check() {
     fi
     echo
     
-    # Java 21 Features
-    check_java21_features
+    # Java 25 Features
+    check_java25_features
     echo
     
     # Performance Metrics

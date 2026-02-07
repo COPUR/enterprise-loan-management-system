@@ -13,10 +13,10 @@ validate_java_version() {
     local java_version
     java_version=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2)
     
-    if [[ "$java_version" =~ ^21\. ]]; then
+    if [[ "$java_version" =~ ^25\. ]]; then
         echo "✅ Java version: $java_version (Valid for Banking System)"
     else
-        echo "❌ Invalid Java version: $java_version (Required: Java 21)"
+        echo "❌ Invalid Java version: $java_version (Required: Java 25.0.2)"
         exit 1
     fi
 }

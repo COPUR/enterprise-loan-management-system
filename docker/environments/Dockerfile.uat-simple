@@ -1,7 +1,7 @@
 # Simplified Docker Hardened Image (DHI) for UAT Environment
 # Enterprise Loan Management System - User Acceptance Testing
 
-FROM openjdk:21-jdk-slim AS uat-banking-app
+FROM openjdk:25.0.2-jdk-slim AS uat-banking-app
 
 # Security: Create non-root user
 RUN groupadd --gid 10001 banking && \

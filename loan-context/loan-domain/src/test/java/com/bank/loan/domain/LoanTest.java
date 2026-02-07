@@ -38,7 +38,7 @@ class LoanTest {
         loanId = LoanId.generate();
         customerId = CustomerId.generate();
         principalAmount = Money.aed(new BigDecimal("100000"));
-        interestRate = InterestRate.of(new BigDecimal("0.06")); // 6% annual
+        interestRate = InterestRate.of(new BigDecimal("6.0")); // 6% annual
         loanTerm = LoanTerm.ofMonths(60); // 5 years
         loan = Loan.create(loanId, customerId, principalAmount, interestRate, loanTerm);
     }
@@ -101,7 +101,7 @@ class LoanTest {
         @DisplayName("Should reject negative interest rate")
         void shouldRejectNegativeInterestRate() {
             assertThrows(IllegalArgumentException.class, () ->
-                InterestRate.of(new BigDecimal("-0.01"))
+                InterestRate.of(new BigDecimal("-1"))
             );
         }
 
@@ -174,7 +174,7 @@ class LoanTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"0.01", "0.03", "0.06", "0.12", "0.15"})
+        @ValueSource(strings = {"1", "3", "6", "12", "15"})
         @DisplayName("Should calculate increasing payments for increasing interest rates")
         void shouldCalculateIncreasingPaymentsForIncreasingRates(String rate) {
             InterestRate testRate = InterestRate.of(new BigDecimal(rate));
@@ -186,7 +186,7 @@ class LoanTest {
             assertTrue(monthlyPayment.isPositive());
             
             // Higher rates should result in higher payments (property-based testing concept)
-            if (testRate.getAnnualRate().compareTo(new BigDecimal("0.06")) > 0) {
+            if (testRate.getAnnualRate().compareTo(new BigDecimal("6.0")) > 0) {
                 Money basePayment = loan.calculateMonthlyPayment();
                 assertTrue(monthlyPayment.compareTo(basePayment) > 0,
                     "Higher interest rate should result in higher payment");
@@ -393,7 +393,7 @@ class LoanTest {
         void shouldMaintainPrecisionInFinancialCalculations() {
             // Test with amount that could cause rounding issues
             Money precisePrincipal = Money.aed(new BigDecimal("99999.99"));
-            InterestRate preciseRate = InterestRate.of(new BigDecimal("0.05999"));
+            InterestRate preciseRate = InterestRate.of(new BigDecimal("5.999"));
             LoanTerm preciseTerm = LoanTerm.ofMonths(37);
             
             Loan preciseLoan = Loan.create(loanId, customerId, precisePrincipal, preciseRate, preciseTerm);
@@ -427,7 +427,7 @@ class LoanTest {
         @Test
         @DisplayName("Should handle high interest rate scenarios")
         void shouldHandleHighInterestRateScenarios() {
-            InterestRate highRate = InterestRate.of(new BigDecimal("0.30")); // 30% annual
+            InterestRate highRate = InterestRate.of(new BigDecimal("30.0")); // 30% annual
             Loan highRateLoan = Loan.create(loanId, customerId, principalAmount, highRate, loanTerm);
             
             Money monthlyPayment = highRateLoan.calculateMonthlyPayment();
@@ -518,7 +518,7 @@ class LoanTest {
         void shouldGenerateInstallmentsAutomaticallyWhenLoanIsCreated() {
             // Given
             Money loanAmount = Money.aed(new BigDecimal("100000"));
-            InterestRate rate = InterestRate.of(new BigDecimal("0.06")); // 6% annual
+            InterestRate rate = InterestRate.of(new BigDecimal("6.0")); // 6% annual
             LoanTerm term = LoanTerm.ofMonths(12); // 12 months
             
             // When
@@ -535,7 +535,7 @@ class LoanTest {
         void shouldCalculateCorrectMonthlyPaymentForInstallments() {
             // Given
             Money loanAmount = Money.aed(new BigDecimal("120000"));
-            InterestRate rate = InterestRate.of(new BigDecimal("0.12")); // 12% annual = 1% monthly
+            InterestRate rate = InterestRate.of(new BigDecimal("12.0")); // 12% annual = 1% monthly
             LoanTerm term = LoanTerm.ofMonths(12);
             
             // When
@@ -551,7 +551,7 @@ class LoanTest {
         void shouldSetCorrectDueDatesForInstallments() {
             // Given
             Money loanAmount = Money.aed(new BigDecimal("60000"));
-            InterestRate rate = InterestRate.of(new BigDecimal("0.06"));
+            InterestRate rate = InterestRate.of(new BigDecimal("6.0"));
             LoanTerm term = LoanTerm.ofMonths(6);
             
             // When
@@ -572,7 +572,7 @@ class LoanTest {
         void shouldCalculateTotalInterestCorrectly() {
             // Given
             Money loanAmount = Money.aed(new BigDecimal("100000"));
-            InterestRate rate = InterestRate.of(new BigDecimal("0.06"));
+            InterestRate rate = InterestRate.of(new BigDecimal("6.0"));
             LoanTerm term = LoanTerm.ofMonths(12);
             
             // When
@@ -591,7 +591,7 @@ class LoanTest {
         void shouldIdentifyOverdueInstallments() {
             // Given
             Money loanAmount = Money.aed(new BigDecimal("50000"));
-            InterestRate rate = InterestRate.of(new BigDecimal("0.06"));
+            InterestRate rate = InterestRate.of(new BigDecimal("6.0"));
             LoanTerm term = LoanTerm.ofMonths(6);
             
             // When
@@ -611,7 +611,7 @@ class LoanTest {
         void shouldCalculateRemainingAmountCorrectly() {
             // Given
             Money loanAmount = Money.aed(new BigDecimal("100000"));
-            InterestRate rate = InterestRate.of(new BigDecimal("0.06"));
+            InterestRate rate = InterestRate.of(new BigDecimal("6.0"));
             LoanTerm term = LoanTerm.ofMonths(12);
             
             // When
@@ -627,7 +627,7 @@ class LoanTest {
         void shouldValidateLoanAmountWithinBusinessRules() {
             // Given - minimum loan amount
             Money tooSmallAmount = Money.aed(new BigDecimal("500"));
-            InterestRate rate = InterestRate.of(new BigDecimal("0.06"));
+            InterestRate rate = InterestRate.of(new BigDecimal("6.0"));
             LoanTerm term = LoanTerm.ofMonths(12);
             
             // When & Then
@@ -644,7 +644,7 @@ class LoanTest {
             
             // When & Then - InterestRate creation should throw exception for negative rate
             assertThrows(IllegalArgumentException.class, () ->
-                InterestRate.of(new BigDecimal("-0.01")));
+                InterestRate.of(new BigDecimal("-1")));
         }
 
         @Test
@@ -652,7 +652,7 @@ class LoanTest {
         void shouldValidateLoanTermWithinBusinessRules() {
             // Given - zero months term (but LoanTerm.ofMonths already validates, so test creation)
             Money loanAmount = Money.aed(new BigDecimal("100000"));
-            InterestRate rate = InterestRate.of(new BigDecimal("0.06"));
+            InterestRate rate = InterestRate.of(new BigDecimal("6.0"));
             
             // When & Then - LoanTerm creation should throw exception for zero months
             assertThrows(IllegalArgumentException.class, () ->

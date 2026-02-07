@@ -5,7 +5,7 @@
 [![Architecture](https://img.shields.io/badge/architecture-microservices-blue)](docs/architecture/overview/ARCHITECTURE_CATALOGUE.md)
 [![OAuth 2.1](https://img.shields.io/badge/OAuth-2.1-blue)](docs/security-architecture/README.md)
 [![Istio](https://img.shields.io/badge/service--mesh-Istio-blue)](docs/architecture/adr/ADR-005-istio-service-mesh.md)
-[![Java](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/projects/jdk/21/)
+[![Java](https://img.shields.io/badge/Java-25.0.2-orange)](https://openjdk.org/projects/jdk/25/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.6-green)](https://spring.io/projects/spring-boot)
 [![Compliance](https://img.shields.io/badge/compliance-FAPI%20|%20PCI%20DSS%20|%20GDPR-yellow)](docs/compliance)
 ## Disclaimer: This project is a **proof of concept** and not intended for production use. It is designed to demonstrate advanced architectural patterns and security practices in modern banking systems.
@@ -127,7 +127,7 @@ The Enterprise Banking System implements **PCI-DSS v4.0 compliance** through a c
 
 ### Prerequisites
 
-- **Java 21+** (Latest LTS)
+- **Java 25.0.2** (OpenJDK)
 - **Docker & Docker Compose**
 - **Kubernetes 1.28+** (for production)
 - **kubectl and helm** (for K8s deployment)

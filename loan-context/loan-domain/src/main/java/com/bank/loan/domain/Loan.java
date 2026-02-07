@@ -293,6 +293,7 @@ public class Loan extends AggregateRoot<LoanId> {
             .totalPayment(paymentAmount)
             .principalPayment(principalPayment)
             .interestPayment(interestPayment)
+            .feePayment(Money.zero(paymentAmount.getCurrency()))
             .previousBalance(previousBalance)
             .paymentDate(LocalDate.now())
             .build();
@@ -317,7 +318,7 @@ public class Loan extends AggregateRoot<LoanId> {
     private Money calculateInterestPayment(Money paymentAmount) {
         // Simplified: No interest calculation for now
         // In production, this would calculate accrued interest
-        return Money.aed(BigDecimal.ZERO);
+        return Money.zero(paymentAmount.getCurrency());
     }
 
     /**

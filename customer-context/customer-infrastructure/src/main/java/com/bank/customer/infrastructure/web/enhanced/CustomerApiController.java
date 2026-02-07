@@ -105,11 +105,11 @@ public class CustomerApiController {
             .add(linkTo(methodOn(CustomerApiController.class)
                 .getCustomer(response.customerId())).withSelfRel())
             .add(linkTo(methodOn(CustomerApiController.class)
-                .updateCreditLimit(response.customerId(), null)).withRel("update-credit-limit"))
+                .updateCreditLimit(response.customerId(), null, null)).withRel("update-credit-limit"))
             .add(linkTo(methodOn(CustomerApiController.class)
-                .reserveCredit(response.customerId(), null)).withRel("reserve-credit"))
+                .reserveCredit(response.customerId(), null, null)).withRel("reserve-credit"))
             .add(linkTo(methodOn(CustomerApiController.class)
-                .getCustomerEvents(response.customerId())).withRel("events"))
+                .getCustomerEvents(response.customerId(), 300)).withRel("events"))
             .add(linkTo(methodOn(CustomerApiController.class)
                 .getCustomerMetrics(response.customerId())).withRel("metrics"));
         
@@ -153,11 +153,11 @@ public class CustomerApiController {
             .add(linkTo(methodOn(CustomerApiController.class)
                 .getCustomer(customerId)).withSelfRel())
             .add(linkTo(methodOn(CustomerApiController.class)
-                .updateCreditLimit(customerId, null)).withRel("update-credit-limit"))
+                .updateCreditLimit(customerId, null, null)).withRel("update-credit-limit"))
             .add(linkTo(methodOn(CustomerApiController.class)
-                .reserveCredit(customerId, null)).withRel("reserve-credit"))
+                .reserveCredit(customerId, null, null)).withRel("reserve-credit"))
             .add(linkTo(methodOn(CustomerApiController.class)
-                .releaseCredit(customerId, null)).withRel("release-credit"));
+                .releaseCredit(customerId, null, null)).withRel("release-credit"));
         
         return ResponseEntity.ok()
             .header("X-Resource-Version", response.lastModifiedAt().toString())
@@ -202,7 +202,7 @@ public class CustomerApiController {
             .add(linkTo(methodOn(CustomerApiController.class)
                 .getCustomer(customerId)).withRel(IanaLinkRelations.SELF))
             .add(linkTo(methodOn(CustomerApiController.class)
-                .getCustomerEvents(customerId)).withRel("events"));
+                .getCustomerEvents(customerId, 300)).withRel("events"));
         
         return ResponseEntity.ok()
             .header("X-Idempotency-Key", idempotencyKey)
@@ -260,14 +260,14 @@ public class CustomerApiController {
             @PathVariable String customerId) {
         
         // Implementation would gather customer metrics
-        CustomerMetricsResponse metrics = CustomerMetricsResponse.builder()
-            .customerId(customerId)
-            .totalTransactions(0L)
-            .totalVolume(java.math.BigDecimal.ZERO)
-            .averageTransactionValue(java.math.BigDecimal.ZERO)
-            .riskScore(0.0)
-            .creditUtilization(0.0)
-            .build();
+        CustomerMetricsResponse metrics = new CustomerMetricsResponse(
+            customerId,
+            0L,
+            java.math.BigDecimal.ZERO,
+            java.math.BigDecimal.ZERO,
+            0.0,
+            0.0
+        );
         
         return ResponseEntity.ok(metrics);
     }
@@ -295,7 +295,7 @@ public class CustomerApiController {
             .add(linkTo(methodOn(CustomerApiController.class)
                 .getCustomer(customerId)).withRel(IanaLinkRelations.SELF))
             .add(linkTo(methodOn(CustomerApiController.class)
-                .releaseCredit(customerId, null)).withRel("release-credit"));
+                .releaseCredit(customerId, null, null)).withRel("release-credit"));
         
         return ResponseEntity.ok()
             .header("X-Idempotency-Key", idempotencyKey)
@@ -365,11 +365,22 @@ public class CustomerApiController {
     ) {}
     
     @Schema(description = "Customer response with HATEOAS links")
-    public static class CustomerHalResponse extends CustomerResponse {
-        // Extends CustomerResponse with HAL JSON format
-    }
+    public record CustomerHalResponse(
+        String customerId,
+        String firstName,
+        String lastName,
+        String email,
+        String phoneNumber,
+        java.math.BigDecimal creditLimit,
+        java.math.BigDecimal usedCredit,
+        java.math.BigDecimal availableCredit,
+        String status,
+        Integer creditScore,
+        java.math.BigDecimal monthlyIncome,
+        java.time.Instant createdAt,
+        java.time.Instant lastModifiedAt
+    ) {}
     
-    @lombok.Builder
     @Schema(description = "Customer analytics and metrics")
     public record CustomerMetricsResponse(
         String customerId,

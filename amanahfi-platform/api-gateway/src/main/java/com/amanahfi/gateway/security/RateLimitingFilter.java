@@ -1,6 +1,5 @@
 package com.amanahfi.gateway.security;
 
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -35,7 +34,6 @@ import java.util.Map;
  * - Read operations: 100 requests/minute
  * - Admin operations: 2 requests/minute
  */
-@Component
 public class RateLimitingFilter implements WebFilter {
 
     // In-memory rate limiting (production would use Redis)
@@ -52,6 +50,11 @@ public class RateLimitingFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+        if (exchange.getRequest().getMethod() != null 
+            && "OPTIONS".equalsIgnoreCase(exchange.getRequest().getMethod().name())) {
+            return chain.filter(exchange);
+        }
+
         String clientKey = getClientKey(exchange);
         String path = exchange.getRequest().getPath().value();
         String method = exchange.getRequest().getMethod().name();
@@ -86,9 +89,11 @@ public class RateLimitingFilter implements WebFilter {
         }
         
         // Financial operations - moderate limits
-        if (path.startsWith("/api/v1/payments/") || 
-            path.startsWith("/api/v1/accounts/") ||
-            path.startsWith("/api/v1/murabaha/")) {
+        if (path.startsWith("/api/v1/payments") || 
+            path.startsWith("/api/v1/accounts") ||
+            path.startsWith("/api/v1/murabaha") ||
+            path.startsWith("/api/v1/customers") ||
+            path.startsWith("/api/v1/compliance")) {
             return FINANCIAL_RATE_LIMIT;
         }
         
@@ -174,14 +179,14 @@ public class RateLimitingFilter implements WebFilter {
      * Adds rate limit headers to response
      */
     private void addRateLimitHeaders(ServerWebExchange exchange, RateLimitResult result, int limit) {
-        exchange.getResponse().getHeaders().add("X-RateLimit-Limit", String.valueOf(limit));
-        exchange.getResponse().getHeaders().add("X-RateLimit-Remaining", 
+        exchange.getResponse().getHeaders().set("X-RateLimit-Limit", String.valueOf(limit));
+        exchange.getResponse().getHeaders().set("X-RateLimit-Remaining", 
             String.valueOf(Math.max(0, limit - result.getCurrentCount())));
-        exchange.getResponse().getHeaders().add("X-RateLimit-Reset", 
+        exchange.getResponse().getHeaders().set("X-RateLimit-Reset", 
             String.valueOf(result.getResetTime().getEpochSecond()));
         
         if (result.isExceeded()) {
-            exchange.getResponse().getHeaders().add("Retry-After", "60"); // Retry after 1 minute
+            exchange.getResponse().getHeaders().set("Retry-After", "60"); // Retry after 1 minute
         }
     }
 

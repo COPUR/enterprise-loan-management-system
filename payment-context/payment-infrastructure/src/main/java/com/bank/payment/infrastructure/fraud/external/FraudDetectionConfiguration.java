@@ -9,6 +9,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 
 import java.time.Duration;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Configuration for external fraud detection service integrations
@@ -42,8 +44,9 @@ public class FraudDetectionConfiguration {
      */
     private ClientHttpRequestFactory clientHttpRequestFactory() {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-        factory.setConnectTimeout(timeoutSeconds * 1000);
-        factory.setReadTimeout(timeoutSeconds * 1000);
+        Duration timeout = Duration.ofSeconds(timeoutSeconds);
+        factory.setConnectTimeout(timeout);
+        factory.setConnectionRequestTimeout(timeout);
         return factory;
     }
 
@@ -61,7 +64,14 @@ public class FraudDetectionConfiguration {
      */
     @Bean
     public EnhancedFraudDetectionService enhancedFraudDetectionService(
-            ExternalFraudDetectionClient externalClient) {
-        return new EnhancedFraudDetectionService(externalClient);
+            ExternalFraudDetectionClient externalClient,
+            Executor fraudExecutor) {
+        return new EnhancedFraudDetectionService(externalClient, fraudExecutor);
+    }
+
+    @Bean(name = "fraudExecutor")
+    public Executor fraudExecutor() {
+        int size = Math.max(2, Runtime.getRuntime().availableProcessors() / 2);
+        return Executors.newFixedThreadPool(size);
     }
 }

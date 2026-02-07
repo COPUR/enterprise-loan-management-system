@@ -436,7 +436,7 @@ spring:
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Java 21+**
+- **Java 25.0.2+**
 - **PostgreSQL 15+**
 - **Redis 7+**
 - **Docker & Docker Compose**

@@ -25,6 +25,8 @@ management:
   endpoint:
     health:
       show-details: always
+    auditevents:
+      enabled: true
 
 logging:
   level:

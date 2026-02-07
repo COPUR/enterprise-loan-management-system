@@ -27,7 +27,7 @@ package "Continuous Integration Pipeline" <<GitHub Actions>> #E3F2FD {
     
     package "Code Quality Gates" <<Quality>> #F1F8E6 {
         component [Code Checkout\n(Latest Source Code)] as CodeCheckout CI_COLOR
-        component [Java 21 Setup\n(OpenJDK 21)] as JavaSetup CI_COLOR
+        component [Java 25 Setup\n(OpenJDK 25.0.2)] as JavaSetup CI_COLOR
         component [Dependency Caching\n(Maven/Gradle Cache)] as DependencyCaching CI_COLOR
         component [Unit Tests\n(87.4% TDD Coverage)] as UnitTests CI_COLOR
         component [Integration Tests\n(Banking Workflows)] as IntegrationTests CI_COLOR
@@ -88,7 +88,7 @@ package "Target Infrastructure (AWS EKS)" <<Kubernetes>> #E8F5E8 {
     }
     
     package "Application Deployment" <<Workloads>> #E6F9F9 {
-        component [Banking Service Pods\n(Java 21 Application)] as BankingPods KUBERNETES_COLOR
+        component [Banking Service Pods\n(Java 25 Application)] as BankingPods KUBERNETES_COLOR
         component [Horizontal Pod Autoscaler\n(Scaling Rules)] as HPA KUBERNETES_COLOR
         component [Service Discovery\n(ClusterIP Services)] as ServiceDiscovery KUBERNETES_COLOR
         component [ConfigMaps & Secrets\n(Application Configuration)] as K8sConfig KUBERNETES_COLOR

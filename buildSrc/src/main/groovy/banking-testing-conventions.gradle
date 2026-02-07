@@ -122,13 +122,13 @@ tasks.withType(Test).configureEach {
     // Test logging configuration
     testLogging {
         events "passed", "skipped", "failed"
-        exceptionFormat "short"
+        exceptionFormat = "short"
         showStackTraces = false
         
         // Detailed logging for CI
         if (System.getenv('CI')) {
             events "started", "passed", "skipped", "failed"
-            exceptionFormat "full"
+            exceptionFormat = "full"
             showStackTraces = true
         }
     }

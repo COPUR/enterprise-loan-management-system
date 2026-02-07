@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Adapter for external AML screening providers
@@ -141,8 +142,8 @@ public class ExternalAmlProviderAdapter implements ExternalAmlProvider {
     private AmlScreeningResult mapToAmlScreeningResult(Map<String, Object> response) {
         Integer riskScore = (Integer) response.get("riskScore");
         String riskLevel = (String) response.get("riskLevel");
-        List<String> matches = (List<String>) response.getOrDefault("matches", List.of());
-        List<String> recommendations = (List<String>) response.getOrDefault("recommendations", List.of());
+        List<String> matches = getStringList(response, "matches");
+        List<String> recommendations = getStringList(response, "recommendations");
         
         return AmlScreeningResult.builder()
             .entityId((String) response.get("entityId"))
@@ -153,6 +154,17 @@ public class ExternalAmlProviderAdapter implements ExternalAmlProvider {
             .screeningDate(LocalDateTime.now())
             .providerId((String) response.get("providerId"))
             .build();
+    }
+
+    private List<String> getStringList(Map<String, Object> response, String key) {
+        Object value = response.getOrDefault(key, List.of());
+        if (value instanceof List<?> listValue) {
+            return listValue.stream()
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .collect(Collectors.toList());
+        }
+        return List.of();
     }
 
     private AmlScreeningResult createMockScreeningResult(String entityId, boolean hasError) {

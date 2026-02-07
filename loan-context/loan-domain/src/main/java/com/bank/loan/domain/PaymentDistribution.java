@@ -40,8 +40,7 @@ public class PaymentDistribution {
     /**
      * Portion of payment applied to fees (if any)
      */
-    @Builder.Default
-    Money feePayment = Money.aed(java.math.BigDecimal.ZERO);
+    Money feePayment;
     
     /**
      * Loan balance before this payment
@@ -63,11 +62,15 @@ public class PaymentDistribution {
      */
     public boolean isValid() {
         if (totalPayment == null || principalPayment == null || 
-            interestPayment == null || feePayment == null) {
+            interestPayment == null) {
             return false;
         }
-        
-        Money calculatedTotal = principalPayment.add(interestPayment).add(feePayment);
+
+        Money effectiveFee = feePayment != null
+            ? feePayment
+            : Money.zero(totalPayment.getCurrency());
+
+        Money calculatedTotal = principalPayment.add(interestPayment).add(effectiveFee);
         return totalPayment.equals(calculatedTotal);
     }
 
@@ -122,19 +125,24 @@ public class PaymentDistribution {
      * Create a summary string of the payment distribution
      */
     public String getSummary() {
+        String currencyCode = totalPayment.getCurrency().getCurrencyCode();
+        Money effectiveFee = feePayment != null
+            ? feePayment
+            : Money.zero(totalPayment.getCurrency());
+
         StringBuilder summary = new StringBuilder();
         summary.append(String.format("Payment Distribution (%s):\n", paymentDate));
-        summary.append(String.format("  Total Payment: %s AED\n", totalPayment.getAmount()));
-        summary.append(String.format("  Principal: %s AED (%.2f%%)\n", 
-                                    principalPayment.getAmount(), getPrincipalPercentage()));
+        summary.append(String.format("  Total Payment: %s %s\n", totalPayment.getAmount(), currencyCode));
+        summary.append(String.format("  Principal: %s %s (%.2f%%)\n", 
+                                    principalPayment.getAmount(), currencyCode, getPrincipalPercentage()));
         
         if (hasInterestComponent()) {
-            summary.append(String.format("  Interest: %s AED (%.2f%%)\n", 
-                                        interestPayment.getAmount(), getInterestPercentage()));
+            summary.append(String.format("  Interest: %s %s (%.2f%%)\n", 
+                                        interestPayment.getAmount(), currencyCode, getInterestPercentage()));
         }
         
-        if (hasFeeComponent()) {
-            summary.append(String.format("  Fees: %s AED\n", feePayment.getAmount()));
+        if (effectiveFee.isPositive()) {
+            summary.append(String.format("  Fees: %s %s\n", effectiveFee.getAmount(), currencyCode));
         }
         
         if (paymentNotes != null && !paymentNotes.trim().isEmpty()) {
@@ -153,16 +161,20 @@ public class PaymentDistribution {
         Objects.requireNonNull(interestPayment, "Interest payment cannot be null");
         Objects.requireNonNull(previousBalance, "Previous balance cannot be null");
         Objects.requireNonNull(paymentDate, "Payment date cannot be null");
+
+        Money effectiveFee = feePayment != null
+            ? feePayment
+            : Money.zero(totalPayment.getCurrency());
         
         if (!totalPayment.isPositive()) {
             throw new IllegalArgumentException("Total payment must be positive");
         }
         
-        if (principalPayment.isNegative() || interestPayment.isNegative() || feePayment.isNegative()) {
+        if (principalPayment.isNegative() || interestPayment.isNegative() || effectiveFee.isNegative()) {
             throw new IllegalArgumentException("Payment components cannot be negative");
         }
         
-        if (!isValid()) {
+        if (!totalPayment.equals(principalPayment.add(interestPayment).add(effectiveFee))) {
             throw new IllegalArgumentException("Payment distribution is mathematically incorrect");
         }
     }

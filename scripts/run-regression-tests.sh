@@ -265,7 +265,7 @@ validate_environment() {
     
     # Check Java version
     if ! java -version 2>&1 | grep -q "21"; then
-        warn "Java 21 not detected, tests may not run optimally"
+        warn "Java 25 not detected, tests may not run optimally"
     fi
     
     # Check Gradle

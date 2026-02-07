@@ -1,8 +1,8 @@
 #!/bin/bash
-export JAVA_HOME="/nix/store/$(ls /nix/store | grep -E 'openjdk.*21' | head -1)"
+export JAVA_HOME="/nix/store/$(ls /nix/store | grep -E 'openjdk.*25' | head -1)"
 export PATH="$JAVA_HOME/bin:$PATH"
 
-echo "Starting Enterprise Loan Management System with Java 21"
+echo "Starting Enterprise Loan Management System with Java 25"
 echo "Using Java: $(java -version 2>&1 | head -1)"
 
 # Compile all Java files

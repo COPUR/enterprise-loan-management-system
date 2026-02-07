@@ -6,8 +6,10 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.header.ReferrerPolicyServerHttpHeadersWriter;
-import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -16,10 +18,26 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.server.header.ContentTypeOptionsServerHttpHeadersWriter;
 import org.springframework.security.web.server.header.XFrameOptionsServerHttpHeadersWriter;
 import org.springframework.security.config.Customizer;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
+import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.web.server.WebFilter;
+import reactor.core.publisher.Mono;
+import org.springframework.boot.actuate.audit.AuditEventRepository;
+import org.springframework.boot.actuate.audit.InMemoryAuditEventRepository;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 /**
  * FAPI 2.0 Security Configuration for AmanahFi API Gateway
@@ -41,20 +59,30 @@ public class Fapi2SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(
             ServerHttpSecurity http,
             DPoPTokenValidator dPoPTokenValidator,
-            IslamicBankingSecurityFilter islamicBankingFilter) {
+            Environment environment) {
+
+        RateLimitingFilter rateLimitingFilter = new RateLimitingFilter();
+        IslamicBankingSecurityFilter islamicBankingFilter = new IslamicBankingSecurityFilter();
+        DPoPValidationFilter dPoPValidationFilter = new DPoPValidationFilter(dPoPTokenValidator);
+        PkceValidationFilter pkceValidationFilter = new PkceValidationFilter();
         
-        return http
+        ServerHttpSecurity httpBuilder = http
             // Disable defaults that don't fit FAPI 2.0
             .csrf(csrf -> csrf.disable())
             .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable())
-            
-            // HTTPS enforcement
-            .redirectToHttps(redirect -> redirect
-                .httpsRedirectWhen(exchange -> 
-                    !exchange.getRequest().getURI().getScheme().equals("https") &&
-                    !isTestEnvironment(exchange)))
-            
+            .httpBasic(basic -> basic.disable());
+
+        // HTTPS enforcement (skip in test/local to avoid scheme-less requests)
+        if (!environment.acceptsProfiles(Profiles.of("test", "local"))) {
+            httpBuilder = httpBuilder.redirectToHttps(redirect -> redirect
+                .httpsRedirectWhen(exchange -> {
+                    String scheme = exchange.getRequest().getURI().getScheme();
+                    boolean isHttps = "https".equalsIgnoreCase(scheme);
+                    return !isHttps;
+                }));
+        }
+
+        return httpBuilder
             // Security Headers for FAPI 2.0 compliance  
             .headers(headers -> headers
                 .frameOptions(frameOptions -> frameOptions.mode(XFrameOptionsServerHttpHeadersWriter.Mode.DENY))
@@ -71,8 +99,9 @@ public class Fapi2SecurityConfig {
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt
                     .jwtAuthenticationConverter(new ReactiveJwtAuthenticationConverterAdapter(jwtAuthenticationConverter()))
+                    .jwtDecoder(jwtDecoder(environment))
                 )
-                .authenticationEntryPoint(new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED))
+                .authenticationEntryPoint(authenticationEntryPoint())
                 .accessDeniedHandler((exchange, denied) -> {
                     exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
                     return exchange.getResponse().setComplete();
@@ -81,8 +110,11 @@ public class Fapi2SecurityConfig {
             
             // Authorization rules
             .authorizeExchange(authz -> authz
+                // Preflight requests
+                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Public endpoints
                 .pathMatchers("/actuator/health", "/actuator/info").permitAll()
+                .pathMatchers("/actuator/auditevents").permitAll()
                 .pathMatchers("/oauth2/**", "/.well-known/**").permitAll()
                 .pathMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 
@@ -108,12 +140,19 @@ public class Fapi2SecurityConfig {
             
             // Exception handling
             .exceptionHandling(exceptions -> exceptions
-                .authenticationEntryPoint(new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED))
+                .authenticationEntryPoint(authenticationEntryPoint())
                 .accessDeniedHandler((exchange, denied) -> {
                     exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
                     return exchange.getResponse().setComplete();
                 })
             )
+            
+            // Custom filters for FAPI compliance
+            .addFilterAt(pkceValidationFilter, SecurityWebFiltersOrder.FIRST)
+            .addFilterAfter(rateLimitingFilter, SecurityWebFiltersOrder.FIRST)
+            .addFilterAfter(islamicBankingFilter, SecurityWebFiltersOrder.FIRST)
+            .addFilterAt(dPoPValidationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+            .addFilterBefore(corsSchemeNormalizationFilter(environment), SecurityWebFiltersOrder.CORS)
             
             .build();
     }
@@ -141,6 +180,8 @@ public class Fapi2SecurityConfig {
         
         // Allow Islamic banking frontend domains
         configuration.setAllowedOriginPatterns(Arrays.asList(
+            "https://amanahfi.ae",
+            "https://amanahfi.com",
             "https://*.amanahfi.ae",
             "https://*.amanahfi.com", 
             "https://localhost:*", // Development
@@ -179,27 +220,91 @@ public class Fapi2SecurityConfig {
     }
 
     @Bean
-    public DPoPTokenValidator dPoPTokenValidator() {
-        return new DPoPTokenValidator();
-    }
-
-    @Bean 
-    public IslamicBankingSecurityFilter islamicBankingSecurityFilter() {
-        return new IslamicBankingSecurityFilter();
+    public AuditEventRepository auditEventRepository() {
+        return new InMemoryAuditEventRepository();
     }
 
     @Bean
-    public RateLimitingFilter rateLimitingFilter() {
-        return new RateLimitingFilter();
+    public ReactiveJwtDecoder jwtDecoder(Environment environment) {
+        if (environment.acceptsProfiles(Profiles.of("test", "local"))) {
+            return token -> Mono.error(new OAuth2AuthenticationException(
+                new OAuth2Error("invalid_token", "Invalid access token", null)));
+        }
+
+        return ReactiveJwtDecoders.fromIssuerLocation("http://localhost:8086/oauth2");
     }
 
-    @Bean
-    public AuditSecurityEventListener auditSecurityEventListener() {
-        return new AuditSecurityEventListener();
+    private WebFilter corsSchemeNormalizationFilter(Environment environment) {
+        return (exchange, chain) -> {
+            if (!environment.acceptsProfiles(Profiles.of("test", "local"))) {
+                return chain.filter(exchange);
+            }
+
+            String origin = exchange.getRequest().getHeaders().getOrigin();
+            if (origin == null) {
+                return chain.filter(exchange);
+            }
+
+            if (exchange.getRequest().getURI().getScheme() != null) {
+                return chain.filter(exchange);
+            }
+
+            URI requestUri = exchange.getRequest().getURI();
+            String rawPath = requestUri.getRawPath() != null ? requestUri.getRawPath() : "/";
+            String rawQuery = requestUri.getRawQuery();
+
+            StringBuilder uriBuilder = new StringBuilder()
+                .append("https://localhost");
+            uriBuilder.append(rawPath);
+            if (rawQuery != null && !rawQuery.isBlank()) {
+                uriBuilder.append("?").append(rawQuery);
+            }
+
+            URI normalized = URI.create(uriBuilder.toString());
+
+            return chain.filter(new org.springframework.web.server.ServerWebExchangeDecorator(exchange) {
+                @Override
+                public org.springframework.http.server.reactive.ServerHttpRequest getRequest() {
+                    return new org.springframework.http.server.reactive.ServerHttpRequestDecorator(exchange.getRequest()) {
+                        @Override
+                        public java.net.URI getURI() {
+                            return normalized;
+                        }
+                    };
+                }
+            });
+        };
     }
 
-    private boolean isTestEnvironment(org.springframework.web.server.ServerWebExchange exchange) {
-        String profile = System.getProperty("spring.profiles.active", "");
-        return profile.contains("test") || profile.contains("local");
+    private ServerAuthenticationEntryPoint authenticationEntryPoint() {
+        return (exchange, ex) -> {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            exchange.getResponse().getHeaders().add(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+            String errorMessage = ex != null && ex.getMessage() != null ? ex.getMessage() : "Unauthorized";
+            String errorCode = "unauthorized";
+
+            if (ex instanceof OAuth2AuthenticationException oauth2Exception) {
+                if (oauth2Exception.getError() != null) {
+                    errorCode = oauth2Exception.getError().getErrorCode();
+                    if (oauth2Exception.getError().getDescription() != null) {
+                        errorMessage = oauth2Exception.getError().getDescription();
+                    }
+                }
+            }
+            String body = """
+                {
+                    "error": "%s",
+                    "error_description": "%s",
+                    "timestamp": "%s"
+                }
+                """.formatted(errorCode, errorMessage.replace("\"", "'"), Instant.now().toString());
+
+            DataBuffer buffer = exchange.getResponse().bufferFactory()
+                .wrap(body.getBytes(StandardCharsets.UTF_8));
+            return exchange.getResponse().writeWith(Mono.just(buffer));
+        };
     }
+
 }

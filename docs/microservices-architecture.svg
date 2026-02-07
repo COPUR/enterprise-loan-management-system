@@ -207,7 +207,7 @@
     <text x="960" y="315" font-family="Arial, sans-serif" font-size="8">• 5-minute timeout</text>
     
     <text x="960" y="335" font-family="Arial, sans-serif" font-size="10" font-weight="bold">Performance:</text>
-    <text x="960" y="350" font-family="Arial, sans-serif" font-size="8">• Java 21 Virtual Threads</text>
+    <text x="960" y="350" font-family="Arial, sans-serif" font-size="8">• Java 25 Virtual Threads</text>
     <text x="960" y="365" font-family="Arial, sans-serif" font-size="8">• Sub-40ms response time</text>
   </g>
 </svg>

@@ -49,7 +49,7 @@ dependencies {
 
 repositories {
     maven {
-        url 'https://packages.confluent.io/maven/'
+        url = 'https://packages.confluent.io/maven/'
     }
 }
 

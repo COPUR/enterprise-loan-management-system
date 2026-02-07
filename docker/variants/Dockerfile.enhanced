@@ -1,7 +1,7 @@
 # Enhanced Enterprise Banking System Dockerfile
 # Multi-stage build for Spring Boot application with AI features
 
-FROM eclipse-temurin:21-jdk-alpine AS builder
+FROM openjdk:25.0.2-jdk-alpine AS builder
 
 # Install required tools
 RUN apk add --no-cache curl git
@@ -23,7 +23,7 @@ COPY src src
 RUN chmod +x gradlew && ./gradlew clean build -x test
 
 # Runtime stage
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM openjdk:25.0.2-jre-alpine AS runtime
 
 # Install required packages for banking operations
 RUN apk add --no-cache \

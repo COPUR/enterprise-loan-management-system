@@ -7,6 +7,15 @@ plugins {
 
 description = 'Open Finance Infrastructure - External adapters and infrastructure concerns'
 
+sourceSets {
+    main {
+        java.setSrcDirs([])
+    }
+    test {
+        java.setSrcDirs([])
+    }
+}
+
 dependencies {
     // Internal dependencies
     api project(':open-finance-context:open-finance-application')

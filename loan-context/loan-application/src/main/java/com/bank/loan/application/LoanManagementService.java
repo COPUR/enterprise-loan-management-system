@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  * - FR-007: Loan Disbursement
  * - FR-008: Loan Payment Processing
  */
-@Service
+@Service("loanService")
 @Transactional
 public class LoanManagementService {
     
@@ -141,6 +141,18 @@ public class LoanManagementService {
             .orElseThrow(() -> LoanNotFoundException.withId(loanId));
         
         return LoanResponse.from(loan);
+    }
+
+    /**
+     * Resolve customer ID for authorization checks
+     */
+    @Transactional(readOnly = true)
+    public String getCustomerIdForLoan(String loanId) {
+        LoanId id = LoanId.of(loanId);
+        Loan loan = loanRepository.findById(id)
+            .orElseThrow(() -> LoanNotFoundException.withId(loanId));
+
+        return loan.getCustomerId().getValue();
     }
     
     /**

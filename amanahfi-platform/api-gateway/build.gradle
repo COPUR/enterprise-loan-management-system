@@ -44,6 +44,15 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
 }
 
+configurations.configureEach {
+    exclude group: 'org.springframework.boot', module: 'spring-boot-starter-web'
+    exclude group: 'org.springframework.boot', module: 'spring-boot-starter-data-jpa'
+    exclude group: 'org.springframework.boot', module: 'spring-boot-starter-data-redis'
+    exclude group: 'org.springframework.boot', module: 'spring-boot-starter-jdbc'
+    exclude group: 'org.flywaydb', module: 'flyway-core'
+    exclude group: 'org.postgresql', module: 'postgresql'
+}
+
 springBoot {
     mainClass = 'com.amanahfi.gateway.ApiGatewayApplication'
 }

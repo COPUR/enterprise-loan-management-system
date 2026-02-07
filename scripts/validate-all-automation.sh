@@ -141,7 +141,7 @@ validate_docker() {
         log_test "PASS" "Dockerfile exists"
         
         # Basic Dockerfile validation
-        if grep -q "FROM.*eclipse-temurin:21" Dockerfile; then
+        if grep -q "FROM.*openjdk:25.0.2" Dockerfile; then
             log_test "PASS" "Dockerfile uses correct Java base image"
         else
             log_test "WARN" "Dockerfile may not use recommended Java base image"

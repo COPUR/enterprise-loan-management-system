@@ -15,8 +15,8 @@ NC='\033[0m'
 echo -e "${BLUE}Enterprise Loan Management System - Technology Performance Validation${NC}"
 echo "============================================================================="
 
-# Java 21 Virtual Threads Performance Test
-echo -e "${YELLOW}1. Java 21 Virtual Threads - Concurrent Processing Test${NC}"
+# Java 25 Virtual Threads Performance Test
+echo -e "${YELLOW}1. Java 25 Virtual Threads - Concurrent Processing Test${NC}"
 echo "Testing 50 concurrent loan applications..."
 
 start_time=$(date +%s%N)
@@ -137,7 +137,7 @@ thread_count=$(echo "$threads_response" | grep -o '"value":[0-9.]*' | cut -d':' 
 
 echo -e "${GREEN}✅ Resource Efficiency:${NC}"
 echo -e "${GREEN}   Memory Usage: ${memory_mb}MB (optimized for cloud deployment)${NC}"
-echo -e "${GREEN}   Active Threads: $thread_count (Java 21 Virtual Threads)${NC}"
+echo -e "${GREEN}   Active Threads: $thread_count (Java 25 Virtual Threads)${NC}"
 
 # Overall System Health
 echo -e "\n${YELLOW}7. Overall System Health Validation${NC}"
@@ -149,7 +149,7 @@ echo -e "${GREEN}✅ System Status: $system_status${NC}"
 # Performance Summary
 echo -e "\n${BLUE}Technology Performance Summary:${NC}"
 echo "=================================================="
-echo -e "${GREEN}Java 21 Virtual Threads: $(echo "scale=2; 50000 / $duration" | bc) ops/sec concurrent processing${NC}"
+echo -e "${GREEN}Java 25 Virtual Threads: $(echo "scale=2; 50000 / $duration" | bc) ops/sec concurrent processing${NC}"
 echo -e "${GREEN}Spring Boot APIs: Average ${customer_time}s response time${NC}"
 echo -e "${GREEN}PostgreSQL ACID: 100% transaction consistency${NC}"
 echo -e "${GREEN}Redis Cache: ${avg_cache_time}ms average cached response${NC}"

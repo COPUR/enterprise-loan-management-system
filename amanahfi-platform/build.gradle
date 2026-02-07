@@ -19,7 +19,7 @@ subprojects {
 
     repositories {
         mavenCentral()
-        maven { url 'https://repo.spring.io/milestone' }
+        maven { url = 'https://repo.spring.io/milestone' }
     }
 
     ext {
@@ -62,8 +62,8 @@ subprojects {
         implementation 'io.opentelemetry:opentelemetry-api'
         
         // Utilities
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
+        compileOnly 'org.projectlombok:lombok:1.18.42'
+        annotationProcessor 'org.projectlombok:lombok:1.18.42'
         
         // Testing - TDD Approach
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -83,9 +83,9 @@ subprojects {
         useJUnitPlatform()
         testLogging {
             events "passed", "skipped", "failed"
-            exceptionFormat "full"
+            exceptionFormat = "full"
         }
-        // Enable Loom virtual threads for testing (available in Java 21 without preview)
+        // Enable Loom virtual threads for testing (available in Java 25 without preview)
     }
 
     tasks.withType(JavaCompile) {

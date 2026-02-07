@@ -89,7 +89,7 @@
                   "",
                   "pm.test('Technology stack validation', function () {",
                   "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.technology_stack.java).to.include('Java 21');",
+                  "    pm.expect(jsonData.technology_stack.java).to.include('Java 25');",
                   "    pm.expect(jsonData.technology_stack.framework).to.include('Spring Boot 3.2');",
                   "    pm.expect(jsonData.technology_stack.database).to.include('PostgreSQL');",
                   "});",

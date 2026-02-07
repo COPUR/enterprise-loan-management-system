@@ -1,5 +1,6 @@
 package com.bank.infrastructure.api.interceptor;
 
+import com.bank.infrastructure.api.config.RateLimitingConfiguration;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;

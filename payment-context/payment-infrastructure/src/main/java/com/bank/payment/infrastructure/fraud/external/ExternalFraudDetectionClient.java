@@ -103,7 +103,10 @@ public class ExternalFraudDetectionClient {
             try {
                 BatchFraudRequest batchRequest = new BatchFraudRequest(requests);
                 BatchFraudResponse batchResponse = callBatchFraudService(primaryFraudServiceUrl, batchRequest);
-                responses = batchResponse.getResponses();
+                Map<String, ExternalFraudResponse> batchResponses = batchResponse.getResponses();
+                if (batchResponses != null) {
+                    responses.putAll(batchResponses);
+                }
                 
             } catch (Exception e) {
                 logger.error("Batch fraud screening failed: {}", e.getMessage());
@@ -159,8 +162,12 @@ public class ExternalFraudDetectionClient {
      */
     public CompletableFuture<FraudReportResponse> reportFraudCase(FraudCaseReport fraudReport) {
         if (!fraudDetectionEnabled) {
-            return CompletableFuture.completedFuture(
-                new FraudReportResponse(fraudReport.getTransactionId(), "RECEIVED", "MOCK-CASE-" + System.currentTimeMillis()));
+            FraudReportResponse response = new FraudReportResponse();
+            response.setTransactionId(fraudReport.getTransactionId());
+            response.setStatus("RECEIVED");
+            response.setCaseId("MOCK-CASE-" + System.currentTimeMillis());
+            response.setTimestamp(LocalDateTime.now());
+            return CompletableFuture.completedFuture(response);
         }
 
         return CompletableFuture.supplyAsync(() -> {
@@ -180,7 +187,12 @@ public class ExternalFraudDetectionClient {
                 
             } catch (Exception e) {
                 logger.error("Fraud case reporting failed: {}", e.getMessage());
-                return new FraudReportResponse(fraudReport.getTransactionId(), "FAILED", null);
+                FraudReportResponse response = new FraudReportResponse();
+                response.setTransactionId(fraudReport.getTransactionId());
+                response.setStatus("FAILED");
+                response.setTimestamp(LocalDateTime.now());
+                response.setMessage(e.getMessage());
+                return response;
             }
         });
     }

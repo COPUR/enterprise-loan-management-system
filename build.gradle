@@ -14,14 +14,24 @@ group = 'com.bank'
 version = '1.0.0-SNAPSHOT'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+sourceSets {
+    // Root project acts as aggregator in this migration phase.
+    main {
+        java.setSrcDirs([])
+    }
+    test {
+        java.setSrcDirs([])
+    }
 }
 
 repositories {
     mavenCentral()
-    maven { url 'https://repo.spring.io/milestone' }
-    maven { url 'https://repo.spring.io/snapshot' }
+    maven { url = 'https://repo.spring.io/milestone' }
+    maven { url = 'https://repo.spring.io/snapshot' }
 }
 
 // =================================================================
@@ -76,7 +86,7 @@ ext {
     openApiVersion = '2.2.0'
     
     // Build & Development
-    lombokVersion = '1.18.30'
+    lombokVersion = '1.18.42'
     spotbugsVersion = '4.8.2'
 }
 
@@ -158,7 +168,7 @@ test {
     useJUnitPlatform()
     testLogging {
         events "passed", "skipped", "failed"
-        exceptionFormat "full"
+        exceptionFormat = "full"
     }
 }
 
@@ -202,8 +212,8 @@ allprojects {
 
     repositories {
         mavenCentral()
-        maven { url 'https://repo.spring.io/milestone' }
-        maven { url 'https://repo.spring.io/snapshot' }
+        maven { url = 'https://repo.spring.io/milestone' }
+        maven { url = 'https://repo.spring.io/snapshot' }
     }
 }
 
@@ -211,8 +221,8 @@ subprojects {
     apply plugin: 'java-library'
     
     java {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
     }
     
     // Apply dependency management from convention plugins
@@ -223,17 +233,23 @@ subprojects {
             extendsFrom annotationProcessor
         }
     }
+
+    dependencies {
+        testRuntimeOnly libs.junit.platform.launcher
+    }
     
     // Common test configuration
     test {
         useJUnitPlatform()
         testLogging {
             events "passed", "skipped", "failed"
-            exceptionFormat "full"
+            exceptionFormat = "full"
         }
         // Enable parallel test execution
         systemProperty 'junit.jupiter.execution.parallel.enabled', 'true'
         systemProperty 'junit.jupiter.execution.parallel.mode.default', 'concurrent'
+        // Required for Mockito/ByteBuddy on Java 25.
+        systemProperty 'net.bytebuddy.experimental', 'true'
     }
     
     // Common compiler arguments

@@ -103,8 +103,8 @@ check_prerequisites() {
     # Check Java version
     local java_version
     java_version=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
-    if [ "$java_version" -lt 21 ]; then
-        log "ERROR" "Java 21 or higher is required. Current version: $java_version"
+    if [ "$java_version" -lt 25 ]; then
+        log "ERROR" "Java 25.0.2 or higher is required. Current version: $java_version"
         exit 1
     fi
     
@@ -781,7 +781,7 @@ Welcome to the development environment for the Enterprise Loan Management System
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Java 21+
+- Java 25.0.2+
 - Gradle 8+
 - Docker & Docker Compose
 - Git

@@ -5,7 +5,7 @@
 # =============================================================================
 # Stage 1: Build Environment (Builder Stage)
 # =============================================================================
-FROM openjdk:21-jdk-slim AS builder
+FROM openjdk:25.0.2-jdk-slim AS builder
 
 # Security: Create non-root user for build process
 RUN groupadd --gid 10001 builduser && \
@@ -57,7 +57,7 @@ RUN mkdir -p /app/extracted && \
 # =============================================================================
 # Stage 2: Security Hardening Base (Distroless for Security)
 # =============================================================================
-FROM gcr.io/distroless/java21-debian12:nonroot AS security-base
+FROM gcr.io/distroless/java25-debian12:nonroot AS security-base
 
 # Security Labels and Metadata
 LABEL maintainer="Enterprise Banking Security Team" \

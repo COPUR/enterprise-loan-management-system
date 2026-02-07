@@ -6,6 +6,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * Credit Loan Installment entity for integration tests
@@ -70,18 +71,80 @@ public class CreditLoanInstallment {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    /**
+     * Factory method to create a new installment
+     */
+    public static CreditLoanInstallment create(Long loanId,
+                                               Integer installmentNumber,
+                                               BigDecimal amount,
+                                               LocalDate dueDate) {
+        Objects.requireNonNull(installmentNumber, "Installment number cannot be null");
+        Objects.requireNonNull(amount, "Installment amount cannot be null");
+        Objects.requireNonNull(dueDate, "Due date cannot be null");
+
+        if (installmentNumber <= 0) {
+            throw new IllegalArgumentException("Installment number must be positive");
+        }
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Installment amount must be positive");
+        }
+
+        return CreditLoanInstallment.builder()
+            .loanId(loanId)
+            .installmentNumber(installmentNumber)
+            .amount(amount)
+            .dueDate(dueDate)
+            .isPaid(false)
+            .paidAmount(BigDecimal.ZERO)
+            .build();
+    }
     
     /**
      * Get remaining amount to be paid
      */
     public BigDecimal getRemainingAmount() {
-        return amount.subtract(paidAmount != null ? paidAmount : BigDecimal.ZERO);
+        if (amount == null) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal paid = paidAmount != null ? paidAmount : BigDecimal.ZERO;
+        BigDecimal remaining = amount.subtract(paid);
+        return remaining.compareTo(BigDecimal.ZERO) >= 0 ? remaining : BigDecimal.ZERO;
     }
     
     /**
      * Check if installment is overdue
      */
     public boolean isOverdue() {
-        return !isPaid && dueDate.isBefore(LocalDate.now());
+        if (dueDate == null) {
+            return false;
+        }
+        boolean paid = Boolean.TRUE.equals(isPaid);
+        return !paid && dueDate.isBefore(LocalDate.now());
+    }
+
+    /**
+     * Apply a payment to this installment
+     */
+    public void applyPayment(BigDecimal paymentAmount, LocalDateTime paymentDate) {
+        Objects.requireNonNull(paymentAmount, "Payment amount cannot be null");
+        if (paymentAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Payment amount must be positive");
+        }
+
+        if (Boolean.TRUE.equals(isPaid)) {
+            return;
+        }
+
+        BigDecimal currentPaid = paidAmount != null ? paidAmount : BigDecimal.ZERO;
+        BigDecimal newPaid = currentPaid.add(paymentAmount);
+        this.paidAmount = newPaid;
+
+        if (amount != null && newPaid.compareTo(amount) >= 0) {
+            this.isPaid = true;
+            this.paidDate = paymentDate != null ? paymentDate : LocalDateTime.now();
+        }
+
+        this.updatedAt = LocalDateTime.now();
     }
 }

@@ -22,7 +22,7 @@ on:
         type: boolean
 
 env:
-  JAVA_VERSION: '21'
+  JAVA_VERSION: '25.0.2'
   GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2'
   DOCKER_REGISTRY: 'harbor.banking.enterprise.com'
   HELM_VERSION: '3.13.0'
@@ -44,7 +44,7 @@ jobs:
       with:
         fetch-depth: 0  # Full history for SonarQube
         
-    - name: ☕ Setup Java 21
+    - name: ☕ Setup Java 25
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
@@ -121,7 +121,7 @@ jobs:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
       
-    - name: ☕ Setup Java 21
+    - name: ☕ Setup Java 25
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
@@ -205,7 +205,7 @@ jobs:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
       
-    - name: ☕ Setup Java 21
+    - name: ☕ Setup Java 25
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
@@ -257,7 +257,7 @@ jobs:
     - name: 📥 Checkout Code
       uses: actions/checkout@v4
       
-    - name: ☕ Setup Java 21
+    - name: ☕ Setup Java 25
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}

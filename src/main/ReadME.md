@@ -20,8 +20,8 @@ The application follows Hexagonal Architecture (Ports & Adapters) with Domain-Dr
 
 ## Requirements
 
-- Java 21
-- Gradle 8.5+
+- Java 25.0.2
+- Gradle 9.3.1+
 
 ## Running the Application
 

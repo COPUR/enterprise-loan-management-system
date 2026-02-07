@@ -5,7 +5,7 @@
 # ============================================================================
 # Stage 1: Build Environment with Enhanced Caching and Security
 # ============================================================================
-FROM gradle:8.11.1-jdk21-alpine AS builder
+FROM gradle:9.3.1-jdk25-alpine AS builder
 
 # Enhanced metadata for compliance and tracking
 LABEL maintainer="Enterprise Banking Team <team@banking.com>"
@@ -14,7 +14,7 @@ LABEL description="Enhanced Enterprise Banking System - Full Stack Microservice"
 LABEL vendor="Banking Solutions Inc."
 LABEL build-date="2025-06-27"
 LABEL spring-boot-version="3.3.6"
-LABEL java-version="21"
+LABEL java-version="25.0.2"
 LABEL architecture="DDD+Hexagonal"
 LABEL compliance="BIAN+FAPI+Islamic-Banking"
 LABEL features="AI-ML+Functional-Tests+Security"
@@ -63,7 +63,7 @@ RUN ./gradlew buildInfo --no-daemon \
 # ============================================================================
 # Stage 2: Enhanced Runtime Environment
 # ============================================================================
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM openjdk:25.0.2-jre-alpine AS runtime
 
 # Install security updates and banking compliance tools
 RUN apk update && apk upgrade \
@@ -285,7 +285,7 @@ CMD ["./gradlew", "bootRun", "--no-daemon", "--continuous"]
 # ============================================================================
 # Stage 5: Kubernetes-Optimized Production Environment
 # ============================================================================
-FROM eclipse-temurin:21-jre-alpine AS kubernetes
+FROM openjdk:25.0.2-jre-alpine AS kubernetes
 
 # Install Kubernetes-specific tools
 RUN apk update && apk upgrade \

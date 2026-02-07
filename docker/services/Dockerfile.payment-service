@@ -1,10 +1,10 @@
 # Multi-stage build for Payment Service
-FROM openjdk:21-jdk-alpine AS builder
+FROM openjdk:25.0.2-jdk-alpine AS builder
 WORKDIR /app
 COPY . .
 RUN ./gradlew clean build -x test
 
-FROM openjdk:21-jre-alpine
+FROM openjdk:25.0.2-jre-alpine
 RUN addgroup -g 1001 -S banking && \
     adduser -S -D -h /app banking banking && \
     apk add --no-cache curl

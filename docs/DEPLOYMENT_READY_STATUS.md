@@ -149,7 +149,7 @@ kubectl logs -f deployment/enterprise-banking-app
 -  **KYC/AML** - Know Your Customer / Anti-Money Laundering
 
 ### **Technology Stack Excellence**
--  **Java 21** - Latest LTS with virtual threads
+-  **Java 25** - OpenJDK baseline with virtual threads
 -  **Spring Boot 3.3.6** - Modern framework stack
 -  **PostgreSQL 15** - Enterprise database
 -  **Redis 7** - High-performance caching

@@ -4,7 +4,7 @@
 # ============================================================================
 # Stage 1: Build Environment (Simplified)
 # ============================================================================
-FROM gradle:8.11.1-jdk21-alpine AS builder
+FROM gradle:9.3.1-jdk25-alpine AS builder
 
 # Enhanced metadata
 LABEL maintainer="Enterprise Banking Team <team@banking.com>"
@@ -54,7 +54,7 @@ RUN echo "build.version=2.0.0-test" > build-info.properties \
 # ============================================================================
 # Stage 2: Runtime Environment (Enhanced)
 # ============================================================================
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM openjdk:25.0.2-jre-alpine AS runtime
 
 # Install required packages
 RUN apk update && apk upgrade \

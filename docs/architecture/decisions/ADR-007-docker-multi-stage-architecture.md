@@ -15,11 +15,11 @@ We will implement a **multi-stage Docker architecture** with specialized stages 
 
 ```dockerfile
 # Multi-stage Docker build with banking security hardening
-FROM eclipse-temurin:21-jdk-alpine AS builder
-FROM eclipse-temurin:21-jdk-alpine AS testing  
-FROM eclipse-temurin:21-jdk-alpine AS development
-FROM eclipse-temurin:21-jdk-alpine AS e2e-testing
-FROM eclipse-temurin:21-jre-alpine AS kubernetes
+FROM openjdk:25.0.2-jdk-alpine AS builder
+FROM openjdk:25.0.2-jdk-alpine AS testing  
+FROM openjdk:25.0.2-jdk-alpine AS development
+FROM openjdk:25.0.2-jdk-alpine AS e2e-testing
+FROM openjdk:25.0.2-jre-alpine AS kubernetes
 ```
 
 ## Technical Implementation
@@ -118,7 +118,7 @@ ENV JAVA_OPTS="-XX:+UseG1GC \
 ### Multi-Architecture Support
 ```dockerfile
 # Support for AMD64 and ARM64 for cost optimization
-FROM --platform=$BUILDPLATFORM eclipse-temurin:21-jdk-alpine AS builder
+FROM --platform=$BUILDPLATFORM openjdk:25.0.2-jdk-alpine AS builder
 ```
 
 ### Vulnerability Scanning

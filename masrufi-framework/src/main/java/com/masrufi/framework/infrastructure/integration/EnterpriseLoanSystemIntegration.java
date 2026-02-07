@@ -2,8 +2,9 @@ package com.masrufi.framework.infrastructure.integration;
 
 import com.masrufi.framework.domain.model.IslamicFinancing;
 import com.masrufi.framework.domain.model.CustomerProfile;
-import com.masrufi.framework.domain.event.IslamicFinanceEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -68,11 +69,11 @@ public class EnterpriseLoanSystemIntegration {
             String enterpriseLoanId = loanSystemAdapter.createLoan(enterpriseLoanData);
 
             // Link Islamic financing with enterprise loan
-            linkIslamicFinancingToEnterpriseLoan(islamicFinancing.getFinancingId(), enterpriseLoanId);
+            linkIslamicFinancingToEnterpriseLoan(islamicFinancing.getFinancingId().toString(), enterpriseLoanId);
 
             // Publish integration event
             publishIntegrationEvent(new IslamicFinancingRegisteredEvent(
-                islamicFinancing.getFinancingId(),
+                islamicFinancing.getFinancingId().toString(),
                 enterpriseLoanId,
                 islamicFinancing.getIslamicFinancingType()
             ));
@@ -160,7 +161,7 @@ public class EnterpriseLoanSystemIntegration {
 
             // Send compliance data to enterprise system
             loanSystemAdapter.updateComplianceData(
-                getLinkedEnterpriseLoanId(islamicFinancing.getFinancingId()),
+                getLinkedEnterpriseLoanId(islamicFinancing.getFinancingId().toString()),
                 complianceData
             );
 
@@ -242,6 +243,7 @@ public class EnterpriseLoanSystemIntegration {
  * Default adapter for enterprise loan system integration
  */
 class DefaultEnterpriseLoanSystemAdapter implements EnterpriseLoanSystemAdapter {
+    private static final Logger log = LoggerFactory.getLogger(DefaultEnterpriseLoanSystemAdapter.class);
     
     @Override
     public String createLoan(Map<String, Object> loanData) {
@@ -283,6 +285,7 @@ class DefaultEnterpriseLoanSystemAdapter implements EnterpriseLoanSystemAdapter 
  * Default customer data synchronizer
  */
 class DefaultCustomerDataSynchronizer implements CustomerDataSynchronizer {
+    private static final Logger log = LoggerFactory.getLogger(DefaultCustomerDataSynchronizer.class);
     
     @Override
     public CustomerProfile transformToMasrufiCustomerProfile(Map<String, Object> enterpriseCustomerData) {
@@ -291,7 +294,6 @@ class DefaultCustomerDataSynchronizer implements CustomerDataSynchronizer {
         return CustomerProfile.builder()
             .customerId(enterpriseCustomerData.get("customerId").toString())
             .customerName(enterpriseCustomerData.get("name").toString())
-            .customerType(CustomerType.valueOf(enterpriseCustomerData.get("type").toString()))
             .creditScore(Integer.parseInt(enterpriseCustomerData.get("creditScore").toString()))
             .build();
     }
@@ -306,6 +308,7 @@ class DefaultCustomerDataSynchronizer implements CustomerDataSynchronizer {
  * Default compliance data exchanger
  */
 class DefaultComplianceDataExchanger implements ComplianceDataExchanger {
+    private static final Logger log = LoggerFactory.getLogger(DefaultComplianceDataExchanger.class);
     
     @Override
     public Map<String, Object> prepareShariaComplianceData(IslamicFinancing islamicFinancing) {
@@ -437,12 +440,4 @@ class CustomerNotFoundException extends RuntimeException {
     public CustomerNotFoundException(String message) {
         super(message);
     }
-}
-
-// Enums for CustomerProfile (simplified versions)
-enum CustomerType {
-    INDIVIDUAL,
-    CORPORATE,
-    GOVERNMENT,
-    NON_PROFIT
 }

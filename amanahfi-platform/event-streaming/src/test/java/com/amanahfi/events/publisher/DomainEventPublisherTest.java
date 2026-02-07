@@ -5,7 +5,6 @@ import com.amanahfi.events.domain.EventMetadata;
 import com.amanahfi.events.domain.IslamicBankingEvent;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,20 +78,18 @@ class DomainEventPublisherTest {
         when(metadataEnricher.enrich(event)).thenReturn(enrichedMetadata);
         
         CompletableFuture<SendResult<String, Object>> future = new CompletableFuture<>();
-        RecordMetadata recordMetadata = new RecordMetadata(
-            new TopicPartition("amanahfi.customers", 0), 0, 0, 0, 0L, 0, 0);
+        RecordMetadata recordMetadata = mock(RecordMetadata.class);
         SendResult<String, Object> sendResult = new SendResult<>(
             new ProducerRecord<>("amanahfi.customers", "CUST-12345678", event), recordMetadata);
         future.complete(sendResult);
         
-        when(kafkaTemplate.send(any(ProducerRecord.class))).thenReturn(future);
+        when(kafkaTemplate.send(anyProducerRecord())).thenReturn(future);
 
         // When
         eventPublisher.publish(event).join();
 
         // Then
-        ArgumentCaptor<ProducerRecord<String, Object>> recordCaptor = 
-            ArgumentCaptor.forClass(ProducerRecord.class);
+        ArgumentCaptor<ProducerRecord<String, Object>> recordCaptor = producerRecordCaptor();
         verify(kafkaTemplate).send(recordCaptor.capture());
         
         ProducerRecord<String, Object> sentRecord = recordCaptor.getValue();
@@ -138,15 +135,14 @@ class DomainEventPublisherTest {
         when(metadataEnricher.enrich(event)).thenReturn(enrichedMetadata);
         
         CompletableFuture<SendResult<String, Object>> future = new CompletableFuture<>();
-        future.complete(mock(SendResult.class));
-        when(kafkaTemplate.send(any(ProducerRecord.class))).thenReturn(future);
+        future.complete(mockSendResult());
+        when(kafkaTemplate.send(anyProducerRecord())).thenReturn(future);
 
         // When
         eventPublisher.publish(event).join();
 
         // Then
-        ArgumentCaptor<ProducerRecord<String, Object>> recordCaptor = 
-            ArgumentCaptor.forClass(ProducerRecord.class);
+        ArgumentCaptor<ProducerRecord<String, Object>> recordCaptor = producerRecordCaptor();
         verify(kafkaTemplate).send(recordCaptor.capture());
         
         ProducerRecord<String, Object> sentRecord = recordCaptor.getValue();
@@ -192,15 +188,14 @@ class DomainEventPublisherTest {
         when(metadataEnricher.enrich(event)).thenReturn(enrichedMetadata);
         
         CompletableFuture<SendResult<String, Object>> future = new CompletableFuture<>();
-        future.complete(mock(SendResult.class));
-        when(kafkaTemplate.send(any(ProducerRecord.class))).thenReturn(future);
+        future.complete(mockSendResult());
+        when(kafkaTemplate.send(anyProducerRecord())).thenReturn(future);
 
         // When
         eventPublisher.publish(event).join();
 
         // Then
-        ArgumentCaptor<ProducerRecord<String, Object>> recordCaptor = 
-            ArgumentCaptor.forClass(ProducerRecord.class);
+        ArgumentCaptor<ProducerRecord<String, Object>> recordCaptor = producerRecordCaptor();
         verify(kafkaTemplate).send(recordCaptor.capture());
         
         ProducerRecord<String, Object> sentRecord = recordCaptor.getValue();
@@ -242,15 +237,14 @@ class DomainEventPublisherTest {
         when(metadataEnricher.enrich(event)).thenReturn(enrichedMetadata);
         
         CompletableFuture<SendResult<String, Object>> future = new CompletableFuture<>();
-        future.complete(mock(SendResult.class));
-        when(kafkaTemplate.send(any(ProducerRecord.class))).thenReturn(future);
+        future.complete(mockSendResult());
+        when(kafkaTemplate.send(anyProducerRecord())).thenReturn(future);
 
         // When
         eventPublisher.publish(event).join();
 
         // Then
-        ArgumentCaptor<ProducerRecord<String, Object>> recordCaptor = 
-            ArgumentCaptor.forClass(ProducerRecord.class);
+        ArgumentCaptor<ProducerRecord<String, Object>> recordCaptor = producerRecordCaptor();
         verify(kafkaTemplate).send(recordCaptor.capture());
         
         ProducerRecord<String, Object> sentRecord = recordCaptor.getValue();
@@ -276,7 +270,7 @@ class DomainEventPublisherTest {
         
         CompletableFuture<SendResult<String, Object>> future = new CompletableFuture<>();
         future.completeExceptionally(new RuntimeException("Kafka broker unavailable"));
-        when(kafkaTemplate.send(any(ProducerRecord.class))).thenReturn(future);
+        when(kafkaTemplate.send(anyProducerRecord())).thenReturn(future);
 
         // When & Then
         assertThatThrownBy(() -> eventPublisher.publish(event).join())
@@ -301,14 +295,14 @@ class DomainEventPublisherTest {
         when(metadataEnricher.enrich(any())).thenReturn(mock(EventMetadata.class));
         
         CompletableFuture<SendResult<String, Object>> future = new CompletableFuture<>();
-        future.complete(mock(SendResult.class));
-        when(kafkaTemplate.send(any(ProducerRecord.class))).thenReturn(future);
+        future.complete(mockSendResult());
+        when(kafkaTemplate.send(anyProducerRecord())).thenReturn(future);
 
         // When
         eventPublisher.publishBatch(java.util.List.of(event1, event2)).join();
 
         // Then
-        verify(kafkaTemplate, times(2)).send(any(ProducerRecord.class));
+        verify(kafkaTemplate, times(2)).send(anyProducerRecord());
     }
 
     @Test
@@ -336,15 +330,14 @@ class DomainEventPublisherTest {
         when(metadataEnricher.enrich(event)).thenReturn(enrichedMetadata);
         
         CompletableFuture<SendResult<String, Object>> future = new CompletableFuture<>();
-        future.complete(mock(SendResult.class));
-        when(kafkaTemplate.send(any(ProducerRecord.class))).thenReturn(future);
+        future.complete(mockSendResult());
+        when(kafkaTemplate.send(anyProducerRecord())).thenReturn(future);
 
         // When
         eventPublisher.publish(event).join();
 
         // Then
-        ArgumentCaptor<ProducerRecord<String, Object>> recordCaptor = 
-            ArgumentCaptor.forClass(ProducerRecord.class);
+        ArgumentCaptor<ProducerRecord<String, Object>> recordCaptor = producerRecordCaptor();
         verify(kafkaTemplate).send(recordCaptor.capture());
         
         ProducerRecord<String, Object> sentRecord = recordCaptor.getValue();
@@ -510,5 +503,24 @@ class DomainEventPublisherTest {
         public String getComplianceType() { return complianceType; }
         public String getCheckType() { return checkType; }
         public String getReason() { return reason; }
+    }
+
+    private SendResult<String, Object> mockSendResult() {
+        @SuppressWarnings("unchecked")
+        SendResult<String, Object> sendResult = (SendResult<String, Object>) mock(SendResult.class);
+        return sendResult;
+    }
+
+    private ArgumentCaptor<ProducerRecord<String, Object>> producerRecordCaptor() {
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<ProducerRecord<String, Object>> recordCaptor =
+            (ArgumentCaptor<ProducerRecord<String, Object>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(ProducerRecord.class);
+        return recordCaptor;
+    }
+
+    private ProducerRecord<String, Object> anyProducerRecord() {
+        @SuppressWarnings("unchecked")
+        ProducerRecord<String, Object> producerRecord = (ProducerRecord<String, Object>) any(ProducerRecord.class);
+        return producerRecord;
     }
 }

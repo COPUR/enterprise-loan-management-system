@@ -94,7 +94,7 @@ Documents organized under **docs/enterprisearchitecture/project-management/**:
 | Diagram | Description | PlantUML Source |
 |---------|-------------|-----------------|
 | [System Architecture](docs/images/security/system-architecture-overview.svg) | Complete system with all 11 bounded contexts | [Source](docs/puml/system-overview/system-architecture-overview.puml) |
-| [Technology Stack](docs/images/security/technology-stack-diagram.svg) | Complete technology stack from Java 21 to Kubernetes | [Source](docs/puml/system-overview/technology-stack-diagram.puml) |
+| [Technology Stack](docs/images/security/technology-stack-diagram.svg) | Complete technology stack from Java 25 to Kubernetes | [Source](docs/puml/system-overview/technology-stack-diagram.puml) |
 | [Bounded Context Map](docs/images/security/bounded-context-map.svg) | Domain-driven design context relationships | [Source](docs/puml/system-overview/bounded-context-map.puml) |
 | [Deployment Architecture](docs/images/security/deployment-architecture.svg) | Multi-environment deployment topology | [Source](docs/puml/system-overview/deployment-architecture.puml) |
 
@@ -162,7 +162,7 @@ Documents organized under **docs/enterprisearchitecture/project-management/**:
 - **Analytics Platform**: MongoDB-based silver copy analytics
 
 ### Technology Stack
-- **Java 21**: Modern language with virtual threads
+- **Java 25**: Modern language with virtual threads
 - **Spring Boot 3.3.6**: Latest framework with native compilation
 - **PostgreSQL 16.9**: Primary database with ACID compliance
 - **Apache Kafka**: Event streaming and messaging

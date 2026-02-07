@@ -9,7 +9,7 @@ This document provides a comprehensive analysis of the Enterprise Loan Managemen
 **Project**: Enterprise Loan Management System with FAPI 2.0 + DPoP Security  
 **Security Profile**: FAPI 2.0 Security Profile with DPoP (RFC 9449)  
 **Architecture**: Hexagonal Architecture with Clean Architecture principles  
-**Technology Stack**: Spring Boot 3.2.0, Java 21, PostgreSQL, Redis, Kafka, Keycloak  
+**Technology Stack**: Spring Boot 3.2.0, Java 25, PostgreSQL, Redis, Kafka, Keycloak  
 **Deployment**: Kubernetes-ready with Istio Service Mesh support  
 
 ---
@@ -264,7 +264,7 @@ spring:
 
 ### Build Configuration (`build.gradle`)
 
-**Java Version**: Java 21  
+**Java Version**: Java 25  
 **Spring Boot Version**: 3.2.0  
 **Architecture**: Multi-module Gradle project
 
@@ -280,7 +280,7 @@ spring:
 **FAPI 2.0 + DPoP Dependencies**:
 - ✅ Nimbus JOSE + JWT 9.40 (DPoP implementation)
 - ✅ OAuth2 OIDC SDK 11.19.1 (FAPI compliance)
-- ✅ Jakarta EE APIs (Java 21 compatibility)
+- ✅ Jakarta EE APIs (Java 25 compatibility)
 
 **Testing Dependencies**:
 - ✅ Spring Boot Starter Test
@@ -316,7 +316,7 @@ include 'payment-service'
 ## 🚀 Infrastructure & Deployment Analysis
 
 ### Containerization
-- ✅ Multi-stage Docker builds optimized for Java 21
+- ✅ Multi-stage Docker builds optimized for Java 25
 - ✅ Production-ready container configurations
 - ✅ Security-hardened base images
 

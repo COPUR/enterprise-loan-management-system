@@ -5,13 +5,13 @@ plugins {
 // Base Java configuration - High cohesion for core Java setup
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
 repositories {
     mavenCentral()
-    maven { url 'https://repo.spring.io/milestone' }
+    maven { url = 'https://repo.spring.io/milestone' }
 }
 
 // Core dependencies - Minimal and focused
@@ -27,8 +27,8 @@ dependencies {
     api 'jakarta.validation:jakarta.validation-api:3.0.2'
     
     // Lombok - Build-time only
-    compileOnly 'org.projectlombok:lombok:1.18.30'
-    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
     
     // Core testing - Minimal for all modules
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
@@ -64,7 +64,7 @@ test {
     
     testLogging {
         events "passed", "skipped", "failed"
-        exceptionFormat "short"
+        exceptionFormat = "short"
     }
 }
 

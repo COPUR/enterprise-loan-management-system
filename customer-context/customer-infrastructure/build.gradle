@@ -22,6 +22,11 @@ dependencies {
     // External Integrations
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+
+    // API Documentation
+    implementation libs.springdoc.openapi.starter.webmvc.ui
+    implementation libs.swagger.annotations
     
     // Messaging
     implementation 'org.springframework.kafka:spring-kafka'

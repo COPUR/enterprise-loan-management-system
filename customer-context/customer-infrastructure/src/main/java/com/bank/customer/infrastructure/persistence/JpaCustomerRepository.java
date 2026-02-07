@@ -57,18 +57,26 @@ public class JpaCustomerRepository implements CustomerRepository {
     public boolean existsByEmail(String email) {
         return springDataRepository.existsByEmail(email);
     }
-    
+
     @Override
+    public boolean existsById(CustomerId customerId) {
+        return springDataRepository.existsByCustomerId(customerId.getValue());
+    }
+    
     public List<Customer> findByStatus(String status) {
         return springDataRepository.findByStatus(status);
     }
     
-    @Override
     public void delete(Customer customer) {
         springDataRepository.delete(customer);
     }
-    
+
     @Override
+    public void deleteById(CustomerId customerId) {
+        springDataRepository.findByCustomerId(customerId.getValue())
+            .ifPresent(springDataRepository::delete);
+    }
+
     public List<Customer> findHighValueCustomers(java.math.BigDecimal minimumCreditLimit) {
         return springDataRepository.findHighValueCustomers(minimumCreditLimit);
     }
@@ -84,6 +92,9 @@ public class JpaCustomerRepository implements CustomerRepository {
         Optional<Customer> findByEmail(String email);
         
         boolean existsByEmail(String email);
+
+        @Query("SELECT COUNT(c) > 0 FROM Customer c WHERE c.customerId.value = :customerId")
+        boolean existsByCustomerId(@Param("customerId") String customerId);
         
         @Query("SELECT c FROM Customer c WHERE c.status = :status")
         List<Customer> findByStatus(@Param("status") String status);

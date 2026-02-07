@@ -41,11 +41,11 @@ public final class InterestRate implements ValueObject {
     }
     
     public BigDecimal getMonthlyRate() {
-        return annualRate.divide(BigDecimal.valueOf(12), 6, RoundingMode.HALF_UP);
+        return annualRate.divide(BigDecimal.valueOf(1200), 10, RoundingMode.HALF_UP);
     }
     
     public BigDecimal getDailyRate() {
-        return annualRate.divide(BigDecimal.valueOf(365), 8, RoundingMode.HALF_UP);
+        return annualRate.divide(BigDecimal.valueOf(36500), 12, RoundingMode.HALF_UP);
     }
     
     public boolean isZero() {

@@ -1,6 +1,52 @@
-// Payment Context - Parent Module Build Configuration
-// This module serves as a parent for payment processing domain
+// =================================================================
+// PAYMENT CONTEXT - PARENT MODULE
+// =================================================================
+// Payment Processing Bounded Context
+// Manages payments, settlements, and related workflows
+// =================================================================
+
+plugins {
+    id 'java-library'
+}
 
 description = 'Payment Processing Context - Enterprise Banking System'
 
-// This is a parent module, so it doesn't need specific dependencies
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'io.spring.dependency-management'
+
+    dependencyManagement {
+        imports {
+            mavenBom 'org.springframework.boot:spring-boot-dependencies:3.2.0'
+        }
+    }
+
+    dependencies {
+        // Shared Foundation
+        api project(':shared-kernel')
+        api project(':shared-infrastructure')
+
+        // Lombok
+        compileOnly "org.projectlombok:lombok:${rootProject.ext.lombokVersion}"
+        annotationProcessor "org.projectlombok:lombok:${rootProject.ext.lombokVersion}"
+        testCompileOnly "org.projectlombok:lombok:${rootProject.ext.lombokVersion}"
+        testAnnotationProcessor "org.projectlombok:lombok:${rootProject.ext.lombokVersion}"
+
+        // Testing
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+        testImplementation 'org.assertj:assertj-core'
+        testImplementation 'org.mockito:mockito-core'
+    }
+
+    afterEvaluate {
+        jar {
+            enabled = true
+            archiveClassifier = ''
+        }
+    }
+}
+
+dependencies {
+    // This parent module aggregates the submodules
+}

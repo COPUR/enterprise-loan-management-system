@@ -6,7 +6,7 @@
 java = "17"
 spring-boot = "3.2.0"
 spring-cloud = "2023.0.0"
-spring-dependency-management = "1.1.4"
+spring-dependency-management = "1.1.7"
 
 # Core Spring Framework
 spring-framework = "6.1.0"
@@ -61,7 +61,9 @@ actuator = "3.2.0"
 
 # Testing Framework
 junit = "5.10.1"
+junit-platform = "1.10.1"
 mockito = "5.8.0"
+mockito-inline = "5.2.0"
 assertj = "3.24.2"
 testcontainers = "1.19.3"
 archunit = "1.2.1"
@@ -74,7 +76,7 @@ jqwik = "1.8.2"
 spotbugs = "5.2.1"
 checkstyle = "10.12.7"
 pmd = "6.55.0"
-jacoco = "0.8.11"
+jacoco = "0.8.14"
 sonarqube = "4.4.1.3373"
 owasp-dependency-check = "9.0.7"
 
@@ -117,7 +119,7 @@ ehcache = "3.10.8"
 hazelcast = "5.3.6"
 
 # Development & Documentation
-lombok = "1.18.30"
+lombok = "1.18.42"
 mapstruct-processor = "1.5.5.Final"
 swagger-annotations = "2.2.20"
 springdoc-openapi = "2.3.0"
@@ -229,10 +231,11 @@ opentelemetry-instrumentation-spring-boot = { group = "io.opentelemetry.instrume
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 junit-jupiter-params = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit" }
 junit-vintage-engine = { group = "org.junit.vintage", name = "junit-vintage-engine", version.ref = "junit" }
-junit-platform-suite = { group = "org.junit.platform", name = "junit-platform-suite", version.ref = "junit" }
+junit-platform-suite = { group = "org.junit.platform", name = "junit-platform-suite", version.ref = "junit-platform" }
+junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit-platform" }
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 mockito-junit-jupiter = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockito" }
-mockito-inline = { group = "org.mockito", name = "mockito-inline", version.ref = "mockito" }
+mockito-inline = { group = "org.mockito", name = "mockito-inline", version.ref = "mockito-inline" }
 assertj-core = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 testcontainers-junit-jupiter = { group = "org.testcontainers", name = "junit-jupiter", version.ref = "testcontainers" }
 testcontainers-postgresql = { group = "org.testcontainers", name = "postgresql", version.ref = "testcontainers" }

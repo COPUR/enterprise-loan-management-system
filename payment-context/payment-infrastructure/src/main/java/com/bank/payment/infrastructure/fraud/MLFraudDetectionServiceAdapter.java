@@ -176,7 +176,7 @@ public class MLFraudDetectionServiceAdapter implements FraudDetectionService {
      * Calculate velocity-based risk score
      */
     private int calculateVelocityScore(Payment payment) {
-        String customerId = payment.getCustomerId();
+        String customerId = payment.getCustomerId().getValue();
         LocalDateTime now = LocalDateTime.now();
         
         // Get recent transactions for velocity analysis
@@ -197,12 +197,12 @@ public class MLFraudDetectionServiceAdapter implements FraudDetectionService {
         int score = 0;
         
         // Check daily limit
-        if (dailyAmount.add(payment.getAmount()).compareTo(DAILY_VELOCITY_LIMIT) > 0) {
+        if (dailyAmount.add(payment.getAmount().getAmount()).compareTo(DAILY_VELOCITY_LIMIT) > 0) {
             score += 30;
         }
         
         // Check hourly limit
-        if (hourlyAmount.add(payment.getAmount()).compareTo(HOURLY_VELOCITY_LIMIT) > 0) {
+        if (hourlyAmount.add(payment.getAmount().getAmount()).compareTo(HOURLY_VELOCITY_LIMIT) > 0) {
             score += 25;
         }
         
@@ -223,7 +223,7 @@ public class MLFraudDetectionServiceAdapter implements FraudDetectionService {
      */
     private int calculatePatternScore(Payment payment) {
         return behavioralAnalysisService.analyzeBehavioralPatterns(
-            payment.getCustomerId(),
+            payment.getCustomerId().getValue(),
             extractTransactionContext(payment)
         );
     }
@@ -244,7 +244,7 @@ public class MLFraudDetectionServiceAdapter implements FraudDetectionService {
      */
     private int calculateGeospatialScore(Payment payment) {
         return geospatialAnalysisService.analyzeGeospatialRisk(
-            payment.getCustomerId(),
+            payment.getCustomerId().getValue(),
             extractGeolocationData(payment)
         );
     }
@@ -263,7 +263,7 @@ public class MLFraudDetectionServiceAdapter implements FraudDetectionService {
      */
     private int calculateDeviceScore(Payment payment) {
         String deviceFingerprint = extractDeviceFingerprint(payment);
-        DeviceProfile profile = deviceProfileCache.get(payment.getCustomerId());
+        DeviceProfile profile = deviceProfileCache.get(payment.getCustomerId().getValue());
         
         if (profile == null) {
             // New device for customer
@@ -278,14 +278,14 @@ public class MLFraudDetectionServiceAdapter implements FraudDetectionService {
      */
     private MLFeatures extractFeatures(Payment payment) {
         return MLFeatures.builder()
-            .customerId(payment.getCustomerId())
-            .amount(payment.getAmount())
+            .customerId(payment.getCustomerId().getValue())
+            .amount(payment.getAmount().getAmount())
             .paymentType(payment.getPaymentType().name())
             .timestamp(LocalDateTime.now())
             .dayOfWeek(LocalDateTime.now().getDayOfWeek().getValue())
             .hourOfDay(LocalDateTime.now().getHour())
-            .fromAccountType(getAccountType(payment.getFromAccountId()))
-            .toAccountType(getAccountType(payment.getToAccountId()))
+            .fromAccountType(getAccountType(payment.getFromAccountId().getValue()))
+            .toAccountType(getAccountType(payment.getToAccountId().getValue()))
             .description(payment.getDescription())
             .build();
     }
@@ -295,11 +295,11 @@ public class MLFraudDetectionServiceAdapter implements FraudDetectionService {
      */
     private TransactionContext extractTransactionContext(Payment payment) {
         return TransactionContext.builder()
-            .amount(payment.getAmount())
+            .amount(payment.getAmount().getAmount())
             .paymentType(payment.getPaymentType())
             .timestamp(LocalDateTime.now())
-            .fromAccount(payment.getFromAccountId())
-            .toAccount(payment.getToAccountId())
+            .fromAccount(payment.getFromAccountId().getValue())
+            .toAccount(payment.getToAccountId().getValue())
             .description(payment.getDescription())
             .build();
     }
@@ -335,7 +335,7 @@ public class MLFraudDetectionServiceAdapter implements FraudDetectionService {
      */
     private String extractDeviceFingerprint(Payment payment) {
         // This would typically come from browser fingerprinting or mobile device ID
-        return "mock-device-fingerprint-" + payment.getCustomerId();
+        return "mock-device-fingerprint-" + payment.getCustomerId().getValue();
     }
     
     /**
@@ -392,8 +392,8 @@ public class MLFraudDetectionServiceAdapter implements FraudDetectionService {
     private void logFraudAnalysis(Payment payment, FraudAnalysisResult result) {
         System.out.println(String.format(
             "FRAUD_ANALYSIS: PaymentId=%s CustomerId=%s RiskScore=%d Fraudulent=%s Factors=%s",
-            payment.getPaymentId(),
-            payment.getCustomerId(),
+            payment.getId().getValue(),
+            payment.getCustomerId().getValue(),
             result.getRiskScore(),
             result.isFraudulent(),
             String.join(", ", result.getRiskFactors())

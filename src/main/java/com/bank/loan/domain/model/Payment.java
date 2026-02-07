@@ -91,6 +91,14 @@ public class Payment {
     
     @PrePersist
     protected void onCreate() {
+        paymentReference = normalizeReference(paymentReference);
+        if (paymentAmount == null) {
+            throw new IllegalArgumentException("Payment amount cannot be null");
+        }
+        validatePaymentAmount(paymentAmount);
+        if (paymentMethod == null) {
+            throw new IllegalArgumentException("Payment method cannot be null");
+        }
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
@@ -105,6 +113,9 @@ public class Payment {
         }
         if (paymentType == null) {
             paymentType = PaymentType.REGULAR_INSTALLMENT;
+        }
+        if (processingFee == null && paymentAmount != null && paymentMethod != null) {
+            processingFee = calculateProcessingFee(paymentAmount, paymentMethod);
         }
     }
     
@@ -123,7 +134,9 @@ public class Payment {
         Objects.requireNonNull(amount, "Payment amount cannot be null");
         Objects.requireNonNull(method, "Payment method cannot be null");
         Objects.requireNonNull(reference, "Payment reference cannot be null");
-        
+
+        validatePaymentAmount(amount);
+        String normalizedReference = normalizeReference(reference);
         Money processingFee = calculateProcessingFee(amount, method);
         
         return Payment.builder()
@@ -134,7 +147,7 @@ public class Payment {
             .paymentMethod(method)
             .paymentType(PaymentType.REGULAR_INSTALLMENT)
             .status(PaymentStatus.PENDING)
-            .paymentReference(reference)
+            .paymentReference(normalizedReference)
             .description(description)
             .paymentDate(LocalDateTime.now())
             .build();
@@ -145,22 +158,32 @@ public class Payment {
      */
     private static Money calculateProcessingFee(Money amount, PaymentMethod method) {
         BigDecimal feeRate = BigDecimal.valueOf(method.getProcessingFeeRate());
-        return amount.multiply(feeRate);
+        if (feeRate.compareTo(BigDecimal.ZERO) <= 0) {
+            return Money.zero(amount.getCurrency());
+        }
+        return Money.of(amount.getAmount().multiply(feeRate), amount.getCurrency());
     }
     
     /**
      * Get total amount including processing fee
      */
     public Money getTotalAmount() {
-        return paymentAmount.add(processingFee);
+        if (paymentAmount == null) {
+            return Money.zero("USD");
+        }
+        Money fee = processingFee != null ? processingFee : Money.zero(paymentAmount.getCurrency());
+        return paymentAmount.add(fee);
     }
     
     /**
      * Process the payment
      */
     public void process(String processedBy) {
-        if (status != PaymentStatus.PENDING) {
+        if (status == null || !status.isPending()) {
             throw new IllegalStateException("Only pending payments can be processed");
+        }
+        if (processedBy == null || processedBy.trim().isEmpty()) {
+            throw new IllegalArgumentException("Processed by cannot be null or empty");
         }
         this.status = PaymentStatus.PROCESSED;
         this.processedBy = processedBy;
@@ -176,7 +199,7 @@ public class Payment {
             throw new IllegalStateException("Processed payments cannot be failed");
         }
         this.status = PaymentStatus.FAILED;
-        this.description = reason;
+        this.description = normalizeReason(reason);
         this.updatedAt = LocalDateTime.now();
     }
     
@@ -188,7 +211,7 @@ public class Payment {
             throw new IllegalStateException("Processed payments cannot be cancelled");
         }
         this.status = PaymentStatus.CANCELLED;
-        this.description = reason;
+        this.description = normalizeReason(reason);
         this.updatedAt = LocalDateTime.now();
     }
     
@@ -200,7 +223,7 @@ public class Payment {
             throw new IllegalStateException("Only processed payments can be reversed");
         }
         this.status = PaymentStatus.REVERSED;
-        this.description = reason;
+        this.description = normalizeReason(reason);
         this.updatedAt = LocalDateTime.now();
     }
     
@@ -224,17 +247,40 @@ public class Payment {
     public PaymentId getPaymentId() {
         return id != null ? PaymentId.fromLong(id) : PaymentId.generate();
     }
+
+    private static void validatePaymentAmount(Money amount) {
+        if (amount.isNegative() || amount.isZero()) {
+            throw new IllegalArgumentException("Payment amount must be positive");
+        }
+    }
+
+    private static String normalizeReference(String reference) {
+        if (reference == null || reference.trim().isEmpty()) {
+            throw new IllegalArgumentException("Payment reference cannot be null or empty");
+        }
+        return reference.trim();
+    }
+
+    private static String normalizeReason(String reason) {
+        if (reason == null || reason.trim().isEmpty()) {
+            return "Unspecified reason";
+        }
+        return reason.trim();
+    }
     
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Payment payment = (Payment) o;
-        return Objects.equals(paymentReference, payment.paymentReference);
+        if (paymentReference != null && payment.paymentReference != null) {
+            return Objects.equals(paymentReference, payment.paymentReference);
+        }
+        return Objects.equals(id, payment.id);
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(paymentReference);
+        return Objects.hash(paymentReference != null ? paymentReference : id);
     }
 }

@@ -219,7 +219,7 @@ Infrastructure (Technical)
 - **BR-07**: Gig-worker customers - Individual customer type supported
 
 #### Technology Requirements Covered
-- **Java 21** with modern features
+- **Java 25** with modern features
 - **Spring Boot 3.2** framework
 - **Hexagonal Architecture** with DDD
 - **Event-Driven Architecture** foundation
@@ -307,7 +307,7 @@ void shouldPerformAMLCheck() {
 ### Development Environment Configuration
 
 #### Prerequisites
-- Java 21 LTS
+- Java 25.0.2
 - Gradle 8.14+
 - Docker & Docker Compose
 - PostgreSQL 15+

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =====================================================
-# Java 21 Performance Monitoring Script
+# Java 25 Performance Monitoring Script
 # Enterprise Loan Management System
 # =====================================================
 
@@ -192,7 +192,7 @@ check_alerts() {
 display_metrics() {
     clear
     echo "==============================================================================="
-    echo "                    Java 21 Performance Monitoring Dashboard"
+    echo "                    Java 25 Performance Monitoring Dashboard"
     echo "==============================================================================="
     echo "Service URL: $SERVICE_URL"
     echo "Monitoring Duration: ${MONITORING_DURATION}s | Interval: ${METRICS_INTERVAL}s"
@@ -259,7 +259,7 @@ display_metrics() {
 
 # Main monitoring loop
 start_monitoring() {
-    log_info "Starting Java 21 performance monitoring..."
+    log_info "Starting Java 25 performance monitoring..."
     log_info "Service URL: $SERVICE_URL"
     log_info "Duration: ${MONITORING_DURATION}s, Interval: ${METRICS_INTERVAL}s"
     
@@ -273,7 +273,7 @@ start_monitoring() {
     local end_time=$((start_time + MONITORING_DURATION))
     
     # Create log file
-    local log_file="java21-performance-$(date +%Y%m%d-%H%M%S).log"
+    local log_file="java25-performance-$(date +%Y%m%d-%H%M%S).log"
     
     while [[ $(date +%s) -lt $end_time ]]; do
         display_metrics | tee -a "$log_file"
@@ -285,7 +285,7 @@ start_monitoring() {
 
 # Generate performance report
 generate_report() {
-    local output_file="${1:-java21-performance-report-$(date +%Y%m%d-%H%M%S).json}"
+    local output_file="${1:-java25-performance-report-$(date +%Y%m%d-%H%M%S).json}"
     
     log_info "Generating performance report..."
     

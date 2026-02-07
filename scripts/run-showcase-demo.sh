@@ -186,7 +186,7 @@ technical_demo() {
     
     echo -e "${GREEN}✅ Technical Deep Dive Completed${NC}"
     echo -e "${YELLOW}Technical Excellence Points:${NC}"
-    echo "- Java 21 Virtual Threads for high concurrency"
+    echo "- Java 25 Virtual Threads for high concurrency"
     echo "- Sub-100ms API response times"
     echo "- Optimized database connections with HikariCP"
     echo "- Multi-level caching strategy"

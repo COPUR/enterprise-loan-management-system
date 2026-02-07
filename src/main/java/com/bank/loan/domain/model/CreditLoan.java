@@ -4,10 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Credit Loan entity for integration tests
@@ -77,6 +79,41 @@ public class CreditLoan {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    /**
+     * Factory method to create a new credit loan with basic validation
+     */
+    public static CreditLoan create(Long customerId,
+                                    BigDecimal loanAmount,
+                                    BigDecimal interestRate,
+                                    Integer numberOfInstallments) {
+        Objects.requireNonNull(customerId, "Customer ID cannot be null");
+        Objects.requireNonNull(loanAmount, "Loan amount cannot be null");
+        Objects.requireNonNull(interestRate, "Interest rate cannot be null");
+        Objects.requireNonNull(numberOfInstallments, "Number of installments cannot be null");
+
+        if (loanAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Loan amount must be positive");
+        }
+        if (interestRate.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Interest rate cannot be negative");
+        }
+        if (numberOfInstallments <= 0) {
+            throw new IllegalArgumentException("Number of installments must be positive");
+        }
+
+        CreditLoan loan = CreditLoan.builder()
+            .customerId(customerId)
+            .loanAmount(scaleCurrency(loanAmount))
+            .interestRate(interestRate)
+            .numberOfInstallments(numberOfInstallments)
+            .createDate(LocalDate.now())
+            .isPaid(false)
+            .build();
+
+        loan.generateInstallments();
+        return loan;
+    }
     
     /**
      * Generate installments for the loan
@@ -85,27 +122,39 @@ public class CreditLoan {
         if (numberOfInstallments == null || loanAmount == null || interestRate == null) {
             return;
         }
+
+        if (numberOfInstallments <= 0 || loanAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
         
         // Calculate total amount with interest
-        BigDecimal totalWithInterest = loanAmount.multiply(BigDecimal.ONE.add(interestRate));
+        BigDecimal totalWithInterest = calculateTotalWithInterest();
         this.totalAmount = totalWithInterest;
         
         // Calculate installment amount
-        BigDecimal installmentAmount = totalWithInterest.divide(BigDecimal.valueOf(numberOfInstallments), 2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal installmentAmount = totalWithInterest.divide(
+            BigDecimal.valueOf(numberOfInstallments),
+            2,
+            RoundingMode.HALF_UP
+        );
+
+        if (this.installments == null) {
+            this.installments = new ArrayList<>();
+        } else {
+            this.installments.clear();
+        }
         
-        this.installments.clear();
-        
-        LocalDate currentDueDate = createDate != null ? createDate.plusMonths(1).withDayOfMonth(1) : LocalDate.now().plusMonths(1).withDayOfMonth(1);
+        LocalDate currentDueDate = (createDate != null ? createDate : LocalDate.now())
+            .plusMonths(1)
+            .withDayOfMonth(1);
         
         for (int i = 1; i <= numberOfInstallments; i++) {
-            CreditLoanInstallment installment = CreditLoanInstallment.builder()
-                .loanId(this.id)
-                .installmentNumber(i)
-                .amount(installmentAmount)
-                .dueDate(currentDueDate)
-                .isPaid(false)
-                .paidAmount(BigDecimal.ZERO)
-                .build();
+            CreditLoanInstallment installment = CreditLoanInstallment.create(
+                this.id,
+                i,
+                installmentAmount,
+                currentDueDate
+            );
             
             this.installments.add(installment);
             currentDueDate = currentDueDate.plusMonths(1);
@@ -116,6 +165,15 @@ public class CreditLoan {
      * Make a payment against the loan
      */
     public PaymentResult makePayment(BigDecimal paymentAmount) {
+        Objects.requireNonNull(paymentAmount, "Payment amount cannot be null");
+        if (paymentAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Payment amount must be positive");
+        }
+
+        if (installments == null || installments.isEmpty()) {
+            return PaymentResult.failure();
+        }
+
         BigDecimal remainingPayment = paymentAmount;
         int installmentsPaid = 0;
         BigDecimal totalAmountSpent = BigDecimal.ZERO;
@@ -126,16 +184,19 @@ public class CreditLoan {
                 break;
             }
             
-            if (!installment.getIsPaid()) {
-                BigDecimal installmentPayment = remainingPayment.compareTo(installment.getAmount()) >= 0 
-                    ? installment.getAmount() 
+            if (!Boolean.TRUE.equals(installment.getIsPaid())) {
+                BigDecimal remainingAmount = installment.getRemainingAmount();
+                if (remainingAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                    continue;
+                }
+
+                BigDecimal installmentPayment = remainingPayment.compareTo(remainingAmount) >= 0
+                    ? remainingAmount
                     : remainingPayment;
-                
-                installment.setPaidAmount(installment.getPaidAmount().add(installmentPayment));
-                
-                if (installment.getPaidAmount().compareTo(installment.getAmount()) >= 0) {
-                    installment.setIsPaid(true);
-                    installment.setPaidDate(LocalDateTime.now());
+
+                installment.applyPayment(installmentPayment, LocalDateTime.now());
+
+                if (Boolean.TRUE.equals(installment.getIsPaid())) {
                     installmentsPaid++;
                 }
                 
@@ -153,7 +214,16 @@ public class CreditLoan {
         this.updatedAt = LocalDateTime.now();
         
         return new PaymentResult(installmentsPaid, 
-            new Money(totalAmountSpent, "USD"), 
+            Money.of(totalAmountSpent, "USD"), 
             isLoanFullyPaid);
+    }
+
+    private BigDecimal calculateTotalWithInterest() {
+        BigDecimal total = loanAmount.multiply(BigDecimal.ONE.add(interestRate));
+        return scaleCurrency(total);
+    }
+
+    private static BigDecimal scaleCurrency(BigDecimal amount) {
+        return amount.setScale(2, RoundingMode.HALF_UP);
     }
 }

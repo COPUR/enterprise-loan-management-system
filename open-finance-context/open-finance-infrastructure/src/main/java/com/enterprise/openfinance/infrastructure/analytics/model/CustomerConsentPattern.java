@@ -6,12 +6,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Customer consent behavioral patterns for analytics.
@@ -27,7 +30,7 @@ public class CustomerConsentPattern {
     @Id
     private String id;
     
-    @Indexed
+    @Indexed(unique = true)
     private String customerId; // Masked for privacy
     
     private Long totalConsents;
@@ -46,14 +49,43 @@ public class CustomerConsentPattern {
     
     private Long totalRevocations;
     
+    @Transient
     private String preferredParticipant;
     
+    @Transient
     private List<String> frequentScopes;
     
     // Behavioral insights
     private String consentBehaviorPattern; // CONSERVATIVE, MODERATE, LIBERAL
     private Double trustScore; // 0.0 to 1.0
     private String riskProfile; // LOW, MEDIUM, HIGH
+
+    public String getPreferredParticipant() {
+        if (participantConsents == null || participantConsents.isEmpty()) {
+            return null;
+        }
+        return participantConsents.entrySet().stream()
+            .max(Map.Entry.<String, Long>comparingByValue()
+                .thenComparing(Map.Entry.comparingByKey()))
+            .map(Map.Entry::getKey)
+            .orElse(null);
+    }
+
+    public List<String> getFrequentScopes() {
+        if (recentScopes == null || recentScopes.isEmpty()) {
+            return List.of();
+        }
+        return recentScopes.stream()
+            .filter(Objects::nonNull)
+            .map(ConsentScope::name)
+            .collect(Collectors.groupingBy(scope -> scope, Collectors.counting()))
+            .entrySet().stream()
+            .sorted(Map.Entry.<String, Long>comparingByValue().reversed()
+                .thenComparing(Map.Entry.comparingByKey()))
+            .limit(3)
+            .map(Map.Entry::getKey)
+            .toList();
+    }
     
     public static CustomerConsentPattern empty(String customerId) {
         return CustomerConsentPattern.builder()

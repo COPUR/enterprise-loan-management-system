@@ -132,8 +132,12 @@ public class DomainEventPublisher {
         addHeader(headers, "aggregate-type", metadata.getAggregateType());
         addHeader(headers, "aggregate-id", metadata.getAggregateId());
         addHeader(headers, "correlation-id", metadata.getCorrelationId());
-        addHeader(headers, "timestamp", metadata.getTimestamp().toString());
-        addHeader(headers, "version", metadata.getVersion().toString());
+        if (metadata.getTimestamp() != null) {
+            addHeader(headers, "timestamp", metadata.getTimestamp().toString());
+        }
+        if (metadata.getVersion() != null) {
+            addHeader(headers, "version", metadata.getVersion().toString());
+        }
         
         // Islamic Banking Compliance Headers
         if (event instanceof IslamicBankingEvent) {
@@ -148,13 +152,13 @@ public class DomainEventPublisher {
                 addHeader(headers, "cbdc-compliant", "true");
             }
             
-            // Add regulatory compliance
-            if (metadata.getRegulatoryCompliance() != null) {
-                addHeader(headers, "regulatory-compliance", metadata.getRegulatoryCompliance());
-            }
-            
             // Add specific Islamic product headers
             addIslamicProductHeaders(headers, event.getEventType());
+        }
+
+        // Regulatory compliance headers apply to all events
+        if (metadata.getRegulatoryCompliance() != null) {
+            addHeader(headers, "regulatory-compliance", metadata.getRegulatoryCompliance());
         }
         
         // Compliance and Audit Headers
@@ -219,6 +223,9 @@ public class DomainEventPublisher {
      * Determines Kafka topic name based on aggregate type
      */
     private String determineTopicName(String aggregateType) {
+        if (aggregateType == null || aggregateType.isBlank()) {
+            return "amanahfi.general";
+        }
         return switch (aggregateType.toLowerCase()) {
             case "customer" -> "amanahfi.customers";
             case "account" -> "amanahfi.accounts";

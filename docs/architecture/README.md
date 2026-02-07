@@ -60,7 +60,7 @@ docs/
 - **Ports Pattern**: Clear separation between business logic and external concerns
 
 ### Technology Stack
-- **Framework**: Spring Boot 3.2.0 with Java 21
+- **Framework**: Spring Boot 3.2.0 with Java 25.0.2
 - **Database**: PostgreSQL with HikariCP connection pooling
 - **Cache**: Redis with Lettuce/Jedis clients
 - **AI Integration**: Spring AI 1.0.0-M3 with OpenAI GPT-4

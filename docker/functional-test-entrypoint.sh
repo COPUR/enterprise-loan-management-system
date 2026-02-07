@@ -90,9 +90,9 @@ validate_test_prerequisites() {
     local java_version
     java_version=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2)
     if [[ "$java_version" =~ ^21\. ]]; then
-        echo "✅ Java 21 available for tests"
+        echo "✅ Java 25 available for tests"
     else
-        echo "❌ Java 21 required for functional tests"
+        echo "❌ Java 25 required for functional tests"
         exit 1
     fi
     
