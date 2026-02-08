@@ -82,3 +82,11 @@ coverage/
 
 # Test reports
 test-results/
+
+# Keep source code tracked even when directory names contain "out".
+!**/src/main/java/**
+!**/src/test/java/**
+!**/src/main/kotlin/**
+!**/src/test/kotlin/**
+!**/src/main/groovy/**
+!**/src/test/groovy/**

@@ -45,6 +45,14 @@ private/
 *bearer*
 *auth*
 
+# Never ignore application source files because of security-keyword names.
+!**/src/main/java/**
+!**/src/test/java/**
+!**/src/main/kotlin/**
+!**/src/test/kotlin/**
+!**/src/main/groovy/**
+!**/src/test/groovy/**
+
 # Environment Configuration Files
 .env
 .env.*
@@ -524,6 +532,14 @@ jspm_packages/
 
 # Yarn Integrity file
 .yarn-integrity
+
+# Always include source trees, even if names match security keywords.
+!**/src/main/java/**
+!**/src/test/java/**
+!**/src/main/kotlin/**
+!**/src/test/kotlin/**
+!**/src/main/groovy/**
+!**/src/test/groovy/**
 
 # =================================================================
 # END OF ENTERPRISE BANKING SYSTEM GITIGNORE CONFIGURATION
