@@ -73,6 +73,18 @@ pmd {
     ruleSets = []
 }
 
+// Gradle 9 + PMD may fail when report parent folders are not pre-created after clean.
+tasks.withType(org.gradle.api.plugins.quality.Pmd).configureEach {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    doFirst {
+        reports.xml.outputLocation.get().asFile.parentFile.mkdirs()
+        reports.html.outputLocation.get().asFile.parentFile.mkdirs()
+    }
+}
+
 // Checkstyle configuration  
 checkstyle {
     toolVersion = '10.12.4'
