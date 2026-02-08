@@ -179,6 +179,11 @@ dist/
 */dist/
 out/
 */out/
+# Keep hexagonal architecture outbound ports tracked
+!**/src/main/java/**/port/out/
+!**/src/main/java/**/port/out/**
+!**/src/test/java/**/port/out/
+!**/src/test/java/**/port/out/**
 bin/
 */bin/
 *.jar

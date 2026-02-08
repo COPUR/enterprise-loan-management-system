@@ -4,6 +4,12 @@ plugins {
     id 'io.spring.dependency-management'
 }
 
+def projectName = project.name
+def projectVersion = project.version.toString()
+def projectBuildDir = project.layout.buildDirectory.get().asFile
+def gradleVersionValue = gradle.gradleVersion
+def springBootVersionValue = dependencyManagement.importedProperties['spring-boot.version'] ?: 'unknown'
+
 dependencies {
     // Spring Boot Core
     implementation 'org.springframework.boot:spring-boot-starter:3.3.6'
@@ -91,18 +97,18 @@ tasks.register('generateBankingInfo') {
     description = 'Generate banking system information'
     
     doLast {
-        def infoFile = file("${buildDir}/banking-info.properties")
+        def infoFile = new File(projectBuildDir, 'banking-info.properties')
         infoFile.parentFile.mkdirs()
         
         infoFile.text = """
 # Banking System Information
-system.name=${project.name}
-system.version=${project.version}
+system.name=${projectName}
+system.version=${projectVersion}
 system.build.time=${new Date().format('yyyy-MM-dd HH:mm:ss')}
 system.build.user=${System.getProperty('user.name')}
 system.java.version=${System.getProperty('java.version')}
-system.gradle.version=${gradle.gradleVersion}
-system.spring.boot.version=${dependencyManagement.importedProperties['spring-boot.version']}
+system.gradle.version=${gradleVersionValue}
+system.spring.boot.version=${springBootVersionValue}
 """.trim()
     }
 }

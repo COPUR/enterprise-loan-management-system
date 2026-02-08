@@ -24,10 +24,31 @@ dependencies {
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
 }
 
+def nvdApiKey = System.getenv('NVD_API_KEY')?.trim()
+def hasNvdApiKey = nvdApiKey
+def projectName = project.name
+def sourceJavaDir = project.layout.projectDirectory.dir('src/main/java').asFile
+def projectBuildDir = project.layout.buildDirectory.get().asFile
+def projectBuildFile = project.layout.projectDirectory.file('build.gradle').asFile
+
+def collectJavaFiles = { File root ->
+    def javaFiles = []
+    if (!root.exists()) {
+        return javaFiles
+    }
+    root.eachFileRecurse(groovy.io.FileType.FILES) { file ->
+        if (file.name.endsWith('.java')) {
+            javaFiles << file
+        }
+    }
+    javaFiles
+}
+
 // OWASP Dependency Check configuration
 dependencyCheck {
-    autoUpdate = true
+    autoUpdate = hasNvdApiKey
     format = 'ALL'
+    failOnError = false
     
     // Fail build on CVSS score
     failBuildOnCVSS = 7.0
@@ -42,10 +63,21 @@ dependencyCheck {
     
     // NVD API settings
     nvd {
-        apiKey = System.getenv('NVD_API_KEY')
+        apiKey = nvdApiKey
         delay = 16000
         maxRetryCount = 10
         validForHours = 24
+    }
+}
+
+tasks.named('dependencyCheckAnalyze').configure {
+    onlyIf {
+        hasNvdApiKey
+    }
+    doFirst {
+        if (!hasNvdApiKey) {
+            logger.lifecycle("Skipping dependencyCheckAnalyze for ${projectName}: NVD_API_KEY is not set")
+        }
     }
 }
 
@@ -168,11 +200,11 @@ tasks.register('generateSecurityReport') {
     dependsOn dependencyCheckAnalyze, fapiComplianceTest, cryptographyTest
     
     doLast {
-        def reportDir = file("${buildDir}/reports/security")
+        def reportDir = new File(projectBuildDir, "reports/security")
         reportDir.mkdirs()
         
-        def reportFile = file("${reportDir}/security-report.html")
-        reportFile.text = generateSecurityReportHtml()
+        def reportFile = new File(reportDir, "security-report.html")
+        reportFile.text = generateSecurityReportHtml(projectName)
         
         println "Security report generated: ${reportFile.absolutePath}"
     }
@@ -184,12 +216,11 @@ tasks.register('validateSecurityConfiguration') {
     group = 'security'
     
     doLast {
-        println "Validating security configuration for ${project.name}"
+        println "Validating security configuration for ${projectName}"
+        def javaFiles = collectJavaFiles(sourceJavaDir)
         
         // Check for security annotations
-        def securityAnnotations = fileTree("${projectDir}/src/main/java").matching {
-            include '**/*.java'
-        }.findAll { file ->
+        def securityAnnotations = javaFiles.findAll { file ->
             file.text.contains('@PreAuthorize') || 
             file.text.contains('@PostAuthorize') || 
             file.text.contains('@Secured') || 
@@ -199,9 +230,7 @@ tasks.register('validateSecurityConfiguration') {
         logger.info("Found ${securityAnnotations.size()} files with security annotations")
         
         // Check for FAPI compliance
-        def fapiFiles = fileTree("${projectDir}/src/main/java").matching {
-            include '**/*.java'
-        }.findAll { file ->
+        def fapiFiles = javaFiles.findAll { file ->
             file.text.contains('FAPI') || 
             file.text.contains('DPoP') || 
             file.text.contains('OAuth2')
@@ -210,9 +239,7 @@ tasks.register('validateSecurityConfiguration') {
         logger.info("Found ${fapiFiles.size()} files with FAPI/OAuth2 references")
         
         // Check for cryptographic implementations
-        def cryptoFiles = fileTree("${projectDir}/src/main/java").matching {
-            include '**/*.java'
-        }.findAll { file ->
+        def cryptoFiles = javaFiles.findAll { file ->
             file.text.contains('Cipher') || 
             file.text.contains('KeyGenerator') || 
             file.text.contains('MessageDigest') ||
@@ -230,7 +257,8 @@ tasks.register('securityCodeScan') {
     group = 'security'
     
     doLast {
-        println "Running security code scan for ${project.name}"
+        println "Running security code scan for ${projectName}"
+        def javaFiles = collectJavaFiles(sourceJavaDir)
         
         // Check for hardcoded secrets
         def secretPatterns = [
@@ -243,9 +271,7 @@ tasks.register('securityCodeScan') {
         
         def violations = []
         
-        fileTree("${projectDir}/src/main/java").matching {
-            include '**/*.java'
-        }.each { file ->
+        javaFiles.each { file ->
             def content = file.text
             secretPatterns.each { pattern ->
                 if (content.find(pattern)) {
@@ -264,7 +290,7 @@ tasks.register('securityCodeScan') {
 }
 
 // Helper method for security report generation
-def generateSecurityReportHtml() {
+def generateSecurityReportHtml(String projectName) {
     return """
 <!DOCTYPE html>
 <html>
@@ -332,12 +358,11 @@ tasks.register('securityBuildValidation') {
     group = 'security'
     
     doLast {
-        println "Validating security build for ${project.name}"
+        println "Validating security build for ${projectName}"
         
         // Check for security-related build configurations
-        def buildFile = file("${projectDir}/build.gradle")
-        if (buildFile.exists()) {
-            def content = buildFile.text
+        if (projectBuildFile.exists()) {
+            def content = projectBuildFile.text
             
             if (content.contains('dependencyCheck')) {
                 logger.info("✓ Dependency check configured")
