@@ -21,8 +21,8 @@ import java.util.List;
     type = SecuritySchemeType.OAUTH2,
     flows = @io.swagger.v3.oas.annotations.security.OAuthFlows(
         authorizationCode = @io.swagger.v3.oas.annotations.security.OAuthFlow(
-            authorizationUrl = "https://iam.amanahfi.ae/auth/realms/amanahfi/protocol/openid-connect/auth",
-            tokenUrl = "https://iam.amanahfi.ae/auth/realms/amanahfi/protocol/openid-connect/token",
+            authorizationUrl = "https://auth.example.com/oauth2/authorize",
+            tokenUrl = "https://auth.example.com/oauth2/token",
             scopes = {
                 @io.swagger.v3.oas.annotations.security.OAuthScope(name = "islamic-finance", description = "Access to Islamic finance operations"),
                 @io.swagger.v3.oas.annotations.security.OAuthScope(name = "cbdc", description = "Access to CBDC operations"),
@@ -46,13 +46,13 @@ import java.util.List;
 )
 public class OpenApiConfiguration {
 
-    @Value("${amanahfi.api.version:1.0.0}")
+    @Value("${API_VERSION:1.0.0}")
     private String apiVersion;
 
-    @Value("${amanahfi.api.server.url:https://api.amanahfi.ae}")
+    @Value("${API_SERVER_URL:https://api.example.com}")
     private String serverUrl;
 
-    @Value("${amanahfi.api.server.description:AmanahFi Platform Production API}")
+    @Value("${API_SERVER_DESCRIPTION:Example Platform API}")
     private String serverDescription;
 
     @Bean
@@ -64,11 +64,11 @@ public class OpenApiConfiguration {
                     .url(serverUrl)
                     .description(serverDescription),
                 new Server()
-                    .url("https://api-staging.amanahfi.ae")
-                    .description("AmanahFi Platform Staging API"),
+                    .url("https://staging.example.com")
+                    .description("Staging API"),
                 new Server()
-                    .url("https://api-dev.amanahfi.ae")
-                    .description("AmanahFi Platform Development API")
+                    .url("https://dev.example.com")
+                    .description("Development API")
             ))
             .security(List.of(
                 new SecurityRequirement().addList("oauth2"),
@@ -117,92 +117,46 @@ public class OpenApiConfiguration {
 
     private Info apiInfo() {
         return new Info()
-            .title("AmanahFi Platform API")
+            .title("Platform API")
             .description(buildApiDescription())
             .version(apiVersion)
             .contact(new Contact()
-                .name("AmanahFi Platform Development Team")
-                .email("api-support@amanahfi.ae")
-                .url("https://developers.amanahfi.ae"))
+                .name("Platform Team")
+                .email("support@example.com")
+                .url("https://developers.example.com"))
             .license(new License()
-                .name("Proprietary License")
-                .url("https://amanahfi.ae/license"));
+                .name("License")
+                .url("https://example.com/license"));
     }
 
     private String buildApiDescription() {
         return """
-            # AmanahFi Platform API
+            # Platform API
             
-            Welcome to the AmanahFi Platform API - the premier Islamic finance and CBDC-enabled banking platform for the UAE and MENAT region.
+            Welcome to the Platform API. This documentation describes core banking, payments,
+            compliance, and optional Islamic finance capabilities.
             
-            ## 🕌 Islamic Finance Capabilities
+            ## Capabilities
             
-            The AmanahFi Platform provides comprehensive Sharia-compliant financial services including:
+            - Customer onboarding and profile management
+            - Loan origination and servicing
+            - Payments and reconciliation
+            - Compliance and audit trails
+            - Optional Islamic finance products
             
-            - **Murabaha**: Cost-plus financing with disclosed profit margins
-            - **Musharakah**: Partnership financing with profit/loss sharing
-            - **Ijarah**: Asset leasing with ownership transfer options
-            - **Salam**: Forward sale financing for commodity transactions
-            - **Istisna**: Manufacturing and construction project financing
-            - **Qard Hassan**: Interest-free benevolent loans
+            ## Getting Started
             
-            ## 💎 Digital Dirham Integration
+            1. Configure OAuth 2.1 credentials.
+            2. Use this documentation to explore endpoints.
+            3. Review the Developer Portal for integration guides.
+            4. Contact support for onboarding assistance.
             
-            Native integration with UAE's Central Bank Digital Currency (CBDC):
+            ## Resources
             
-            - Real-time Digital Dirham transactions
-            - R3 Corda blockchain integration
-            - Cross-border CBDC transfers
-            - Wallet management and operations
-            - Regulatory compliance automation
-            
-            ## 🔒 Security & Compliance
-            
-            Enterprise-grade security with Zero Trust architecture:
-            
-            - **OAuth 2.1 with DPoP**: RFC 9449 compliant authentication
-            - **Mutual TLS**: Certificate-based authentication for high-security operations
-            - **Regulatory Compliance**: Automated CBUAE, VARA, and HSA compliance
-            - **Sharia Validation**: Real-time Islamic compliance checking
-            
-            ## 🌍 Regional Coverage
-            
-            Multi-tenant platform supporting:
-            
-            - UAE (Primary market)
-            - Saudi Arabia
-            - Qatar
-            - Kuwait
-            - Bahrain
-            - Oman
-            - Turkey
-            
-            ## 📚 Getting Started
-            
-            1. **Authentication**: Obtain OAuth 2.1 access token with DPoP proof
-            2. **API Exploration**: Use this interactive documentation to explore endpoints
-            3. **Integration**: Review our [Developer Portal](https://developers.amanahfi.ae) for guides
-            4. **Support**: Contact our API support team for assistance
-            
-            ## 🔗 Related Resources
-            
-            - [Developer Portal](https://developers.amanahfi.ae)
-            - [API Guidelines](https://docs.amanahfi.ae/api-guidelines)
-            - [Islamic Finance Guide](https://docs.amanahfi.ae/islamic-finance)
-            - [CBDC Integration Guide](https://docs.amanahfi.ae/cbdc-integration)
-            - [Security Documentation](https://docs.amanahfi.ae/security)
-            
-            ## ⚠️ Important Notes
-            
-            - All Islamic finance operations are subject to Sharia compliance validation
-            - CBDC operations require additional regulatory compliance checks
-            - High-value transactions may require manual approval
-            - Rate limiting applies to all endpoints
-            - Sandbox environment available for testing
+            - Developer Portal: https://developers.example.com
+            - API Guidelines: https://docs.example.com/api-guidelines
             
             ---
-            
-            *Built with 💚 for Sharia-compliant financial innovation*
             """;
     }
 

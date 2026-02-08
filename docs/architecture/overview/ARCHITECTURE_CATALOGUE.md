@@ -752,7 +752,7 @@ info:
     This API adheres to FAPI 1.0 Advanced security profile.
 
 servers:
-  - url: https://api.banking.enterprise.com/v2
+  - url: https://api.banking.example.com/v2
     description: Production API server
 
 security:

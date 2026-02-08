@@ -3,15 +3,15 @@
 
 spring:
   application:
-    name: amanahfi-platform
+    name: ${APP_NAME:platform}
   profiles:
-    active: development,islamic-finance
+    active: ${SPRING_PROFILES_ACTIVE:}
   
   # Database Configuration
   datasource:
-    url: jdbc:postgresql://localhost:5432/amanahfi_db
-    username: ${DB_USERNAME:amanahfi_user}
-    password: ${DB_PASSWORD:secure_password}
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -44,9 +44,9 @@ spring:
   # Redis Configuration
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
       database: 0
       timeout: 5000ms
       jedis:
@@ -58,7 +58,7 @@ spring:
   
   # Kafka Configuration
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     security:
       protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
     producer:
@@ -84,8 +84,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/amanahfi}
-          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8080/realms/amanahfi/protocol/openid-connect/certs}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI}
 
 # AmanahFi Platform Specific Configuration
 amanahfi:
@@ -162,12 +162,12 @@ amanahfi:
     regulatory:
       cbuae:
         enabled: true
-        api-base-url: ${CBUAE_API_URL:https://api.centralbank.ae}
+        api-base-url: ${CBUAE_API_URL}
         reporting-enabled: true
         open-finance-compliance: true
       vara:
         enabled: true
-        api-base-url: ${VARA_API_URL:https://api.vara.ae}
+        api-base-url: ${VARA_API_URL}
         cbdc-compliance: true
         virtual-asset-reporting: true
       hsa:
@@ -197,7 +197,7 @@ amanahfi:
     cbdc:
       enabled: false  # Future implementation
       corda:
-        node-url: ${CORDA_NODE_URL:http://localhost:10200}
+        node-url: ${CORDA_NODE_URL}
         username: ${CORDA_USERNAME:}
         password: ${CORDA_PASSWORD:}
       digital-dirham:

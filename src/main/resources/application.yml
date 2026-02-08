@@ -1,9 +1,9 @@
 spring:
   application:
-    name: enterprise-loan-management-system
+    name: ${SPRING_APP_NAME:app}
   
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:}
   
   threads:
     virtual:

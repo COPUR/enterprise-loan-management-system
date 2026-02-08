@@ -178,7 +178,7 @@ publishing {
             pom {
                 name = 'MasruFi Framework'
                 description = 'Islamic Finance Extension Module for Enterprise Loan Management Systems'
-                url = 'https://github.com/COPUR/enterprise-loan-management-system'
+                url = 'https://example.com/repo'
                 
                 licenses {
                     license {

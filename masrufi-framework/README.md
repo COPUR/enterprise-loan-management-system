@@ -1,6 +1,6 @@
 # 🕌 MasruFi Framework - Islamic Finance Extension Module
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/COPUR/enterprise-loan-management-system)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://example.com/repo)
 [![Sharia Compliant](https://img.shields.io/badge/Sharia-Compliant-green.svg)](https://masrufi.com/compliance)
 [![UAE Ready](https://img.shields.io/badge/UAE-Ready-gold.svg)](https://masrufi.com/uae)
 [![License](https://img.shields.io/badge/license-Proprietary-red.svg)](https://masrufi.com/license)
@@ -468,7 +468,7 @@ Copyright © 2024 Ali&Co. All rights reserved.
 - **UAE Operations**: [uae@masrufi.com](mailto:uae@masrufi.com)
 
 ### Community
-- [GitHub Issues](https://github.com/COPUR/enterprise-loan-management-system/issues)
+- [GitHub Issues](https://example.com/repo/issues)
 - [Stack Overflow Tag: masrufi-framework](https://stackoverflow.com/questions/tagged/masrufi-framework)
 
 ---

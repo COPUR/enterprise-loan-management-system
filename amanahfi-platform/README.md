@@ -145,7 +145,7 @@ The platform implements enterprise-grade architectural patterns ensuring scalabi
 #### Gateway Features
 - **Circuit Breakers**: Resilience4j integration with fallback responses
 - **Service Routing**: Intelligent routing to 6 microservices
-- **CORS Configuration**: UAE-specific domain support (*.amanahfi.ae)
+- **CORS Configuration**: UAE-specific domain support (*.example.com)
 - **Request Transformation**: Islamic banking context headers
 - **High-Value Transaction**: Enhanced security for transactions >10K AED
 
@@ -370,7 +370,7 @@ docker-compose up -d
   - ✅ FAPI 2.0 security headers (X-Frame-Options, Content-Type-Options)
   - ✅ Islamic banking compliance headers (X-Islamic-Banking, X-Sharia-Compliant)
   - ✅ Circuit breaker patterns for microservices
-  - ✅ CORS configuration for UAE domains (*.amanahfi.ae)
+  - ✅ CORS configuration for UAE domains (*.example.com)
   - ✅ Audit event tracking for regulatory compliance
   - ✅ Fallback controllers for graceful degradation
   - ✅ Route configuration for all 6 bounded contexts

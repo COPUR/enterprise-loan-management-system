@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.cors.CorsConfiguration;
@@ -29,6 +30,9 @@ import java.util.Arrays;
  */
 @SpringBootApplication
 public class ApiGatewayApplication {
+
+    @Value("${gateway.cors.allowed-origin-patterns:https://*.example.com,https://localhost:*}")
+    private String allowedOriginPatterns;
 
     public static void main(String[] args) {
         SpringApplication.run(ApiGatewayApplication.class, args);
@@ -161,14 +165,7 @@ public class ApiGatewayApplication {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
         
-        // Islamic banking platform domains
-        corsConfig.setAllowedOriginPatterns(Arrays.asList(
-            "https://*.amanahfi.ae",
-            "https://*.amanahfi.com",
-            "https://islamic-banking.ae",
-            "https://localhost:*",
-            "https://127.0.0.1:*"
-        ));
+        corsConfig.setAllowedOriginPatterns(Arrays.asList(allowedOriginPatterns.split("\\s*,\\s*")));
         
         corsConfig.setMaxAge(Duration.ofHours(1));
         corsConfig.setAllowCredentials(true);

@@ -35,16 +35,16 @@ info:
   version: 2.1.0
   contact:
     name: Banking API Team
-    email: api-support@enterprisebank.com
-    url: https://dev.enterprisebank.com/api-docs
+    email: support@example.com
+    url: https://dev.example.com/api-docs
   license:
     name: Enterprise License
-    url: https://enterprisebank.com/license
+    url: https://example.com/license
 
 servers:
-  - url: https://api.enterprisebank.com
+  - url: https://api.example.com
     description: Production Server
-  - url: https://staging-api.enterprisebank.com
+  - url: https://staging-api.example.com
     description: Staging Server
   - url: http://localhost:8080
     description: Development Server
@@ -197,8 +197,8 @@ components:
       description: OAuth 2.0 Authentication
       flows:
         authorizationCode:
-          authorizationUrl: https://auth.enterprisebank.com/oauth/authorize
-          tokenUrl: https://auth.enterprisebank.com/oauth/token
+          authorizationUrl: https://auth.example.com/oauth/authorize
+          tokenUrl: https://auth.example.com/oauth/token
           scopes:
             read:loans: Read loan information
             write:loans: Create and modify loans

@@ -523,13 +523,13 @@ public class MurabahaFinancingResponse extends RepresentationModel<MurabahaFinan
     @Schema(description = "Audit trail information")
     public static class AuditInfo {
 
-        @Schema(description = "Who created the financing", example = "ahmad.hassan@amanahfi.ae")
+        @Schema(description = "Who created the financing", example = "user@example.com")
         private String createdBy;
 
-        @Schema(description = "Who last updated the financing", example = "fatima.ali@amanahfi.ae")
+        @Schema(description = "Who last updated the financing", example = "user@example.com")
         private String updatedBy;
 
-        @Schema(description = "Who approved the financing", example = "mohammed.sheikh@amanahfi.ae")
+        @Schema(description = "Who approved the financing", example = "user@example.com")
         private String approvedBy;
 
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")

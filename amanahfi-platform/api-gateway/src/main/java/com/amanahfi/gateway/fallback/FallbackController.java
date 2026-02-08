@@ -101,7 +101,7 @@ public class FallbackController {
                 "fallback", true,
                 "timestamp", Instant.now(),
                 "compliance_message", "All regulatory requirements continue to be met during maintenance.",
-                "escalation_contact", "For urgent compliance matters, contact compliance@amanahfi.ae"
+                "escalation_contact", "For urgent compliance matters, contact compliance@example.com"
             )));
     }
 
@@ -119,7 +119,7 @@ public class FallbackController {
                 "fallback", true,
                 "timestamp", Instant.now(),
                 "security_message", "All administrative functions are secured during maintenance.",
-                "emergency_contact", "For urgent administrative needs, contact admin@amanahfi.ae"
+                "emergency_contact", "For urgent administrative needs, contact admin@example.com"
             )));
     }
 

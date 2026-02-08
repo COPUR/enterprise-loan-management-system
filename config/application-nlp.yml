@@ -1,9 +1,9 @@
 # Spring Boot Configuration for NLP Services
 spring:
   application:
-    name: enterprise-loan-management-nlp
+    name: ${APP_NAME:app-nlp}
   profiles:
-    active: dev,ai,nlp
+    active: ${SPRING_PROFILES_ACTIVE:}
   
   # SpringAI Configuration
   ai:

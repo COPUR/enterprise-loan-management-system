@@ -2,6 +2,7 @@ package com.amanahfi.gateway.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -54,6 +55,9 @@ import java.nio.charset.StandardCharsets;
 @Configuration
 @EnableWebFluxSecurity
 public class Fapi2SecurityConfig {
+
+    @Value("${gateway.cors.allowed-origin-patterns:https://*.example.com,https://localhost:*}")
+    private String allowedOriginPatterns;
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(
@@ -178,15 +182,7 @@ public class Fapi2SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Allow Islamic banking frontend domains
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-            "https://amanahfi.ae",
-            "https://amanahfi.com",
-            "https://*.amanahfi.ae",
-            "https://*.amanahfi.com", 
-            "https://localhost:*", // Development
-            "https://127.0.0.1:*"  // Development
-        ));
+        configuration.setAllowedOriginPatterns(Arrays.asList(allowedOriginPatterns.split("\\s*,\\s*")));
         
         // FAPI 2.0 required headers
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));

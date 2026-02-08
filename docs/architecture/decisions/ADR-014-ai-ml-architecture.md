@@ -82,7 +82,7 @@ public class AIMLInfrastructureConfiguration {
     public ModelRegistryService modelRegistryService() {
         return ModelRegistryService.builder()
             .registryType(ModelRegistryType.MLFLOW)
-            .registryUrl("https://mlflow.banking.enterprise.com")
+            .registryUrl("https://mlflow.banking.example.com")
             .authentication(oauth2TokenProvider())
             .versioningStrategy(VersioningStrategy.SEMANTIC)
             .build();

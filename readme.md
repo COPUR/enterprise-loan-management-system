@@ -1,6 +1,6 @@
 # Enterprise Banking System
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/COPUR/enterprise-loan-management-system)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://example.com/repo)
 [![Security](https://img.shields.io/badge/security-zero--trust-green)](docs/architecture/overview/SECURE_MICROSERVICES_ARCHITECTURE.md)
 [![Architecture](https://img.shields.io/badge/architecture-microservices-blue)](docs/architecture/overview/ARCHITECTURE_CATALOGUE.md)
 [![OAuth 2.1](https://img.shields.io/badge/OAuth-2.1-blue)](docs/architecture/overview/SECURE_MICROSERVICES_ARCHITECTURE.md)
@@ -128,42 +128,27 @@ The Enterprise Banking System implements **PCI-DSS v4.0 compliance** through a c
 ### Prerequisites
 
 - **Java 25.0.2** (OpenJDK)
-- **Docker & Docker Compose**
-- **Kubernetes 1.28+** (for production)
-- **kubectl and helm** (for K8s deployment)
 
 ### Local Development
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/COPUR/enterprise-loan-management-system.git
+git clone https://example.com/repo.git
 cd enterprise-loan-management-system
 
 # 2. Build the application
 ./gradlew clean bootJar
 
-# 3. Start infrastructure services
-docker-compose -f docker-compose.enhanced-test.yml up -d postgres redis keycloak
+# 3. Configure runtime via environment variables
+# (See .env.template for the full set of required variables)
 
-# 4. Start the banking application
-docker-compose -f docker-compose.enhanced-test.yml up -d banking-app-enhanced
-
-# 5. Verify deployment
-curl -k https://localhost:8080/actuator/health
+# 4. Run the application
+java -jar build/libs/*.jar
 ```
+ 
+### Note
 
-### Production Deployment
-
-```bash
-# Deploy to Kubernetes with Istio service mesh
-kubectl apply -f k8s/keycloak/
-kubectl apply -f k8s/istio/
-kubectl apply -f k8s/manifests/
-
-# Monitor deployment
-kubectl get pods -n banking-system
-kubectl get svc -n banking-system
-```
+Infrastructure, deployment, and CI/CD assets have been removed or redacted to keep this repository environment-agnostic.
 
 ## Documentation
 
@@ -177,20 +162,12 @@ kubectl get svc -n banking-system
 | [ADR-004: OAuth 2.1](docs/architecture/adr/ADR-004-oauth21-authentication.md) | Authentication architecture decisions | Decisions |
 | [ADR-005: Istio Service Mesh](docs/architecture/adr/ADR-005-istio-service-mesh.md) | Service mesh implementation | Decisions |
 | [ADR-006: Zero-Trust Security](docs/architecture/adr/ADR-006-zero-trust-security.md) | Security architecture decisions | Decisions |
-| **[ADR-007: Docker Multi-Stage](docs/architecture/decisions/ADR-007-docker-multi-stage-architecture.md)** | **Banking containerization strategy** | **Infrastructure** |
-| **[ADR-008: Kubernetes Deployment](docs/architecture/decisions/ADR-008-kubernetes-production-deployment.md)** | **Production orchestration with Istio** | **Infrastructure** |
-| **[ADR-009: AWS EKS Infrastructure](docs/architecture/decisions/ADR-009-aws-eks-infrastructure-design.md)** | **Cloud infrastructure design** | **Infrastructure** |
 | **[ADR-010: Active-Active Architecture](docs/architecture/decisions/ADR-010-active-active-architecture.md)** | **Multi-region 99.999% availability** | **Enterprise** |
 | **[ADR-011: Multi-Entity Banking](docs/architecture/decisions/ADR-011-multi-entity-banking-architecture.md)** | **Multi-jurisdictional compliance** | **Enterprise** |
 
 ### Deployment & Operations
 
-| Document | Description | Category |
-|----------|-------------|----------|
-| [Deployment Guide](docs/DEPLOYMENT_GUIDE_COMPREHENSIVE.md) | Comprehensive deployment instructions | Operations |
-| [Container & Runtime Architecture](docs/architecture/decisions/ADR-007-docker-multi-stage-architecture.md) | Container strategy and multi-stage design | Operations |
-| [Local Development Deployment](docs/deployment/local-development.md) | Local environment and runtime setup | Operations |
-| [Infrastructure Architecture](docs/architecture/overview/ARCHITECTURE_CATALOGUE.md) | Infrastructure design and system setup | Operations |
+Deployment and infrastructure guides are intentionally omitted from this public-facing repository.
 
 ### Security & Compliance
 

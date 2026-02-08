@@ -70,7 +70,7 @@ masrufi:
     
     # Enterprise System Integration
     enterprise-integration:
-      host-system-base-url: "http://localhost:8080"
+      host-system-base-url: ${HOST_SYSTEM_BASE_URL}
       authentication-method: JWT
       event-publishing:
         enabled: true
@@ -84,9 +84,9 @@ masrufi:
 # Spring Boot Integration
 spring:
   application:
-    name: "masrufi-framework"
+    name: ${APP_NAME:framework}
   profiles:
-    active: "masrufi"
+    active: ${SPRING_PROFILES_ACTIVE:}
 
 # Logging Configuration for MasruFi Framework
 logging:

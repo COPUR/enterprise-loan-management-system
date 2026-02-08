@@ -530,16 +530,16 @@ X-RateLimit-Window: 60
 ## Environment Endpoints
 
 ### Production
-- **Base URL**: `https://api.amanahfi.ae`
-- **AmanahFi URL**: `https://api.amanahfi.ae/amanahfi`
+- **Base URL**: `https://api.example.com`
+- **AmanahFi URL**: `https://api.example.com/amanahfi`
 
 ### Sandbox
-- **Base URL**: `https://sandbox-api.amanahfi.ae`
-- **AmanahFi URL**: `https://sandbox-api.amanahfi.ae/amanahfi`
+- **Base URL**: `https://sandbox-api.example.com`
+- **AmanahFi URL**: `https://sandbox-api.example.com/amanahfi`
 
 ### Development
-- **Base URL**: `https://dev-api.amanahfi.ae`
-- **AmanahFi URL**: `https://dev-api.amanahfi.ae/amanahfi`
+- **Base URL**: `https://dev-api.example.com`
+- **AmanahFi URL**: `https://dev-api.example.com/amanahfi`
 
 ---
 

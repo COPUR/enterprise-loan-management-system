@@ -121,7 +121,7 @@ resource "aws_eks_cluster" "banking_apac" {
 ```hcl
 # Global DNS with intelligent routing
 resource "aws_route53_zone" "banking_global" {
-  name = "banking.enterprise.com"
+  name = "banking.example.com"
   
   tags = {
     Name = "banking-global-dns"
@@ -131,7 +131,7 @@ resource "aws_route53_zone" "banking_global" {
 
 # Health checks for each region
 resource "aws_route53_health_check" "us_west_health" {
-  fqdn                            = "us-west.banking.enterprise.com"
+  fqdn                            = "us-west.banking.example.com"
   port                            = 443
   type                            = "HTTPS"
   resource_path                   = "/actuator/health"
@@ -148,7 +148,7 @@ resource "aws_route53_health_check" "us_west_health" {
 }
 
 resource "aws_route53_health_check" "us_east_health" {
-  fqdn                            = "us-east.banking.enterprise.com"
+  fqdn                            = "us-east.banking.example.com"
   port                            = 443
   type                            = "HTTPS"
   resource_path                   = "/actuator/health"
@@ -167,7 +167,7 @@ resource "aws_route53_health_check" "us_east_health" {
 # Weighted routing with automatic failover
 resource "aws_route53_record" "banking_primary" {
   zone_id = aws_route53_zone.banking_global.zone_id
-  name    = "api.banking.enterprise.com"
+  name    = "api.banking.example.com"
   type    = "A"
   
   set_identifier = "us-west-primary"
@@ -187,7 +187,7 @@ resource "aws_route53_record" "banking_primary" {
 
 resource "aws_route53_record" "banking_secondary" {
   zone_id = aws_route53_zone.banking_global.zone_id
-  name    = "api.banking.enterprise.com"
+  name    = "api.banking.example.com"
   type    = "A"
   
   set_identifier = "us-east-secondary"
@@ -208,7 +208,7 @@ resource "aws_route53_record" "banking_secondary" {
 # Geographic routing for compliance
 resource "aws_route53_record" "banking_eu_geo" {
   zone_id = aws_route53_zone.banking_global.zone_id
-  name    = "api.banking.enterprise.com"
+  name    = "api.banking.example.com"
   type    = "A"
   
   set_identifier = "eu-geographic"
@@ -690,7 +690,7 @@ spec:
               failed_regions=()
               
               for region in "${regions[@]}"; do
-                health_url="https://${region}.banking.enterprise.com/actuator/health"
+                health_url="https://${region}.banking.example.com/actuator/health"
                 
                 if ! curl -f -m 30 "${health_url}" > /dev/null 2>&1; then
                   failed_regions+=("${region}")

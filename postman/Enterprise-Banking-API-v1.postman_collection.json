@@ -43,7 +43,7 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "https://api.amanahfi.ae",
+      "value": "https://api.example.com",
       "type": "string"
     },
     {

@@ -1,15 +1,15 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 spring:
   application:
-    name: amanahfi-api-gateway
+    name: ${APP_NAME:api-gateway}
   
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8086/oauth2
+          issuer-uri: ${OAUTH2_ISSUER_URI}
   
   cloud:
     gateway:

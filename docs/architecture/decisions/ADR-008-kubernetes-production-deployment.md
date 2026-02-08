@@ -78,7 +78,7 @@ spec:
       mode: SIMPLE
       credentialName: banking-tls-cert
     hosts:
-    - banking.enterprise.com
+    - banking.example.com
 ```
 
 #### Zero-Trust Security Policies
@@ -354,7 +354,7 @@ spec:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-  - banking.enterprise.com
+  - banking.example.com
 ```
 
 ## Backup and Disaster Recovery
