@@ -9,6 +9,8 @@ This index maps the current, active documentation set and reflects the latest re
   - `architecture/MONGODB_BCNF_DKNF_BASELINE.md`
   - `../scripts/mongodb/migrate-open-finance-analytics.sh`
   - `../scripts/validation/validate-mongodb-analytics-design.sh`
+- PMD architecture governance review added:
+  - `architecture/PMD_HEXAGONAL_BIAN_REVIEW.md`
 - Documentation and README links synchronized with existing file paths.
 
 ## Primary Entry Points
@@ -26,6 +28,7 @@ This index maps the current, active documentation set and reflects the latest re
 - `architecture/adr/`
 - `architecture/decisions/`
 - `architecture/MONGODB_BCNF_DKNF_BASELINE.md`
+- `architecture/PMD_HEXAGONAL_BIAN_REVIEW.md`
 
 ## Enterprise Architecture (TOGAF)
 - `enterprisearchitecture/README.md`

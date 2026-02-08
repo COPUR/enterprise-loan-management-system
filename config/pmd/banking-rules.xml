@@ -6,6 +6,7 @@
   <description>
     Baseline PMD ruleset used for migration-safe quality enforcement.
     The selected rules are high-signal checks that should be stable across modules.
+    Enhanced with hexagonal architecture boundaries and BIAN-like banking nomenclature guardrails.
   </description>
 
   <rule ref="category/java/errorprone.xml/DoNotCallGarbageCollectionExplicitly" />
@@ -13,4 +14,120 @@
   <rule ref="category/java/errorprone.xml/EmptyCatchBlock" />
   <rule ref="category/java/errorprone.xml/UseEqualsToCompareStrings" />
   <rule ref="category/java/errorprone.xml/AssignmentInOperand" />
+
+  <rule name="HexagonalDomainLayerPurity"
+        language="java"
+        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+        message="Domain layer must stay framework-agnostic and must not import infrastructure packages.">
+    <description>
+      Enforces hexagonal domain purity: domain code must not directly import persistence, framework,
+      or infrastructure concerns.
+    </description>
+    <priority>1</priority>
+    <properties>
+      <property name="xpath">
+        <value>
+<![CDATA[
+//CompilationUnit
+  [PackageDeclaration[matches(@Name, '.*\\.domain(\\..*)?$')]]
+  /ImportDeclaration[
+       starts-with(@ImportedName, 'jakarta.persistence.')
+    or starts-with(@ImportedName, 'javax.persistence.')
+    or starts-with(@ImportedName, 'org.springframework.')
+    or starts-with(@ImportedName, 'org.hibernate.')
+    or starts-with(@ImportedName, 'java.sql.')
+    or contains(@ImportedName, '.infrastructure.')
+  ]
+]]>
+        </value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule name="HexagonalApplicationBoundary"
+        language="java"
+        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+        message="Application layer must depend on ports/domain contracts, not infrastructure packages.">
+    <description>
+      Enforces hexagonal dependency flow by preventing direct infrastructure imports from application layer code.
+    </description>
+    <priority>2</priority>
+    <properties>
+      <property name="xpath">
+        <value>
+<![CDATA[
+//CompilationUnit
+  [PackageDeclaration[matches(@Name, '.*\\.application(\\..*)?$')]]
+  /ImportDeclaration[contains(@ImportedName, '.infrastructure.')]
+]]>
+        </value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule name="HexagonalAdapterNaming"
+        language="java"
+        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+        message="Classes in infrastructure.adapter packages should use adapter-oriented suffixes (Adapter/Controller/Repository/Client/Publisher/Listener/Mapper/Config).">
+    <description>
+      Enforces explicit adapter naming in infrastructure.adapter packages to make port/adapter intent obvious.
+    </description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value>
+<![CDATA[
+//CompilationUnit
+  [PackageDeclaration[contains(@Name, '.infrastructure.adapter')]]
+  //*[self::ClassDeclaration or self::InterfaceDeclaration or self::RecordDeclaration]
+  [not(matches(@SimpleName, '.*(Adapter|Controller|Repository|Client|Publisher|Listener|Mapper|Config)$'))]
+]]>
+        </value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule name="DomainEventSuffixConvention"
+        language="java"
+        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+        message="Types in domain.event packages must end with Event.">
+    <description>
+      Enforces consistent event nomenclature for domain events.
+    </description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value>
+<![CDATA[
+//CompilationUnit
+  [PackageDeclaration[matches(@Name, '.*\\.domain\\.event(\\..*)?$')]]
+  //ClassDeclaration[not(ends-with(@SimpleName, 'Event'))]
+]]>
+        </value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule name="BianStyleServiceNomenclature"
+        language="java"
+        class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+        message="Service classes should follow banking nomenclature suffixes (Service, ServiceDomain, Saga, Orchestrator).">
+    <description>
+      Enforces BIAN-like and banking-friendly service naming in application/domain service packages.
+    </description>
+    <priority>4</priority>
+    <properties>
+      <property name="xpath">
+        <value>
+<![CDATA[
+//CompilationUnit
+  [PackageDeclaration[matches(@Name, '.*\\.(application|domain)\\.service(\\..*)?$')]]
+  //ClassDeclaration
+  [contains(@SimpleName, 'Service')]
+  [not(matches(@SimpleName, '.*(Service|ServiceDomain|Saga|Orchestrator)$'))]
+]]>
+        </value>
+      </property>
+    </properties>
+  </rule>
 </ruleset>

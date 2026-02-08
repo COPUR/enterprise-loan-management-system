@@ -10,6 +10,8 @@ This project contains comprehensive documentation for the Enterprise Loan Manage
 - Added MongoDB migration and validation tooling documentation:
   - `scripts/mongodb/migrate-open-finance-analytics.sh`
   - `scripts/validation/validate-mongodb-analytics-design.sh`
+- Added PMD governance review for hexagonal architecture and BIAN-like nomenclature:
+  - `docs/architecture/PMD_HEXAGONAL_BIAN_REVIEW.md`
 - Updated root README and documentation references to current paths.
 
 ## 🏗️ Documentation Structure
