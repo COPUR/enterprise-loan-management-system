@@ -56,7 +56,7 @@ jobs:
         run: ./gradlew sonarqube --info
 
       - name: Upload Code Quality Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: code-quality-reports
           path: |
@@ -90,7 +90,7 @@ jobs:
         run: ./gradlew dependencyCheckAnalyze
 
       - name: Upload OWASP reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: owasp-reports
           path: build/reports/dependency-check-report.html
@@ -152,7 +152,7 @@ jobs:
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.module }}
           path: |
@@ -206,7 +206,7 @@ jobs:
 
       - name: Upload E2E Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: e2e-test-results
           path: results/
@@ -242,7 +242,7 @@ jobs:
             --image=${{ env.REGISTRY }}/${{ github.repository }}/payment-service:${{ github.sha }}
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: |
@@ -424,7 +424,7 @@ jobs:
   rollback:
     name: Rollback Production
     runs-on: ubuntu-latest
-    if: failure() && github.ref == 'refs/heads/main'
+    if: needs.deploy-production.result == 'failure' && github.ref == 'refs/heads/main'
     needs: [deploy-production]
     steps:
       - name: Checkout code
