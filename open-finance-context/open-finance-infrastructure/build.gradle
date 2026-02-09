@@ -12,12 +12,14 @@ sourceSets {
         java {
             setSrcDirs(['src/main/java'])
             include 'com/enterprise/openfinance/uc01/**'
+            include 'com/enterprise/openfinance/uc03/**'
         }
     }
     test {
         java {
             setSrcDirs(['src/test/java'])
             include 'com/enterprise/openfinance/uc01/**'
+            include 'com/enterprise/openfinance/uc03/**'
         }
     }
 }
