@@ -18,6 +18,7 @@ sourceSets {
             include 'com/enterprise/openfinance/uc05/**'
             include 'com/enterprise/openfinance/uc06/**'
             include 'com/enterprise/openfinance/uc07/**'
+            include 'com/enterprise/openfinance/uc08/**'
         }
     }
     test {
@@ -30,6 +31,7 @@ sourceSets {
             include 'com/enterprise/openfinance/uc05/**'
             include 'com/enterprise/openfinance/uc06/**'
             include 'com/enterprise/openfinance/uc07/**'
+            include 'com/enterprise/openfinance/uc08/**'
         }
     }
 }
@@ -90,7 +92,8 @@ jacocoTestReport {
                         'com/enterprise/openfinance/uc04/**',
                         'com/enterprise/openfinance/uc05/**',
                         'com/enterprise/openfinance/uc06/**',
-                        'com/enterprise/openfinance/uc07/**'
+                        'com/enterprise/openfinance/uc07/**',
+                        'com/enterprise/openfinance/uc08/**'
                 ]
         )
     }))
