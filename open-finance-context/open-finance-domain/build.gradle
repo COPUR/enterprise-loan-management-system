@@ -12,6 +12,7 @@ sourceSets {
         java {
             setSrcDirs(['src/main/java'])
             include 'com/enterprise/openfinance/uc01/**'
+            include 'com/enterprise/openfinance/uc02/**'
             include 'com/enterprise/openfinance/uc03/**'
             include 'com/enterprise/openfinance/uc06/**'
         }
@@ -20,6 +21,7 @@ sourceSets {
         java {
             setSrcDirs(['src/test/java'])
             include 'com/enterprise/openfinance/uc01/**'
+            include 'com/enterprise/openfinance/uc02/**'
             include 'com/enterprise/openfinance/uc03/**'
             include 'com/enterprise/openfinance/uc06/**'
         }
@@ -77,6 +79,7 @@ jacocoTestReport {
                 dir: dir,
                 include: [
                         'com/enterprise/openfinance/uc01/**',
+                        'com/enterprise/openfinance/uc02/**',
                         'com/enterprise/openfinance/uc03/**',
                         'com/enterprise/openfinance/uc06/**'
                 ]
