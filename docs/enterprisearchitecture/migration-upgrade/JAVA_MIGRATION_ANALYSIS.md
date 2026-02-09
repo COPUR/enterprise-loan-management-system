@@ -2,9 +2,9 @@
 
 ## Current Runtime Status (February 2026)
 
-- **Implemented runtime baseline**: `OpenJDK 25.0.2`
+- **Implemented runtime baseline**: `OpenJDK 23.0.2`
 - **Implemented build baseline**: `Gradle 9.3.1`
-- **Framework baseline**: `Spring Boot 3.3.6` with Java 25-compatible build/test tooling
+- **Framework baseline**: `Spring Boot 3.3.6` with Java 23-compatible build/test tooling
 - **CI baseline**: quality/security gates now run with executable tasks instead of placeholder skip stubs
 
 ## Historical Analysis Context
@@ -36,10 +36,9 @@ This comprehensive analysis consolidates findings from our Java version analysis
 | Java 22 | March 2024 | Non-LTS | EOL | Sept 2024 |
 | Java 23 | Sept 2024 | Non-LTS | Current | March 2025 |
 | **Java 24** | March 2025 | **Non-LTS** | **Future Target** | Sept 2025 |
-| **Java 25** | Sept 2025 | **LTS** | **Long-term Target** | Sept 2033 |
 
 ### **Current System Status**
-- **Runtime**: OpenJDK 25.0.2
+- **Runtime**: OpenJDK 23.0.2
 - **Framework**: Spring Boot 3.3.6
 - **Build Tool**: Gradle 9.3.1
 - **Architecture**: Microservices with Islamic banking compliance
@@ -163,16 +162,16 @@ switch (transaction) {
 - Quantum computing timeline and regulatory requirements
 - Cost-benefit analysis of migration effort
 
-### **Alternative: Java 17 → Java 25 LTS (Skip Java 24)**
-**Timeline**: September 2025 - Q1 2026  
+### **Alternative: Java 17 → Java 23 (Skip Java 24)**
+**Timeline**: Q4 2024 - Q1 2025  
 **Priority**: Strategic consideration  
 **Risk Level**: Lower
 
 #### **Advantages:**
-- LTS to LTS migration strategy
-- More stable and mature feature set
-- Longer support lifecycle
-- Reduced migration frequency
+- Immediate alignment with current developer runtime
+- Lower migration risk than taking a non-LTS Java 24 dependency
+- Reduced rework while preparing for the next LTS planning cycle
+- Stable tooling and dependency compatibility in this repository
 
 ## 🎯 **Risk Assessment and Mitigation**
 
@@ -271,12 +270,12 @@ switch (transaction) {
 - Banking industry quantum computing timeline
 - Internal performance requirements and ROI analysis
 
-### **Alternative Recommendation: Single Migration to Java 25 LTS**
+### **Alternative Recommendation: Single Migration to Java 23**
 **For Conservative Approach**:
-- Wait for Java 25 LTS (September 2025)
-- Single migration effort from Java 17 to Java 25
+- Keep Java 23 as the active baseline
+- Single migration effort from Java 17 to Java 23
 - Reduced migration frequency and maintenance overhead
-- All Java 24 features in stable LTS version
+- Evaluate Java 24 features selectively in non-production environments
 
 ### **Implementation Strategy**
 

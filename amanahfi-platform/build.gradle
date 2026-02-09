@@ -85,7 +85,7 @@ subprojects {
             events "passed", "skipped", "failed"
             exceptionFormat = "full"
         }
-        // Enable Loom virtual threads for testing (available in Java 25 without preview)
+        // Enable Loom virtual threads for testing (available in Java 23 without preview)
     }
 
     tasks.withType(JavaCompile) {

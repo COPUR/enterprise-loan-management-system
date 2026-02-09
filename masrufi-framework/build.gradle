@@ -11,8 +11,8 @@ version = '1.0.0-SNAPSHOT'
 description = 'MasruFi Framework - Islamic Finance Extension for Enterprise Loan Management Systems'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
+    sourceCompatibility = JavaVersion.VERSION_23
+    targetCompatibility = JavaVersion.VERSION_23
     withSourcesJar()
     withJavadocJar()
 }

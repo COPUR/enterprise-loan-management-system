@@ -9,10 +9,16 @@ description = 'Open Finance Infrastructure - External adapters and infrastructur
 
 sourceSets {
     main {
-        java.setSrcDirs([])
+        java {
+            setSrcDirs(['src/main/java'])
+            include 'com/enterprise/openfinance/uc01/**'
+        }
     }
     test {
-        java.setSrcDirs([])
+        java {
+            setSrcDirs(['src/test/java'])
+            include 'com/enterprise/openfinance/uc01/**'
+        }
     }
 }
 
@@ -94,6 +100,11 @@ dependencies {
     testImplementation 'org.testcontainers:mongodb:1.19.3'
     testImplementation 'org.testcontainers:vault:1.19.3'
     testImplementation 'org.testcontainers:nginx:1.19.3'
+    integrationTestImplementation 'org.springframework.boot:spring-boot-starter-web'
+    integrationTestImplementation 'org.springframework:spring-web'
+    functionalTestImplementation 'org.springframework.boot:spring-boot-starter-test'
+    functionalTestImplementation 'org.springframework.boot:spring-boot-starter-web'
+    functionalTestImplementation 'org.springframework:spring-web'
 }
 
 test {
@@ -160,6 +171,18 @@ performanceTest {
         '-Xmx4G',
         '-Xms2G'
     ]
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.85
+            }
+        }
+    }
 }
 
 // TestContainer cleanup task

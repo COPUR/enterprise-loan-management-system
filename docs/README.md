@@ -4,7 +4,7 @@
 This is the top-level documentation hub for architecture, operations, security, testing, and implementation guidance.
 
 ## Recent Changes (February 2026)
-- Runtime/build baseline aligned to **OpenJDK 25.0.2** and **Gradle 9.3.1**.
+- Runtime/build baseline aligned to **OpenJDK 23.0.2** and **Gradle 9.3.1**.
 - Added MongoDB analytics normalization and migration guidance:
   - `architecture/MONGODB_BCNF_DKNF_BASELINE.md`
   - `../scripts/mongodb/migrate-open-finance-analytics.sh`
@@ -65,7 +65,7 @@ This is the top-level documentation hub for architecture, operations, security, 
 - `../scripts/run-validation.sh`
 
 ## Baseline
-- Java: `25.0.2`
+- Java: `23.0.2`
 - Gradle: `9.3.1`
 - Spring Boot: `3.3.6`
 

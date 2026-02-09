@@ -40,7 +40,7 @@ The Open Finance Enterprise Loan Management System enables UAE banks to comply w
 ```
 
 ### 🔧 Core Technologies
-- **Backend**: Spring Boot 3.2, Java 25
+- **Backend**: Spring Boot 3.2, Java 23
 - **Security**: Keycloak, OAuth 2.1, FAPI 2.0
 - **Data**: PostgreSQL, MongoDB, Redis
 - **Messaging**: Apache Kafka

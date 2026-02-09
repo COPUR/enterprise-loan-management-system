@@ -14,8 +14,8 @@ group = 'com.bank'
 version = '1.0.0-SNAPSHOT'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
+    sourceCompatibility = JavaVersion.VERSION_23
+    targetCompatibility = JavaVersion.VERSION_23
 }
 
 sourceSets {
@@ -221,8 +221,8 @@ subprojects {
     apply plugin: 'java-library'
     
     java {
-        sourceCompatibility = JavaVersion.VERSION_25
-        targetCompatibility = JavaVersion.VERSION_25
+        sourceCompatibility = JavaVersion.VERSION_23
+        targetCompatibility = JavaVersion.VERSION_23
     }
     
     // Apply dependency management from convention plugins
@@ -241,7 +241,7 @@ subprojects {
     plugins.withId('io.spring.dependency-management') {
         dependencyManagement {
             dependencies {
-                // Override older BOM-managed Byte Buddy versions for JDK 25.
+                // Override older BOM-managed Byte Buddy versions for JDK 23.
                 dependency 'net.bytebuddy:byte-buddy:1.18.4'
                 dependency 'net.bytebuddy:byte-buddy-agent:1.18.4'
             }
@@ -258,7 +258,7 @@ subprojects {
         // Enable parallel test execution
         systemProperty 'junit.jupiter.execution.parallel.enabled', 'true'
         systemProperty 'junit.jupiter.execution.parallel.mode.default', 'concurrent'
-        // Required for Mockito/ByteBuddy on Java 25.
+        // Required for Mockito/ByteBuddy on Java 23.
         systemProperty 'net.bytebuddy.experimental', 'true'
     }
     

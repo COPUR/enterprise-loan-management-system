@@ -4,7 +4,7 @@
 This index maps the current, active documentation set and reflects the latest repository changes.
 
 ## Recent Updates (February 2026)
-- Build/runtime baseline updated to **Gradle 9.3.1** + **OpenJDK 25.0.2**.
+- Build/runtime baseline updated to **Gradle 9.3.1** + **OpenJDK 23.0.2**.
 - Mongo analytics design governance added:
   - `architecture/MONGODB_BCNF_DKNF_BASELINE.md`
   - `../scripts/mongodb/migrate-open-finance-analytics.sh`
@@ -29,6 +29,8 @@ This index maps the current, active documentation set and reflects the latest re
 - `architecture/decisions/`
 - `architecture/MONGODB_BCNF_DKNF_BASELINE.md`
 - `architecture/PMD_HEXAGONAL_BIAN_REVIEW.md`
+- `architecture/open-finance/use-cases/hld/`
+- `architecture/open-finance/use-cases/test-suites/`
 
 ## Enterprise Architecture (TOGAF)
 - `enterprisearchitecture/README.md`

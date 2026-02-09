@@ -4,7 +4,7 @@
 This project contains comprehensive documentation for the Enterprise Loan Management System, organized according to industry best practices and TOGAF Enterprise Architecture standards.
 
 ## 🔄 Recent Updates (February 2026)
-- Upgraded build/runtime baseline documentation to **Gradle 9.3.1** and **OpenJDK 25.0.2**.
+- Upgraded build/runtime baseline documentation to **Gradle 9.3.1** and **OpenJDK 23.0.2**.
 - Added MongoDB analytics normalization guidance:
   - `docs/architecture/MONGODB_BCNF_DKNF_BASELINE.md`
 - Added MongoDB migration and validation tooling documentation:
@@ -37,6 +37,40 @@ Documents organized under **docs/enterprisearchitecture/architecture-design/**:
 - `COMPREHENSIVE_SECURITY_POSTURE.md` - Security architecture and design
 - `DATABASE_OPTIMIZATION_ANALYSIS.md` - Database architecture analysis
 
+Open Finance use-case HLDs under **docs/architecture/open-finance/use-cases/hld/**:
+- `OPEN_FINANCE_GUARDRAILS_STANDARDS_CATALOG.md` - Categorized project guardrails/standards with HLD compliance review
+- `UC001_UC015_Open_Finance_Use_Cases_Overview.md` - Consolidated architecture, APIs, and Postman structure for UC001-UC015
+- `UC001_Personal_Financial_Management_HLD.md` - Detailed HLD for retail AIS data retrieval
+- `UC003_Confirmation_of_Payee_HLD.md` - Detailed HLD for real-time payee verification
+- `UC006_Payments_HLD.md` - Detailed HLD for payment initiation and idempotent processing
+- `UC01_Consent_Management_System.md` - Foundational consent architecture, token flow, and revocation model
+- `UC02_Account_Information_Service.md` - Foundational AIS architecture for read-optimized account data access
+- `UC03_Payment_Initiation_Service.md` - Foundational PIS architecture for idempotent transactional payments
+- `UC05_UC08_Corporate_Treasury_Services.md` - Corporate treasury and bulk payment architecture for batch/event-driven processing
+- `UC09_UC10_Insurance_Services.md` - Insurance data and quote architecture using adapter/ACL integration
+- `UC11_FX_Services.md` - Real-time FX and remittance architecture with streaming rates and atomic booking
+
+Open Finance test suites under **docs/architecture/open-finance/use-cases/test-suites/**:
+- `TEST_UC001_UC002_Account_Information.md` - Functional, negative, security, and NFR tests for AIS retail/corporate data retrieval
+- `TEST_UC003_Confirmation_of_Payee.md` - Matching, performance, and anti-enumeration test cases for CoP
+- `TEST_UC004_Banking_Metadata.md` - Metadata enrichment and account-party/product metadata validation scenarios
+- `TEST_UC005_Corporate_Treasury_Data.md` - Corporate treasury virtual account, sweeping, freshness, and entitlement test cases
+- `TEST_UC006_UC008_Payments.md` - Single, international, and bulk payment test coverage with idempotency and integrity checks
+- `TEST_UC008_Corporate_Bulk_Payments.md` - Corporate bulk upload, validation, processing, and reporting scenarios
+- `TEST_UC007_Recurring_Payments.md` - VRP mandate, limit, revocation, and concurrency test scenarios
+- `TEST_UC013_Request_to_Pay.md` - Request-to-pay creation, notification, acceptance/rejection, and duplicate handling tests
+- `TEST_UC014_UC015_Open_Data.md` - Public ATM/product data functional, quality, and caching NFR tests
+- `TEST_UC009_UC010_Insurance.md` - Insurance data and quote/bind test cases including schema and tamper checks
+- `TEST_UC011_UC012_FX_Onboarding.md` - FX quote/booking and dynamic onboarding security/compliance tests
+- `TEST_Common_Security_NFR.md` - Cross-cutting security, TLS/mTLS, rate-limiting, and performance resilience guardrail tests
+- `TEST_Audit_Liability_Compliance.md` - Audit evidence, dispute simulation, and retention validation aligned to liability model controls
+- `TEST_Performance_Scripts_K6.md` - K6 load/stress script templates for UC001 and UC006 NFR validation
+- `TEST_Traceability_Matrix.md` - RTM mapping UC requirements to HLD components, APIs, and test-case coverage
+- `TEST_Postman_Automation_Strategy.md` - Collection design, reusable scripts, environment variables, and Newman CI execution model
+- `TEST_CAAP_Authentication_Redirection.md` - Mobile app deep-link redirection, PAR, and SCA/biometric validation for CAAP integration
+- `TEST_Trust_Framework_Onboarding.md` - Dynamic registration, SSA validation, and mTLS/JWKS trust-framework onboarding tests
+- `TEST_E2E_Certification_Checklist.md` - Production go-live functional, security, operational readiness, and sign-off checklist
+
 ### Implementation & Development
 Documents organized under **docs/enterprisearchitecture/implementation-development/**:
 - `TDD_IMPLEMENTATION_GUIDE.md` - Test-driven development guide
@@ -58,7 +92,7 @@ Documents organized under **docs/enterprisearchitecture/migration-upgrade/**:
 - `GRADLE_8.14.13_UPGRADE_ANALYSIS.md` - Gradle upgrade analysis
 - `JAVA_MIGRATION_ANALYSIS.md` - Consolidated Java migration analysis (17→21→24)
 - `MIGRATION_BACKUP_CHECKLIST.md` - Migration checklist
-- **Current baseline**: Gradle 9.3.1 + OpenJDK 25.0.2
+- **Current baseline**: Gradle 9.3.1 + OpenJDK 23.0.2
 
 ### Project Management
 Documents organized under **docs/enterprisearchitecture/project-management/**:
@@ -106,7 +140,7 @@ Documents organized under **docs/enterprisearchitecture/project-management/**:
 | Diagram | Description | PlantUML Source |
 |---------|-------------|-----------------|
 | [System Architecture](docs/images/security/system-architecture-overview.svg) | Complete system with all 11 bounded contexts | [Source](docs/puml/system-overview/system-architecture-overview.puml) |
-| [Technology Stack](docs/images/security/technology-stack-diagram.svg) | Complete technology stack from Java 25 to Kubernetes | [Source](docs/puml/system-overview/technology-stack-diagram.puml) |
+| [Technology Stack](docs/images/security/technology-stack-diagram.svg) | Complete technology stack from Java 23 to Kubernetes | [Source](docs/puml/system-overview/technology-stack-diagram.puml) |
 | [Bounded Context Map](docs/images/security/bounded-context-map.svg) | Domain-driven design context relationships | [Source](docs/puml/system-overview/bounded-context-map.puml) |
 | [Deployment Architecture](docs/images/security/deployment-architecture.svg) | Multi-environment deployment topology | [Source](docs/puml/system-overview/deployment-architecture.puml) |
 
@@ -174,7 +208,7 @@ Documents organized under **docs/enterprisearchitecture/project-management/**:
 - **Analytics Platform**: MongoDB-based silver copy analytics
 
 ### Technology Stack
-- **Java 25**: Modern language with virtual threads
+- **Java 23**: Modern language with virtual threads
 - **Spring Boot 3.3.6**: Latest framework with native compilation
 - **PostgreSQL 16.9**: Primary database with ACID compliance
 - **Apache Kafka**: Event streaming and messaging

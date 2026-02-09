@@ -6,7 +6,7 @@ This document summarizes the comprehensive architectural refactoring undertaken 
 
 ## Current Baseline Update (February 2026)
 
-- Build/runtime baseline: `Gradle 9.3.1` + `OpenJDK 25.0.2`
+- Build/runtime baseline: `Gradle 9.3.1` + `OpenJDK 23.0.2`
 - Framework baseline: `Spring Boot 3.3.6` + `Spring Cloud 2023.0.6`
 - CI quality path no longer uses placeholder skip stubs for architecture/unit/integration/quality gates
 - Mongo analytics BCNF/DKNF baseline is formalized in `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/architecture/MONGODB_BCNF_DKNF_BASELINE.md`

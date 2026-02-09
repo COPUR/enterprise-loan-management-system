@@ -8,13 +8,13 @@ The Enterprise Loan Management System has successfully completed a comprehensive
 
 ### **Build and Runtime Baseline**
 - ✅ Upgraded Gradle wrapper to `9.3.1`
-- ✅ Standardized local/CI runtime on `OpenJDK 25.0.2`
+- ✅ Standardized local/CI runtime on `OpenJDK 23.0.2`
 - ✅ Aligned framework dependencies to `Spring Boot 3.3.6` + `Spring Cloud 2023.0.6`
 
 ### **CI Quality Gate Recovery**
 - ✅ Re-enabled executable CI steps for architecture, unit, integration, coverage, and static analysis
 - ✅ Restored Checkstyle and PMD configuration files expected by convention plugins
-- ✅ Upgraded SpotBugs toolchain for Java 25 compatibility
+- ✅ Upgraded SpotBugs toolchain for Java 23 compatibility
 - ✅ Restored configuration-cache compatibility for baseline verification path
 
 ### **Data Architecture Governance (MongoDB)**
@@ -22,7 +22,7 @@ The Enterprise Loan Management System has successfully completed a comprehensive
 - ✅ Added migration and validation scripts for key/index enforcement and domain guardrails
 
 ### **Phase Gate Checklist (February 2026)**
-- [x] Phase 0 baseline verified on `Gradle 9.3.1` + `OpenJDK 25.0.2`
+- [x] Phase 0 baseline verified on `Gradle 9.3.1` + `OpenJDK 23.0.2`
 - [x] Phase 0 baseline `clean test` path succeeds (`--no-daemon --no-configuration-cache`)
 - [x] Phase 1 CI workflow restored to valid YAML (no unresolved merge markers)
 - [x] Phase 1 multi-project settings stabilized for clean CI checkout (`risk-context/*`, `compliance-context/*`)
@@ -44,7 +44,7 @@ The Enterprise Loan Management System has successfully completed a comprehensive
 - **100% Security Compliance**: All hardcoded credentials removed
 - **5 Convention Plugins**: Standardized build processes
 - **2 Banking Frameworks**: MasruFi and AmanahFi integration
-- **Current Build Baseline**: Gradle `9.3.1` + OpenJDK `25.0.2`
+- **Current Build Baseline**: Gradle `9.3.1` + OpenJDK `23.0.2`
 
 ---
 
@@ -60,7 +60,7 @@ The Enterprise Loan Management System has successfully completed a comprehensive
 - ✅ Integrated composite builds for AmanahFi platform
 
 #### **Technical Foundation**
-- ✅ Java 23.0.1 environment setup
+- ✅ Java 23.0.2 environment setup
 - ✅ Gradle 8.14.2 multi-project configuration
 - ✅ Docker containerization architecture
 - ✅ CI/CD pipeline establishment
@@ -229,11 +229,11 @@ Enterprise Loan Management System
 └── 🛠️ Build Infrastructure
     ├── Gradle 9.3.1
     ├── BuildSrc Conventions
-    └── Java 25 Toolchain
+    └── Java 23 Toolchain
 ```
 
 ### **Technology Stack**
-- **Runtime**: OpenJDK 25.0.2
+- **Runtime**: OpenJDK 23.0.2
 - **Build**: Gradle 9.3.1 with BuildSrc conventions
 - **Framework**: Spring Boot 3.3.6
 - **Security**: Spring Security, OAuth2, FAPI 2.0

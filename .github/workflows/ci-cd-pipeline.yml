@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 env:
-  JAVA_VERSION: '25'
+  JAVA_VERSION: '23'
   GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.parallel=false'
 
 jobs:

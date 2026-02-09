@@ -102,7 +102,7 @@ This is a comprehensive enterprise banking system implementing all modern archit
 ## Technology Stack
 
 ### Core Platform
-- **Java 25** with Virtual Threads for massive concurrency
+- **Java 23** with Virtual Threads for massive concurrency
 - **Spring Boot 3.3.6** with comprehensive enterprise features
 - **Spring AI** for LLM integration and RAG implementation
 - **Spring Security** with OAuth2.1 and FAPI compliance

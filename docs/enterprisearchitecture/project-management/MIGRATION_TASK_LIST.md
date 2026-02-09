@@ -6,7 +6,7 @@ This comprehensive task list outlines the migration strategy for upgrading to Gr
 
 ## ✅ **Execution Status (February 2026)**
 
-- [x] Phase 0 checklist satisfied (runtime/build baseline validated on `Gradle 9.3.1` + `OpenJDK 25.0.2`)
+- [x] Phase 0 checklist satisfied (runtime/build baseline validated on `Gradle 9.3.1` + `OpenJDK 23.0.2`)
 - [x] Phase 1 checklist satisfied (CI workflow stability, multi-project module path integrity, quality gate execution)
 - [x] Phase 2 resumed (version-catalog and convention-plugin track active)
 - [ ] Phase 2 fully completed
@@ -250,13 +250,13 @@ gantt
 
 ### **⚠️ Strategic Note: Java 24 is NOT LTS**
 - **Java 24**: March 2025 (6-month support only)
-- **Java 25**: September 2025 (LTS - 3-year support)
-- **Recommendation**: Consider skipping Java 24 and targeting Java 25 LTS
+- **Java 23**: September 2024 (Non-LTS, current baseline)
+- **Recommendation**: Keep Java 23 baseline and adopt Java 24 only after targeted validation
 
 ### **Week 7: Java 24 Core Features (Conditional)**
 
-#### **Day 31-32: LTS Strategy Decision**
-- [ ] Evaluate Java 24 vs Java 25 LTS strategy
+#### **Day 31-32: Version Strategy Decision**
+- [ ] Evaluate Java 24 vs Java 23 strategy
 - [ ] Assess business risk of non-LTS version
 - [ ] Consider Java 24 for performance testing only
 - [ ] Make final decision on Java 24 adoption
@@ -318,11 +318,11 @@ gantt
 
 ### **Week 9: Testing & Strategic Decision**
 
-#### **Day 41-42: Java 24 vs Java 25 LTS Decision**
+#### **Day 41-42: Java 24 vs Java 23 Decision**
 **Strategic Analysis:**
-- [ ] Compare Java 24 benefits vs LTS support requirements
+- [ ] Compare Java 24 benefits vs support-window requirements
 - [ ] Evaluate 6-month support window risk
-- [ ] Assess September 2025 Java 25 LTS timeline
+- [ ] Assess Java 24 ecosystem readiness timeline
 - [ ] Consider Java 24 for performance testing only
 - [ ] Make final architectural decision
 
@@ -341,9 +341,9 @@ gantt
 - [ ] GC tuning for low-latency payments
 - [ ] Database connection pooling optimization
 
-**Java 25 LTS Preparation (Alternative):**
-- [ ] Plan Java 25 LTS migration timeline
-- [ ] Prepare for September 2025 release
+**Java 23 Preparation (Alternative):**
+- [ ] Maintain Java 23 baseline hardening timeline
+- [ ] Prepare next-LTS upgrade roadmap
 - [ ] Test Java 24 features in staging
 - [ ] Document lessons learned
 
@@ -355,12 +355,12 @@ gantt
 - [ ] Schedule maintenance window
 - [ ] Final security audit
 
-**Option B: Java 25 LTS Preparation (Recommended)**
-- [ ] Maintain Java 21 LTS in production
+**Option B: Java 23 Baseline Hardening (Recommended)**
+- [ ] Maintain Java 23 baseline in production
 - [ ] Test Java 24 features in development
-- [ ] Prepare for Java 25 LTS migration
+- [ ] Continue Java 23 baseline hardening
 - [ ] Document Java 24 evaluation results
-- [ ] Plan September 2025 LTS upgrade
+- [ ] Plan future LTS upgrade window
 
 ---
 

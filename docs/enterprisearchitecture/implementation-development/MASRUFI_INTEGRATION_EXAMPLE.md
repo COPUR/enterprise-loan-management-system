@@ -537,7 +537,7 @@ class IntegratedLoanServiceTest {
 
 ```dockerfile
 # Dockerfile
-FROM openjdk:25.0.2-jdk-slim
+FROM openjdk:23.0.2-jdk-slim
 
 # Copy MasruFi Framework configuration
 COPY masrufi-framework/src/main/resources/application-masrufi.yml /app/config/

@@ -34,7 +34,7 @@ This document provides comprehensive guidance for testing the Enterprise Banking
 ### Prerequisites
 
 - Docker 20.0+ and Docker Compose
-- Java 25.0.2 (OpenJDK recommended)
+- Java 23.0.2 (OpenJDK recommended)
 - Gradle 9.3.1+
 - PostgreSQL 15+ (or Docker alternative)
 - Redis 7+ (or Docker alternative)

@@ -5,7 +5,7 @@ Welcome to the development environment for the Enterprise Loan Management System
 ## Quick Start
 
 ### Prerequisites
-- Java 25.0.2+
+- Java 23.0.2+
 - Gradle 9.3.1+
 - Docker & Docker Compose
 - Git

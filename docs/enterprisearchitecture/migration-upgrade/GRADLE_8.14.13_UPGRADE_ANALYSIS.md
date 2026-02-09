@@ -6,7 +6,7 @@ This document started as the Gradle `8.14.x` migration plan and is now retained 
 
 ### Current Baseline (Implemented)
 - **Gradle Wrapper**: `9.3.1` (`gradle/wrapper/gradle-wrapper.properties`)
-- **JDK**: `OpenJDK 25.0.2`
+- **JDK**: `OpenJDK 23.0.2`
 - **Spring Baseline**: `Spring Boot 3.3.6` + `Spring Cloud 2023.0.6`
 
 ### Recently Completed in the Repository
@@ -14,7 +14,7 @@ This document started as the Gradle `8.14.x` migration plan and is now retained 
 - Added project-local quality configuration files:
   - `config/checkstyle/banking-checkstyle.xml`
   - `config/pmd/banking-rules.xml`
-- Updated SpotBugs tooling for Java 25 compatibility:
+- Updated SpotBugs tooling for Java 23 compatibility:
   - SpotBugs `4.9.8`
   - commons-lang3 `3.20.0`
 - Fixed integration-test task wiring and dependency version pinning in open-finance modules.

@@ -16,7 +16,7 @@ package "Application Layer" #lightblue {
 
 ' Framework Layer
 package "Framework Layer" #lightgreen {
-  rectangle "Java 25 LTS" as Java25 #lightgreen
+  rectangle "Java 23" as Java23 #lightgreen
   rectangle "Gradle 9.3.1+" as Gradle #lightgreen
   rectangle "JUnit 5" as JUnit #lightgreen
   rectangle "Testcontainers" as TestContainers #lightgreen
@@ -107,7 +107,7 @@ package "External Systems" #lavender {
 ' Dependencies
 
 ' Application Dependencies
-SpringBoot --> Java25
+SpringBoot --> Java23
 SpringSec --> OAuth
 SpringData --> PostgreSQL
 SpringGW --> WebFlux
@@ -177,7 +177,7 @@ RegSystems --> SpringGW
 OpenBanking --> SpringGW
 
 ' Version Notes
-note top of Java25 : **LTS Version**\nLatest Long Term Support
+note top of Java23 : **LTS Version**\nLatest Long Term Support
 note top of SpringBoot : **Production Ready**\nEnterprise Grade Framework
 note top of PostgreSQL : **ACID Compliant**\nHigh Performance Database
 note top of Kafka : **Event Streaming**\nHigh Throughput Messaging

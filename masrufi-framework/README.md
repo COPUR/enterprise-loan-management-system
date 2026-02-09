@@ -71,7 +71,7 @@ The **MasruFi Framework** is a high-cohesion, loosely-coupled extension module t
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Java 25.0.2+
+- Java 23.0.2+
 - Spring Boot 3.2.0+
 - Existing Enterprise Loan Management System
 

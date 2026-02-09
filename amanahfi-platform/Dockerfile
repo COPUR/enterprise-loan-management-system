@@ -1,6 +1,6 @@
 # AmanahFi Platform - Multi-stage Dockerfile for Islamic Finance and CBDC Platform
-# Base image: OpenJDK 25.0.2 with security updates
-FROM bellsoft/liberica-openjdk-alpine:25.0.2-cds AS builder
+# Base image: OpenJDK 23.0.2 with security updates
+FROM bellsoft/liberica-openjdk-alpine:23.0.2-cds AS builder
 
 # Install build dependencies
 RUN apk add --no-cache git curl
@@ -26,7 +26,7 @@ COPY src/ src/
 RUN ./gradlew clean build -x test --no-daemon
 
 # Production image
-FROM bellsoft/liberica-openjdk-alpine:25.0.2-cds AS production
+FROM bellsoft/liberica-openjdk-alpine:23.0.2-cds AS production
 
 # Install runtime dependencies and security tools
 RUN apk add --no-cache \
