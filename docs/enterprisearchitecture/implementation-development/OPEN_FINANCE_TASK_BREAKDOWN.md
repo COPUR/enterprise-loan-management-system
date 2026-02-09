@@ -16,6 +16,7 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] UC08 Corporate Bulk Payments
 - [x] UC09 Insurance Data Sharing
 - [x] UC10 Insurance Quote Initiation
+- [x] UC11 FX & Remittance
 
 ### UC07 Story Completion Snapshot
 - [x] Domain stories: consent/payment/idempotency models, command/query contracts, domain exceptions.
@@ -25,9 +26,16 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Quality gate story: UC07-specific line coverage above 85%.
 
 ### Active Backlog Queue (Next)
-- [ ] UC11/UC012 FX + Dynamic Onboarding
+- [ ] UC012 Dynamic Onboarding for FX
 - [ ] UC013 Request to Pay
 - [ ] UC014/UC015 Open Data APIs
+
+### UC11 Story Completion Snapshot
+- [x] Domain stories: quote/deal aggregates, command/query contracts, idempotency record, lifecycle/status models, domain exceptions.
+- [x] Application stories: FX orchestration, market-availability checks, idempotency replay/conflict handling, ownership and expiry enforcement.
+- [x] Infrastructure stories: in-memory adapters (rate/quote/deal/idempotency/cache/event), REST API, exception mapping, FAPI headers, ETag/cache semantics.
+- [x] Testing stories: unit + integration + functional/e2e + UAT completed with TDD sequence.
+- [x] Quality gate story: UC11 package line coverage above 85% in domain/application/infrastructure.
 
 ## Task Organization
 

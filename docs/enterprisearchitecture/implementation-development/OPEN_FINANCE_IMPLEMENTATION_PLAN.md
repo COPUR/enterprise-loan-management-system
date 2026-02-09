@@ -16,9 +16,9 @@ This implementation plan details the integration of UAE Open Finance capabilitie
 - [x] UC08 Corporate Bulk Payments
 - [x] UC09 Insurance Data Sharing
 - [x] UC10 Insurance Quote Initiation
+- [x] UC11 FX & Remittance
 
 ### Next Implementation Queue
-- [ ] UC11 FX & Remittance
 - [ ] UC12 Dynamic Onboarding for FX
 - [ ] UC13 Request to Pay
 - [ ] UC014 Open Products Data
@@ -73,6 +73,20 @@ This implementation plan details the integration of UAE Open Finance capabilitie
   - Domain: 89.80%
   - Application: 94.38%
   - Infrastructure: 91.03%
+
+### UC11 Execution Summary
+- TDD flow completed for FX quotes and deal booking: tests first (unit/integration/functional/UAT), then implementation and refactoring.
+- Hexagonal architecture applied with explicit UC11 ports (`FxUseCase`, rate/quote/deal/idempotency/cache/event output ports).
+- DDD model implemented for quote/deal lifecycle (`Quoted` -> `Booked`/`Expired`), idempotency, and domain command/query contracts.
+- FAPI-aware behavior implemented (`DPoP`/`Bearer` header enforcement, `X-FAPI-Interaction-ID`, `X-Idempotency-Key`, `X-OF-Idempotency`, `X-OF-Cache`, `ETag`/`If-None-Match`, `no-store` cache control).
+- Test pyramid completed:
+  - Unit: domain/application/infrastructure
+  - Integration: MockMvc API contract (quote/deal/replay/cache/expired/header-negative)
+  - E2E/UAT: REST-assured quote-to-deal journey, replay protection, and negative authorization path
+- UC11 package line coverage achieved:
+  - Domain: 86.22%
+  - Application: 89.80%
+  - Infrastructure: 90.85%
 
 ## Project Structure
 
