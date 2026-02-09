@@ -19,6 +19,7 @@ sourceSets {
             include 'com/enterprise/openfinance/uc06/**'
             include 'com/enterprise/openfinance/uc07/**'
             include 'com/enterprise/openfinance/uc08/**'
+            include 'com/enterprise/openfinance/uc09/**'
         }
     }
     test {
@@ -32,6 +33,7 @@ sourceSets {
             include 'com/enterprise/openfinance/uc06/**'
             include 'com/enterprise/openfinance/uc07/**'
             include 'com/enterprise/openfinance/uc08/**'
+            include 'com/enterprise/openfinance/uc09/**'
         }
     }
 }
