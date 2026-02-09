@@ -13,6 +13,9 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] UC05 Corporate Treasury Data
 - [x] UC06 Single/International Payments
 - [x] UC07 Variable Recurring Payments (VRP)
+- [x] UC08 Corporate Bulk Payments
+- [x] UC09 Insurance Data Sharing
+- [x] UC10 Insurance Quote Initiation
 
 ### UC07 Story Completion Snapshot
 - [x] Domain stories: consent/payment/idempotency models, command/query contracts, domain exceptions.
@@ -22,8 +25,6 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Quality gate story: UC07-specific line coverage above 85%.
 
 ### Active Backlog Queue (Next)
-- [ ] UC08 Corporate Bulk Payments
-- [ ] UC09/UC10 Insurance Services
 - [ ] UC11/UC012 FX + Dynamic Onboarding
 - [ ] UC013 Request to Pay
 - [ ] UC014/UC015 Open Data APIs
