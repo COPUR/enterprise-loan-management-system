@@ -1,3 +1,13 @@
+openfinance:
+  personalfinancialdata:
+    security:
+      jwt-secret: ${OPENFINANCE_PFD_JWT_SECRET:0123456789abcdef0123456789abcdef}
+      issuer: ${OPENFINANCE_PFD_JWT_ISSUER:}
+      audience: ${OPENFINANCE_PFD_JWT_AUDIENCE:}
+      dpop-required: ${OPENFINANCE_PFD_DPOP_REQUIRED:true}
+      dpop-max-proof-age: ${OPENFINANCE_PFD_DPOP_MAX_PROOF_AGE:PT5M}
+      dpop-clock-skew: ${OPENFINANCE_PFD_DPOP_CLOCK_SKEW:PT30S}
+
 spring:
   application:
     name: ${OPENFINANCE_PFD_SERVICE_NAME:openfinance-personal-financial-data-service}

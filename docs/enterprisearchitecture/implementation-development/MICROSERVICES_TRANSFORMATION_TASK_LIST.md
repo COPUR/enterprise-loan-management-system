@@ -29,6 +29,9 @@
 - [ ] Wave 2 AIS Rollout:
 - [x] Apply Wave 1 observability baseline pattern to Personal Financial Data Service.
 - [x] Apply Wave 1 observability baseline pattern to Banking Metadata Service.
+- [x] Apply Wave 1 runtime FAPI chain pattern (JWT + scope + mandatory DPoP) to Personal Financial Data Service.
+- [x] Apply Wave 1 runtime FAPI chain pattern (JWT + scope + mandatory DPoP) to Banking Metadata Service.
+- [x] Re-enable integration/functional security filters in Personal Financial Data and Banking Metadata test suites.
 
 - [ ] Wave 3 Context Rollout:
 - [ ] Roll out shared security/observability/pipeline/IaC standards to remaining bounded contexts.

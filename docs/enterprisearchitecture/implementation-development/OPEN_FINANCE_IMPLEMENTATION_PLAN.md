@@ -48,6 +48,8 @@ All 15 use-case feature tracks are implemented in the repository. The current ba
 - [x] Banking Metadata Service: runtime observability baseline added (`X-Trace-ID` propagation, Micrometer request counters/timers, structured completion logs, actuator metrics/prometheus exposure).
 - [x] Bounded-context repository stubs: replaced echo-only GitLab/Jenkins placeholders with runnable artifact validation, OpenAPI linting, and gitleaks secret-scanning gates.
 - [x] Terraform service root stacks: added explicit AWS provider wiring (`aws_region`, default tags), standardized module outputs, and updated Terraform operational documentation.
+- [x] Personal Financial Data Service: runtime FAPI security chain added (JWT validation, scope authorization, mandatory DPoP verification) and security-enabled integration/UAT tests with signed proofs.
+- [x] Banking Metadata Service: runtime FAPI security chain added (JWT validation, scope authorization, mandatory DPoP verification) and security-enabled integration/UAT tests with signed proofs.
 
 ### Universal Task List (Cross-Service Guardrails)
 - [ ] OpenAPI parity: implementation paths/headers must match published contracts exactly.

@@ -1,5 +1,6 @@
 package com.enterprise.openfinance.bankingmetadata.infrastructure.integration;
 
+import com.enterprise.openfinance.bankingmetadata.infrastructure.security.SecurityTestTokenFactory;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,6 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
@@ -32,9 +31,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(
         classes = MetadataApiIntegrationTest.TestApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-        properties = "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+        properties = {
+                "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration",
+                "openfinance.bankingmetadata.security.jwt-secret=0123456789abcdef0123456789abcdef"
+        }
 )
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 class MetadataApiIntegrationTest {
 
     @Autowired
@@ -44,7 +46,10 @@ class MetadataApiIntegrationTest {
     void shouldGetTransactionsAndReturnCacheHitOnSecondRequest() throws Exception {
         MockHttpServletRequestBuilder request = withHeaders(
                 get("/open-finance/v1/metadata/accounts/ACC-001/transactions"),
-                "CONS-META-001"
+                "CONS-META-001",
+                "GET",
+                "/open-finance/v1/metadata/accounts/ACC-001/transactions",
+                "read_transactions read_parties read_metadata read_standing_orders"
         );
 
         mockMvc.perform(request)
@@ -64,7 +69,10 @@ class MetadataApiIntegrationTest {
                         get("/open-finance/v1/metadata/accounts/ACC-001/transactions")
                                 .queryParam("page", "1")
                                 .queryParam("pageSize", "20"),
-                        "CONS-META-001"))
+                        "CONS-META-001",
+                        "GET",
+                        "/open-finance/v1/metadata/accounts/ACC-001/transactions",
+                        "read_transactions read_parties read_metadata read_standing_orders"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -75,7 +83,10 @@ class MetadataApiIntegrationTest {
                                 .queryParam("page", "1")
                                 .queryParam("pageSize", "20")
                                 .header("If-None-Match", etag),
-                        "CONS-META-001"))
+                        "CONS-META-001",
+                        "GET",
+                        "/open-finance/v1/metadata/accounts/ACC-001/transactions",
+                        "read_transactions read_parties read_metadata read_standing_orders"))
                 .andExpect(status().isNotModified());
     }
 
@@ -83,21 +94,30 @@ class MetadataApiIntegrationTest {
     void shouldGetPartiesAccountAndStandingOrdersMetadata() throws Exception {
         mockMvc.perform(withHeaders(
                         get("/open-finance/v1/metadata/accounts/ACC-001/parties"),
-                        "CONS-META-001"))
+                        "CONS-META-001",
+                        "GET",
+                        "/open-finance/v1/metadata/accounts/ACC-001/parties",
+                        "read_transactions read_parties read_metadata read_standing_orders"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.Data.Party").isArray())
                 .andExpect(jsonPath("$.Data.Party[0].FullLegalName").exists());
 
         mockMvc.perform(withHeaders(
                         get("/open-finance/v1/metadata/accounts/ACC-001"),
-                        "CONS-META-001"))
+                        "CONS-META-001",
+                        "GET",
+                        "/open-finance/v1/metadata/accounts/ACC-001",
+                        "read_transactions read_parties read_metadata read_standing_orders"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.Data.Account.SchemeName").value("IBAN"));
 
         mockMvc.perform(withHeaders(
                         get("/open-finance/v1/metadata/standing-orders")
                                 .queryParam("accountId", "ACC-001"),
-                        "CONS-META-001"))
+                        "CONS-META-001",
+                        "GET",
+                        "/open-finance/v1/metadata/standing-orders",
+                        "read_transactions read_parties read_metadata read_standing_orders"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.Data.StandingOrder").isArray())
                 .andExpect(jsonPath("$.Meta.TotalPages").value(Matchers.greaterThanOrEqualTo(1)));
@@ -107,27 +127,72 @@ class MetadataApiIntegrationTest {
     void shouldRejectWhenScopeMissingOrBolaOrExpired() throws Exception {
         mockMvc.perform(withHeaders(
                         get("/open-finance/v1/metadata/accounts/ACC-001/parties"),
-                        "CONS-META-TX-ONLY"))
+                        "CONS-META-TX-ONLY",
+                        "GET",
+                        "/open-finance/v1/metadata/accounts/ACC-001/parties",
+                        "read_transactions read_parties read_metadata read_standing_orders"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"));
 
         mockMvc.perform(withHeaders(
                         get("/open-finance/v1/metadata/accounts/ACC-003/parties"),
-                        "CONS-META-001"))
+                        "CONS-META-001",
+                        "GET",
+                        "/open-finance/v1/metadata/accounts/ACC-003/parties",
+                        "read_transactions read_parties read_metadata read_standing_orders"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"));
 
         mockMvc.perform(withHeaders(
                         get("/open-finance/v1/metadata/accounts/ACC-001/transactions"),
-                        "CONS-META-EXPIRED"))
+                        "CONS-META-EXPIRED",
+                        "GET",
+                        "/open-finance/v1/metadata/accounts/ACC-001/transactions",
+                        "read_transactions read_parties read_metadata read_standing_orders"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value(Matchers.containsString("expired")));
     }
 
-    private static MockHttpServletRequestBuilder withHeaders(MockHttpServletRequestBuilder builder, String consentId) {
+    @Test
+    void shouldRejectMissingDpopProof() throws Exception {
+        String accessToken = SecurityTestTokenFactory.accessToken("read_transactions read_parties read_metadata read_standing_orders");
+        mockMvc.perform(get("/open-finance/v1/metadata/accounts/ACC-001/transactions")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .header("X-FAPI-Interaction-ID", "ix-bankingmetadata-integration")
+                        .header("x-fapi-financial-id", "TPP-001")
+                        .header("X-Consent-ID", "CONS-META-001")
+                        .accept("application/json"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldRejectInsufficientTokenScopes() throws Exception {
+        String accessToken = SecurityTestTokenFactory.accessToken("read_transactions");
+        String dpopProof = SecurityTestTokenFactory.dpopProof(
+                "GET",
+                "http://localhost/open-finance/v1/metadata/accounts/ACC-001/parties",
+                accessToken
+        );
+        mockMvc.perform(get("/open-finance/v1/metadata/accounts/ACC-001/parties")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .header("DPoP", dpopProof)
+                        .header("X-FAPI-Interaction-ID", "ix-bankingmetadata-integration")
+                        .header("x-fapi-financial-id", "TPP-001")
+                        .header("X-Consent-ID", "CONS-META-001")
+                        .accept("application/json"))
+                .andExpect(status().isForbidden());
+    }
+
+    private static MockHttpServletRequestBuilder withHeaders(MockHttpServletRequestBuilder builder,
+                                                             String consentId,
+                                                             String method,
+                                                             String path,
+                                                             String scopes) {
+        String accessToken = SecurityTestTokenFactory.accessToken(scopes);
+        String dpopProof = SecurityTestTokenFactory.dpopProof(method, "http://localhost" + path, accessToken);
         return builder
-                .header("Authorization", "DPoP integration-token")
-                .header("DPoP", "proof-jwt")
+                .header("Authorization", "Bearer " + accessToken)
+                .header("DPoP", dpopProof)
                 .header("X-FAPI-Interaction-ID", "ix-bankingmetadata-integration")
                 .header("x-fapi-financial-id", "TPP-001")
                 .header("X-Consent-ID", consentId)
@@ -136,8 +201,6 @@ class MetadataApiIntegrationTest {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration(exclude = {
-            SecurityAutoConfiguration.class,
-            OAuth2ResourceServerAutoConfiguration.class,
             DataSourceAutoConfiguration.class,
             DataSourceTransactionManagerAutoConfiguration.class,
             HibernateJpaAutoConfiguration.class,

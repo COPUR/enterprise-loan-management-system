@@ -1,5 +1,6 @@
 package com.enterprise.openfinance.personalfinancialdata.infrastructure.functional;
 
+import com.enterprise.openfinance.personalfinancialdata.infrastructure.security.SecurityTestTokenFactory;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -16,8 +17,6 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
@@ -31,7 +30,10 @@ import static org.hamcrest.Matchers.greaterThan;
 @SpringBootTest(
         classes = AccountInformationUatTest.TestApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+        properties = {
+                "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration",
+                "openfinance.personalfinancialdata.security.jwt-secret=0123456789abcdef0123456789abcdef"
+        }
 )
 class AccountInformationUatTest {
 
@@ -47,7 +49,7 @@ class AccountInformationUatTest {
 
     @Test
     void shouldCompleteRetailAccountInformationJourney() {
-        Response accountsResponse = request("CONS-AIS-001")
+        Response accountsResponse = request("CONS-AIS-001", "GET", "/open-finance/v1/accounts", "read_accounts read_balances read_transactions")
                 .when()
                 .get("/open-finance/v1/accounts")
                 .then()
@@ -58,21 +60,21 @@ class AccountInformationUatTest {
 
         String accountId = accountsResponse.path("Data.Account[0].AccountId");
 
-        request("CONS-AIS-001")
+        request("CONS-AIS-001", "GET", "/open-finance/v1/accounts/" + accountId, "read_accounts read_balances read_transactions")
                 .when()
                 .get("/open-finance/v1/accounts/{accountId}", accountId)
                 .then()
                 .statusCode(200)
                 .body("Data.Account.AccountId", equalTo(accountId));
 
-        request("CONS-AIS-001")
+        request("CONS-AIS-001", "GET", "/open-finance/v1/accounts/" + accountId + "/balances", "read_accounts read_balances read_transactions")
                 .when()
                 .get("/open-finance/v1/accounts/{accountId}/balances", accountId)
                 .then()
                 .statusCode(200)
                 .body("Data.Balance.size()", greaterThan(0));
 
-        request("CONS-AIS-001")
+        request("CONS-AIS-001", "GET", "/open-finance/v1/accounts/" + accountId + "/transactions", "read_accounts read_balances read_transactions")
                 .queryParam("fromBookingDateTime", "2026-01-01T00:00:00Z")
                 .queryParam("toBookingDateTime", "2026-12-31T00:00:00Z")
                 .queryParam("page", 1)
@@ -86,14 +88,14 @@ class AccountInformationUatTest {
 
     @Test
     void shouldEnforceConsentScopesAndBolaProtection() {
-        request("CONS-AIS-BAL-ONLY")
+        request("CONS-AIS-BAL-ONLY", "GET", "/open-finance/v1/accounts/ACC-001/transactions", "read_accounts read_balances read_transactions")
                 .when()
                 .get("/open-finance/v1/accounts/ACC-001/transactions")
                 .then()
                 .statusCode(403)
                 .body("code", equalTo("FORBIDDEN"));
 
-        request("CONS-AIS-001")
+        request("CONS-AIS-001", "GET", "/open-finance/v1/accounts/ACC-003", "read_accounts read_balances read_transactions")
                 .when()
                 .get("/open-finance/v1/accounts/ACC-003")
                 .then()
@@ -103,7 +105,7 @@ class AccountInformationUatTest {
 
     @Test
     void shouldSupportCorporateMultiCurrencyVisibility() {
-        request("CONS-AIS-001")
+        request("CONS-AIS-001", "GET", "/open-finance/v1/accounts", "read_accounts read_balances read_transactions")
                 .when()
                 .get("/open-finance/v1/accounts")
                 .then()
@@ -111,12 +113,14 @@ class AccountInformationUatTest {
                 .body("Data.Account.findAll { it.Currency == 'USD' }.size()", greaterThan(0));
     }
 
-    private RequestSpecification request(String consentId) {
+    private RequestSpecification request(String consentId, String method, String path, String scopes) {
+        String accessToken = SecurityTestTokenFactory.accessToken(scopes);
+        String dpopProof = SecurityTestTokenFactory.dpopProof(method, "http://localhost:" + port + path, accessToken);
         return given()
                 .contentType("application/json")
                 .accept("application/json")
-                .header("Authorization", "DPoP functional-token")
-                .header("DPoP", "functional-proof")
+                .header("Authorization", "Bearer " + accessToken)
+                .header("DPoP", dpopProof)
                 .header("X-FAPI-Interaction-ID", "ix-personalfinancialdata-functional")
                 .header("x-fapi-financial-id", "TPP-001")
                 .header("X-Consent-ID", consentId);
@@ -124,8 +128,6 @@ class AccountInformationUatTest {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration(exclude = {
-            SecurityAutoConfiguration.class,
-            OAuth2ResourceServerAutoConfiguration.class,
             DataSourceAutoConfiguration.class,
             DataSourceTransactionManagerAutoConfiguration.class,
             HibernateJpaAutoConfiguration.class,

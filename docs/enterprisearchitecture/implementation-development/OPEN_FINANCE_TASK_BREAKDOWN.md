@@ -40,6 +40,10 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [ ] Wave 2: Roll out remaining Wave 1 hardening pattern items to Personal Financial Data and Banking Metadata services.
 - [x] Wave 2 (Personal Financial Data Service): Add observability baseline (trace correlation filter, metrics, structured logs, actuator metrics endpoints).
 - [x] Wave 2 (Banking Metadata Service): Add observability baseline (trace correlation filter, metrics, structured logs, actuator metrics endpoints).
+- [x] Wave 2 (Personal Financial Data Service): Implement runtime FAPI security chain (JWT validation, scope authorization, mandatory DPoP verification).
+- [x] Wave 2 (Personal Financial Data Service): Re-enable security filters in integration and functional/UAT suites using signed JWT + DPoP proofs.
+- [x] Wave 2 (Banking Metadata Service): Implement runtime FAPI security chain (JWT validation, scope authorization, mandatory DPoP verification).
+- [x] Wave 2 (Banking Metadata Service): Re-enable security filters in integration and functional/UAT suites using signed JWT + DPoP proofs.
 
 ### Universal Task List (Cross-Service)
 - [ ] Contract parity gate: each protected endpoint must have matching OpenAPI path, headers, and required fields.

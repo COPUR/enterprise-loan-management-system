@@ -1,5 +1,6 @@
 package com.enterprise.openfinance.bankingmetadata.infrastructure.functional;
 
+import com.enterprise.openfinance.bankingmetadata.infrastructure.security.SecurityTestTokenFactory;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -16,8 +17,6 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
@@ -33,7 +32,10 @@ import static org.hamcrest.Matchers.notNullValue;
 @SpringBootTest(
         classes = MetadataUatTest.TestApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+        properties = {
+                "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration",
+                "openfinance.bankingmetadata.security.jwt-secret=0123456789abcdef0123456789abcdef"
+        }
 )
 class MetadataUatTest {
 
@@ -49,7 +51,12 @@ class MetadataUatTest {
 
     @Test
     void shouldCompleteMetadataJourney() {
-        Response transactions = request("CONS-META-001")
+        Response transactions = request(
+                "CONS-META-001",
+                "GET",
+                "/open-finance/v1/metadata/accounts/ACC-001/transactions",
+                "read_transactions read_parties read_metadata read_standing_orders"
+        )
                 .queryParam("fromBookingDateTime", "2026-01-01T00:00:00Z")
                 .queryParam("toBookingDateTime", "2026-12-31T00:00:00Z")
                 .queryParam("page", 1)
@@ -65,7 +72,12 @@ class MetadataUatTest {
 
         String etag = transactions.getHeader("ETag");
 
-        request("CONS-META-001")
+        request(
+                "CONS-META-001",
+                "GET",
+                "/open-finance/v1/metadata/accounts/ACC-001/transactions",
+                "read_transactions read_parties read_metadata read_standing_orders"
+        )
                 .header("If-None-Match", etag)
                 .queryParam("fromBookingDateTime", "2026-01-01T00:00:00Z")
                 .queryParam("toBookingDateTime", "2026-12-31T00:00:00Z")
@@ -76,21 +88,36 @@ class MetadataUatTest {
                 .then()
                 .statusCode(304);
 
-        request("CONS-META-001")
+        request(
+                "CONS-META-001",
+                "GET",
+                "/open-finance/v1/metadata/accounts/ACC-001/parties",
+                "read_transactions read_parties read_metadata read_standing_orders"
+        )
                 .when()
                 .get("/open-finance/v1/metadata/accounts/{accountId}/parties", "ACC-001")
                 .then()
                 .statusCode(200)
                 .body("Data.Party.size()", greaterThan(0));
 
-        request("CONS-META-001")
+        request(
+                "CONS-META-001",
+                "GET",
+                "/open-finance/v1/metadata/accounts/ACC-001",
+                "read_transactions read_parties read_metadata read_standing_orders"
+        )
                 .when()
                 .get("/open-finance/v1/metadata/accounts/{accountId}", "ACC-001")
                 .then()
                 .statusCode(200)
                 .body("Data.Account.SchemeName", equalTo("IBAN"));
 
-        request("CONS-META-001")
+        request(
+                "CONS-META-001",
+                "GET",
+                "/open-finance/v1/metadata/standing-orders",
+                "read_transactions read_parties read_metadata read_standing_orders"
+        )
                 .queryParam("accountId", "ACC-001")
                 .when()
                 .get("/open-finance/v1/metadata/standing-orders")
@@ -102,14 +129,24 @@ class MetadataUatTest {
 
     @Test
     void shouldEnforceScopeAndBolaProtection() {
-        request("CONS-META-TX-ONLY")
+        request(
+                "CONS-META-TX-ONLY",
+                "GET",
+                "/open-finance/v1/metadata/accounts/ACC-001/parties",
+                "read_transactions read_parties read_metadata read_standing_orders"
+        )
                 .when()
                 .get("/open-finance/v1/metadata/accounts/{accountId}/parties", "ACC-001")
                 .then()
                 .statusCode(403)
                 .body("code", equalTo("FORBIDDEN"));
 
-        request("CONS-META-001")
+        request(
+                "CONS-META-001",
+                "GET",
+                "/open-finance/v1/metadata/accounts/ACC-003/parties",
+                "read_transactions read_parties read_metadata read_standing_orders"
+        )
                 .when()
                 .get("/open-finance/v1/metadata/accounts/{accountId}/parties", "ACC-003")
                 .then()
@@ -119,7 +156,12 @@ class MetadataUatTest {
 
     @Test
     void shouldSatisfyUatMetadataFields() {
-        request("CONS-META-001")
+        request(
+                "CONS-META-001",
+                "GET",
+                "/open-finance/v1/metadata/accounts/ACC-001/transactions",
+                "read_transactions read_parties read_metadata read_standing_orders"
+        )
                 .when()
                 .get("/open-finance/v1/metadata/accounts/{accountId}/transactions", "ACC-001")
                 .then()
@@ -128,12 +170,14 @@ class MetadataUatTest {
                 .body("Data.Transaction[0].Amount.Currency", equalTo("AED"));
     }
 
-    private RequestSpecification request(String consentId) {
+    private RequestSpecification request(String consentId, String method, String path, String scopes) {
+        String accessToken = SecurityTestTokenFactory.accessToken(scopes);
+        String dpopProof = SecurityTestTokenFactory.dpopProof(method, "http://localhost:" + port + path, accessToken);
         return given()
                 .contentType("application/json")
                 .accept("application/json")
-                .header("Authorization", "DPoP functional-token")
-                .header("DPoP", "functional-proof")
+                .header("Authorization", "Bearer " + accessToken)
+                .header("DPoP", dpopProof)
                 .header("X-FAPI-Interaction-ID", "ix-bankingmetadata-functional")
                 .header("x-fapi-financial-id", "TPP-001")
                 .header("X-Consent-ID", consentId);
@@ -141,8 +185,6 @@ class MetadataUatTest {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration(exclude = {
-            SecurityAutoConfiguration.class,
-            OAuth2ResourceServerAutoConfiguration.class,
             DataSourceAutoConfiguration.class,
             DataSourceTransactionManagerAutoConfiguration.class,
             HibernateJpaAutoConfiguration.class,

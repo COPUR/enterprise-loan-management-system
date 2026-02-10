@@ -1,3 +1,13 @@
+openfinance:
+  bankingmetadata:
+    security:
+      jwt-secret: ${OPENFINANCE_BM_JWT_SECRET:0123456789abcdef0123456789abcdef}
+      issuer: ${OPENFINANCE_BM_JWT_ISSUER:}
+      audience: ${OPENFINANCE_BM_JWT_AUDIENCE:}
+      dpop-required: ${OPENFINANCE_BM_DPOP_REQUIRED:true}
+      dpop-max-proof-age: ${OPENFINANCE_BM_DPOP_MAX_PROOF_AGE:PT5M}
+      dpop-clock-skew: ${OPENFINANCE_BM_DPOP_CLOCK_SKEW:PT30S}
+
 spring:
   application:
     name: ${OPENFINANCE_BM_SERVICE_NAME:openfinance-banking-metadata-service}
