@@ -1,0 +1,361 @@
+openapi: 3.0.3
+info:
+  title: Business Financial Data Service API
+  version: 0.1.0
+  description: Corporate account, balance, and transaction data for business financial management.
+servers:
+  - url: https://api.example.com/open-finance/v1
+paths:
+  /accounts:
+    get:
+      summary: List corporate accounts
+      operationId: listCorporateAccounts
+      tags:
+        - CorporateAccounts
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+        - name: includeVirtual
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Corporate account list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CorporateAccountListResponse'
+        '401':
+          description: Unauthorized
+  /balances:
+    get:
+      summary: Retrieve balances
+      operationId: getCorporateBalances
+      tags:
+        - CorporateBalances
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+        - name: accountId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Balance list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+  /transactions:
+    get:
+      summary: Retrieve transactions
+      operationId: getCorporateTransactions
+      tags:
+        - CorporateTransactions
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+        - $ref: '#/components/parameters/FromBookingDateTime'
+        - $ref: '#/components/parameters/ToBookingDateTime'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Transaction list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+  /scheduled-payments:
+    get:
+      summary: Retrieve scheduled payments
+      operationId: getScheduledPayments
+      tags:
+        - ScheduledPayments
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+      responses:
+        '200':
+          description: Scheduled payment list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledPaymentResponse'
+  /parties:
+    get:
+      summary: Retrieve corporate parties
+      operationId: getCorporateParties
+      tags:
+        - CorporateParties
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+      responses:
+        '200':
+          description: Party list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyResponse'
+components:
+  parameters:
+    Authorization:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+    DPoP:
+      name: DPoP
+      in: header
+      required: false
+      schema:
+        type: string
+    InteractionId:
+      name: X-FAPI-Interaction-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    ConsentId:
+      name: X-Consent-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    FromBookingDateTime:
+      name: fromBookingDateTime
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+    ToBookingDateTime:
+      name: toBookingDateTime
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    dpopAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    CorporateAccountListResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Account:
+              type: array
+              items:
+                $ref: '#/components/schemas/CorporateAccount'
+    CorporateAccount:
+      type: object
+      properties:
+        AccountId:
+          type: string
+        Name:
+          type: string
+        Currency:
+          type: string
+        Status:
+          type: string
+        MasterAccountId:
+          type: string
+        VirtualAccountId:
+          type: string
+        IsVirtual:
+          type: boolean
+    BalanceResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Balance:
+              type: array
+              items:
+                $ref: '#/components/schemas/Balance'
+    Balance:
+      type: object
+      properties:
+        BalanceType:
+          type: string
+        Amount:
+          $ref: '#/components/schemas/Amount'
+        CreditDebitIndicator:
+          type: string
+        DateTime:
+          type: string
+          format: date-time
+    TransactionResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Transaction:
+              type: array
+              items:
+                $ref: '#/components/schemas/Transaction'
+        Meta:
+          type: object
+          properties:
+            TotalPages:
+              type: integer
+    Transaction:
+      type: object
+      properties:
+        TransactionId:
+          type: string
+        Amount:
+          $ref: '#/components/schemas/Amount'
+        CreditDebitIndicator:
+          type: string
+        Status:
+          type: string
+        BookingDateTime:
+          type: string
+          format: date-time
+        ProprietaryCode:
+          type: string
+    ScheduledPaymentResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            ScheduledPayment:
+              type: array
+              items:
+                $ref: '#/components/schemas/ScheduledPayment'
+    ScheduledPayment:
+      type: object
+      properties:
+        ScheduledPaymentId:
+          type: string
+        RequestedExecutionDateTime:
+          type: string
+          format: date-time
+        InstructedAmount:
+          $ref: '#/components/schemas/Amount'
+        CreditorAccount:
+          type: object
+          properties:
+            SchemeName:
+              type: string
+            Identification:
+              type: string
+            Name:
+              type: string
+    PartyResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Party:
+              type: array
+              items:
+                $ref: '#/components/schemas/Party'
+    Party:
+      type: object
+      properties:
+        PartyId:
+          type: string
+        LegalName:
+          type: string
+        PartyType:
+          type: string
+        RegistrationId:
+          type: string
+    Amount:
+      type: object
+      properties:
+        Amount:
+          type: string
+        Currency:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        interactionId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

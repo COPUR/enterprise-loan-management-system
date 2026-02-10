@@ -1,0 +1,335 @@
+openapi: 3.0.3
+info:
+  title: Consent and Authorization Service API
+  version: 0.1.0
+  description: API to create, authorize, and revoke consents plus OAuth token issuance.
+servers:
+  - url: https://api.example.com/open-finance/v1
+paths:
+  /consents:
+    post:
+      summary: Create consent
+      operationId: createConsent
+      tags:
+        - Consents
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsentCreateRequest'
+      responses:
+        '201':
+          description: Consent created
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentResponse'
+        '400':
+          description: Invalid consent request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+  /consents/{ConsentId}:
+    get:
+      summary: Retrieve consent status
+      operationId: getConsent
+      tags:
+        - Consents
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - name: ConsentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Consent status
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentResponse'
+        '404':
+          description: Consent not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Revoke consent
+      operationId: revokeConsent
+      tags:
+        - Consents
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - name: ConsentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Consent revoked
+        '404':
+          description: Consent not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /oauth2/authorize:
+    get:
+      summary: Authorize consent (redirect)
+      operationId: authorizeConsent
+      tags:
+        - OAuth
+      parameters:
+        - name: response_type
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: client_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: scope
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: request
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: redirect_uri
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: code_challenge
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: code_challenge_method
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to client
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          description: Invalid authorization request
+  /oauth2/token:
+    post:
+      summary: Exchange authorization code for tokens
+      operationId: exchangeToken
+      tags:
+        - OAuth
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                code:
+                  type: string
+                redirect_uri:
+                  type: string
+                client_id:
+                  type: string
+                client_assertion_type:
+                  type: string
+                client_assertion:
+                  type: string
+      responses:
+        '200':
+          description: Token response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Invalid token request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /oauth2/refresh:
+    post:
+      summary: Refresh access token
+      operationId: refreshToken
+      tags:
+        - OAuth
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                refresh_token:
+                  type: string
+                client_id:
+                  type: string
+                client_assertion_type:
+                  type: string
+                client_assertion:
+                  type: string
+      responses:
+        '200':
+          description: Token response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Invalid refresh request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  parameters:
+    Authorization:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+    DPoP:
+      name: DPoP
+      in: header
+      required: false
+      schema:
+        type: string
+    InteractionId:
+      name: X-FAPI-Interaction-ID
+      in: header
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    dpopAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    ConsentCreateRequest:
+      type: object
+      required:
+        - permissions
+      properties:
+        permissions:
+          type: array
+          items:
+            type: string
+        expirationDateTime:
+          type: string
+          format: date-time
+        transactionFromDateTime:
+          type: string
+          format: date-time
+        transactionToDateTime:
+          type: string
+          format: date-time
+    ConsentResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            ConsentId:
+              type: string
+            Status:
+              type: string
+            Permissions:
+              type: array
+              items:
+                type: string
+            CreatedDateTime:
+              type: string
+              format: date-time
+            ExpirationDateTime:
+              type: string
+              format: date-time
+        Links:
+          type: object
+          properties:
+            Self:
+              type: string
+        Meta:
+          type: object
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+        expires_in:
+          type: integer
+        refresh_token:
+          type: string
+        scope:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        interactionId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

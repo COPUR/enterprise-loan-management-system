@@ -45,6 +45,8 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Publish OpenAPI contract stubs per bounded context (`SERVICE_API_CONTRACTS_INDEX.md`, `api/openapi/*`).
 - [x] Establish observability baseline (`OBSERVABILITY_BASELINE.md`).
 - [x] Create bounded-context repo stubs under `services/bounded-contexts/`.
+- [x] Create Wave 2 microservice repo stubs and validate Gradle tests (consent, personal data, business data, banking metadata).
+- [x] Publish draft OpenAPI specs for Wave 2 services.
 
 ### UC11 Story Completion Snapshot
 - [x] Domain stories: quote/deal aggregates, command/query contracts, idempotency record, lifecycle/status models, domain exceptions.

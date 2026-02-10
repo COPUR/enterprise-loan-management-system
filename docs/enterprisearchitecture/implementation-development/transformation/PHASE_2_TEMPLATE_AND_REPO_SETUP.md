@@ -19,3 +19,9 @@ Create the golden microservice template and define repo creation workflow for ea
   - `services/openfinance-open-products-service`
   - `services/openfinance-atm-directory-service`
 - Local validation: Gradle tests executed for open products and ATM directory stubs.
+- Wave 2 reference stubs created:
+  - `services/openfinance-consent-authorization-service`
+  - `services/openfinance-personal-financial-data-service`
+  - `services/openfinance-business-financial-data-service`
+  - `services/openfinance-banking-metadata-service`
+- Local validation: Gradle tests executed for Wave 2 stubs.

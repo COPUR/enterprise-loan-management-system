@@ -52,6 +52,9 @@ private/
 !**/src/test/kotlin/**
 !**/src/main/groovy/**
 !**/src/test/groovy/**
+!api/openapi/consent-authorization-service.yaml
+!services/openfinance-consent-authorization-service/
+!services/openfinance-consent-authorization-service/**
 
 # Environment Configuration Files
 .env

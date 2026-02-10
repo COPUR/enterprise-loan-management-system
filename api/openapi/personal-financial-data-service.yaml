@@ -1,0 +1,528 @@
+openapi: 3.0.3
+info:
+  title: Personal Financial Data Service API
+  version: 0.1.0
+  description: Retail account, balance, and transaction data for personal financial management.
+servers:
+  - url: https://api.example.com/open-finance/v1
+paths:
+  /accounts:
+    get:
+      summary: List accounts
+      operationId: listAccounts
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: Account list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+            ETag:
+              schema:
+                type: string
+            X-OF-Cache:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountListResponse'
+        '304':
+          description: Not modified
+        '401':
+          description: Unauthorized
+  /accounts/{AccountId}:
+    get:
+      summary: Retrieve account
+      operationId: getAccount
+      tags:
+        - Accounts
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+        - $ref: '#/components/parameters/IfNoneMatch'
+        - name: AccountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account detail
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+            ETag:
+              schema:
+                type: string
+            X-OF-Cache:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '304':
+          description: Not modified
+        '404':
+          description: Account not found
+  /accounts/{AccountId}/balances:
+    get:
+      summary: Retrieve balances
+      operationId: getBalances
+      tags:
+        - Balances
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+        - name: AccountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Balance list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+  /accounts/{AccountId}/transactions:
+    get:
+      summary: Retrieve transactions
+      operationId: getTransactions
+      tags:
+        - Transactions
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+        - name: AccountId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/FromBookingDateTime'
+        - $ref: '#/components/parameters/ToBookingDateTime'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Transaction list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+  /accounts/{AccountId}/beneficiaries:
+    get:
+      summary: Retrieve beneficiaries
+      operationId: getBeneficiaries
+      tags:
+        - Beneficiaries
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+        - name: AccountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Beneficiary list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeneficiaryResponse'
+  /accounts/{AccountId}/direct-debits:
+    get:
+      summary: Retrieve direct debits
+      operationId: getDirectDebits
+      tags:
+        - DirectDebits
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+        - name: AccountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Direct debit list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectDebitResponse'
+  /accounts/{AccountId}/standing-orders:
+    get:
+      summary: Retrieve standing orders
+      operationId: getStandingOrders
+      tags:
+        - StandingOrders
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+        - name: AccountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Standing order list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandingOrderResponse'
+components:
+  parameters:
+    Authorization:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+    DPoP:
+      name: DPoP
+      in: header
+      required: false
+      schema:
+        type: string
+    InteractionId:
+      name: X-FAPI-Interaction-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    ConsentId:
+      name: X-Consent-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    IfNoneMatch:
+      name: If-None-Match
+      in: header
+      required: false
+      schema:
+        type: string
+    FromBookingDateTime:
+      name: fromBookingDateTime
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+    ToBookingDateTime:
+      name: toBookingDateTime
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    dpopAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    AccountListResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Account:
+              type: array
+              items:
+                $ref: '#/components/schemas/Account'
+        Links:
+          type: object
+          properties:
+            Self:
+              type: string
+        Meta:
+          type: object
+          properties:
+            TotalPages:
+              type: integer
+    AccountResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Account:
+              $ref: '#/components/schemas/Account'
+        Links:
+          type: object
+          properties:
+            Self:
+              type: string
+        Meta:
+          type: object
+    Account:
+      type: object
+      properties:
+        AccountId:
+          type: string
+        SchemeName:
+          type: string
+        Identification:
+          type: string
+        Name:
+          type: string
+        Type:
+          type: string
+        Currency:
+          type: string
+        Status:
+          type: string
+    BalanceResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Balance:
+              type: array
+              items:
+                $ref: '#/components/schemas/Balance'
+    Balance:
+      type: object
+      properties:
+        BalanceType:
+          type: string
+        Amount:
+          $ref: '#/components/schemas/Amount'
+        CreditDebitIndicator:
+          type: string
+        DateTime:
+          type: string
+          format: date-time
+    TransactionResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Transaction:
+              type: array
+              items:
+                $ref: '#/components/schemas/Transaction'
+        Links:
+          type: object
+          properties:
+            Self:
+              type: string
+            Next:
+              type: string
+        Meta:
+          type: object
+          properties:
+            TotalPages:
+              type: integer
+    Transaction:
+      type: object
+      properties:
+        TransactionId:
+          type: string
+        Amount:
+          $ref: '#/components/schemas/Amount'
+        CreditDebitIndicator:
+          type: string
+        Status:
+          type: string
+        BookingDateTime:
+          type: string
+          format: date-time
+        ValueDateTime:
+          type: string
+          format: date-time
+        MerchantDetails:
+          type: object
+          properties:
+            Name:
+              type: string
+            CategoryCode:
+              type: string
+        RemittanceInformation:
+          type: object
+          properties:
+            Unstructured:
+              type: string
+    BeneficiaryResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Beneficiary:
+              type: array
+              items:
+                $ref: '#/components/schemas/Beneficiary'
+    Beneficiary:
+      type: object
+      properties:
+        BeneficiaryId:
+          type: string
+        Name:
+          type: string
+        Account:
+          type: object
+          properties:
+            SchemeName:
+              type: string
+            Identification:
+              type: string
+    DirectDebitResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            DirectDebit:
+              type: array
+              items:
+                $ref: '#/components/schemas/DirectDebit'
+    DirectDebit:
+      type: object
+      properties:
+        DirectDebitId:
+          type: string
+        MandateId:
+          type: string
+        Name:
+          type: string
+        PreviousPaymentAmount:
+          $ref: '#/components/schemas/Amount'
+        PreviousPaymentDateTime:
+          type: string
+          format: date-time
+    StandingOrderResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            StandingOrder:
+              type: array
+              items:
+                $ref: '#/components/schemas/StandingOrder'
+    StandingOrder:
+      type: object
+      properties:
+        StandingOrderId:
+          type: string
+        Frequency:
+          type: string
+        FirstPaymentDateTime:
+          type: string
+          format: date-time
+        FinalPaymentDateTime:
+          type: string
+          format: date-time
+        NextPaymentDateTime:
+          type: string
+          format: date-time
+        Amount:
+          $ref: '#/components/schemas/Amount'
+    Amount:
+      type: object
+      properties:
+        Amount:
+          type: string
+        Currency:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        interactionId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

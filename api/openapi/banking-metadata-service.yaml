@@ -1,0 +1,252 @@
+openapi: 3.0.3
+info:
+  title: Banking Metadata Enrichment Service API
+  version: 0.1.0
+  description: Enriched metadata endpoints for transaction and product context.
+servers:
+  - url: https://api.example.com/open-finance/v1
+paths:
+  /accounts/{AccountId}/product:
+    get:
+      summary: Retrieve account product metadata
+      operationId: getAccountProduct
+      tags:
+        - ProductMetadata
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+        - name: AccountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product metadata
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductMetadataResponse'
+  /accounts/{AccountId}/parties:
+    get:
+      summary: Retrieve account parties metadata
+      operationId: getAccountParties
+      tags:
+        - PartyMetadata
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+        - name: AccountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Party metadata
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyMetadataResponse'
+  /beneficiaries:
+    get:
+      summary: Retrieve beneficiaries metadata
+      operationId: listBeneficiaries
+      tags:
+        - BeneficiaryMetadata
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+      responses:
+        '200':
+          description: Beneficiary metadata list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeneficiaryMetadataResponse'
+  /standing-orders:
+    get:
+      summary: Retrieve standing order metadata
+      operationId: listStandingOrders
+      tags:
+        - StandingOrderMetadata
+      security:
+        - bearerAuth: []
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/ConsentId'
+      responses:
+        '200':
+          description: Standing order metadata list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandingOrderMetadataResponse'
+components:
+  parameters:
+    Authorization:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+    DPoP:
+      name: DPoP
+      in: header
+      required: false
+      schema:
+        type: string
+    InteractionId:
+      name: X-FAPI-Interaction-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    ConsentId:
+      name: X-Consent-ID
+      in: header
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    dpopAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    ProductMetadataResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Product:
+              $ref: '#/components/schemas/ProductMetadata'
+    ProductMetadata:
+      type: object
+      properties:
+        ProductId:
+          type: string
+        Name:
+          type: string
+        Tariff:
+          type: string
+        FeeSchedule:
+          type: string
+    PartyMetadataResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Party:
+              type: array
+              items:
+                $ref: '#/components/schemas/PartyMetadata'
+    PartyMetadata:
+      type: object
+      properties:
+        PartyId:
+          type: string
+        FullLegalName:
+          type: string
+        RelationshipStartDate:
+          type: string
+          format: date
+        KycStatus:
+          type: string
+    BeneficiaryMetadataResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Beneficiary:
+              type: array
+              items:
+                $ref: '#/components/schemas/BeneficiaryMetadata'
+    BeneficiaryMetadata:
+      type: object
+      properties:
+        BeneficiaryId:
+          type: string
+        Name:
+          type: string
+        SchemeName:
+          type: string
+        Identification:
+          type: string
+    StandingOrderMetadataResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            StandingOrder:
+              type: array
+              items:
+                $ref: '#/components/schemas/StandingOrderMetadata'
+    StandingOrderMetadata:
+      type: object
+      properties:
+        StandingOrderId:
+          type: string
+        Frequency:
+          type: string
+        FirstPaymentDateTime:
+          type: string
+          format: date-time
+        FinalPaymentDateTime:
+          type: string
+          format: date-time
+        NextPaymentDateTime:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        interactionId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
