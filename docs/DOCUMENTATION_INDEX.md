@@ -42,6 +42,13 @@ This index maps the current, active documentation set and reflects the latest re
 - `enterprisearchitecture/implementation-development/README-TESTING.md`
 - `enterprisearchitecture/implementation-development/MASTER_IMPLEMENTATION_CHECKLIST.md`
 - `enterprisearchitecture/implementation-development/MICROSERVICES_TRANSFORMATION_TASK_LIST.md`
+- `enterprisearchitecture/implementation-development/MICROSERVICE_SERVICE_NOMENCLATURE.md`
+- `enterprisearchitecture/implementation-development/MICROSERVICES_TRANSFORMATION_PLAN.md`
+- `enterprisearchitecture/implementation-development/transformation/PHASE_1_ANALYSIS_AND_GOVERNANCE.md`
+- `enterprisearchitecture/implementation-development/transformation/PHASE_2_TEMPLATE_AND_REPO_SETUP.md`
+- `enterprisearchitecture/implementation-development/transformation/PHASE_3_CICD_AUTOMATION.md`
+- `enterprisearchitecture/implementation-development/transformation/PHASE_4_TERRAFORM_AND_DEPLOYMENT.md`
+- `enterprisearchitecture/implementation-development/transformation/MICROSERVICES_REPO_AUDIT.md`
 
 ## Security & Compliance
 - `OAuth2.1-Architecture-Guide.md`

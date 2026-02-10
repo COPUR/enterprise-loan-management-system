@@ -33,8 +33,13 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [ ] (None)
 
 ### Architecture Backlog (Microservices)
-- [ ] Review HLDs against microservices principles and publish gap analysis + roadmaps (`MICROSERVICES_GAP_ANALYSIS_AND_ROADMAP.md`).
-- [ ] Publish microservices transformation master task list and pipeline strategy (`MICROSERVICES_TRANSFORMATION_TASK_LIST.md`).
+- [x] Review HLDs against microservices principles and publish gap analysis + roadmaps (`MICROSERVICES_GAP_ANALYSIS_AND_ROADMAP.md`).
+- [x] Publish microservices transformation master task list and pipeline strategy (`MICROSERVICES_TRANSFORMATION_TASK_LIST.md`).
+- [x] Publish microservice service nomenclature and repo naming (`MICROSERVICE_SERVICE_NOMENCLATURE.md`).
+- [x] Publish transformation plan with phased deliverables (`MICROSERVICES_TRANSFORMATION_PLAN.md`).
+- [ ] Populate Phase 2 template repo content and validation (`templates/microservice/`).
+- [ ] Validate Jenkins/GitLab pipelines against a reference service.
+- [ ] Expand Terraform stubs with provider resources (per target cloud).
 
 ### UC11 Story Completion Snapshot
 - [x] Domain stories: quote/deal aggregates, command/query contracts, idempotency record, lifecycle/status models, domain exceptions.
