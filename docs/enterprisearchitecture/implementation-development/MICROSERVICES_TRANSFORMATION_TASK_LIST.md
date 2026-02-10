@@ -11,6 +11,7 @@
 - [ ] Implement shared FAPI chain (JWT validation, scope enforcement, mandatory DPoP proof verification, mTLS binding checks).
 - [ ] Re-enable security filter chain in integration/functional tests for protected APIs.
 - [x] Replace placeholder Jenkins/GitLab steps with executable quality/security gates.
+- [x] Replace bounded-context echo-only GitLab/Jenkins pipelines with runnable OpenAPI contract and secret-scanning gates.
 - [x] Replace Terraform output-only stubs with provider-backed baseline resources.
 - [ ] Implement observability baseline in runtime code (traces, metrics, structured logs, PII masking).
 

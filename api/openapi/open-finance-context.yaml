@@ -2,8 +2,12 @@ openapi: 3.0.3
 info:
   title: Open Finance Context Service API
   version: 0.1.0
+  license:
+    name: Proprietary
+    url: https://openfinance.example.com/license
+
 servers:
-  - url: https://api.example.com/open-finance
+  - url: https://api.sandbox.openfinance.ae/open-finance
 paths: {}
 components:
   securitySchemes:

@@ -1,43 +1,8 @@
-stages:
-  - lint
-  - test
-  - coverage
-  - security
-  - build
-  - sign
-  - publish
+include:
+  - local: '/ci/templates/bounded-context/gitlab-ci.yml'
 
-lint:
-  stage: lint
-  script:
-    - echo "Run linter here"
-
-test:
-  stage: test
-  script:
-    - echo "Run unit + integration tests here"
-
-coverage:
-  stage: coverage
-  script:
-    - echo "Enforce >85% coverage here"
-
-security_scan:
-  stage: security
-  script:
-    - echo "Run SAST/Dependency scan here"
-
-build_image:
-  stage: build
-  script:
-    - echo "Build Docker image here"
-
-sign_image:
-  stage: sign
-  script:
-    - echo "Sign image with Cosign/Notary here"
-
-publish_image:
-  stage: publish
-  script:
-    - echo "Push image to registry here"
+variables:
+  CONTEXT_DIR: "services/bounded-contexts/loan-context"
+  CONTEXT_README: "services/bounded-contexts/loan-context/README.md"
+  CONTEXT_MANIFEST: "services/bounded-contexts/loan-context/REPO_MANIFEST.md"
+  CONTEXT_OPENAPI: "api/openapi/loan-context.yaml"

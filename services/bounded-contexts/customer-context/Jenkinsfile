@@ -2,13 +2,52 @@ pipeline {
     agent any
     options { timestamps() }
 
+    environment {
+        CONTEXT_DIR = 'services/bounded-contexts/customer-context'
+        CONTEXT_README = 'services/bounded-contexts/customer-context/README.md'
+        CONTEXT_MANIFEST = 'services/bounded-contexts/customer-context/REPO_MANIFEST.md'
+        CONTEXT_OPENAPI = 'api/openapi/customer-context.yaml'
+    }
+
     stages {
         stage('Validate Context Artifacts') {
             steps {
                 sh '''
                   set -euo pipefail
-                  test -f "services/bounded-contexts/customer-context/README.md"
-                  test -f "api/openapi/customer-context.yaml"
+                  test -d "${CONTEXT_DIR}"
+                  test -f "${CONTEXT_README}"
+                  test -f "${CONTEXT_MANIFEST}"
+                  test -f "${CONTEXT_OPENAPI}"
+                '''
+            }
+        }
+        stage('OpenAPI Contract Lint') {
+            steps {
+                sh '''
+                  set -euo pipefail
+                  if command -v redocly >/dev/null 2>&1; then
+                    redocly lint "${CONTEXT_OPENAPI}"
+                  elif command -v docker >/dev/null 2>&1; then
+                    docker run --rm -v "${PWD}:/work" -w /work redocly/cli:latest lint "${CONTEXT_OPENAPI}"
+                  else
+                    echo "OpenAPI linter not found. Install redocly CLI or provide docker." >&2
+                    exit 1
+                  fi
+                '''
+            }
+        }
+        stage('Secret Scan') {
+            steps {
+                sh '''
+                  set -euo pipefail
+                  if command -v gitleaks >/dev/null 2>&1; then
+                    gitleaks detect --no-git --source "${CONTEXT_DIR}" --exit-code 1
+                  elif command -v docker >/dev/null 2>&1; then
+                    docker run --rm -v "${PWD}:/work" -w /work zricethezav/gitleaks:v8.21.2 detect --no-git --source "${CONTEXT_DIR}" --exit-code 1
+                  else
+                    echo "gitleaks not found. Install gitleaks or provide docker." >&2
+                    exit 1
+                  fi
                 '''
             }
         }

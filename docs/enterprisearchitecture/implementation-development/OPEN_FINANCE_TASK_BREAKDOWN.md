@@ -26,6 +26,7 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [ ] Wave 0: Implement shared FAPI security chain with mandatory `DPoP` for protected APIs.
 - [ ] Wave 0: Re-enable real security filter chain in integration tests across protected services.
 - [x] Wave 0: Replace Jenkins/GitLab placeholder steps with runnable quality/security gates.
+- [x] Wave 0: Replace bounded-context echo-only GitLab/Jenkins pipelines with runnable contract linting and secret scanning gates.
 - [x] Wave 0: Replace Terraform output-only stubs with provider-backed baseline resources.
 - [ ] Wave 0: Apply observability baseline in runtime code (trace IDs, metrics, structured logs, PII masking).
 - [x] Wave 1 (Business Financial Data Service): Resolve OpenAPI/controller drift for implemented corporate AIS endpoints and remove unsupported contract paths.
@@ -62,8 +63,8 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Publish microservice service nomenclature and repo naming (`MICROSERVICE_SERVICE_NOMENCLATURE.md`).
 - [x] Publish transformation plan with phased deliverables (`MICROSERVICES_TRANSFORMATION_PLAN.md`).
 - [x] Populate Phase 2 template repo content and validation (`templates/microservice/`).
-- [ ] Upgrade Jenkins/GitLab templates from placeholders to runnable gates.
-- [ ] Expand Terraform stubs with provider resources (per target cloud).
+- [x] Upgrade Jenkins/GitLab templates from placeholders to runnable gates.
+- [x] Expand Terraform stubs with provider resources (per target cloud).
 - [x] Formalize service-level data ownership matrix (`SERVICE_DATA_OWNERSHIP_MATRIX.md`).
 - [x] Publish OpenAPI contract stubs per bounded context (`SERVICE_API_CONTRACTS_INDEX.md`, `api/openapi/*`).
 - [ ] Establish runtime observability baseline implementation in services (`OBSERVABILITY_BASELINE.md` is documented).

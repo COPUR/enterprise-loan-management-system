@@ -1,3 +1,9 @@
+variable "aws_region" {
+  type        = string
+  description = "AWS region for resource provisioning"
+  default     = "us-east-1"
+}
+
 variable "environment" {
   type        = string
   description = "Deployment environment"
@@ -21,4 +27,10 @@ variable "identity_provider_url" {
 variable "observability_endpoint" {
   type        = string
   description = "Observability endpoint"
+}
+
+variable "tags" {
+  type        = map(string)
+  description = "Additional tags for service resources"
+  default     = {}
 }
