@@ -32,6 +32,9 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 ### Active Backlog Queue (Next)
 - [ ] (None)
 
+### Architecture Backlog (Microservices)
+- [ ] Review HLDs against microservices principles and publish gap analysis + roadmaps (`MICROSERVICES_GAP_ANALYSIS_AND_ROADMAP.md`).
+
 ### UC11 Story Completion Snapshot
 - [x] Domain stories: quote/deal aggregates, command/query contracts, idempotency record, lifecycle/status models, domain exceptions.
 - [x] Application stories: FX orchestration, market-availability checks, idempotency replay/conflict handling, ownership and expiry enforcement.
