@@ -1,0 +1,15 @@
+openapi: 3.0.3
+info:
+  title: Open Finance Context Service API
+  version: 0.1.0
+servers:
+  - url: https://api.example.com/open-finance
+paths: {}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    dpopAuth:
+      type: http
+      scheme: bearer

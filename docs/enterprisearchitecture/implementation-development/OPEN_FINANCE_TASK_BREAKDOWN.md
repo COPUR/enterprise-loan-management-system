@@ -40,6 +40,10 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [ ] Populate Phase 2 template repo content and validation (`templates/microservice/`).
 - [ ] Validate Jenkins/GitLab pipelines against a reference service.
 - [ ] Expand Terraform stubs with provider resources (per target cloud).
+- [x] Formalize service-level data ownership matrix (`SERVICE_DATA_OWNERSHIP_MATRIX.md`).
+- [x] Publish OpenAPI contract stubs per bounded context (`SERVICE_API_CONTRACTS_INDEX.md`, `api/openapi/*`).
+- [x] Establish observability baseline (`OBSERVABILITY_BASELINE.md`).
+- [x] Create bounded-context repo stubs under `services/bounded-contexts/`.
 
 ### UC11 Story Completion Snapshot
 - [x] Domain stories: quote/deal aggregates, command/query contracts, idempotency record, lifecycle/status models, domain exceptions.

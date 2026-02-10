@@ -44,6 +44,9 @@ This index maps the current, active documentation set and reflects the latest re
 - `enterprisearchitecture/implementation-development/MICROSERVICES_TRANSFORMATION_TASK_LIST.md`
 - `enterprisearchitecture/implementation-development/MICROSERVICE_SERVICE_NOMENCLATURE.md`
 - `enterprisearchitecture/implementation-development/MICROSERVICES_TRANSFORMATION_PLAN.md`
+- `enterprisearchitecture/implementation-development/SERVICE_DATA_OWNERSHIP_MATRIX.md`
+- `enterprisearchitecture/implementation-development/SERVICE_API_CONTRACTS_INDEX.md`
+- `enterprisearchitecture/implementation-development/OBSERVABILITY_BASELINE.md`
 - `enterprisearchitecture/implementation-development/transformation/PHASE_1_ANALYSIS_AND_GOVERNANCE.md`
 - `enterprisearchitecture/implementation-development/transformation/PHASE_2_TEMPLATE_AND_REPO_SETUP.md`
 - `enterprisearchitecture/implementation-development/transformation/PHASE_3_CICD_AUTOMATION.md`

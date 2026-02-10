@@ -1,0 +1,12 @@
+openapi: 3.0.3
+info:
+  title: Risk Context Service API
+  version: 0.1.0
+servers:
+  - url: https://api.example.com/risk
+paths: {}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

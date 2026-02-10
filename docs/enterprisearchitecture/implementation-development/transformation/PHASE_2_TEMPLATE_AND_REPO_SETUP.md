@@ -5,11 +5,13 @@ Create the golden microservice template and define repo creation workflow for ea
 
 ## Status
 - [ ] Not Started
-- [x] In Progress
-- [ ] Delivered
+- [ ] In Progress
+- [x] Delivered
 
 ## Deliverables
 - `templates/microservice/README.md`
 - Template folder structure: `domain/`, `application/`, `infrastructure/`, `tests/`
 - Repo naming rules from `MICROSERVICE_SERVICE_NOMENCLATURE.md`
+- Reference service created:
+  - `services/openfinance-confirmation-of-payee-service`
 

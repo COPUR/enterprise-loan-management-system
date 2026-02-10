@@ -1,23 +1,33 @@
-# Microservice Template
+# Microservice Template (Gradle / Java 23)
 
-This template provides the standard structure for each extracted microservice.
+This template is the baseline for extracted microservice repos.
 
+## Stack
+- Gradle (Java 23 toolchain)
+- Spring Boot (web + validation)
+- JUnit 5 + Mockito
+- Jacoco (85% coverage gate)
+
+## Structure
 ```
 .
-├── domain
-├── application
+├── build.gradle
+├── settings.gradle
+├── gradle.properties
+├── src
+│   ├── main
+│   │   └── java
+│   └── test
+│       └── java
 ├── infrastructure
-└── tests
+│   ├── Dockerfile
+│   └── helm
+│       └── chart
+└── README.md
 ```
 
 ## Conventions
-- Domain layer contains only business logic and ports (no framework dependencies).
+- Domain layer has zero framework dependencies.
 - Application layer orchestrates use cases and depends only on domain ports.
-- Infrastructure layer implements adapters (REST, persistence, messaging).
-
-## CI/CD
-Use pipeline templates from `ci/templates/microservice/`.
-
-## Terraform
-Use service stubs under `infra/terraform/services/<service-slug>`.
+- Infrastructure layer implements adapters (REST, persistence, external connectors).
 
