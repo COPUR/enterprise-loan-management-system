@@ -1,0 +1,150 @@
+openapi: 3.0.3
+info:
+  title: ATM Directory Service API
+  version: 0.1.0
+  description: Public API to list ATM locations and status.
+servers:
+  - url: https://api.example.com/open-finance/v1
+paths:
+  /atms:
+    get:
+      summary: List ATMs
+      operationId: listAtms
+      tags:
+        - ATMs
+      parameters:
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/AuthorizationOptional'
+        - $ref: '#/components/parameters/Latitude'
+        - $ref: '#/components/parameters/Longitude'
+        - $ref: '#/components/parameters/Radius'
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: ATM list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+            X-OF-Cache:
+              schema:
+                type: string
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AtmListResponse'
+        '304':
+          description: Not modified
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  parameters:
+    InteractionId:
+      name: X-FAPI-Interaction-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    AuthorizationOptional:
+      name: Authorization
+      in: header
+      required: false
+      schema:
+        type: string
+    Latitude:
+      name: lat
+      in: query
+      required: false
+      schema:
+        type: number
+        format: double
+    Longitude:
+      name: long
+      in: query
+      required: false
+      schema:
+        type: number
+        format: double
+    Radius:
+      name: radius
+      in: query
+      required: false
+      schema:
+        type: number
+        format: double
+    IfNoneMatch:
+      name: If-None-Match
+      in: header
+      required: false
+      schema:
+        type: string
+  schemas:
+    AtmListResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            ATM:
+              type: array
+              items:
+                $ref: '#/components/schemas/Atm'
+        Links:
+          type: object
+          properties:
+            Self:
+              type: string
+        Meta:
+          type: object
+          properties:
+            TotalRecords:
+              type: integer
+    Atm:
+      type: object
+      properties:
+        AtmId:
+          type: string
+        Name:
+          type: string
+        Status:
+          type: string
+        Latitude:
+          type: number
+          format: double
+        Longitude:
+          type: number
+          format: double
+        Address:
+          type: string
+        City:
+          type: string
+        Country:
+          type: string
+        Accessibility:
+          type: string
+        Services:
+          type: array
+          items:
+            type: string
+        UpdatedAt:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        interactionId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

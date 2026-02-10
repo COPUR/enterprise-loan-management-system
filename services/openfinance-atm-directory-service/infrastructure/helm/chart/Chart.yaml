@@ -1,0 +1,5 @@
+apiVersion: v2
+name: openfinance-microservice
+description: Base Helm chart for Open Finance microservices
+version: 0.1.0
+appVersion: 0.1.0

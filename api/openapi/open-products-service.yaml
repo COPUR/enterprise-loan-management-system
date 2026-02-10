@@ -1,0 +1,130 @@
+openapi: 3.0.3
+info:
+  title: Open Products Catalog Service API
+  version: 0.1.0
+  description: Public API to list financial products.
+servers:
+  - url: https://api.example.com/open-finance/v1
+paths:
+  /products:
+    get:
+      summary: List products
+      operationId: listProducts
+      tags:
+        - Products
+      parameters:
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/AuthorizationOptional'
+        - $ref: '#/components/parameters/Type'
+        - $ref: '#/components/parameters/Segment'
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: Product list
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+            X-OF-Cache:
+              schema:
+                type: string
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+        '304':
+          description: Not modified
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  parameters:
+    InteractionId:
+      name: X-FAPI-Interaction-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    AuthorizationOptional:
+      name: Authorization
+      in: header
+      required: false
+      schema:
+        type: string
+    Type:
+      name: type
+      in: query
+      required: false
+      schema:
+        type: string
+    Segment:
+      name: segment
+      in: query
+      required: false
+      schema:
+        type: string
+    IfNoneMatch:
+      name: If-None-Match
+      in: header
+      required: false
+      schema:
+        type: string
+  schemas:
+    ProductListResponse:
+      type: object
+      properties:
+        Data:
+          type: object
+          properties:
+            Product:
+              type: array
+              items:
+                $ref: '#/components/schemas/Product'
+        Links:
+          type: object
+          properties:
+            Self:
+              type: string
+        Meta:
+          type: object
+          properties:
+            TotalRecords:
+              type: integer
+    Product:
+      type: object
+      properties:
+        ProductId:
+          type: string
+        Name:
+          type: string
+        Type:
+          type: string
+        Segment:
+          type: string
+        Currency:
+          type: string
+        MonthlyFee:
+          type: string
+        AnnualRate:
+          type: string
+        UpdatedAt:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        interactionId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

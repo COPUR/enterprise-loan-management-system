@@ -16,6 +16,8 @@ Each bounded context service must publish an OpenAPI contract. These initial con
 | Service | OpenAPI File | Status |
 | --- | --- | --- |
 | Confirmation of Payee Verification Service | `api/openapi/confirmation-of-payee-service.yaml` | Draft |
+| Open Products Catalog Service | `api/openapi/open-products-service.yaml` | Draft |
+| ATM Directory Service | `api/openapi/atm-directory-service.yaml` | Draft |
 
 ## Contract Rules
 - All endpoints must be versioned (e.g., `/v1/...`).
