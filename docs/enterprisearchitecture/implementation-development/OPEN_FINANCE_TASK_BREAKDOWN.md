@@ -50,6 +50,7 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Implement Banking Metadata Enrichment microservice with full TDD stack (unit, integration, e2e/UAT) and >85% coverage (`services/openfinance-banking-metadata-service`).
 - [x] Implement Consent and Authorization microservice with full TDD stack (unit, integration, e2e/UAT) and >85% coverage (`services/openfinance-consent-authorization-service`).
 - [x] Implement Personal Financial Data (AIS) microservice with full TDD stack (unit, integration, e2e/UAT) and >85% coverage (`services/openfinance-personal-financial-data-service`).
+- [x] Implement Business Financial Data (corporate AIS) microservice with full TDD stack (unit, integration, e2e/UAT) and >85% coverage (`services/openfinance-business-financial-data-service`).
 
 ### UC11 Story Completion Snapshot
 - [x] Domain stories: quote/deal aggregates, command/query contracts, idempotency record, lifecycle/status models, domain exceptions.
