@@ -2,16 +2,16 @@ openapi: 3.0.3
 info:
   title: Banking Metadata Enrichment Service API
   version: 0.1.0
-  description: Enriched metadata endpoints for transaction and product context.
+  description: Enriched metadata endpoints for transaction, account, party, and standing order context.
 servers:
   - url: https://api.example.com/open-finance/v1
 paths:
-  /accounts/{AccountId}/product:
+  /metadata/accounts/{AccountId}/transactions:
     get:
-      summary: Retrieve account product metadata
-      operationId: getAccountProduct
+      summary: Retrieve transaction metadata
+      operationId: getTransactionMetadata
       tags:
-        - ProductMetadata
+        - TransactionMetadata
       security:
         - bearerAuth: []
         - dpopAuth: []
@@ -20,26 +20,51 @@ paths:
         - $ref: '#/components/parameters/DPoP'
         - $ref: '#/components/parameters/InteractionId'
         - $ref: '#/components/parameters/ConsentId'
+        - $ref: '#/components/parameters/IfNoneMatch'
         - name: AccountId
           in: path
           required: true
           schema:
             type: string
+        - $ref: '#/components/parameters/FromBookingDateTime'
+        - $ref: '#/components/parameters/ToBookingDateTime'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
       responses:
         '200':
-          description: Product metadata
+          description: Transaction metadata list
           headers:
             X-FAPI-Interaction-ID:
+              schema:
+                type: string
+            X-OF-Cache:
+              schema:
+                type: string
+            ETag:
               schema:
                 type: string
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProductMetadataResponse'
-  /accounts/{AccountId}/parties:
+                $ref: '#/components/schemas/TransactionMetadataResponse'
+        '304':
+          description: Not modified
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /metadata/accounts/{AccountId}/parties:
     get:
-      summary: Retrieve account parties metadata
-      operationId: getAccountParties
+      summary: Retrieve party metadata
+      operationId: getPartyMetadata
       tags:
         - PartyMetadata
       security:
@@ -57,21 +82,30 @@ paths:
             type: string
       responses:
         '200':
-          description: Party metadata
+          description: Party metadata list
           headers:
             X-FAPI-Interaction-ID:
+              schema:
+                type: string
+            X-OF-Cache:
               schema:
                 type: string
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PartyMetadataResponse'
-  /beneficiaries:
+                $ref: '#/components/schemas/PartiesMetadataResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /metadata/accounts/{AccountId}:
     get:
-      summary: Retrieve beneficiaries metadata
-      operationId: listBeneficiaries
+      summary: Retrieve account scheme metadata
+      operationId: getAccountMetadata
       tags:
-        - BeneficiaryMetadata
+        - AccountMetadata
       security:
         - bearerAuth: []
         - dpopAuth: []
@@ -80,21 +114,35 @@ paths:
         - $ref: '#/components/parameters/DPoP'
         - $ref: '#/components/parameters/InteractionId'
         - $ref: '#/components/parameters/ConsentId'
+        - name: AccountId
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
-          description: Beneficiary metadata list
+          description: Account metadata
           headers:
             X-FAPI-Interaction-ID:
+              schema:
+                type: string
+            X-OF-Cache:
               schema:
                 type: string
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BeneficiaryMetadataResponse'
-  /standing-orders:
+                $ref: '#/components/schemas/AccountMetadataResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /metadata/standing-orders:
     get:
       summary: Retrieve standing order metadata
-      operationId: listStandingOrders
+      operationId: getStandingOrderMetadata
       tags:
         - StandingOrderMetadata
       security:
@@ -105,6 +153,13 @@ paths:
         - $ref: '#/components/parameters/DPoP'
         - $ref: '#/components/parameters/InteractionId'
         - $ref: '#/components/parameters/ConsentId'
+        - name: accountId
+          in: query
+          required: false
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
       responses:
         '200':
           description: Standing order metadata list
@@ -112,10 +167,13 @@ paths:
             X-FAPI-Interaction-ID:
               schema:
                 type: string
+            X-OF-Cache:
+              schema:
+                type: string
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StandingOrderMetadataResponse'
+                $ref: '#/components/schemas/StandingOrdersMetadataResponse'
 components:
   parameters:
     Authorization:
@@ -127,7 +185,7 @@ components:
     DPoP:
       name: DPoP
       in: header
-      required: false
+      required: true
       schema:
         type: string
     InteractionId:
@@ -142,6 +200,41 @@ components:
       required: true
       schema:
         type: string
+    IfNoneMatch:
+      name: If-None-Match
+      in: header
+      required: false
+      schema:
+        type: string
+    FromBookingDateTime:
+      name: fromBookingDateTime
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+    ToBookingDateTime:
+      name: toBookingDateTime
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
   securitySchemes:
     bearerAuth:
       type: http
@@ -150,26 +243,68 @@ components:
       type: http
       scheme: bearer
   schemas:
-    ProductMetadataResponse:
+    TransactionMetadataResponse:
       type: object
       properties:
         Data:
           type: object
           properties:
-            Product:
-              $ref: '#/components/schemas/ProductMetadata'
-    ProductMetadata:
+            Transaction:
+              type: array
+              items:
+                $ref: '#/components/schemas/TransactionMetadata'
+        Links:
+          type: object
+          properties:
+            Self:
+              type: string
+            Next:
+              type: string
+        Meta:
+          type: object
+          properties:
+            Page:
+              type: integer
+            PageSize:
+              type: integer
+            TotalPages:
+              type: integer
+            TotalRecords:
+              type: integer
+    TransactionMetadata:
       type: object
       properties:
-        ProductId:
+        TransactionId:
           type: string
-        Name:
+        AccountId:
           type: string
-        Tariff:
+        BookingDateTime:
           type: string
-        FeeSchedule:
-          type: string
-    PartyMetadataResponse:
+          format: date-time
+        Amount:
+          $ref: '#/components/schemas/Amount'
+        ChargeAmount:
+          $ref: '#/components/schemas/Amount'
+        MerchantDetails:
+          type: object
+          properties:
+            Name:
+              type: string
+            CategoryCode:
+              type: string
+            GeoLocation:
+              $ref: '#/components/schemas/GeoLocation'
+        FxDetails:
+          type: object
+          nullable: true
+          properties:
+            ExchangeRate:
+              type: string
+            OriginalCurrency:
+              type: string
+            TargetCurrency:
+              type: string
+    PartiesMetadataResponse:
       type: object
       properties:
         Data:
@@ -182,37 +317,33 @@ components:
     PartyMetadata:
       type: object
       properties:
-        PartyId:
+        AccountId:
           type: string
         FullLegalName:
           type: string
-        RelationshipStartDate:
-          type: string
-          format: date
         KycStatus:
           type: string
-    BeneficiaryMetadataResponse:
+        RelationshipStartDate:
+          type: string
+          format: date-time
+    AccountMetadataResponse:
       type: object
       properties:
         Data:
           type: object
           properties:
-            Beneficiary:
-              type: array
-              items:
-                $ref: '#/components/schemas/BeneficiaryMetadata'
-    BeneficiaryMetadata:
+            Account:
+              $ref: '#/components/schemas/AccountMetadata'
+    AccountMetadata:
       type: object
       properties:
-        BeneficiaryId:
-          type: string
-        Name:
+        AccountId:
           type: string
         SchemeName:
           type: string
-        Identification:
+        SecondaryIdentification:
           type: string
-    StandingOrderMetadataResponse:
+    StandingOrdersMetadataResponse:
       type: object
       properties:
         Data:
@@ -222,10 +353,30 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/StandingOrderMetadata'
+        Links:
+          type: object
+          properties:
+            Self:
+              type: string
+            Next:
+              type: string
+        Meta:
+          type: object
+          properties:
+            Page:
+              type: integer
+            PageSize:
+              type: integer
+            TotalPages:
+              type: integer
+            TotalRecords:
+              type: integer
     StandingOrderMetadata:
       type: object
       properties:
         StandingOrderId:
+          type: string
+        AccountId:
           type: string
         Frequency:
           type: string
@@ -235,9 +386,24 @@ components:
         FinalPaymentDateTime:
           type: string
           format: date-time
-        NextPaymentDateTime:
+        Amount:
+          $ref: '#/components/schemas/Amount'
+    Amount:
+      type: object
+      properties:
+        Amount:
           type: string
-          format: date-time
+        Currency:
+          type: string
+    GeoLocation:
+      type: object
+      properties:
+        Latitude:
+          type: number
+          format: double
+        Longitude:
+          type: number
+          format: double
     ErrorResponse:
       type: object
       properties:

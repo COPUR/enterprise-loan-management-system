@@ -47,6 +47,7 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Create bounded-context repo stubs under `services/bounded-contexts/`.
 - [x] Create Wave 2 microservice repo stubs and validate Gradle tests (consent, personal data, business data, banking metadata).
 - [x] Publish draft OpenAPI specs for Wave 2 services.
+- [x] Implement Banking Metadata Enrichment microservice with full TDD stack (unit, integration, e2e/UAT) and >85% coverage (`services/openfinance-banking-metadata-service`).
 
 ### UC11 Story Completion Snapshot
 - [x] Domain stories: quote/deal aggregates, command/query contracts, idempotency record, lifecycle/status models, domain exceptions.
