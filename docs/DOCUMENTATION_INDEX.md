@@ -41,6 +41,7 @@ This index maps the current, active documentation set and reflects the latest re
 - `enterprisearchitecture/technology-radar/current-stack.md`
 - `enterprisearchitecture/implementation-development/README-TESTING.md`
 - `enterprisearchitecture/implementation-development/MASTER_IMPLEMENTATION_CHECKLIST.md`
+- `enterprisearchitecture/implementation-development/MICROSERVICES_TRANSFORMATION_TASK_LIST.md`
 
 ## Security & Compliance
 - `OAuth2.1-Architecture-Guide.md`

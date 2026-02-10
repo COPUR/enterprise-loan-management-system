@@ -34,6 +34,7 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 
 ### Architecture Backlog (Microservices)
 - [ ] Review HLDs against microservices principles and publish gap analysis + roadmaps (`MICROSERVICES_GAP_ANALYSIS_AND_ROADMAP.md`).
+- [ ] Publish microservices transformation master task list and pipeline strategy (`MICROSERVICES_TRANSFORMATION_TASK_LIST.md`).
 
 ### UC11 Story Completion Snapshot
 - [x] Domain stories: quote/deal aggregates, command/query contracts, idempotency record, lifecycle/status models, domain exceptions.
