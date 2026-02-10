@@ -63,3 +63,7 @@ References:
   - Ports: `OnboardingUseCase`, KYC/Sanctions/Account/Idempotency/Cache/Event output ports.
   - FAPI controls + idempotency + ETag/cache headers implemented.
   - Test pyramid complete with UC12 coverage > 85% across all three modules.
+- UC14 implementation completed using this checklist:
+  - Ports: `ProductDataUseCase`, catalog/cache output ports.
+  - Open-data API controls + cache optimization implemented (`X-FAPI-Interaction-ID`, optional token-type validation, `X-OF-Cache`, `ETag`, `If-None-Match`, `Cache-Control: public`).
+  - Test pyramid complete (unit + integration + e2e/UAT) with UC14 coverage > 85% across domain/application/infrastructure.
