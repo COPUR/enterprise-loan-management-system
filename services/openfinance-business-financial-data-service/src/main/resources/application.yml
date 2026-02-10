@@ -1,0 +1,16 @@
+openfinance:
+  businessfinancialdata:
+    persistence:
+      mode: ${OPENFINANCE_BFD_PERSISTENCE_MODE:mongodb}
+    cache:
+      mode: ${OPENFINANCE_BFD_CACHE_MODE:redis}
+      ttl: ${OPENFINANCE_BFD_CACHE_TTL:30s}
+      etag-ttl: ${OPENFINANCE_BFD_ETAG_CACHE_TTL:30s}
+      key-prefix: ${OPENFINANCE_BFD_CACHE_KEY_PREFIX:openfinance:businessfinancialdata}
+
+spring:
+  data:
+    mongodb:
+      uri: ${OPENFINANCE_BFD_MONGODB_URI:mongodb://localhost:27017/open_finance_business_financial_data}
+  redis:
+    url: ${OPENFINANCE_BFD_REDIS_URL:redis://localhost:6379}

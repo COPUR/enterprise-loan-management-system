@@ -1,5 +1,6 @@
 package com.enterprise.openfinance.businessfinancialdata.infrastructure.integration;
 
+import com.enterprise.openfinance.businessfinancialdata.infrastructure.security.SecurityTestTokenFactory;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,6 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
@@ -32,9 +31,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(
         classes = CorporateTreasuryApiIntegrationTest.TestApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-        properties = "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+        properties = {
+                "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration",
+                "openfinance.businessfinancialdata.security.jwt-secret=0123456789abcdef0123456789abcdef",
+                "openfinance.businessfinancialdata.persistence.mode=inmemory",
+                "openfinance.businessfinancialdata.cache.mode=inmemory"
+        }
 )
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 class CorporateTreasuryApiIntegrationTest {
 
     @Autowired
@@ -44,7 +48,9 @@ class CorporateTreasuryApiIntegrationTest {
     void shouldGetAccountsAndReturnCacheHitOnSecondRequest() throws Exception {
         MockHttpServletRequestBuilder request = withHeaders(
                 get("/open-finance/v1/corporate/accounts").queryParam("includeVirtual", "true"),
-                "CONS-TRSY-001"
+                "CONS-TRSY-001",
+                "GET",
+                "/open-finance/v1/corporate/accounts"
         );
 
         mockMvc.perform(request)
@@ -64,7 +70,9 @@ class CorporateTreasuryApiIntegrationTest {
                         get("/open-finance/v1/corporate/accounts")
                                 .queryParam("includeVirtual", "true")
                                 .queryParam("masterAccountId", "ACC-M-001"),
-                        "CONS-TRSY-001"))
+                        "CONS-TRSY-001",
+                        "GET",
+                        "/open-finance/v1/corporate/accounts"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.Data.Account[*].AccountId", Matchers.hasItems("ACC-M-001", "ACC-V-101")))
                 .andExpect(jsonPath("$.Data.Account[?(@.Virtual==true)]").isNotEmpty());
@@ -74,7 +82,9 @@ class CorporateTreasuryApiIntegrationTest {
     void shouldGetBalancesAndMaskForRestrictedEntitlement() throws Exception {
         mockMvc.perform(withHeaders(
                         get("/open-finance/v1/corporate/accounts/ACC-M-001/balances"),
-                        "CONS-TRSY-RESTRICTED"))
+                        "CONS-TRSY-RESTRICTED",
+                        "GET",
+                        "/open-finance/v1/corporate/accounts/ACC-M-001/balances"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("X-OF-Entitlement", "RESTRICTED"))
                 .andExpect(jsonPath("$.Data.Balance[0].Amount.Amount").value("****"));
@@ -89,7 +99,9 @@ class CorporateTreasuryApiIntegrationTest {
                                 .queryParam("toBookingDateTime", "2026-12-31T00:00:00Z")
                                 .queryParam("page", "1")
                                 .queryParam("pageSize", "20"),
-                        "CONS-TRSY-001"))
+                        "CONS-TRSY-001",
+                        "GET",
+                        "/open-finance/v1/corporate/transactions"))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("ETag"))
                 .andExpect(jsonPath("$.Data.Transaction[0].TransactionCode").exists())
@@ -105,7 +117,9 @@ class CorporateTreasuryApiIntegrationTest {
                                 .queryParam("page", "1")
                                 .queryParam("pageSize", "20")
                                 .header("If-None-Match", etag),
-                        "CONS-TRSY-001"))
+                        "CONS-TRSY-001",
+                        "GET",
+                        "/open-finance/v1/corporate/transactions"))
                 .andExpect(status().isNotModified());
     }
 
@@ -113,27 +127,68 @@ class CorporateTreasuryApiIntegrationTest {
     void shouldRejectScopeMissingBolaAndExpiredConsent() throws Exception {
         mockMvc.perform(withHeaders(
                         get("/open-finance/v1/corporate/accounts/ACC-M-001/balances"),
-                        "CONS-TRSY-ACCOUNTS"))
+                        "CONS-TRSY-ACCOUNTS",
+                        "GET",
+                        "/open-finance/v1/corporate/accounts/ACC-M-001/balances"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"));
 
         mockMvc.perform(withHeaders(
                         get("/open-finance/v1/corporate/accounts/ACC-M-999/balances"),
-                        "CONS-TRSY-001"))
+                        "CONS-TRSY-001",
+                        "GET",
+                        "/open-finance/v1/corporate/accounts/ACC-M-999/balances"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"));
 
         mockMvc.perform(withHeaders(
                         get("/open-finance/v1/corporate/accounts").queryParam("includeVirtual", "true"),
-                        "CONS-TRSY-EXPIRED"))
+                        "CONS-TRSY-EXPIRED",
+                        "GET",
+                        "/open-finance/v1/corporate/accounts"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message").value(Matchers.containsString("expired")));
     }
 
-    private static MockHttpServletRequestBuilder withHeaders(MockHttpServletRequestBuilder builder, String consentId) {
+    @Test
+    void shouldRejectMissingDpopProof() throws Exception {
+        String accessToken = SecurityTestTokenFactory.accessToken("read_accounts read_balances read_transactions");
+        mockMvc.perform(get("/open-finance/v1/corporate/accounts")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .header("X-FAPI-Interaction-ID", "ix-businessfinancialdata-integration")
+                        .header("x-fapi-financial-id", "TPP-001")
+                        .header("X-Consent-ID", "CONS-TRSY-001")
+                        .accept("application/json"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldRejectInsufficientTokenScopes() throws Exception {
+        String accessToken = SecurityTestTokenFactory.accessToken("read_accounts");
+        String dpopProof = SecurityTestTokenFactory.dpopProof(
+                "GET",
+                "http://localhost/open-finance/v1/corporate/transactions",
+                accessToken
+        );
+        mockMvc.perform(get("/open-finance/v1/corporate/transactions")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .header("DPoP", dpopProof)
+                        .header("X-FAPI-Interaction-ID", "ix-businessfinancialdata-integration")
+                        .header("x-fapi-financial-id", "TPP-001")
+                        .header("X-Consent-ID", "CONS-TRSY-001")
+                        .accept("application/json"))
+                .andExpect(status().isForbidden());
+    }
+
+    private static MockHttpServletRequestBuilder withHeaders(MockHttpServletRequestBuilder builder,
+                                                             String consentId,
+                                                             String method,
+                                                             String path) {
+        String accessToken = SecurityTestTokenFactory.accessToken("read_accounts read_balances read_transactions");
+        String dpopProof = SecurityTestTokenFactory.dpopProof(method, "http://localhost" + path, accessToken);
         return builder
-                .header("Authorization", "DPoP integration-token")
-                .header("DPoP", "proof-jwt")
+                .header("Authorization", "Bearer " + accessToken)
+                .header("DPoP", dpopProof)
                 .header("X-FAPI-Interaction-ID", "ix-businessfinancialdata-integration")
                 .header("x-fapi-financial-id", "TPP-001")
                 .header("X-Consent-ID", consentId)
@@ -142,8 +197,6 @@ class CorporateTreasuryApiIntegrationTest {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration(exclude = {
-            SecurityAutoConfiguration.class,
-            OAuth2ResourceServerAutoConfiguration.class,
             DataSourceAutoConfiguration.class,
             DataSourceTransactionManagerAutoConfiguration.class,
             HibernateJpaAutoConfiguration.class,

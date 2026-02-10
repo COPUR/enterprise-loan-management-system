@@ -1,5 +1,6 @@
 package com.enterprise.openfinance.businessfinancialdata.infrastructure.functional;
 
+import com.enterprise.openfinance.businessfinancialdata.infrastructure.security.SecurityTestTokenFactory;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -16,8 +17,6 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
@@ -34,7 +33,12 @@ import static org.hamcrest.Matchers.hasItems;
 @SpringBootTest(
         classes = CorporateTreasuryUatTest.TestApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+        properties = {
+                "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration",
+                "openfinance.businessfinancialdata.security.jwt-secret=0123456789abcdef0123456789abcdef",
+                "openfinance.businessfinancialdata.persistence.mode=inmemory",
+                "openfinance.businessfinancialdata.cache.mode=inmemory"
+        }
 )
 class CorporateTreasuryUatTest {
 
@@ -50,7 +54,7 @@ class CorporateTreasuryUatTest {
 
     @Test
     void shouldCompleteCorporateTreasuryJourney() {
-        Response accounts = request("CONS-TRSY-001")
+        Response accounts = request("CONS-TRSY-001", "GET", "/open-finance/v1/corporate/accounts")
                 .queryParam("includeVirtual", true)
                 .queryParam("masterAccountId", "ACC-M-001")
                 .when()
@@ -63,14 +67,14 @@ class CorporateTreasuryUatTest {
 
         String masterAccountId = accounts.path("Data.Account.find { it.Virtual == false }.AccountId");
 
-        request("CONS-TRSY-001")
+        request("CONS-TRSY-001", "GET", "/open-finance/v1/corporate/accounts/" + masterAccountId + "/balances")
                 .when()
                 .get("/open-finance/v1/corporate/accounts/{masterAccountId}/balances", masterAccountId)
                 .then()
                 .statusCode(200)
                 .body("Data.Balance.size()", greaterThan(0));
 
-        request("CONS-TRSY-001")
+        request("CONS-TRSY-001", "GET", "/open-finance/v1/corporate/transactions")
                 .queryParam("accountId", masterAccountId)
                 .queryParam("fromBookingDateTime", "2026-01-01T00:00:00Z")
                 .queryParam("toBookingDateTime", "2026-12-31T00:00:00Z")
@@ -85,14 +89,14 @@ class CorporateTreasuryUatTest {
 
     @Test
     void shouldEnforceEntitlementAndDivisionAccess() {
-        request("CONS-TRSY-RESTRICTED")
+        request("CONS-TRSY-RESTRICTED", "GET", "/open-finance/v1/corporate/accounts/ACC-M-001/balances")
                 .when()
                 .get("/open-finance/v1/corporate/accounts/ACC-M-001/balances")
                 .then()
                 .statusCode(200)
                 .body("Data.Balance[0].Amount.Amount", equalTo("****"));
 
-        request("CONS-TRSY-001")
+        request("CONS-TRSY-001", "GET", "/open-finance/v1/corporate/accounts/ACC-M-999/balances")
                 .when()
                 .get("/open-finance/v1/corporate/accounts/ACC-M-999/balances")
                 .then()
@@ -102,7 +106,7 @@ class CorporateTreasuryUatTest {
 
     @Test
     void shouldExposeSweepingTransactionsForReconciliation() {
-        request("CONS-TRSY-001")
+        request("CONS-TRSY-001", "GET", "/open-finance/v1/corporate/transactions")
                 .queryParam("fromBookingDateTime", "2026-01-01T00:00:00Z")
                 .queryParam("toBookingDateTime", "2026-12-31T00:00:00Z")
                 .when()
@@ -112,12 +116,14 @@ class CorporateTreasuryUatTest {
                 .body("Data.Transaction.TransactionCode", hasItems("SWEEP"));
     }
 
-    private RequestSpecification request(String consentId) {
+    private RequestSpecification request(String consentId, String method, String path) {
+        String accessToken = SecurityTestTokenFactory.accessToken("read_accounts read_balances read_transactions");
+        String dpopProof = SecurityTestTokenFactory.dpopProof(method, "http://localhost:" + port + path, accessToken);
         return given()
                 .contentType("application/json")
                 .accept("application/json")
-                .header("Authorization", "DPoP functional-token")
-                .header("DPoP", "functional-proof")
+                .header("Authorization", "Bearer " + accessToken)
+                .header("DPoP", dpopProof)
                 .header("X-FAPI-Interaction-ID", "ix-businessfinancialdata-functional")
                 .header("x-fapi-financial-id", "TPP-001")
                 .header("X-Consent-ID", consentId);
@@ -125,8 +131,6 @@ class CorporateTreasuryUatTest {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration(exclude = {
-            SecurityAutoConfiguration.class,
-            OAuth2ResourceServerAutoConfiguration.class,
             DataSourceAutoConfiguration.class,
             DataSourceTransactionManagerAutoConfiguration.class,
             HibernateJpaAutoConfiguration.class,

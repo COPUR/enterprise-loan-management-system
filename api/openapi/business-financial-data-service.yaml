@@ -4,7 +4,7 @@ info:
   version: 0.1.0
   description: Corporate account, balance, and transaction data for business financial management.
 servers:
-  - url: https://api.example.com/open-finance/v1
+  - url: https://api.example.com/open-finance/v1/corporate
 paths:
   /accounts:
     get:
@@ -38,7 +38,7 @@ paths:
                 $ref: '#/components/schemas/CorporateAccountListResponse'
         '401':
           description: Unauthorized
-  /balances:
+  /accounts/{masterAccountId}/balances:
     get:
       summary: Retrieve balances
       operationId: getCorporateBalances
@@ -52,11 +52,7 @@ paths:
         - $ref: '#/components/parameters/DPoP'
         - $ref: '#/components/parameters/InteractionId'
         - $ref: '#/components/parameters/ConsentId'
-        - name: accountId
-          in: query
-          required: false
-          schema:
-            type: string
+        - $ref: '#/components/parameters/MasterAccountId'
       responses:
         '200':
           description: Balance list
@@ -82,6 +78,11 @@ paths:
         - $ref: '#/components/parameters/DPoP'
         - $ref: '#/components/parameters/InteractionId'
         - $ref: '#/components/parameters/ConsentId'
+        - name: accountId
+          in: query
+          required: false
+          schema:
+            type: string
         - $ref: '#/components/parameters/FromBookingDateTime'
         - $ref: '#/components/parameters/ToBookingDateTime'
         - $ref: '#/components/parameters/Page'
@@ -97,56 +98,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransactionResponse'
-  /scheduled-payments:
-    get:
-      summary: Retrieve scheduled payments
-      operationId: getScheduledPayments
-      tags:
-        - ScheduledPayments
-      security:
-        - bearerAuth: []
-        - dpopAuth: []
-      parameters:
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/DPoP'
-        - $ref: '#/components/parameters/InteractionId'
-        - $ref: '#/components/parameters/ConsentId'
-      responses:
-        '200':
-          description: Scheduled payment list
-          headers:
-            X-FAPI-Interaction-ID:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ScheduledPaymentResponse'
-  /parties:
-    get:
-      summary: Retrieve corporate parties
-      operationId: getCorporateParties
-      tags:
-        - CorporateParties
-      security:
-        - bearerAuth: []
-        - dpopAuth: []
-      parameters:
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/DPoP'
-        - $ref: '#/components/parameters/InteractionId'
-        - $ref: '#/components/parameters/ConsentId'
-      responses:
-        '200':
-          description: Party list
-          headers:
-            X-FAPI-Interaction-ID:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PartyResponse'
 components:
   parameters:
     Authorization:
@@ -158,7 +109,7 @@ components:
     DPoP:
       name: DPoP
       in: header
-      required: false
+      required: true
       schema:
         type: string
     InteractionId:
@@ -170,6 +121,12 @@ components:
     ConsentId:
       name: X-Consent-ID
       in: header
+      required: true
+      schema:
+        type: string
+    MasterAccountId:
+      name: masterAccountId
+      in: path
       required: true
       schema:
         type: string

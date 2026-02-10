@@ -8,9 +8,11 @@ import com.enterprise.openfinance.businessfinancialdata.domain.model.CorporatePa
 import com.enterprise.openfinance.businessfinancialdata.domain.model.CorporateTransactionSnapshot;
 import com.enterprise.openfinance.businessfinancialdata.domain.port.in.CorporateTreasuryUseCase;
 import com.enterprise.openfinance.businessfinancialdata.domain.query.GetCorporateTransactionsQuery;
+import com.enterprise.openfinance.businessfinancialdata.infrastructure.cache.CorporateTransactionEtagCache;
 import com.enterprise.openfinance.businessfinancialdata.infrastructure.rest.dto.CorporateAccountsResponse;
 import com.enterprise.openfinance.businessfinancialdata.infrastructure.rest.dto.CorporateBalancesResponse;
 import com.enterprise.openfinance.businessfinancialdata.infrastructure.rest.dto.CorporateTransactionsResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -31,7 +33,8 @@ class CorporateTreasuryControllerUnitTest {
     @Test
     void shouldReturnAccountsAndBalancesWithCacheHeaders() {
         CorporateTreasuryUseCase useCase = Mockito.mock(CorporateTreasuryUseCase.class);
-        CorporateTreasuryController controller = new CorporateTreasuryController(useCase);
+        CorporateTransactionEtagCache etagCache = Mockito.mock(CorporateTransactionEtagCache.class);
+        CorporateTreasuryController controller = new CorporateTreasuryController(useCase, etagCache, new ObjectMapper());
 
         Mockito.when(useCase.listAccounts(Mockito.any())).thenReturn(new CorporateAccountListResult(
                 List.of(account("ACC-M-001", null, false)),
@@ -71,7 +74,8 @@ class CorporateTreasuryControllerUnitTest {
     @Test
     void shouldReturnTransactionsWithEtagAndSupportNotModified() {
         CorporateTreasuryUseCase useCase = Mockito.mock(CorporateTreasuryUseCase.class);
-        CorporateTreasuryController controller = new CorporateTreasuryController(useCase);
+        CorporateTransactionEtagCache etagCache = Mockito.mock(CorporateTransactionEtagCache.class);
+        CorporateTreasuryController controller = new CorporateTreasuryController(useCase, etagCache, new ObjectMapper());
 
         Mockito.when(useCase.getTransactions(Mockito.any())).thenReturn(new CorporatePagedResult<>(
                 List.of(transaction("TX-001", "ACC-M-001", "2026-02-05T00:00:00Z", "SWEEP", "ZBA")),
@@ -116,14 +120,64 @@ class CorporateTreasuryControllerUnitTest {
         assertThat(second.getStatusCode()).isEqualTo(HttpStatus.NOT_MODIFIED);
 
         ArgumentCaptor<GetCorporateTransactionsQuery> queryCaptor = ArgumentCaptor.forClass(GetCorporateTransactionsQuery.class);
-        Mockito.verify(useCase).getTransactions(queryCaptor.capture());
-        assertThat(queryCaptor.getValue().accountId()).isEqualTo("ACC-M-001");
+        Mockito.verify(useCase, Mockito.atLeastOnce()).getTransactions(queryCaptor.capture());
+        assertThat(queryCaptor.getAllValues().getFirst().accountId()).isEqualTo("ACC-M-001");
+    }
+
+    @Test
+    void shouldRecomputeEtagFromFullPayload() {
+        CorporateTreasuryUseCase useCase = Mockito.mock(CorporateTreasuryUseCase.class);
+        CorporateTransactionEtagCache etagCache = Mockito.mock(CorporateTransactionEtagCache.class);
+        CorporateTreasuryController controller = new CorporateTreasuryController(useCase, etagCache, new ObjectMapper());
+
+        Mockito.when(useCase.getTransactions(Mockito.any()))
+                .thenReturn(new CorporatePagedResult<>(
+                        List.of(transaction("TX-001", "ACC-M-001", "2026-02-05T00:00:00Z", "BOOK", null, "100.00")),
+                        1, 100, 1, false
+                ))
+                .thenReturn(new CorporatePagedResult<>(
+                        List.of(transaction("TX-001", "ACC-M-001", "2026-02-05T00:00:00Z", "BOOK", null, "200.00")),
+                        1, 100, 1, false
+                ));
+
+        ResponseEntity<CorporateTransactionsResponse> first = controller.getTransactions(
+                "DPoP token",
+                "proof",
+                "ix-businessfinancialdata-5",
+                "CONS-TRSY-001",
+                "TPP-001",
+                "ACC-M-001",
+                null,
+                null,
+                1,
+                100,
+                null
+        );
+
+        String etag = first.getHeaders().getETag();
+        ResponseEntity<CorporateTransactionsResponse> second = controller.getTransactions(
+                "DPoP token",
+                "proof",
+                "ix-businessfinancialdata-5",
+                "CONS-TRSY-001",
+                "TPP-001",
+                "ACC-M-001",
+                null,
+                null,
+                1,
+                100,
+                etag
+        );
+
+        assertThat(second.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(second.getHeaders().getETag()).isNotEqualTo(etag);
     }
 
     @Test
     void shouldRejectUnsupportedAuthorizationType() {
         CorporateTreasuryUseCase useCase = Mockito.mock(CorporateTreasuryUseCase.class);
-        CorporateTreasuryController controller = new CorporateTreasuryController(useCase);
+        CorporateTransactionEtagCache etagCache = Mockito.mock(CorporateTransactionEtagCache.class);
+        CorporateTreasuryController controller = new CorporateTreasuryController(useCase, etagCache, new ObjectMapper());
 
         assertThatThrownBy(() -> controller.getAccounts(
                 "Basic token",
@@ -165,10 +219,19 @@ class CorporateTreasuryControllerUnitTest {
                                                             String bookingDate,
                                                             String transactionCode,
                                                             String proprietaryCode) {
+        return transaction(id, accountId, bookingDate, transactionCode, proprietaryCode, "100.00");
+    }
+
+    private static CorporateTransactionSnapshot transaction(String id,
+                                                            String accountId,
+                                                            String bookingDate,
+                                                            String transactionCode,
+                                                            String proprietaryCode,
+                                                            String amount) {
         return new CorporateTransactionSnapshot(
                 id,
                 accountId,
-                new BigDecimal("100.00"),
+                new BigDecimal(amount),
                 "AED",
                 Instant.parse(bookingDate),
                 transactionCode,

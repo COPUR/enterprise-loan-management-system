@@ -5,6 +5,9 @@ This implementation plan details the integration of UAE Open Finance capabilitie
 
 ## Delivery Backlog Status (Updated: 2026-02-10)
 
+### Feature Delivery Snapshot
+All 15 use-case feature tracks are implemented in the repository. The current backlog priority is architecture/security/runtime hardening.
+
 ### Completed Use Cases
 - [x] UC01 Consent Management
 - [x] UC02 Account Information Service (AIS)
@@ -22,8 +25,33 @@ This implementation plan details the integration of UAE Open Finance capabilitie
 - [x] UC014 Open Products Data
 - [x] UC015 ATM Open Data
 
-### Next Implementation Queue
-- [ ] (None)
+### Next Implementation Queue (Mandatory Hardening Waves)
+- [ ] Wave 0: Implement shared FAPI runtime security with JWT, scope checks, and mandatory `DPoP` verification on protected APIs.
+- [ ] Wave 0: Re-enable security filter chains in integration/functional tests (remove bypass-only setups).
+- [ ] Wave 0: Replace Jenkins/GitLab placeholder templates with runnable CI gates and enforce coverage/contract/security checks.
+- [ ] Wave 0: Replace Terraform output-only stubs with provider-backed resources and environment wiring.
+- [ ] Wave 0: Implement runtime observability baseline (trace IDs, metrics, structured logs with PII masking).
+- [x] Wave 1: Harden Business Financial Data Service (contract drift, persistence adapters, distributed ETag/cache, stronger ETag hashing).
+- [ ] Wave 2: Roll out the hardened pattern to Personal Financial Data and Banking Metadata services.
+
+### Execution Progress (Current Wave)
+- [x] Business Financial Data Service: runtime FAPI security chain implemented (JWT validation, scope enforcement, DPoP proof verification).
+- [x] Business Financial Data Service: integration and functional tests now run with security filters enabled and signed JWT/DPoP proofs.
+- [x] Business Financial Data Service: OpenAPI updated to require `DPoP` for protected endpoints.
+- [x] Business Financial Data Service: OpenAPI contract aligned with implemented endpoints and contract drift test added to CI test suite.
+- [x] Business Financial Data Service: production runtime now uses MongoDB read adapters and Redis cache adapters behind existing domain ports.
+- [x] Business Financial Data Service: in-memory seeded adapters are now non-production (`inmemory` mode only) for tests/local fallback.
+- [x] Business Financial Data Service: transaction ETag state moved to distributed TTL cache and local unbounded controller map removed.
+- [x] Business Financial Data Service: ETag hash generation now uses canonical full response payload to avoid stale `304` on non-ID field changes.
+
+### Universal Task List (Cross-Service Guardrails)
+- [ ] OpenAPI parity: implementation paths/headers must match published contracts exactly.
+- [ ] `DPoP` parity: protected APIs require `DPoP` in spec and runtime.
+- [ ] Security parity: JWT signature validation, issuer/audience checks, and scope enforcement active in runtime and test environments.
+- [ ] Data parity: production profiles use durable persistence/cache adapters only (no in-memory seeded repositories).
+- [ ] Cache parity: bounded TTL distributed caches for ETag/stateful response optimization.
+- [ ] Observability parity: request trace correlation, endpoint metrics, and structured logs with PII masking.
+- [ ] Delivery parity: CI/CD and IaC are executable, not placeholders.
 
 ### UC07 Execution Summary
 - TDD flow completed: unit tests first, then domain/application/infrastructure implementation.

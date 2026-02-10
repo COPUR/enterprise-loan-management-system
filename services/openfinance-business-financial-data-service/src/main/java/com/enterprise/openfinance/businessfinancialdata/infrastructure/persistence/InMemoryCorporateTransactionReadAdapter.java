@@ -2,6 +2,7 @@ package com.enterprise.openfinance.businessfinancialdata.infrastructure.persiste
 
 import com.enterprise.openfinance.businessfinancialdata.domain.model.CorporateTransactionSnapshot;
 import com.enterprise.openfinance.businessfinancialdata.domain.port.out.CorporateTransactionReadPort;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 @Repository
+@ConditionalOnProperty(prefix = "openfinance.businessfinancialdata.persistence", name = "mode", havingValue = "inmemory")
 public class InMemoryCorporateTransactionReadAdapter implements CorporateTransactionReadPort {
 
     private final List<CorporateTransactionSnapshot> transactions = new ArrayList<>();

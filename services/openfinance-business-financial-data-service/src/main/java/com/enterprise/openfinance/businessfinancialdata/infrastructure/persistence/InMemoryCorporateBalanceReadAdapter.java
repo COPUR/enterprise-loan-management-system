@@ -2,6 +2,7 @@ package com.enterprise.openfinance.businessfinancialdata.infrastructure.persiste
 
 import com.enterprise.openfinance.businessfinancialdata.domain.model.CorporateBalanceSnapshot;
 import com.enterprise.openfinance.businessfinancialdata.domain.port.out.CorporateBalanceReadPort;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
+@ConditionalOnProperty(prefix = "openfinance.businessfinancialdata.persistence", name = "mode", havingValue = "inmemory")
 public class InMemoryCorporateBalanceReadAdapter implements CorporateBalanceReadPort {
 
     private final Map<String, List<CorporateBalanceSnapshot>> balancesByMaster = new ConcurrentHashMap<>();

@@ -6,6 +6,7 @@ import com.enterprise.openfinance.businessfinancialdata.domain.model.CorporatePa
 import com.enterprise.openfinance.businessfinancialdata.domain.model.CorporateTransactionSnapshot;
 import com.enterprise.openfinance.businessfinancialdata.domain.port.out.CorporateCachePort;
 import com.enterprise.openfinance.businessfinancialdata.infrastructure.config.CorporateCacheProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@ConditionalOnProperty(prefix = "openfinance.businessfinancialdata.cache", name = "mode", havingValue = "inmemory")
 public class InMemoryCorporateCacheAdapter implements CorporateCachePort {
 
     private final Map<String, CacheItem<CorporateAccountListResult>> accountsCache = new ConcurrentHashMap<>();

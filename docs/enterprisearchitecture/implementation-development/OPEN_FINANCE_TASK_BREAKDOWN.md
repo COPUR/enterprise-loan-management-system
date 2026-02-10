@@ -5,7 +5,7 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 
 ## Backlog Update (2026-02-10)
 
-### Delivered Backlog Items
+### Delivered Feature Backlog Items
 - [x] UC01 Consent Management
 - [x] UC02 AIS (Account Information)
 - [x] UC03 Confirmation of Payee
@@ -22,6 +22,30 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] UC014 Open Products Data
 - [x] UC015 ATM Open Data
 
+### Active Backlog Queue (Mandatory Hardening Waves)
+- [ ] Wave 0: Implement shared FAPI security chain with mandatory `DPoP` for protected APIs.
+- [ ] Wave 0: Re-enable real security filter chain in integration tests across protected services.
+- [ ] Wave 0: Replace Jenkins/GitLab placeholder steps with runnable quality/security gates.
+- [ ] Wave 0: Replace Terraform output-only stubs with provider-backed baseline resources.
+- [ ] Wave 0: Apply observability baseline in runtime code (trace IDs, metrics, structured logs, PII masking).
+- [x] Wave 1 (Business Financial Data Service): Resolve OpenAPI/controller drift for implemented corporate AIS endpoints and remove unsupported contract paths.
+- [x] Wave 1 (Business Financial Data Service): Implement runtime JWT + scope + DPoP proof validation and re-enable security in integration/UAT tests.
+- [x] Wave 1 (Business Financial Data Service): Set OpenAPI `DPoP` parameter to required for protected operations.
+- [x] Wave 1 (Business Financial Data Service): Add OpenAPI contract drift test to fail build on path/header mismatch.
+- [x] Wave 1 (Business Financial Data Service): Replace production-wired in-memory adapters with persistent DB/cache adapters behind ports.
+- [x] Wave 1 (Business Financial Data Service): Move ETag/state cache from local memory map to distributed TTL cache.
+- [x] Wave 1 (Business Financial Data Service): Strengthen ETag hash input to include all response-significant fields.
+- [ ] Wave 2: Roll out Wave 1 hardening pattern to Personal Financial Data and Banking Metadata services.
+
+### Universal Task List (Cross-Service)
+- [ ] Contract parity gate: each protected endpoint must have matching OpenAPI path, headers, and required fields.
+- [ ] Security parity gate: JWT validation, scope checks, and DPoP proof verification must be enabled in runtime and tests.
+- [ ] Persistence parity gate: no production profile uses in-memory seeded repositories.
+- [ ] Cache/ETag parity gate: distributed bounded TTL cache only; no unbounded controller-local maps.
+- [ ] Observability parity gate: trace correlation, endpoint metrics, structured logs with PII masking.
+- [ ] Delivery parity gate: CI must fail on coverage < 85%, contract drift, critical vulnerabilities, and missing tests.
+- [ ] IaC parity gate: each extracted service has provider-backed Terraform module instantiation.
+
 ### UC07 Story Completion Snapshot
 - [x] Domain stories: consent/payment/idempotency models, command/query contracts, domain exceptions.
 - [x] Application stories: VRP orchestration, consent lifecycle, idempotency replay/conflict, cumulative-limit locking.
@@ -29,21 +53,17 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Testing stories: unit + integration + functional/e2e + UAT.
 - [x] Quality gate story: UC07-specific line coverage above 85%.
 
-### Active Backlog Queue (Next)
-- [ ] (None)
-
 ### Architecture Backlog (Microservices)
 - [x] Review HLDs against microservices principles and publish gap analysis + roadmaps (`MICROSERVICES_GAP_ANALYSIS_AND_ROADMAP.md`).
 - [x] Publish microservices transformation master task list and pipeline strategy (`MICROSERVICES_TRANSFORMATION_TASK_LIST.md`).
 - [x] Publish microservice service nomenclature and repo naming (`MICROSERVICE_SERVICE_NOMENCLATURE.md`).
 - [x] Publish transformation plan with phased deliverables (`MICROSERVICES_TRANSFORMATION_PLAN.md`).
-- [ ] Populate Phase 2 template repo content and validation (`templates/microservice/`).
 - [x] Populate Phase 2 template repo content and validation (`templates/microservice/`).
-- [x] Validate Jenkins/GitLab pipelines against a reference service.
+- [ ] Upgrade Jenkins/GitLab templates from placeholders to runnable gates.
 - [ ] Expand Terraform stubs with provider resources (per target cloud).
 - [x] Formalize service-level data ownership matrix (`SERVICE_DATA_OWNERSHIP_MATRIX.md`).
 - [x] Publish OpenAPI contract stubs per bounded context (`SERVICE_API_CONTRACTS_INDEX.md`, `api/openapi/*`).
-- [x] Establish observability baseline (`OBSERVABILITY_BASELINE.md`).
+- [ ] Establish runtime observability baseline implementation in services (`OBSERVABILITY_BASELINE.md` is documented).
 - [x] Create bounded-context repo stubs under `services/bounded-contexts/`.
 - [x] Create Wave 2 microservice repo stubs and validate Gradle tests (consent, personal data, business data, banking metadata).
 - [x] Publish draft OpenAPI specs for Wave 2 services.

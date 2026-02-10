@@ -4,9 +4,14 @@ import com.enterprise.openfinance.businessfinancialdata.domain.port.in.Corporate
 import com.enterprise.openfinance.businessfinancialdata.domain.query.GetCorporateBalancesQuery;
 import com.enterprise.openfinance.businessfinancialdata.domain.query.GetCorporateTransactionsQuery;
 import com.enterprise.openfinance.businessfinancialdata.domain.query.ListCorporateAccountsQuery;
+import com.enterprise.openfinance.businessfinancialdata.infrastructure.cache.CorporateTransactionEtagCache;
 import com.enterprise.openfinance.businessfinancialdata.infrastructure.rest.dto.CorporateAccountsResponse;
 import com.enterprise.openfinance.businessfinancialdata.infrastructure.rest.dto.CorporateBalancesResponse;
 import com.enterprise.openfinance.businessfinancialdata.infrastructure.rest.dto.CorporateTransactionsResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.CacheControl;
@@ -25,9 +30,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @Validated
@@ -35,10 +38,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CorporateTreasuryController {
 
     private final CorporateTreasuryUseCase useCase;
-    private final Map<String, String> transactionEtagCache = new ConcurrentHashMap<>();
+    private final CorporateTransactionEtagCache etagCache;
+    private final ObjectMapper etagObjectMapper;
 
-    public CorporateTreasuryController(CorporateTreasuryUseCase useCase) {
+    public CorporateTreasuryController(CorporateTreasuryUseCase useCase,
+                                       CorporateTransactionEtagCache etagCache,
+                                       ObjectMapper objectMapper) {
         this.useCase = useCase;
+        this.etagCache = etagCache;
+        this.etagObjectMapper = objectMapper.copy()
+                .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
+                .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
     }
 
     @GetMapping("/accounts")
@@ -116,17 +126,6 @@ public class CorporateTreasuryController {
         String tppId = resolveTppId(financialId);
         String requestSignature = buildTransactionRequestSignature(consentId, tppId, accountId, fromBookingDateTime, toBookingDateTime, page, pageSize);
 
-        if (ifNoneMatch != null) {
-            String cachedEtag = transactionEtagCache.get(requestSignature);
-            if (ifNoneMatch.equals(cachedEtag)) {
-                return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-                        .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).noStore())
-                        .header("X-FAPI-Interaction-ID", interactionId)
-                        .eTag(cachedEtag)
-                        .build();
-            }
-        }
-
         var result = useCase.getTransactions(new GetCorporateTransactionsQuery(
                 consentId,
                 tppId,
@@ -145,7 +144,7 @@ public class CorporateTreasuryController {
 
         CorporateTransactionsResponse response = CorporateTransactionsResponse.from(result, selfLink, nextLink);
         String etag = generateEtag(response);
-        transactionEtagCache.put(requestSignature, etag);
+        etagCache.put(requestSignature, etag);
 
         if (ifNoneMatch != null && ifNoneMatch.equals(etag)) {
             return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
@@ -195,25 +194,13 @@ public class CorporateTreasuryController {
         return consentId + '|' + tppId + '|' + accountId + '|' + fromBookingDateTime + '|' + toBookingDateTime + '|' + page + '|' + pageSize;
     }
 
-    private static String generateEtag(CorporateTransactionsResponse response) {
-        String signature = response.data().transactions().stream()
-                .map(CorporateTransactionsResponse.TransactionData::transactionId)
-                .reduce(new StringBuilder()
-                                .append(response.meta().page())
-                                .append('|')
-                                .append(response.meta().pageSize())
-                                .append('|')
-                                .append(response.meta().totalRecords())
-                                .append('|'),
-                        (builder, id) -> builder.append(id).append(','),
-                        (left, right) -> left.append(right))
-                .toString();
-
+    private String generateEtag(CorporateTransactionsResponse response) {
         try {
+            String signature = etagObjectMapper.writeValueAsString(response);
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(signature.getBytes(StandardCharsets.UTF_8));
             return '"' + Base64.getUrlEncoder().withoutPadding().encodeToString(hash) + '"';
-        } catch (NoSuchAlgorithmException exception) {
+        } catch (NoSuchAlgorithmException | JsonProcessingException exception) {
             throw new IllegalStateException("Unable to generate ETag", exception);
         }
     }

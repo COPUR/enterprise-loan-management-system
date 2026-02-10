@@ -2,6 +2,7 @@ package com.enterprise.openfinance.businessfinancialdata.infrastructure.persiste
 
 import com.enterprise.openfinance.businessfinancialdata.domain.model.CorporateConsentContext;
 import com.enterprise.openfinance.businessfinancialdata.domain.port.out.CorporateConsentPort;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -11,6 +12,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
+@ConditionalOnProperty(prefix = "openfinance.businessfinancialdata.persistence", name = "mode", havingValue = "inmemory")
 public class InMemoryCorporateConsentAdapter implements CorporateConsentPort {
 
     private final Map<String, CorporateConsentContext> consents = new ConcurrentHashMap<>();

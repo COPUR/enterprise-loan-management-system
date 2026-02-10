@@ -46,12 +46,44 @@ Legend: `Strong`, `Partial`, `Missing`
 6. **Load Balancing & Scaling**
 - Define autoscaling triggers, queue partitioning, and service mesh/ingress behavior.
 
+## Mandatory Remediation Pack (Wave 0 + Wave 1)
+
+These remediations are non-optional and must be completed before broad service rollout.
+
+1. **DPoP Must Be Mandatory on Protected APIs**
+- Enforce `DPoP` as required in OpenAPI contracts for protected services.
+- Enforce runtime DPoP proof validation, not header-presence checks only.
+
+2. **Corporate AIS Contract Drift Closure**
+- Align OpenAPI and implementation for accounts, balances, transactions, scheduled-payments, and parties.
+- Remove path mismatch between spec and controller mappings.
+- Add CI contract tests to fail build on drift.
+
+3. **Runtime Persistence Hardening**
+- Replace in-memory seeded runtime repositories with production adapters.
+- Keep in-memory adapters test-only or behind explicit non-prod profile.
+
+4. **ETag and Cache Hardening**
+- Remove local unbounded controller maps for ETag state.
+- Use distributed cache with TTL and bounded cardinality.
+- Generate ETag from full response-significant material to avoid stale `304 Not Modified`.
+
+5. **Observability Baseline**
+- Add tracing (trace id propagation), metrics, and structured logs.
+- Enforce PII masking in logs by default.
+
+6. **Delivery Pipeline and IaC Hardening**
+- Replace Jenkins/GitLab placeholder pipeline steps with executable gates.
+- Replace output-only Terraform stubs with provider-backed resources.
+- Keep bounded-context stub repos only as temporary extraction scaffolding, not delivery endpoints.
+
 ## Service Roadmaps
 
 ### UC001 AIS (Personal Financial Management)
 **Phase 1: Boundary Hardening (Weeks 0–2)**
 - Define AIS data ownership (read models + cache) and upstream CBS event contracts.
 - Document read model refresh policy and rehydration strategy.
+- Enforce mandatory DPoP and JWT scope validation in gateway/security chain.
 
 **Phase 2: Resilience & Observability (Weeks 2–4)**
 - Add circuit breakers/timeouts for cache and read‑model access.
@@ -89,6 +121,7 @@ Legend: `Strong`, `Partial`, `Missing`
 **Phase 2: Resilience & Observability (Weeks 3–6)**
 - Circuit breakers/timeouts for rails and risk engine.
 - End‑to‑end tracing for payment lifecycle events.
+- Mandatory DPoP/JWS verification coverage for protected payment APIs.
 
 **Phase 3: Scalability & Operations (Weeks 6–9)**
 - Partition async settlement queue and scale workers by backlog.
@@ -126,9 +159,15 @@ Legend: `Strong`, `Partial`, `Missing`
 - Document geo‑filter cache invalidation strategy.
 
 ## Dependency & Sequencing Notes
-- Prioritize UC003 and UC014/UC015 first for microservice extraction (read‑heavy, low risk).
-- Migrate UC001 next (event‑driven read models already present).
-- Migrate UC006 last due to transactionality and compliance complexity.
+- Prioritize platform guardrails first: shared security chain, observability baseline, contract tests, runnable CI/CD, provider-backed Terraform.
+- Use Business Financial Data Service as pilot for drift/persistence/ETag hardening before broad AIS rollout.
+- Migrate additional read services next (Personal Financial Data, Banking Metadata), then transactional workflow services.
+
+## Assumptions / Scope
+- `DPoP` is mandatory for protected service endpoints.
+- This roadmap does not include non-critical feature expansion.
+- Existing service contracts may require minor version bump if path/header requirements change.
+- Runtime target remains Java 23 across extracted services.
 
 ## Definition of Done (Microservices Roadmap)
 - Service ownership documented (DB/schema, contracts, dependencies).
@@ -136,4 +175,3 @@ Legend: `Strong`, `Partial`, `Missing`
 - Resilience patterns implemented and tested.
 - API versioning and deprecation policy published.
 - CI/CD + rollback strategy validated.
-
