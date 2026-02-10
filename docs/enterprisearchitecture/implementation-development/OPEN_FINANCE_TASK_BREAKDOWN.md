@@ -20,6 +20,7 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] UC12 Dynamic Onboarding for FX
 - [x] UC013 Request to Pay
 - [x] UC014 Open Products Data
+- [x] UC015 ATM Open Data
 
 ### UC07 Story Completion Snapshot
 - [x] Domain stories: consent/payment/idempotency models, command/query contracts, domain exceptions.
@@ -29,7 +30,7 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Quality gate story: UC07-specific line coverage above 85%.
 
 ### Active Backlog Queue (Next)
-- [ ] UC015 ATM Open Data
+- [ ] (None)
 
 ### UC11 Story Completion Snapshot
 - [x] Domain stories: quote/deal aggregates, command/query contracts, idempotency record, lifecycle/status models, domain exceptions.
@@ -58,6 +59,13 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Infrastructure stories: in-memory catalog + cache adapters, REST API, exception mapping, public-cache/ETag semantics, optional token-type validation.
 - [x] Testing stories: unit + integration + functional/e2e + UAT completed with TDD sequence.
 - [x] Quality gate story: UC14 package line coverage above 85% in domain/application/infrastructure.
+
+### UC15 Story Completion Snapshot
+- [x] Domain stories: ATM directory model, status enum, location query invariants, cache settings/result models, input/output ports.
+- [x] Application stories: directory retrieval orchestration, location filtering (lat/long/radius), deterministic cache-key strategy.
+- [x] Infrastructure stories: in-memory directory + cache adapters, REST API, exception mapping, public-cache/ETag semantics, optional token-type validation.
+- [x] Testing stories: unit + integration + functional/e2e + UAT completed with TDD sequence.
+- [x] Quality gate story: UC15 package line coverage above 85% in domain/application/infrastructure.
 
 ## Task Organization
 

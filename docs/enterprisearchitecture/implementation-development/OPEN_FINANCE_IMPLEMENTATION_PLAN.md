@@ -20,9 +20,10 @@ This implementation plan details the integration of UAE Open Finance capabilitie
 - [x] UC12 Dynamic Onboarding for FX
 - [x] UC13 Request to Pay
 - [x] UC014 Open Products Data
+- [x] UC015 ATM Open Data
 
 ### Next Implementation Queue
-- [ ] UC015 ATM Open Data
+- [ ] (None)
 
 ### UC07 Execution Summary
 - TDD flow completed: unit tests first, then domain/application/infrastructure implementation.
@@ -136,6 +137,21 @@ This implementation plan details the integration of UAE Open Finance capabilitie
   - Domain: 95.92%
   - Application: 100.00%
   - Infrastructure: 90.24%
+
+### UC15 Execution Summary
+- TDD flow completed for ATM open data: unit tests first, then domain/application/infrastructure implementation and refactor cycle.
+- Hexagonal architecture applied with explicit UC15 ports (`AtmDataUseCase`, directory/cache output ports).
+- DDD model implemented for ATM directory entries, status enum, location query invariants, and cache-aware result model.
+- Open-data/FAPI-aware behavior implemented (`Authorization` token-type validation when supplied, required `X-FAPI-Interaction-ID`, `X-OF-Cache`, `ETag`/`If-None-Match`).
+- Cache optimization implemented for read path:
+  - in-memory cache with TTL via externalized properties (`openfinance.uc15.cache.ttl`).
+  - `Cache-Control: public, max-age=60` response policy for public ATM resources.
+- Test pyramid completed:
+  - Unit: domain/application/infrastructure adapters + controller + exception mapping
+  - Integration: MockMvc API contract (location filter, cache hit, invalid auth/coords)
+  - E2E/UAT: REST-assured ATM directory journey and revalidation flow
+- UC15 package line coverage achieved:
+  - Domain/Application/Infrastructure: above 85% line coverage threshold.
 
 ## Project Structure
 
