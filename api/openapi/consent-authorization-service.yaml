@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Consent and Authorization Service API
   version: 0.1.0
-  description: API to create, authorize, and revoke consents plus OAuth token issuance.
+  description: API to create, authorize, list, and revoke consents.
 servers:
   - url: https://api.example.com/open-finance/v1
 paths:
@@ -13,7 +13,6 @@ paths:
       tags:
         - Consents
       security:
-        - bearerAuth: []
         - dpopAuth: []
       parameters:
         - $ref: '#/components/parameters/Authorization'
@@ -29,7 +28,7 @@ paths:
         '201':
           description: Consent created
           headers:
-            X-FAPI-Interaction-ID:
+            Location:
               schema:
                 type: string
           content:
@@ -42,16 +41,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized
+    get:
+      summary: List consents by customer
+      operationId: listConsents
+      tags:
+        - Consents
+      security:
+        - dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - name: customerId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Consents list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConsentResponse'
   /consents/{ConsentId}:
     get:
-      summary: Retrieve consent status
+      summary: Retrieve consent
       operationId: getConsent
       tags:
         - Consents
       security:
-        - bearerAuth: []
         - dpopAuth: []
       parameters:
         - $ref: '#/components/parameters/Authorization'
@@ -65,27 +86,19 @@ paths:
       responses:
         '200':
           description: Consent status
-          headers:
-            X-FAPI-Interaction-ID:
-              schema:
-                type: string
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentResponse'
         '404':
           description: Consent not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    delete:
-      summary: Revoke consent
-      operationId: revokeConsent
+  /consents/{ConsentId}/authorize:
+    post:
+      summary: Authorize consent
+      operationId: authorizeConsent
       tags:
         - Consents
       security:
-        - bearerAuth: []
         - dpopAuth: []
       parameters:
         - $ref: '#/components/parameters/Authorization'
@@ -97,144 +110,46 @@ paths:
           schema:
             type: string
       responses:
-        '204':
-          description: Consent revoked
+        '200':
+          description: Consent authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentResponse'
         '404':
           description: Consent not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /oauth2/authorize:
-    get:
-      summary: Authorize consent (redirect)
-      operationId: authorizeConsent
+  /consents/{ConsentId}/revoke:
+    patch:
+      summary: Revoke consent
+      operationId: revokeConsent
       tags:
-        - OAuth
+        - Consents
+      security:
+        - dpopAuth: []
       parameters:
-        - name: response_type
-          in: query
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - name: ConsentId
+          in: path
           required: true
           schema:
             type: string
-        - name: client_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: scope
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: request
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: redirect_uri
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: state
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: code_challenge
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: code_challenge_method
-          in: query
-          required: false
-          schema:
-            type: string
-      responses:
-        '302':
-          description: Redirect to client
-          headers:
-            Location:
-              schema:
-                type: string
-        '400':
-          description: Invalid authorization request
-  /oauth2/token:
-    post:
-      summary: Exchange authorization code for tokens
-      operationId: exchangeToken
-      tags:
-        - OAuth
       requestBody:
         required: true
         content:
-          application/x-www-form-urlencoded:
+          application/json:
             schema:
-              type: object
-              properties:
-                grant_type:
-                  type: string
-                code:
-                  type: string
-                redirect_uri:
-                  type: string
-                client_id:
-                  type: string
-                client_assertion_type:
-                  type: string
-                client_assertion:
-                  type: string
+              $ref: '#/components/schemas/RevokeConsentRequest'
       responses:
         '200':
-          description: Token response
+          description: Consent revoked
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenResponse'
-        '400':
-          description: Invalid token request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /oauth2/refresh:
-    post:
-      summary: Refresh access token
-      operationId: refreshToken
-      tags:
-        - OAuth
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                grant_type:
-                  type: string
-                refresh_token:
-                  type: string
-                client_id:
-                  type: string
-                client_assertion_type:
-                  type: string
-                client_assertion:
-                  type: string
-      responses:
-        '200':
-          description: Token response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenResponse'
-        '400':
-          description: Invalid refresh request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ConsentResponse'
+        '404':
+          description: Consent not found
 components:
   parameters:
     Authorization:
@@ -246,7 +161,7 @@ components:
     DPoP:
       name: DPoP
       in: header
-      required: false
+      required: true
       schema:
         type: string
     InteractionId:
@@ -256,9 +171,6 @@ components:
       schema:
         type: string
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
     dpopAuth:
       type: http
       scheme: bearer
@@ -266,61 +178,65 @@ components:
     ConsentCreateRequest:
       type: object
       required:
-        - permissions
+        - customerId
+        - participantId
+        - scopes
+        - purpose
+        - expiresAt
       properties:
-        permissions:
+        customerId:
+          type: string
+        participantId:
+          type: string
+        scopes:
           type: array
           items:
             type: string
-        expirationDateTime:
+        purpose:
+          type: string
+        expiresAt:
           type: string
           format: date-time
-        transactionFromDateTime:
+    RevokeConsentRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
           type: string
-          format: date-time
-        transactionToDateTime:
-          type: string
-          format: date-time
     ConsentResponse:
       type: object
       properties:
-        Data:
-          type: object
-          properties:
-            ConsentId:
-              type: string
-            Status:
-              type: string
-            Permissions:
-              type: array
-              items:
-                type: string
-            CreatedDateTime:
-              type: string
-              format: date-time
-            ExpirationDateTime:
-              type: string
-              format: date-time
-        Links:
-          type: object
-          properties:
-            Self:
-              type: string
-        Meta:
-          type: object
-    TokenResponse:
-      type: object
-      properties:
-        access_token:
+        consentId:
           type: string
-        token_type:
+        customerId:
           type: string
-        expires_in:
-          type: integer
-        refresh_token:
+        participantId:
           type: string
-        scope:
+        status:
           type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        purpose:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        authorizedAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type: string
+          format: date-time
+        revocationReason:
+          type: string
+        active:
+          type: boolean
     ErrorResponse:
       type: object
       properties:
