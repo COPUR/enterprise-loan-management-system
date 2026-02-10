@@ -18,6 +18,7 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] UC10 Insurance Quote Initiation
 - [x] UC11 FX & Remittance
 - [x] UC12 Dynamic Onboarding for FX
+- [x] UC013 Request to Pay
 - [x] UC014 Open Products Data
 
 ### UC07 Story Completion Snapshot
@@ -28,7 +29,6 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Quality gate story: UC07-specific line coverage above 85%.
 
 ### Active Backlog Queue (Next)
-- [ ] UC013 Request to Pay
 - [ ] UC015 ATM Open Data
 
 ### UC11 Story Completion Snapshot
@@ -44,6 +44,13 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Infrastructure stories: in-memory adapters (decryption/sanctions/account/idempotency/cache/event), REST API, exception mapping, FAPI headers, ETag/cache semantics.
 - [x] Testing stories: unit + integration + functional/e2e + UAT completed with TDD sequence.
 - [x] Quality gate story: UC12 package line coverage above 85% in domain/application/infrastructure.
+
+### UC13 Story Completion Snapshot
+- [x] Domain stories: pay-request aggregate, status model, command/query contracts, domain exceptions.
+- [x] Application stories: request lifecycle orchestration, ownership enforcement, cache-aware status reads, finalize handling.
+- [x] Infrastructure stories: in-memory repository/cache/notification adapters, REST API, exception mapping, FAPI headers, ETag/cache behavior.
+- [x] Testing stories: unit + integration + functional/e2e + UAT completed with TDD sequence.
+- [x] Quality gate story: UC13 package line coverage above 85% in domain/application/infrastructure.
 
 ### UC14 Story Completion Snapshot
 - [x] Domain stories: open product model, query invariants for safe filtering, cache settings/result models, input/output ports.

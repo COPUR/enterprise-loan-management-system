@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.bank'
 version = '1.0.0'
-sourceCompatibility = '21'
+sourceCompatibility = '23'
 
 configurations {
     compileOnly {

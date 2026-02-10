@@ -1,0 +1,13 @@
+package com.enterprise.openfinance.uc13.domain.port.out;
+
+import com.enterprise.openfinance.uc13.domain.model.PayRequestResult;
+
+import java.time.Instant;
+import java.util.Optional;
+
+public interface PayRequestCachePort {
+
+    Optional<PayRequestResult> getStatus(String key, Instant now);
+
+    void putStatus(String key, PayRequestResult result, Instant expiresAt);
+}

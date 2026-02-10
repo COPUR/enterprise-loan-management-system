@@ -18,10 +18,10 @@ This implementation plan details the integration of UAE Open Finance capabilitie
 - [x] UC10 Insurance Quote Initiation
 - [x] UC11 FX & Remittance
 - [x] UC12 Dynamic Onboarding for FX
+- [x] UC13 Request to Pay
 - [x] UC014 Open Products Data
 
 ### Next Implementation Queue
-- [ ] UC13 Request to Pay
 - [ ] UC015 ATM Open Data
 
 ### UC07 Execution Summary
@@ -104,6 +104,18 @@ This implementation plan details the integration of UAE Open Finance capabilitie
   - Domain: 91.47%
   - Application: 91.30%
   - Infrastructure: 86.36%
+
+### UC13 Execution Summary
+- TDD flow completed for request-to-pay: unit tests first, then domain/application/infrastructure implementation and refactor cycle.
+- Hexagonal architecture applied with explicit UC13 ports (`PayRequestUseCase`, repository/cache/notification output ports).
+- DDD model implemented for pay-request aggregate, status lifecycle, command/query contracts, and domain exceptions.
+- FAPI-aware behavior implemented (`DPoP`/`Bearer` validation, `X-FAPI-Interaction-ID`, `X-OF-Cache`, `ETag`/`If-None-Match`, `no-store` cache control).
+- Test pyramid completed:
+  - Unit: domain/application/infrastructure adapters + controller + exception mapping
+  - Integration: MockMvc API contract (PAR create, status read, finalize, header negatives)
+  - E2E/UAT: REST-assured request-to-pay journey and invalid authorization path
+- UC13 package line coverage achieved:
+  - Domain/Application/Infrastructure: above 85% line coverage threshold.
 
 ### UC14 Execution Summary
 - TDD flow completed for open products data: tests first (domain/application/unit/integration/functional-UAT), then implementation and refactor cycle.

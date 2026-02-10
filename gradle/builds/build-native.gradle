@@ -9,12 +9,12 @@ plugins {
 
 group = 'com.bank'
 version = '1.0.0'
-sourceCompatibility = '21'
-targetCompatibility = '21'
+sourceCompatibility = '23'
+targetCompatibility = '23'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(23)
     }
 }
 
@@ -114,7 +114,7 @@ graalvmNative {
             ])
             
             javaLauncher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(21)
+                languageVersion = JavaLanguageVersion.of(23)
                 vendor = JvmVendorSpec.matching("GraalVM")
             }
         }
