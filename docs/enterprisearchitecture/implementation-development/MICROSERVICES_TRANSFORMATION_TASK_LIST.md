@@ -26,8 +26,8 @@
 - [x] Add runtime observability baseline (trace id propagation, request metrics, structured request-completion logs).
 
 - [ ] Wave 2 AIS Rollout:
-- [ ] Apply Wave 1 hardening pattern to Personal Financial Data Service.
-- [ ] Apply Wave 1 hardening pattern to Banking Metadata Service.
+- [x] Apply Wave 1 observability baseline pattern to Personal Financial Data Service.
+- [x] Apply Wave 1 observability baseline pattern to Banking Metadata Service.
 
 - [ ] Wave 3 Context Rollout:
 - [ ] Roll out shared security/observability/pipeline/IaC standards to remaining bounded contexts.

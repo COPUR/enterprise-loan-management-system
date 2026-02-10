@@ -44,6 +44,8 @@ All 15 use-case feature tracks are implemented in the repository. The current ba
 - [x] Business Financial Data Service: transaction ETag state moved to distributed TTL cache and local unbounded controller map removed.
 - [x] Business Financial Data Service: ETag hash generation now uses canonical full response payload to avoid stale `304` on non-ID field changes.
 - [x] Business Financial Data Service: runtime observability baseline added (`X-Trace-ID` propagation, Micrometer request counters/timers, structured completion logs, actuator metrics/prometheus exposure).
+- [x] Personal Financial Data Service: runtime observability baseline added (`X-Trace-ID` propagation, Micrometer request counters/timers, structured completion logs, actuator metrics/prometheus exposure).
+- [x] Banking Metadata Service: runtime observability baseline added (`X-Trace-ID` propagation, Micrometer request counters/timers, structured completion logs, actuator metrics/prometheus exposure).
 
 ### Universal Task List (Cross-Service Guardrails)
 - [ ] OpenAPI parity: implementation paths/headers must match published contracts exactly.

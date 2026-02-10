@@ -36,7 +36,9 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Wave 1 (Business Financial Data Service): Move ETag/state cache from local memory map to distributed TTL cache.
 - [x] Wave 1 (Business Financial Data Service): Strengthen ETag hash input to include all response-significant fields.
 - [x] Wave 1 (Business Financial Data Service): Add runtime observability baseline filter for trace correlation, metrics, and structured completion logs.
-- [ ] Wave 2: Roll out Wave 1 hardening pattern to Personal Financial Data and Banking Metadata services.
+- [ ] Wave 2: Roll out remaining Wave 1 hardening pattern items to Personal Financial Data and Banking Metadata services.
+- [x] Wave 2 (Personal Financial Data Service): Add observability baseline (trace correlation filter, metrics, structured logs, actuator metrics endpoints).
+- [x] Wave 2 (Banking Metadata Service): Add observability baseline (trace correlation filter, metrics, structured logs, actuator metrics endpoints).
 
 ### Universal Task List (Cross-Service)
 - [ ] Contract parity gate: each protected endpoint must have matching OpenAPI path, headers, and required fields.
