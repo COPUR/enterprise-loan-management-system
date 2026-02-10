@@ -34,7 +34,9 @@ import static org.hamcrest.Matchers.notNullValue;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration",
-                "openfinance.bankingmetadata.security.jwt-secret=0123456789abcdef0123456789abcdef"
+                "openfinance.bankingmetadata.security.jwt-secret=0123456789abcdef0123456789abcdef",
+                "openfinance.bankingmetadata.persistence.mode=inmemory",
+                "openfinance.bankingmetadata.cache.mode=inmemory"
         }
 )
 class MetadataUatTest {

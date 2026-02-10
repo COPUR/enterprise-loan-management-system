@@ -2,6 +2,7 @@ package com.enterprise.openfinance.personalfinancialdata.infrastructure.persiste
 
 import com.enterprise.openfinance.personalfinancialdata.domain.model.BalanceSnapshot;
 import com.enterprise.openfinance.personalfinancialdata.domain.port.out.BalanceReadPort;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
+@ConditionalOnProperty(prefix = "openfinance.personalfinancialdata.persistence", name = "mode", havingValue = "inmemory")
 public class InMemoryBalanceReadAdapter implements BalanceReadPort {
 
     private final Map<String, List<BalanceSnapshot>> data = Map.of(

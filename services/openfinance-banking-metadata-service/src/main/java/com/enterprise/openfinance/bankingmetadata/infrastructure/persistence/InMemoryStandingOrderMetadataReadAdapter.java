@@ -2,6 +2,7 @@ package com.enterprise.openfinance.bankingmetadata.infrastructure.persistence;
 
 import com.enterprise.openfinance.bankingmetadata.domain.model.StandingOrderMetadata;
 import com.enterprise.openfinance.bankingmetadata.domain.port.out.StandingOrderMetadataReadPort;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
+@ConditionalOnProperty(prefix = "openfinance.bankingmetadata.persistence", name = "mode", havingValue = "inmemory")
 public class InMemoryStandingOrderMetadataReadAdapter implements StandingOrderMetadataReadPort {
 
     private final List<StandingOrderMetadata> standingOrders = new ArrayList<>();

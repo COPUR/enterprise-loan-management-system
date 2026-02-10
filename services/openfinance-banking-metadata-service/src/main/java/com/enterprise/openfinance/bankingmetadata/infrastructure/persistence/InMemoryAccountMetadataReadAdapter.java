@@ -2,6 +2,7 @@ package com.enterprise.openfinance.bankingmetadata.infrastructure.persistence;
 
 import com.enterprise.openfinance.bankingmetadata.domain.model.AccountSchemeMetadata;
 import com.enterprise.openfinance.bankingmetadata.domain.port.out.AccountMetadataReadPort;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
@@ -9,6 +10,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
+@ConditionalOnProperty(prefix = "openfinance.bankingmetadata.persistence", name = "mode", havingValue = "inmemory")
 public class InMemoryAccountMetadataReadAdapter implements AccountMetadataReadPort {
 
     private final Map<String, AccountSchemeMetadata> metadataByAccount = new ConcurrentHashMap<>();

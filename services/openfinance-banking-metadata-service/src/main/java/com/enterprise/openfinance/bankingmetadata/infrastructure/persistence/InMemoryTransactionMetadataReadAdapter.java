@@ -4,6 +4,7 @@ import com.enterprise.openfinance.bankingmetadata.domain.model.FxDetails;
 import com.enterprise.openfinance.bankingmetadata.domain.model.GeoLocation;
 import com.enterprise.openfinance.bankingmetadata.domain.model.TransactionMetadata;
 import com.enterprise.openfinance.bankingmetadata.domain.port.out.TransactionMetadataReadPort;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
+@ConditionalOnProperty(prefix = "openfinance.bankingmetadata.persistence", name = "mode", havingValue = "inmemory")
 public class InMemoryTransactionMetadataReadAdapter implements TransactionMetadataReadPort {
 
     private final Map<String, List<TransactionMetadata>> transactionsByAccount = new ConcurrentHashMap<>();

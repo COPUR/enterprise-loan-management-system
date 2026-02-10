@@ -32,7 +32,9 @@ import static org.hamcrest.Matchers.greaterThan;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration",
-                "openfinance.personalfinancialdata.security.jwt-secret=0123456789abcdef0123456789abcdef"
+                "openfinance.personalfinancialdata.security.jwt-secret=0123456789abcdef0123456789abcdef",
+                "openfinance.personalfinancialdata.persistence.mode=inmemory",
+                "openfinance.personalfinancialdata.cache.mode=inmemory"
         }
 )
 class AccountInformationUatTest {

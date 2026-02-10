@@ -2,6 +2,7 @@ package com.enterprise.openfinance.personalfinancialdata.infrastructure.persiste
 
 import com.enterprise.openfinance.personalfinancialdata.domain.model.TransactionSnapshot;
 import com.enterprise.openfinance.personalfinancialdata.domain.port.out.TransactionReadPort;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
+@ConditionalOnProperty(prefix = "openfinance.personalfinancialdata.persistence", name = "mode", havingValue = "inmemory")
 public class InMemoryTransactionReadAdapter implements TransactionReadPort {
 
     private final Map<String, List<TransactionSnapshot>> data = new ConcurrentHashMap<>();

@@ -4,6 +4,7 @@ import com.enterprise.openfinance.personalfinancialdata.domain.model.AccountSnap
 import com.enterprise.openfinance.personalfinancialdata.domain.model.BalanceSnapshot;
 import com.enterprise.openfinance.personalfinancialdata.domain.port.out.AisCachePort;
 import com.enterprise.openfinance.personalfinancialdata.infrastructure.config.AisCacheProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@ConditionalOnProperty(prefix = "openfinance.personalfinancialdata.cache", name = "mode", havingValue = "inmemory")
 public class InMemoryAisCacheAdapter implements AisCachePort {
 
     private final Map<String, CacheItem<List<AccountSnapshot>>> accountsCache = new ConcurrentHashMap<>();

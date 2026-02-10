@@ -1,5 +1,11 @@
 openfinance:
   personalfinancialdata:
+    persistence:
+      mode: ${OPENFINANCE_PFD_PERSISTENCE_MODE:mongodb}
+    cache:
+      mode: ${OPENFINANCE_PFD_CACHE_MODE:redis}
+      ttl: ${OPENFINANCE_PFD_CACHE_TTL:30s}
+      key-prefix: ${OPENFINANCE_PFD_CACHE_KEY_PREFIX:openfinance:personalfinancialdata}
     security:
       jwt-secret: ${OPENFINANCE_PFD_JWT_SECRET:0123456789abcdef0123456789abcdef}
       issuer: ${OPENFINANCE_PFD_JWT_ISSUER:}
@@ -11,6 +17,11 @@ openfinance:
 spring:
   application:
     name: ${OPENFINANCE_PFD_SERVICE_NAME:openfinance-personal-financial-data-service}
+  data:
+    mongodb:
+      uri: ${OPENFINANCE_PFD_MONGODB_URI:mongodb://localhost:27017/open_finance_personal_financial_data}
+  redis:
+    url: ${OPENFINANCE_PFD_REDIS_URL:redis://localhost:6379}
 
 management:
   endpoints:

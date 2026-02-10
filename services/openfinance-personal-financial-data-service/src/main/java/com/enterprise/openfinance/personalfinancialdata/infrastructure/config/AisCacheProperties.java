@@ -9,6 +9,7 @@ public class AisCacheProperties {
 
     private Duration ttl = Duration.ofSeconds(30);
     private int maxEntries = 10_000;
+    private String keyPrefix = "openfinance:personalfinancialdata";
 
     public Duration getTtl() {
         return ttl;
@@ -24,5 +25,13 @@ public class AisCacheProperties {
 
     public void setMaxEntries(int maxEntries) {
         this.maxEntries = maxEntries;
+    }
+
+    public String getKeyPrefix() {
+        return keyPrefix;
+    }
+
+    public void setKeyPrefix(String keyPrefix) {
+        this.keyPrefix = keyPrefix;
     }
 }

@@ -1,5 +1,11 @@
 openfinance:
   bankingmetadata:
+    persistence:
+      mode: ${OPENFINANCE_BM_PERSISTENCE_MODE:mongodb}
+    cache:
+      mode: ${OPENFINANCE_BM_CACHE_MODE:redis}
+      ttl: ${OPENFINANCE_BM_CACHE_TTL:30s}
+      key-prefix: ${OPENFINANCE_BM_CACHE_KEY_PREFIX:openfinance:bankingmetadata}
     security:
       jwt-secret: ${OPENFINANCE_BM_JWT_SECRET:0123456789abcdef0123456789abcdef}
       issuer: ${OPENFINANCE_BM_JWT_ISSUER:}
@@ -11,6 +17,11 @@ openfinance:
 spring:
   application:
     name: ${OPENFINANCE_BM_SERVICE_NAME:openfinance-banking-metadata-service}
+  data:
+    mongodb:
+      uri: ${OPENFINANCE_BM_MONGODB_URI:mongodb://localhost:27017/open_finance_banking_metadata}
+  redis:
+    url: ${OPENFINANCE_BM_REDIS_URL:redis://localhost:6379}
 
 management:
   endpoints:

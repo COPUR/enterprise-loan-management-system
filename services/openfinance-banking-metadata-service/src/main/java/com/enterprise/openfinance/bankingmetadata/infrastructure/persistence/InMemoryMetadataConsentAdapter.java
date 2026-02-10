@@ -2,6 +2,7 @@ package com.enterprise.openfinance.bankingmetadata.infrastructure.persistence;
 
 import com.enterprise.openfinance.bankingmetadata.domain.model.MetadataConsentContext;
 import com.enterprise.openfinance.bankingmetadata.domain.port.out.MetadataConsentPort;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -11,6 +12,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
+@ConditionalOnProperty(prefix = "openfinance.bankingmetadata.persistence", name = "mode", havingValue = "inmemory")
 public class InMemoryMetadataConsentAdapter implements MetadataConsentPort {
 
     private final Map<String, MetadataConsentContext> data = new ConcurrentHashMap<>();

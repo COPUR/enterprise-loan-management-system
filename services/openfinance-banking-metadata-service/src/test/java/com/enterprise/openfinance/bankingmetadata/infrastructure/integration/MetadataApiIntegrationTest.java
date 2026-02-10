@@ -33,7 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = {
                 "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration",
-                "openfinance.bankingmetadata.security.jwt-secret=0123456789abcdef0123456789abcdef"
+                "openfinance.bankingmetadata.security.jwt-secret=0123456789abcdef0123456789abcdef",
+                "openfinance.bankingmetadata.persistence.mode=inmemory",
+                "openfinance.bankingmetadata.cache.mode=inmemory"
         }
 )
 @AutoConfigureMockMvc

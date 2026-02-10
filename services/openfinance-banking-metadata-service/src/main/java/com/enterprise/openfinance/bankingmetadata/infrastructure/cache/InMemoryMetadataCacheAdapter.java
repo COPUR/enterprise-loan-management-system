@@ -9,6 +9,7 @@ import com.enterprise.openfinance.bankingmetadata.domain.model.StandingOrderMeta
 import com.enterprise.openfinance.bankingmetadata.domain.model.TransactionMetadata;
 import com.enterprise.openfinance.bankingmetadata.domain.port.out.MetadataCachePort;
 import com.enterprise.openfinance.bankingmetadata.infrastructure.config.MetadataCacheProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -17,6 +18,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@ConditionalOnProperty(prefix = "openfinance.bankingmetadata.cache", name = "mode", havingValue = "inmemory")
 public class InMemoryMetadataCacheAdapter implements MetadataCachePort {
 
     private final Map<String, CacheItem<MetadataQueryResult<TransactionMetadata>>> transactionCache = new ConcurrentHashMap<>();

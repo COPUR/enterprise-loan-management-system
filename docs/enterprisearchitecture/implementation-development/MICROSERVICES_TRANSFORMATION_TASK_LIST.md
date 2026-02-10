@@ -13,7 +13,7 @@
 - [x] Replace placeholder Jenkins/GitLab steps with executable quality/security gates.
 - [x] Replace bounded-context echo-only GitLab/Jenkins pipelines with runnable OpenAPI contract and secret-scanning gates.
 - [x] Replace Terraform output-only stubs with provider-backed baseline resources.
-- [ ] Implement observability baseline in runtime code (traces, metrics, structured logs, PII masking).
+- [x] Implement observability baseline in runtime code (traces, metrics, structured logs, PII masking).
 
 - [ ] Wave 1 Pilot Hardening (Business Financial Data Service):
 - [x] Resolve OpenAPI and controller path/header drift.
@@ -32,6 +32,11 @@
 - [x] Apply Wave 1 runtime FAPI chain pattern (JWT + scope + mandatory DPoP) to Personal Financial Data Service.
 - [x] Apply Wave 1 runtime FAPI chain pattern (JWT + scope + mandatory DPoP) to Banking Metadata Service.
 - [x] Re-enable integration/functional security filters in Personal Financial Data and Banking Metadata test suites.
+- [x] Replace production in-memory persistence adapters with MongoDB adapters in Personal Financial Data Service.
+- [x] Replace production in-memory persistence adapters with MongoDB adapters in Banking Metadata Service.
+- [x] Replace production in-memory cache adapters with Redis adapters in Personal Financial Data Service.
+- [x] Replace production in-memory cache adapters with Redis adapters in Banking Metadata Service.
+- [x] Pin Personal Financial Data and Banking Metadata integration/UAT suites to in-memory adapter mode for deterministic local test execution.
 
 - [ ] Wave 3 Context Rollout:
 - [ ] Roll out shared security/observability/pipeline/IaC standards to remaining bounded contexts.
