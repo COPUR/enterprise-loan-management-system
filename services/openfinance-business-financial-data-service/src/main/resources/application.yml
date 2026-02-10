@@ -9,8 +9,27 @@ openfinance:
       key-prefix: ${OPENFINANCE_BFD_CACHE_KEY_PREFIX:openfinance:businessfinancialdata}
 
 spring:
+  application:
+    name: ${OPENFINANCE_BFD_SERVICE_NAME:openfinance-business-financial-data-service}
   data:
     mongodb:
       uri: ${OPENFINANCE_BFD_MONGODB_URI:mongodb://localhost:27017/open_finance_business_financial_data}
   redis:
     url: ${OPENFINANCE_BFD_REDIS_URL:redis://localhost:6379}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      service: ${spring.application.name}
+
+logging:
+  pattern:
+    level: "%5p [trace_id=%X{trace_id:-} interaction_id=%X{interaction_id:-}]"

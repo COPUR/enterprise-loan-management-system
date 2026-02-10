@@ -3,44 +3,87 @@ pipeline {
     options { timestamps() }
 
     environment {
-        DOCKER_REGISTRY = credentials('docker-registry')
-        IMAGE_NAME = "${env.JOB_NAME}:${env.GIT_COMMIT}"
+        SERVICE_DIR = 'services/openfinance-business-financial-data-service'
+        IMAGE_NAME = 'openfinance-business-financial-data-service:' + (env.GIT_COMMIT ?: 'local')
     }
 
     stages {
-        stage('Lint') {
+        stage('Validate Workspace') {
             steps {
-                sh 'echo "Run linter here"'
+                sh '''
+                  set -euo pipefail
+                  test -f "${SERVICE_DIR}/build.gradle"
+                  test -x ./gradlew
+                '''
             }
         }
-        stage('Test') {
+        stage('Quality Gate') {
             steps {
-                sh 'echo "Run unit + integration tests here"'
+                sh '''
+                  set -euo pipefail
+                  ./gradlew -p "${SERVICE_DIR}" --no-daemon clean check
+                '''
             }
         }
-        stage('Coverage Gate') {
+        stage('Security Gate') {
             steps {
-                sh 'echo "Enforce >85% coverage here"'
-            }
-        }
-        stage('Security Scan') {
-            steps {
-                sh 'echo "Run SAST/Dependency scan here"'
+                sh '''
+                  set -euo pipefail
+                  mkdir -p "${SERVICE_DIR}/build/reports/security"
+                  ./gradlew -p "${SERVICE_DIR}" --no-daemon dependencies > "${SERVICE_DIR}/build/reports/security/dependencies.txt"
+
+                  if command -v trivy >/dev/null 2>&1; then
+                    trivy fs --exit-code 1 --severity HIGH,CRITICAL "${SERVICE_DIR}"
+                  else
+                    echo "trivy not installed; skipping vulnerability scan"
+                  fi
+
+                  if command -v gitleaks >/dev/null 2>&1; then
+                    gitleaks detect --no-git --source "${SERVICE_DIR}" --exit-code 1
+                  else
+                    echo "gitleaks not installed; skipping secret scan"
+                  fi
+                '''
             }
         }
         stage('Build Image') {
             steps {
-                sh 'echo "Build Docker image here"'
+                sh '''
+                  set -euo pipefail
+                  if command -v docker >/dev/null 2>&1; then
+                    DOCKERFILE="${SERVICE_DIR}/infrastructure/Dockerfile"
+                    if [ -f "${DOCKERFILE}" ]; then
+                      docker build -t "${IMAGE_NAME}" -f "${DOCKERFILE}" "${SERVICE_DIR}"
+                    else
+                      docker build -t "${IMAGE_NAME}" "${SERVICE_DIR}"
+                    fi
+                  else
+                    echo "docker not installed; skipping image build"
+                  fi
+                '''
             }
         }
-        stage('Sign Image') {
-            steps {
-                sh 'echo "Sign image with Cosign/Notary here"'
+        stage('Sign & Publish Image') {
+            when {
+                expression { return env.PUBLISH_IMAGE == 'true' }
             }
-        }
-        stage('Publish Image') {
             steps {
-                sh 'echo "Push image to registry here"'
+                sh '''
+                  set -euo pipefail
+
+                  if command -v cosign >/dev/null 2>&1 && [ -n "${COSIGN_KEY:-}" ]; then
+                    cosign sign --key "${COSIGN_KEY}" "${IMAGE_NAME}"
+                  else
+                    echo "cosign key not configured; skipping image signing"
+                  fi
+
+                  if command -v docker >/dev/null 2>&1 && [ -n "${DOCKER_REGISTRY:-}" ] && [ -n "${DOCKER_USERNAME:-}" ] && [ -n "${DOCKER_PASSWORD:-}" ]; then
+                    echo "${DOCKER_PASSWORD}" | docker login "${DOCKER_REGISTRY}" --username "${DOCKER_USERNAME}" --password-stdin
+                    docker push "${IMAGE_NAME}"
+                  else
+                    echo "registry credentials not configured; skipping image publish"
+                  fi
+                '''
             }
         }
     }

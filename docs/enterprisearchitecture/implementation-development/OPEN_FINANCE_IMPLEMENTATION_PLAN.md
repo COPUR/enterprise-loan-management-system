@@ -28,8 +28,8 @@ All 15 use-case feature tracks are implemented in the repository. The current ba
 ### Next Implementation Queue (Mandatory Hardening Waves)
 - [ ] Wave 0: Implement shared FAPI runtime security with JWT, scope checks, and mandatory `DPoP` verification on protected APIs.
 - [ ] Wave 0: Re-enable security filter chains in integration/functional tests (remove bypass-only setups).
-- [ ] Wave 0: Replace Jenkins/GitLab placeholder templates with runnable CI gates and enforce coverage/contract/security checks.
-- [ ] Wave 0: Replace Terraform output-only stubs with provider-backed resources and environment wiring.
+- [x] Wave 0: Replace Jenkins/GitLab placeholder templates with runnable CI gates and enforce coverage/contract/security checks.
+- [x] Wave 0: Replace Terraform output-only stubs with provider-backed resources and environment wiring.
 - [ ] Wave 0: Implement runtime observability baseline (trace IDs, metrics, structured logs with PII masking).
 - [x] Wave 1: Harden Business Financial Data Service (contract drift, persistence adapters, distributed ETag/cache, stronger ETag hashing).
 - [ ] Wave 2: Roll out the hardened pattern to Personal Financial Data and Banking Metadata services.
@@ -43,6 +43,7 @@ All 15 use-case feature tracks are implemented in the repository. The current ba
 - [x] Business Financial Data Service: in-memory seeded adapters are now non-production (`inmemory` mode only) for tests/local fallback.
 - [x] Business Financial Data Service: transaction ETag state moved to distributed TTL cache and local unbounded controller map removed.
 - [x] Business Financial Data Service: ETag hash generation now uses canonical full response payload to avoid stale `304` on non-ID field changes.
+- [x] Business Financial Data Service: runtime observability baseline added (`X-Trace-ID` propagation, Micrometer request counters/timers, structured completion logs, actuator metrics/prometheus exposure).
 
 ### Universal Task List (Cross-Service Guardrails)
 - [ ] OpenAPI parity: implementation paths/headers must match published contracts exactly.

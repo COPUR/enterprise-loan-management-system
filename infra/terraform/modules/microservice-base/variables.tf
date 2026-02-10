@@ -32,3 +32,27 @@ variable "observability_endpoint" {
   type        = string
   description = "Metrics/logging endpoint"
 }
+
+variable "parameter_prefix" {
+  type        = string
+  description = "Base SSM parameter path prefix"
+  default     = "/openfinance"
+}
+
+variable "log_retention_days" {
+  type        = number
+  description = "CloudWatch log retention"
+  default     = 30
+}
+
+variable "workload_principal" {
+  type        = string
+  description = "AWS principal allowed to assume service workload role"
+  default     = "ecs-tasks.amazonaws.com"
+}
+
+variable "tags" {
+  type        = map(string)
+  description = "Additional resource tags"
+  default     = {}
+}

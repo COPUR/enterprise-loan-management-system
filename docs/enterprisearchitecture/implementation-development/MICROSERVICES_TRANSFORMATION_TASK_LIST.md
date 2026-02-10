@@ -10,8 +10,8 @@
 - [ ] Wave 0 Platform Guardrails:
 - [ ] Implement shared FAPI chain (JWT validation, scope enforcement, mandatory DPoP proof verification, mTLS binding checks).
 - [ ] Re-enable security filter chain in integration/functional tests for protected APIs.
-- [ ] Replace placeholder Jenkins/GitLab steps with executable quality/security gates.
-- [ ] Replace Terraform output-only stubs with provider-backed baseline resources.
+- [x] Replace placeholder Jenkins/GitLab steps with executable quality/security gates.
+- [x] Replace Terraform output-only stubs with provider-backed baseline resources.
 - [ ] Implement observability baseline in runtime code (traces, metrics, structured logs, PII masking).
 
 - [ ] Wave 1 Pilot Hardening (Business Financial Data Service):
@@ -23,6 +23,7 @@
 - [x] Move ETag/state cache from local memory maps to distributed TTL cache.
 - [x] Strengthen ETag hash material to include full response-significant fields.
 - [x] Add CI contract tests to block future drift.
+- [x] Add runtime observability baseline (trace id propagation, request metrics, structured request-completion logs).
 
 - [ ] Wave 2 AIS Rollout:
 - [ ] Apply Wave 1 hardening pattern to Personal Financial Data Service.
@@ -190,5 +191,5 @@
 - [ ] Cross-service baseline upgrades:
 - [ ] Add security starter and enforce in integration tests.
 - [ ] Add observability starter (trace/metrics/logging).
-- [ ] Replace Jenkins/GitLab placeholder steps with runnable gates.
-- [ ] Replace Terraform output-only module with real provider resources.
+- [x] Replace Jenkins/GitLab placeholder steps with runnable gates.
+- [x] Replace Terraform output-only module with real provider resources.

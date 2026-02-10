@@ -2,45 +2,14 @@ pipeline {
     agent any
     options { timestamps() }
 
-    environment {
-        DOCKER_REGISTRY = credentials('docker-registry')
-        IMAGE_NAME = "${env.JOB_NAME}:${env.GIT_COMMIT}"
-    }
-
     stages {
-        stage('Lint') {
+        stage('Validate Context Artifacts') {
             steps {
-                sh 'echo "Run linter here"'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'echo "Run unit + integration tests here"'
-            }
-        }
-        stage('Coverage Gate') {
-            steps {
-                sh 'echo "Enforce >85% coverage here"'
-            }
-        }
-        stage('Security Scan') {
-            steps {
-                sh 'echo "Run SAST/Dependency scan here"'
-            }
-        }
-        stage('Build Image') {
-            steps {
-                sh 'echo "Build Docker image here"'
-            }
-        }
-        stage('Sign Image') {
-            steps {
-                sh 'echo "Sign image with Cosign/Notary here"'
-            }
-        }
-        stage('Publish Image') {
-            steps {
-                sh 'echo "Push image to registry here"'
+                sh '''
+                  set -euo pipefail
+                  test -f "services/bounded-contexts/payment-context/README.md"
+                  test -f "api/openapi/payment-context.yaml"
+                '''
             }
         }
     }

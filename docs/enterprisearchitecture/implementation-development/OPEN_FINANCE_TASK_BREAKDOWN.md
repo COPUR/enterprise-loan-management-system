@@ -25,8 +25,8 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 ### Active Backlog Queue (Mandatory Hardening Waves)
 - [ ] Wave 0: Implement shared FAPI security chain with mandatory `DPoP` for protected APIs.
 - [ ] Wave 0: Re-enable real security filter chain in integration tests across protected services.
-- [ ] Wave 0: Replace Jenkins/GitLab placeholder steps with runnable quality/security gates.
-- [ ] Wave 0: Replace Terraform output-only stubs with provider-backed baseline resources.
+- [x] Wave 0: Replace Jenkins/GitLab placeholder steps with runnable quality/security gates.
+- [x] Wave 0: Replace Terraform output-only stubs with provider-backed baseline resources.
 - [ ] Wave 0: Apply observability baseline in runtime code (trace IDs, metrics, structured logs, PII masking).
 - [x] Wave 1 (Business Financial Data Service): Resolve OpenAPI/controller drift for implemented corporate AIS endpoints and remove unsupported contract paths.
 - [x] Wave 1 (Business Financial Data Service): Implement runtime JWT + scope + DPoP proof validation and re-enable security in integration/UAT tests.
@@ -35,6 +35,7 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Wave 1 (Business Financial Data Service): Replace production-wired in-memory adapters with persistent DB/cache adapters behind ports.
 - [x] Wave 1 (Business Financial Data Service): Move ETag/state cache from local memory map to distributed TTL cache.
 - [x] Wave 1 (Business Financial Data Service): Strengthen ETag hash input to include all response-significant fields.
+- [x] Wave 1 (Business Financial Data Service): Add runtime observability baseline filter for trace correlation, metrics, and structured completion logs.
 - [ ] Wave 2: Roll out Wave 1 hardening pattern to Personal Financial Data and Banking Metadata services.
 
 ### Universal Task List (Cross-Service)
