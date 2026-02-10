@@ -8,8 +8,10 @@ plugins {
 group = 'com.enterprise.openfinance'
 version = '0.1.0'
 
-toolchain {
-    languageVersion = JavaLanguageVersion.of(23)
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(23)
+    }
 }
 
 repositories {
@@ -22,6 +24,7 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mockito:mockito-core:5.11.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 test {

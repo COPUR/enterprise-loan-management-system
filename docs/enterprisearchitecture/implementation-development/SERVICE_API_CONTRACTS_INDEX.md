@@ -11,8 +11,13 @@ Each bounded context service must publish an OpenAPI contract. These initial con
 | Customer Context Service | `api/openapi/customer-context.yaml` | Stub |
 | Compliance Context Service | `api/openapi/compliance-context.yaml` | Stub |
 
+## Use Case Service Contracts
+
+| Service | OpenAPI File | Status |
+| --- | --- | --- |
+| Confirmation of Payee Verification Service | `api/openapi/confirmation-of-payee-service.yaml` | Draft |
+
 ## Contract Rules
 - All endpoints must be versioned (e.g., `/v1/...`).
 - Authentication and token type must be explicit (Bearer/DPoP).
 - Error schema must be documented and consistent.
-

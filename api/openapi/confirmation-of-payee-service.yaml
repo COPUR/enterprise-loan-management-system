@@ -1,0 +1,185 @@
+openapi: 3.0.3
+info:
+  title: Confirmation of Payee Verification Service API
+  version: 0.1.0
+  description: API to verify that payee details match the beneficiary account before payment initiation.
+servers:
+  - url: https://api.example.com/open-finance/v1
+paths:
+  /confirmation-of-payee/confirmation:
+    post:
+      summary: Verify payee details
+      operationId: confirmPayee
+      tags:
+        - ConfirmationOfPayee
+      security:
+        - dpopAuth: []
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmationRequest'
+            examples:
+              match:
+                value:
+                  Data:
+                    Identification: AE29000000123456789
+                    SchemeName: IBAN
+                    Name: Al Tareq Trading LLC
+      responses:
+        '200':
+          description: Confirmation result
+          headers:
+            X-FAPI-Interaction-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmationResponse'
+              examples:
+                exactMatch:
+                  value:
+                    Data:
+                      AccountStatus: Active
+                      NameMatched: Match
+                      MatchedName: Al Tareq Trading LLC
+                closeMatch:
+                  value:
+                    Data:
+                      AccountStatus: Active
+                      NameMatched: CloseMatch
+                      MatchedName: Al Tareq Trading
+                noMatch:
+                  value:
+                    Data:
+                      AccountStatus: Active
+                      NameMatched: NoMatch
+                      MatchedName: null
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    dpopAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: DPoP
+  parameters:
+    Authorization:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Bearer or DPoP access token
+    DPoP:
+      name: DPoP
+      in: header
+      required: true
+      schema:
+        type: string
+      description: DPoP proof JWT
+    InteractionId:
+      name: X-FAPI-Interaction-ID
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Correlation identifier
+  schemas:
+    ConfirmationRequest:
+      type: object
+      required:
+        - Data
+      properties:
+        Data:
+          type: object
+          required:
+            - Identification
+            - SchemeName
+            - Name
+          properties:
+            Identification:
+              type: string
+              example: AE29000000123456789
+            SchemeName:
+              type: string
+              example: IBAN
+            Name:
+              type: string
+              example: Al Tareq Trading LLC
+    ConfirmationResponse:
+      type: object
+      required:
+        - Data
+      properties:
+        Data:
+          type: object
+          required:
+            - AccountStatus
+            - NameMatched
+          properties:
+            AccountStatus:
+              type: string
+              enum: [Active, Closed, Deceased]
+            NameMatched:
+              type: string
+              enum: [Match, CloseMatch, NoMatch, UnableToCheck]
+            MatchedName:
+              type: string
+              nullable: true
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - interactionId
+        - timestamp
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        interactionId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

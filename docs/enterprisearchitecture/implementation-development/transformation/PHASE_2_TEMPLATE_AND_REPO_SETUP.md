@@ -14,4 +14,4 @@ Create the golden microservice template and define repo creation workflow for ea
 - Repo naming rules from `MICROSERVICE_SERVICE_NOMENCLATURE.md`
 - Reference service created:
   - `services/openfinance-confirmation-of-payee-service`
-
+- Local validation: Gradle test executed for the reference service.

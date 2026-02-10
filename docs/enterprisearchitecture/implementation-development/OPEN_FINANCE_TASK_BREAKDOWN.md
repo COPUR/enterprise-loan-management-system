@@ -38,7 +38,8 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Publish microservice service nomenclature and repo naming (`MICROSERVICE_SERVICE_NOMENCLATURE.md`).
 - [x] Publish transformation plan with phased deliverables (`MICROSERVICES_TRANSFORMATION_PLAN.md`).
 - [ ] Populate Phase 2 template repo content and validation (`templates/microservice/`).
-- [ ] Validate Jenkins/GitLab pipelines against a reference service.
+- [x] Populate Phase 2 template repo content and validation (`templates/microservice/`).
+- [x] Validate Jenkins/GitLab pipelines against a reference service.
 - [ ] Expand Terraform stubs with provider resources (per target cloud).
 - [x] Formalize service-level data ownership matrix (`SERVICE_DATA_OWNERSHIP_MATRIX.md`).
 - [x] Publish OpenAPI contract stubs per bounded context (`SERVICE_API_CONTRACTS_INDEX.md`, `api/openapi/*`).
