@@ -3,7 +3,7 @@
 ## Overview
 This document provides a comprehensive task breakdown for integrating UAE Open Finance capabilities into the Enterprise Loan Management System, organized by project modules and implementation phases.
 
-## Backlog Update (2026-02-09)
+## Backlog Update (2026-02-10)
 
 ### Delivered Backlog Items
 - [x] UC01 Consent Management
@@ -17,6 +17,7 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] UC09 Insurance Data Sharing
 - [x] UC10 Insurance Quote Initiation
 - [x] UC11 FX & Remittance
+- [x] UC12 Dynamic Onboarding for FX
 
 ### UC07 Story Completion Snapshot
 - [x] Domain stories: consent/payment/idempotency models, command/query contracts, domain exceptions.
@@ -26,7 +27,6 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Quality gate story: UC07-specific line coverage above 85%.
 
 ### Active Backlog Queue (Next)
-- [ ] UC012 Dynamic Onboarding for FX
 - [ ] UC013 Request to Pay
 - [ ] UC014/UC015 Open Data APIs
 
@@ -36,6 +36,13 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Infrastructure stories: in-memory adapters (rate/quote/deal/idempotency/cache/event), REST API, exception mapping, FAPI headers, ETag/cache semantics.
 - [x] Testing stories: unit + integration + functional/e2e + UAT completed with TDD sequence.
 - [x] Quality gate story: UC11 package line coverage above 85% in domain/application/infrastructure.
+
+### UC12 Story Completion Snapshot
+- [x] Domain stories: onboarding account aggregate, applicant profile value object, command/query contracts, idempotency record, domain exceptions.
+- [x] Application stories: onboarding orchestration (decrypt -> sanctions -> create account), ownership checks, idempotency replay/conflict, cache-aware reads.
+- [x] Infrastructure stories: in-memory adapters (decryption/sanctions/account/idempotency/cache/event), REST API, exception mapping, FAPI headers, ETag/cache semantics.
+- [x] Testing stories: unit + integration + functional/e2e + UAT completed with TDD sequence.
+- [x] Quality gate story: UC12 package line coverage above 85% in domain/application/infrastructure.
 
 ## Task Organization
 
