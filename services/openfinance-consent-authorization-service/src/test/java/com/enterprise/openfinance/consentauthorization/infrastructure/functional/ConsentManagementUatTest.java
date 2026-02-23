@@ -25,11 +25,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Primary;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -172,6 +175,76 @@ class ConsentManagementUatTest {
                 .statusCode(200)
                 .body("status", equalTo("EXPIRED"))
                 .body("active", equalTo(false));
+    }
+
+    @Test
+    void shouldCompletePkceAuthorizationCodeJourney() throws Exception {
+        Response created = baseRequest()
+                .body("""
+                        {
+                          "customerId": "CUST-UAT-PKCE",
+                          "participantId": "TPP-UAT-PKCE",
+                          "scopes": ["ReadAccounts", "ReadBalances"],
+                          "purpose": "PKCE authorization flow",
+                          "expiresAt": "%s"
+                        }
+                        """.formatted(mutableClock.instant().plus(2, ChronoUnit.DAYS)))
+                .when()
+                .post("/open-finance/v1/consents")
+                .then()
+                .statusCode(201)
+                .extract()
+                .response();
+
+        String consentId = created.jsonPath().getString("consentId");
+
+        baseRequest()
+                .when()
+                .post("/open-finance/v1/consents/{consentId}/authorize", consentId)
+                .then()
+                .statusCode(200);
+
+        String verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
+        String challenge = Base64.getUrlEncoder().withoutPadding().encodeToString(
+                MessageDigest.getInstance("SHA-256").digest(verifier.getBytes(StandardCharsets.US_ASCII))
+        );
+
+        Response authorizeResponse = given()
+                .accept("*/*")
+                .redirects().follow(false)
+                .queryParam("response_type", "code")
+                .queryParam("client_id", "uat-mobile-client")
+                .queryParam("redirect_uri", "https://tpp.example/callback")
+                .queryParam("scope", "ReadAccounts ReadBalances")
+                .queryParam("state", "uat-state")
+                .queryParam("consent_id", consentId)
+                .queryParam("code_challenge", challenge)
+                .queryParam("code_challenge_method", "S256")
+                .when()
+                .get("/oauth2/authorize")
+                .then()
+                .statusCode(302)
+                .extract()
+                .response();
+
+        String location = authorizeResponse.getHeader("Location");
+        String code = location.substring(location.indexOf("code=") + 5, location.indexOf("&state="));
+
+        given()
+                .contentType("application/x-www-form-urlencoded")
+                .accept("application/json")
+                .formParam("grant_type", "authorization_code")
+                .formParam("code", code)
+                .formParam("code_verifier", verifier)
+                .formParam("client_id", "uat-mobile-client")
+                .formParam("redirect_uri", "https://tpp.example/callback")
+                .when()
+                .post("/oauth2/token")
+                .then()
+                .statusCode(200)
+                .body("access_token", notNullValue())
+                .body("refresh_token", notNullValue())
+                .body("token_type", equalTo("Bearer"));
     }
 
     private RequestSpecification baseRequest() {
