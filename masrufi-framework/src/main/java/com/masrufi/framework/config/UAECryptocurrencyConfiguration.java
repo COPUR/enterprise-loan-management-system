@@ -1,0 +1,11 @@
+package com.masrufi.framework.config;
+
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * Stub configuration for UAE Cryptocurrency integration module.
+ * Actual bean definitions are provided by downstream implementations.
+ */
+@Configuration
+public class UAECryptocurrencyConfiguration {
+}
