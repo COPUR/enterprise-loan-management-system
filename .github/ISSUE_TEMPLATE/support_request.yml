@@ -1,0 +1,31 @@
+name: Support request
+description: Ask for implementation or usage help
+title: "[Support]: "
+labels:
+  - question
+assignees: []
+body:
+  - type: input
+    id: context
+    attributes:
+      label: Context
+      description: What are you trying to achieve?
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Include module, endpoint, and any relevant snippets
+    validations:
+      required: true
+  - type: textarea
+    id: attempts
+    attributes:
+      label: What you already tried
+  - type: input
+    id: version
+    attributes:
+      label: Branch or commit
+      placeholder: main @ 61eacb6
+

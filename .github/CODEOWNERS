@@ -1,0 +1,21 @@
+# Global ownership
+* @COPUR
+
+# Build and CI ownership
+/.github/ @COPUR
+/buildSrc/ @COPUR
+/config/ @COPUR
+
+# Domain contexts
+/open-finance-context/ @COPUR
+/customer-context/ @COPUR
+/payment-context/ @COPUR
+/loan-context/ @COPUR
+/risk-context/ @COPUR
+/compliance-context/ @COPUR
+
+# Service repositories in monorepo
+/services/ @COPUR
+/amanahfi-platform/ @COPUR
+/masrufi-framework/ @COPUR
+
