@@ -41,8 +41,6 @@ class OnboardingUatTest {
 
     @BeforeEach
     void setUp() {
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
@@ -134,7 +132,7 @@ class OnboardingUatTest {
 
     @Test
     void shouldRejectUnsupportedAuthorizationHeader() {
-        given()
+        given().baseUri("http://localhost").port(port)
                 .contentType("application/json")
                 .accept("application/json")
                 .header("Authorization", "Basic invalid")
@@ -151,7 +149,7 @@ class OnboardingUatTest {
     }
 
     private RequestSpecification request() {
-        return given()
+        return given().baseUri("http://localhost").port(port)
                 .contentType("application/json")
                 .accept("application/json")
                 .header("Authorization", "DPoP functional-token")

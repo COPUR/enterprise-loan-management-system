@@ -42,8 +42,6 @@ class ProductDataUatTest {
 
     @BeforeEach
     void setUp() {
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
@@ -102,7 +100,7 @@ class ProductDataUatTest {
 
     @Test
     void shouldRejectInvalidAuthorizationAndInjectionAttempt() {
-        given()
+        given().baseUri("http://localhost").port(port)
                 .accept("application/json")
                 .header("X-FAPI-Interaction-ID", "ix-uc14-uat-err")
                 .header("Authorization", "Basic invalid")
@@ -122,7 +120,7 @@ class ProductDataUatTest {
     }
 
     private RequestSpecification request() {
-        return given()
+        return given().baseUri("http://localhost").port(port)
                 .accept("application/json")
                 .header("X-FAPI-Interaction-ID", "ix-uc14-uat")
                 .header("Authorization", "Bearer public-client-token");

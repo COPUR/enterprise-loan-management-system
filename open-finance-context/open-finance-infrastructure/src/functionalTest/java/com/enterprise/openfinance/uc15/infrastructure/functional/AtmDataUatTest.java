@@ -41,8 +41,6 @@ class AtmDataUatTest {
 
     @BeforeEach
     void setUp() {
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
@@ -70,7 +68,7 @@ class AtmDataUatTest {
 
     @Test
     void shouldRejectInvalidAuthorization() {
-        given()
+        given().baseUri("http://localhost").port(port)
                 .accept("application/json")
                 .header("X-FAPI-Interaction-ID", "ix-uc15-uat-err")
                 .header("Authorization", "Basic invalid")
@@ -111,7 +109,7 @@ class AtmDataUatTest {
     }
 
     private RequestSpecification request() {
-        return given()
+        return given().baseUri("http://localhost").port(port)
                 .accept("application/json")
                 .header("X-FAPI-Interaction-ID", "ix-uc15-uat")
                 .header("Authorization", "Bearer public-client-token");

@@ -6,6 +6,10 @@ plugins {
 group = 'com.amanahfi.infrastructure'
 version = '1.0.0-SNAPSHOT'
 
+def modulePathPrefix = path.startsWith(':amanahfi-platform:') ? ':amanahfi-platform:' : ':'
+
+def resolveModulePath = { String moduleName -> "${modulePathPrefix}${moduleName}" }
+
 bootJar {
     enabled = false
 }
@@ -15,7 +19,7 @@ jar {
 }
 
 dependencies {
-    implementation project(':shared-kernel')
+    implementation project(resolveModulePath('shared-kernel'))
     
     // Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter'
