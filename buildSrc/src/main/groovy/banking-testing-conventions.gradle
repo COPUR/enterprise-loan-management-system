@@ -206,29 +206,57 @@ tasks.register('generateBankingTestData') {
 }
 
 // Test coverage validation task
+def coverageReportProvider = layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml")
+def testJavaSources = project.fileTree(layout.projectDirectory.dir("src/test/java")) { include '**/*.java' }
+def coverageProjectPath = project.path
+
 tasks.register('validateBankingTestCoverage') {
     description = 'Validate test coverage meets banking standards'
     group = 'banking-test'
     
     dependsOn jacocoTestReport
     
-    inputs.files(layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml"))
+    inputs.file(coverageReportProvider)
+    onlyIf { !testJavaSources.isEmpty() }
     
     doLast {
-        def reportFile = layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml").get().asFile
-        
-        if (reportFile.exists()) {
-            // Simple validation - could be enhanced with XML parsing
-            def reportText = reportFile.text
-            
-            if (reportText.contains('<counter type="LINE"')) {
-                logger.info("Test coverage report generated successfully")
-            } else {
-                logger.warn("Test coverage report may be incomplete")
-            }
-        } else {
-            logger.warn("Test coverage report not found")
+        def reportFile = coverageReportProvider.get().asFile
+
+        if (!reportFile.exists()) {
+            throw new GradleException("Coverage gate failed for ${coverageProjectPath}: expected report at ${reportFile}")
         }
+
+        def reportText = reportFile.getText('UTF-8')
+        def lineCounterMatcher = (reportText =~ /<counter[^>]*type="LINE"[^>]*>/)
+        def lineCounterTag = null
+        while (lineCounterMatcher.find()) {
+            lineCounterTag = lineCounterMatcher.group(0)
+        }
+        if (lineCounterTag == null) {
+            throw new GradleException("Coverage gate failed for ${coverageProjectPath}: LINE counter not found in ${reportFile}")
+        }
+
+        def coveredMatch = (lineCounterTag =~ /covered="(\d+)"/)
+        def missedMatch = (lineCounterTag =~ /missed="(\d+)"/)
+        if (!coveredMatch.find() || !missedMatch.find()) {
+            throw new GradleException("Coverage gate failed for ${coverageProjectPath}: could not parse covered/missed values from LINE counter")
+        }
+
+        BigDecimal covered = new BigDecimal(coveredMatch.group(1))
+        BigDecimal missed = new BigDecimal(missedMatch.group(1))
+        BigDecimal total = covered + missed
+
+        if (total == BigDecimal.ZERO) {
+            throw new GradleException("Coverage gate failed for ${coverageProjectPath}: no executable lines reported")
+        }
+
+        BigDecimal ratio = covered.divide(total, 6, java.math.RoundingMode.HALF_UP)
+        BigDecimal minimum = new BigDecimal("0.83")
+        if (ratio < minimum) {
+            throw new GradleException("Coverage gate failed for ${coverageProjectPath}: line coverage ${ratio} is below required ${minimum}")
+        }
+
+        logger.lifecycle("Coverage gate passed for ${coverageProjectPath}: line coverage ${ratio}")
     }
 }
 
