@@ -23,6 +23,28 @@
 - Tests added/updated for behavior changes.
 - No secrets or PII in code, logs, fixtures, or screenshots.
 - CODEOWNERS review for owned paths.
+- Repository structure policy followed:
+  - `docs/architecture/REPOSITORY_STRUCTURE_POLICY.md`
+  - `docs/architecture/MODULE_OWNERSHIP_MAP.md`
+
+## Repository Governance Rules
+
+1. Frozen paths by default:
+   - `archive/`
+   - `temp-src/`
+   - `simple-test/`
+2. Deprecated roots are documentation-only by default:
+   - `bankwide/`
+   - `bank-wide-services/`
+   - `loan-service/`
+   - `payment-service/`
+3. Changes in `shared-kernel/` or `shared-infrastructure/` require ADR/decision updates.
+4. Structural changes must update:
+   - `DOCUMENTATION_INDEX.md`
+   - Root `readme.md`
+   - Relevant architecture docs
+5. CI enforces baseline repository governance checks via:
+   - `tools/validation/validate-repo-governance.sh`
 
 ## Commit Message Style
 

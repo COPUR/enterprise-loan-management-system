@@ -1,10 +1,15 @@
 # Global ownership
 * @COPUR
 
+# Governance and architecture
+/docs/architecture/ @COPUR
+/docs/GENERAL_BACKLOG.md @COPUR
+
 # Build and CI ownership
 /.github/ @COPUR
 /buildSrc/ @COPUR
 /config/ @COPUR
+/tools/validation/ @COPUR
 
 # Domain contexts
 /open-finance-context/ @COPUR
@@ -19,3 +24,6 @@
 /amanahfi-platform/ @COPUR
 /masrufi-framework/ @COPUR
 
+# Shared foundations require architecture-level review
+/shared-kernel/ @COPUR
+/shared-infrastructure/ @COPUR
