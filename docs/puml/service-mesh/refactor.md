@@ -4,6 +4,8 @@
 
 Define the concrete refactor backlog to move from application-centric transport controls to mesh-governed security, resilience, and observability without breaking business behavior.
 
+This refactor assumes a centralized IdP (Keycloak preferred) with distributed authorization agents and DPoP token-binding enforcement.
+
 ## Refactor Principles
 
 1. Keep domain behavior in service code; move transport policy to mesh.
@@ -25,11 +27,22 @@ Define the concrete refactor backlog to move from application-centric transport 
 
 - API gateway + mesh ingress for north-south.
 - Sidecar proxy for all service pods.
+- Centralized Keycloak + LDAP federation for identity.
+- Distributed authz agents (OPA/ext_authz) for fine-grained decisions.
+- DPoP proof and replay validation in gateway/mesh policy path.
 - mTLS and service authorization in mesh policy layer.
 - Centralized retries/timeouts/circuit-breaking via traffic policies.
 - Unified telemetry via OpenTelemetry + metrics/log pipelines.
 
 ## Refactor Workstreams
+
+## WS0: Identity and AAA Platform
+
+- Deploy Keycloak cluster with HA PostgreSQL backend.
+- Federate enterprise LDAP/AD and map groups/attributes to claims.
+- Establish realm/client management as code.
+- Configure key rotation and JWKS publication.
+- Define token audiences, issuers, and service trust contracts.
 
 ## WS1: Networking and Security
 
@@ -37,6 +50,7 @@ Define the concrete refactor backlog to move from application-centric transport 
 - Introduce `PeerAuthentication` in `PERMISSIVE`, then `STRICT`.
 - Add `AuthorizationPolicy` deny-by-default + explicit allow rules.
 - Add egress policy with gateway and allow-listed external hosts.
+- Add DPoP verification at edge (proof signature, `ath`, `jti` replay, `cnf.jkt` binding).
 - Remove conflicting in-service transport ACL code where mesh replaces it.
 
 ## WS2: Reliability and Traffic Policy
@@ -59,10 +73,13 @@ Define the concrete refactor backlog to move from application-centric transport 
 - Remove duplicate transport-level token forwarding checks if mesh already enforces mTLS identity.
 - Standardize error model for policy-denied and unauthorized responses.
 - Externalize all runtime configuration per 12-factor principles.
+- Standardize token validation libraries to trust centralized Keycloak issuer/JWKS.
 
 ## WS5: CI/CD and Governance
 
 - Add mesh policy validation jobs in Jenkins/GitLab pipelines.
+- Add Keycloak realm/client config validation and drift detection gates.
+- Add DPoP conformance tests for protected APIs.
 - Add pre-deploy policy simulation checks.
 - Require wave-specific verification checklist in PR templates.
 - Add drift detection for runtime mesh objects vs Git.
@@ -70,19 +87,23 @@ Define the concrete refactor backlog to move from application-centric transport 
 ## Service-Level Refactor Checklist
 
 1. Sidecar injection enabled.
-2. Service identity and authz policy applied.
-3. mTLS strict mode validated.
-4. Retry/timeout policy defined by route class.
-5. Egress policy constrained.
-6. Contract and integration tests pass under mesh.
-7. Load test confirms latency budget.
-8. Dashboards and alerts linked.
-9. Runbook updated.
-10. Rollback tested.
+2. Service trust configured to centralized Keycloak issuer/JWKS.
+3. DPoP enforcement enabled for required routes.
+4. Service identity and authz policy applied.
+5. mTLS strict mode validated.
+6. Retry/timeout policy defined by route class.
+7. Egress policy constrained.
+8. Contract and integration tests pass under mesh.
+9. Load test confirms latency budget.
+10. Dashboards and alerts linked.
+11. Runbook updated.
+12. Rollback tested.
 
 ## Risk Controls
 
 - Policy lockout risk: pre-merge simulation and staged rollout.
+- IdP outage risk: multi-instance Keycloak, DB HA, failover and cache strategy.
+- DPoP replay bypass risk: centralized replay cache + strict clock skew.
 - Latency regression risk: canary plus automatic rollback gates.
 - Observability blind spots: block promotion unless telemetry health checks pass.
 - Dependency outage amplification: mesh timeouts and bulkheads with conservative defaults.
@@ -90,8 +111,9 @@ Define the concrete refactor backlog to move from application-centric transport 
 ## Definition of Refactor Completion
 
 - No direct unencrypted east-west service traffic.
+- Centralized IdP and LDAP federation are production-ready and monitored.
+- DPoP-protected routes reject missing/invalid/replayed proofs.
 - All in-scope services managed by mesh policies.
 - No duplicated transport retries/circuit breakers in service code unless explicitly justified.
 - Security and reliability gates are mandatory in CI/CD.
 - Operational team accepts runbooks and incident drill outcomes.
-

@@ -13,6 +13,21 @@ cloud "North-South Edge" as Edge {
 }
 
 package "Kubernetes Cluster with Service Mesh" as Cluster #lightblue {
+  package "AAA Plane (Authentication, Authorization, Accounting)" as AAA #lavender {
+    package "Centralized Identity Provider (Preferred: Keycloak)" as IDP #lightpink {
+      rectangle "Keycloak Cluster\n(Active-Active)" as Keycloak
+      database "Keycloak DB\n(PostgreSQL HA)" as KeycloakDb
+      database "Enterprise LDAP/AD\n(User + Client Federation)" as Ldap
+      rectangle "JWKS / Token Introspection\nOIDC Discovery" as Jwks
+    }
+
+    package "Distributed Authorization + DPoP Enforcement" as AuthzDist #lightcyan {
+      rectangle "DPoP Verifier + Replay Cache\n(jti nonce store)" as DpopVerifier
+      rectangle "AuthZ Agents\n(OPA/ext_authz per namespace)" as AuthzAgents
+      rectangle "Audit & Compliance Sink\n(SIEM/immutable audit)" as AuditSink
+    }
+  }
+
   package "Mesh Control Plane" as MeshControl #lightcyan {
     rectangle "Istiod (xDS, cert distribution)" as Istiod
     rectangle "Policy Engine\n(PeerAuth/AuthZ/RateLimit integration)" as PolicyEngine
@@ -74,8 +89,13 @@ cloud "External Dependencies" as External {
   rectangle "FX, Payments, Registry APIs" as ExternalApis
 }
 
-Client --> APIGW : HTTPS + FAPI headers
-APIGW --> MeshIngress : HTTPS/mTLS
+Client --> APIGW : HTTPS + OAuth2/OIDC + DPoP proof
+APIGW --> Keycloak : /authorize /token /par /introspect
+Keycloak --> KeycloakDb : sessions/clients/realm config
+Keycloak --> Ldap : federated identities + groups
+Keycloak --> Jwks : publish signing keys/metadata
+APIGW --> DpopVerifier : validate DPoP (htu, htm, iat, jti, ath, cnf.jkt)
+APIGW --> MeshIngress : HTTPS/mTLS + DPoP-bound access token
 MeshIngress --> ConsentProxy
 MeshIngress --> PersonalProxy
 MeshIngress --> CorporateProxy
@@ -97,6 +117,15 @@ ConsentProxy --> CorporateProxy : mTLS east-west + AuthZ policy
 PersonalProxy --> MetaProxy : mTLS east-west + retries/timeouts
 CorporateProxy --> MetaProxy : mTLS east-west + retries/timeouts
 CorporateProxy --> CopProxy : mTLS east-west + policy
+
+ConsentProxy --> AuthzAgents : ext_authz decision (scopes, roles, ABAC)
+PersonalProxy --> AuthzAgents : ext_authz decision
+CorporateProxy --> AuthzAgents : ext_authz decision
+CopProxy --> AuthzAgents : ext_authz decision
+MetaProxy --> AuthzAgents : ext_authz decision
+AuthzAgents --> Jwks : key discovery / token verification data
+AuthzAgents --> AuditSink : authz decision logs
+APIGW --> AuditSink : DPoP + authN audit trail
 
 ConsentSvc --> ConsentDb
 PersonalAisSvc --> AisDb
@@ -141,11 +170,12 @@ PolicyEngine --> MetaProxy : workload policy
 
 note bottom of Cluster
   To-Be guardrails:
+  - Centralized IdP (Keycloak) with LDAP/AD federation.
+  - DPoP-bound tokens validated with replay protection.
   - Strict mTLS for all east-west traffic.
-  - Centralized authorization policy and controlled egress.
+  - Distributed authz agents + centralized policy and controlled egress.
   - Unified tracing, metrics, and structured logs across services.
   - FAPI/DPoP/JWS business controls remain at API and application layers.
 end note
 
 @enduml
-

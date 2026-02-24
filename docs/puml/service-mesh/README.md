@@ -16,5 +16,5 @@ This folder contains architecture views for service-mesh migration planning.
 ## Notes
 
 - **As-Is** shows current runtime with API gateway and direct east-west service calls.
-- **To-Be** shows target state with mesh ingress, sidecars, strict mTLS, policy enforcement, and unified telemetry.
+- **To-Be** shows target state with centralized AAA (Keycloak + LDAP), distributed authz agents, DPoP enforcement, mesh ingress, sidecars, strict mTLS, and unified telemetry.
 - Source of truth is the `.puml` files; image artifacts are generated from those sources.
