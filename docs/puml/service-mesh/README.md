@@ -13,6 +13,7 @@ This folder contains architecture views for service-mesh migration planning.
 - `plan.md`
 - `refactor.md`
 - `keycloak-aaa-blueprint.md`
+- `implementation-plan-industrial-standards-tdd-data-examples.md`
 
 ## Notes
 
