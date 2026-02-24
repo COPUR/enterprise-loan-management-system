@@ -50,6 +50,7 @@ jobs:
         env:
           GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           GITHUB_SHA: ${{ github.sha }}
+          STRICT_DEPRECATED_ROOTS: "true"
         run: bash tools/validation/validate-repo-governance.sh
 
   build-and-test:

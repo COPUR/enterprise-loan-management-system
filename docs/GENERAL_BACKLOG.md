@@ -105,4 +105,5 @@ This backlog consolidates enterprise-level work required to move from current-st
 | Rationalization plan documented | Done | `docs/architecture/WAVE_B_LEGACY_ROOT_RATIONALIZATION_PLAN.md` |
 | Dependency/reference inventory for deprecated roots | Done | Build include dependency check enforced; references categorized (runtime service naming vs folder dependency) |
 | Residual tracked file cleanup in deprecated roots | Done | `bankwide/build.gradle` removed and deletion path allowed by governance validator |
+| Strict deprecated-root cleanliness in CI | Done | `STRICT_DEPRECATED_ROOTS=true` enabled in `.github/workflows/ci.yml` governance gate |
 | Full relocation/archive of deprecated roots | Planned | Archive/remove deprecated roots after two release cycles and migration sign-off |
