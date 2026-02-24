@@ -22,6 +22,7 @@ Out of scope:
 
 - As-Is: `as-is-open-finance-runtime.puml`
 - To-Be: `to-be-open-finance-service-mesh.puml`
+- AAA Blueprint: `keycloak-aaa-blueprint.md`
 
 ## AAA Architecture (Keycloak Preferred)
 

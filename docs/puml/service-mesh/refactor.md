@@ -6,6 +6,8 @@ Define the concrete refactor backlog to move from application-centric transport 
 
 This refactor assumes a centralized IdP (Keycloak preferred) with distributed authorization agents and DPoP token-binding enforcement.
 
+Detailed AAA implementation contract: `keycloak-aaa-blueprint.md`.
+
 ## Refactor Principles
 
 1. Keep domain behavior in service code; move transport policy to mesh.

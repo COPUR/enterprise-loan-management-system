@@ -12,6 +12,7 @@ This folder contains architecture views for service-mesh migration planning.
 - `to-be-open-finance-service-mesh.svg`
 - `plan.md`
 - `refactor.md`
+- `keycloak-aaa-blueprint.md`
 
 ## Notes
 
