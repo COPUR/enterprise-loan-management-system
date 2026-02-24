@@ -10,6 +10,8 @@ This folder contains architecture views for service-mesh migration planning.
 - `to-be-open-finance-service-mesh.puml`
 - `to-be-open-finance-service-mesh.png`
 - `to-be-open-finance-service-mesh.svg`
+- `plan.md`
+- `refactor.md`
 
 ## Notes
 
