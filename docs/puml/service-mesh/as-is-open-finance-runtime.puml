@@ -1,0 +1,83 @@
+@startuml as-is-open-finance-runtime
+!theme spacelab
+title As-Is Architecture (Before Service Mesh)
+
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+actor "TPP / Internal Client" as Client
+
+cloud "North-South Edge" as Edge {
+  rectangle "API Gateway\n(Kong/Apigee)" as APIGW #lightyellow
+}
+
+package "Kubernetes Cluster\n(no service mesh)" as Cluster #lightblue {
+  package "Open Finance Services" as OF #lightgreen {
+    rectangle "Consent & Authorization Service\n(FAPI, OAuth2, PKCE checks in app)" as ConsentSvc
+    rectangle "Personal Financial Data Service\n(AIS Retail)" as PersonalAisSvc
+    rectangle "Business Financial Data Service\n(AIS Corporate)" as CorporateAisSvc
+    rectangle "Confirmation of Payee Service" as CopSvc
+    rectangle "Banking Metadata Service" as MetadataSvc
+    rectangle "Open Products Service" as ProductsSvc
+    rectangle "ATM Directory Service" as AtmSvc
+  }
+
+  package "Data Stores" as Data #lightgray {
+    database "Consent Store\n(in-memory adapter)" as ConsentDb
+    database "AIS Store\n(Mongo/adapter)" as AisDb
+    database "CoP Directory\n(Mongo/Search adapter)" as CopDb
+    database "Metadata Store\n(Mongo/adapter)" as MetaDb
+    database "Open Data Cache\n(adapter)" as OpenDataCache
+  }
+
+  package "Observability (partial)" as Obs #mistyrose {
+    rectangle "Service-local logs" as LocalLogs
+    rectangle "Basic health checks" as HealthChecks
+  }
+}
+
+cloud "External Dependencies" as External {
+  rectangle "Core Banking / Legacy Systems" as CoreBanking
+  rectangle "FX, Payments, Registry APIs" as ExternalApis
+}
+
+Client --> APIGW : HTTPS + OAuth2/DPoP/JWS headers
+APIGW --> ConsentSvc : /open-finance/v1/*
+APIGW --> PersonalAisSvc : /open-finance/v1/accounts...
+APIGW --> CorporateAisSvc : /open-finance/v1/corporate...
+APIGW --> CopSvc : /open-finance/v1/confirmation-of-payee/*
+APIGW --> MetadataSvc : /open-finance/v1/metadata...
+APIGW --> ProductsSvc : /open-finance/v1/products
+APIGW --> AtmSvc : /open-finance/v1/atms
+
+ConsentSvc --> ConsentDb
+PersonalAisSvc --> AisDb
+CorporateAisSvc --> AisDb
+CopSvc --> CopDb
+MetadataSvc --> MetaDb
+ProductsSvc --> OpenDataCache
+AtmSvc --> OpenDataCache
+
+PersonalAisSvc --> CoreBanking
+CorporateAisSvc --> CoreBanking
+CopSvc --> CoreBanking
+MetadataSvc --> CoreBanking
+ConsentSvc --> ExternalApis
+
+ConsentSvc --> LocalLogs
+PersonalAisSvc --> LocalLogs
+CorporateAisSvc --> LocalLogs
+CopSvc --> LocalLogs
+MetadataSvc --> LocalLogs
+ProductsSvc --> HealthChecks
+AtmSvc --> HealthChecks
+
+note bottom of Cluster
+  As-Is characteristics:
+  - Security and policy checks are mostly in application code.
+  - East-west traffic security/retry/timeout is not centrally enforced.
+  - Observability and policy controls are uneven across services.
+end note
+
+@enduml
+
