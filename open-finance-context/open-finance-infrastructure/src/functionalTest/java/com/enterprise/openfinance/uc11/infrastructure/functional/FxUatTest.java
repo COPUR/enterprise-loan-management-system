@@ -41,8 +41,6 @@ class FxUatTest {
 
     @BeforeEach
     void setUp() {
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
@@ -126,7 +124,7 @@ class FxUatTest {
 
     @Test
     void shouldRejectUnsupportedAuthorizationHeader() {
-        given()
+        given().baseUri("http://localhost").port(port)
                 .contentType("application/json")
                 .accept("application/json")
                 .header("Authorization", "Basic invalid")
@@ -142,7 +140,7 @@ class FxUatTest {
     }
 
     private RequestSpecification request() {
-        return given()
+        return given().baseUri("http://localhost").port(port)
                 .contentType("application/json")
                 .accept("application/json")
                 .header("Authorization", "DPoP functional-token")

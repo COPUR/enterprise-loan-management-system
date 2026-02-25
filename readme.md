@@ -52,6 +52,19 @@ This platform transcends traditional banking systems by implementing a **secure-
 | **[Loan Context Architecture](docs/images/loan-context-architecture.svg)** | Hexagonal architecture for loan domain | [PlantUML Source](docs/puml/bounded-contexts/loan-context-architecture.puml) |
 | **[Payment Context Architecture](docs/images/payment-context-architecture.svg)** | Real-time payment processing with fraud detection | [PlantUML Source](docs/puml/bounded-contexts/payment-context-architecture.puml) |
 
+#### Transformation As-Is / To-Be and Capability Views
+| Diagram / Artifact | Description | Source |
+|---------|-------------|--------|
+| **[Runtime As-Is](docs/puml/service-mesh/as-is-open-finance-runtime.svg)** | Current Open Finance runtime topology and trust boundaries | [PlantUML Source](docs/puml/service-mesh/as-is-open-finance-runtime.puml) |
+| **[Runtime To-Be (Service Mesh)](docs/puml/service-mesh/to-be-open-finance-service-mesh.svg)** | Target service mesh topology with centralized AAA and policy controls | [PlantUML Source](docs/puml/service-mesh/to-be-open-finance-service-mesh.puml) |
+| **[Organizational As-Is Big Picture](docs/puml/service-mesh/organizational-as-is-big-picture.svg)** | Current operating model, governance, and delivery organization | [PlantUML Source](docs/puml/service-mesh/organizational-as-is-big-picture.puml) |
+| **[Organizational To-Be Big Picture](docs/puml/service-mesh/organizational-to-be-big-picture.svg)** | Target operating model for domain streams + platform teams | [PlantUML Source](docs/puml/service-mesh/organizational-to-be-big-picture.puml) |
+| **[Enterprise Capability Map](docs/puml/service-mesh/enterprise-capability-map.svg)** | Capability landscape and maturity direction | [PlantUML Source](docs/puml/service-mesh/enterprise-capability-map.puml) |
+| **[Service Mesh Transformation Plan](docs/puml/service-mesh/plan.md)** | Implementation phases, sequencing, and delivery controls | [Roadmap](docs/puml/service-mesh/refactor.md) |
+| **[Keycloak AAA Blueprint](docs/puml/service-mesh/keycloak-aaa-blueprint.md)** | Distributed AAA architecture with LDAP and DPoP support | [Implementation Plan](docs/puml/service-mesh/implementation-plan-industrial-standards-tdd-data-examples.md) |
+| **[Organizational Big Picture Doc](docs/architecture/ORGANIZATIONAL_BIG_PICTURE_AS_IS_TO_BE.md)** | Executive-level as-is/to-be architecture narrative | [Capability Map Doc](docs/architecture/ENTERPRISE_CAPABILITY_MAP.md) |
+| **[Repository Clean Coding Review](docs/architecture/REPOSITORY_CLEAN_CODING_REVIEW.md)** | Repository structure assessment and cleanup roadmap | [General Backlog](docs/GENERAL_BACKLOG.md) |
+
 ## 🔒 PCI-DSS v4.0 Security Architecture
 
 ### Multi-Layer Security Framework
@@ -158,6 +171,13 @@ Infrastructure, deployment, and CI/CD assets have been removed or redacted to ke
 |----------|-------------|----------|
 | **[Architecture Catalogue](docs/architecture/overview/ARCHITECTURE_CATALOGUE.md)** | **Complete system architecture overview** | **Primary** |
 | **[Diagram Reference Index](docs/architecture/DIAGRAM_REFERENCE_INDEX.md)** | **Complete diagram and PlantUML reference** | **Primary** |
+| **[Organizational As-Is / To-Be](docs/architecture/ORGANIZATIONAL_BIG_PICTURE_AS_IS_TO_BE.md)** | **Operating model transformation and governance target state** | **Primary** |
+| **[Enterprise Capability Map](docs/architecture/ENTERPRISE_CAPABILITY_MAP.md)** | **Capability model, maturity targets, and ownership mapping** | **Primary** |
+| **[Repository Clean Coding Review](docs/architecture/REPOSITORY_CLEAN_CODING_REVIEW.md)** | **Repository structure audit and reorganization roadmap** | **Primary** |
+| **[Repository Structure Policy](docs/architecture/REPOSITORY_STRUCTURE_POLICY.md)** | **Mandatory repository structure and change-control policy** | **Primary** |
+| **[Module Ownership Map](docs/architecture/MODULE_OWNERSHIP_MAP.md)** | **Ownership matrix for contexts, platforms, and governance paths** | **Primary** |
+| **[Wave B Legacy Root Rationalization](docs/architecture/WAVE_B_LEGACY_ROOT_RATIONALIZATION_PLAN.md)** | **Deprecation and migration plan for duplicate/legacy roots** | **Primary** |
+| **[General Backlog](docs/GENERAL_BACKLOG.md)** | **Cross-stream backlog aligned to architecture transformation** | **Primary** |
 | [Secure Microservices Architecture](docs/architecture/overview/SECURE_MICROSERVICES_ARCHITECTURE.md) | Zero-trust security implementation | Architecture |
 | [ADR-004: OAuth 2.1](docs/architecture/adr/ADR-004-oauth21-authentication.md) | Authentication architecture decisions | Decisions |
 | [ADR-005: Istio Service Mesh](docs/architecture/adr/ADR-005-istio-service-mesh.md) | Service mesh implementation | Decisions |

@@ -41,8 +41,6 @@ class InsuranceQuoteUatTest {
 
     @BeforeEach
     void setUp() {
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
@@ -161,7 +159,7 @@ class InsuranceQuoteUatTest {
 
     @Test
     void shouldRejectUnsupportedAuthorizationHeader() {
-        given()
+        given().baseUri("http://localhost").port(port)
                 .contentType("application/json")
                 .accept("application/json")
                 .header("Authorization", "Basic invalid")
@@ -176,7 +174,7 @@ class InsuranceQuoteUatTest {
     }
 
     private RequestSpecification request() {
-        return given()
+        return given().baseUri("http://localhost").port(port)
                 .contentType("application/json")
                 .accept("application/json")
                 .header("Authorization", "DPoP functional-token")

@@ -255,6 +255,14 @@ bootRun/
 .idea/*.iml
 .idea/vcs.xml
 
+# Python local tooling artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+.venv-*/
+
 # ============================================
 # OPERATING SYSTEM FILES
 # ============================================

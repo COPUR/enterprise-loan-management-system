@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/COPUR/enterprise-loan-management-system/security/advisories/new
+    about: Please report vulnerabilities via private security advisories.
+  - name: Support request
+    url: https://github.com/COPUR/enterprise-loan-management-system/issues/new?template=support_request.yml
+    about: Use the support request template for questions and help.
+

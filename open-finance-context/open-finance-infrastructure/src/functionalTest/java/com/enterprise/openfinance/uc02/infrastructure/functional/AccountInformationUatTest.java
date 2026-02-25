@@ -40,8 +40,6 @@ class AccountInformationUatTest {
 
     @BeforeEach
     void setUp() {
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
@@ -112,7 +110,7 @@ class AccountInformationUatTest {
     }
 
     private RequestSpecification request(String consentId) {
-        return given()
+        return given().baseUri("http://localhost").port(port)
                 .contentType("application/json")
                 .accept("application/json")
                 .header("Authorization", "DPoP functional-token")

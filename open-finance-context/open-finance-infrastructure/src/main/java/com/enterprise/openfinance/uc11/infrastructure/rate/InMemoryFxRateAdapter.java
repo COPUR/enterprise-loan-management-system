@@ -34,13 +34,18 @@ public class InMemoryFxRateAdapter implements FxRatePort {
             return Optional.empty();
         }
 
-        BigDecimal value = rates.get(pair == null ? null : pair.toUpperCase());
+        if (pair == null || pair.isBlank()) {
+            return Optional.empty();
+        }
+
+        String normalizedPair = pair.toUpperCase();
+        BigDecimal value = rates.get(normalizedPair);
         if (value == null || value.signum() <= 0) {
             return Optional.empty();
         }
 
         return Optional.of(new FxRateSnapshot(
-                pair.toUpperCase(),
+                normalizedPair,
                 value.setScale(rateScale, RoundingMode.HALF_UP),
                 now,
                 "STREAM"

@@ -1,0 +1,58 @@
+name: Bug report
+description: Report a reproducible defect
+title: "[Bug]: "
+labels:
+  - bug
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+        Please provide enough detail so we can reproduce and fix it.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: Short description of the defect
+      placeholder: FAPI validation returns 500 for invalid DPoP proof
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Exact steps to reproduce
+      placeholder: |
+        1. Call endpoint ...
+        2. Use payload ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and stack traces
+      description: Redact secrets and PII before sharing
+      render: shell
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Java version, module path, branch/commit
+      placeholder: macOS 14.6, Java 23, open-finance-context, commit abc123
+    validations:
+      required: true
+

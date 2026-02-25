@@ -1,4 +1,5 @@
 stages:
+  - governance
   - validate
   - contract
   - security
@@ -8,6 +9,20 @@ variables:
   CONTEXT_README: "${CONTEXT_DIR}/README.md"
   CONTEXT_MANIFEST: "${CONTEXT_DIR}/REPO_MANIFEST.md"
   CONTEXT_OPENAPI: ""
+  STRICT_DEPRECATED_ROOTS: "true"
+
+repository_governance:
+  stage: governance
+  image: python:3.13-slim
+  script:
+    - apt-get update
+    - apt-get install -y --no-install-recommends git bash
+    - python -m venv .venv-validation
+    - . .venv-validation/bin/activate
+    - python -m pip install --upgrade pip coverage
+    - python -m coverage run --source=tools/validation -m unittest discover -s tools/validation/tests -p 'test_*.py'
+    - python -m coverage report --include='*/repo_governance_validator.py' --fail-under=90
+    - bash tools/validation/validate-repo-governance.sh
 
 validate_context_artifacts:
   stage: validate
