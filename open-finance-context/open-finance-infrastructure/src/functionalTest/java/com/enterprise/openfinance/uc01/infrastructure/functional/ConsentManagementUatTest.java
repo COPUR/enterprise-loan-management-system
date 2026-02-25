@@ -58,8 +58,6 @@ class ConsentManagementUatTest {
     @BeforeEach
     void setUp() {
         mutableClock.setInstant(INITIAL_TIME);
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
@@ -175,7 +173,7 @@ class ConsentManagementUatTest {
     }
 
     private RequestSpecification baseRequest() {
-        return given()
+        return given().baseUri("http://localhost").port(port)
                 .contentType("application/json")
                 .accept("application/json")
                 .header("Authorization", "DPoP uat-token")

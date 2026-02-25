@@ -41,8 +41,6 @@ class ConfirmationOfPayeeUatTest {
 
     @BeforeEach
     void setUp() {
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.port = port;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }
 
@@ -124,7 +122,7 @@ class ConfirmationOfPayeeUatTest {
     }
 
     private RequestSpecification baseRequest() {
-        return given()
+        return given().baseUri("http://localhost").port(port)
                 .contentType("application/json")
                 .accept("application/json")
                 .header("Authorization", "DPoP functional-token")

@@ -19,7 +19,8 @@ public class GeneratedPolicyIssuanceAdapter implements PolicyIssuancePort {
                                     Instant now) {
         String policyId = "POL-MTR-" + UUID.randomUUID();
         String policyNumber = "MTR-" + now.atZone(ZoneOffset.UTC).toLocalDate() + "-" + quote.quoteId().substring(0, 6);
-        String certificateId = "CERT-" + Math.abs((quote.quoteId() + paymentReference + interactionId).hashCode());
+        long certificateChecksum = Integer.toUnsignedLong((quote.quoteId() + paymentReference + interactionId).hashCode());
+        String certificateId = "CERT-" + certificateChecksum;
         return new IssuedPolicy(policyId, policyNumber, certificateId);
     }
 }

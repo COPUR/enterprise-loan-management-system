@@ -9,6 +9,12 @@ This is the top-level documentation hub for architecture, operations, security, 
   - `architecture/MONGODB_BCNF_DKNF_BASELINE.md`
   - `../scripts/mongodb/migrate-open-finance-analytics.sh`
   - `../scripts/validation/validate-mongodb-analytics-design.sh`
+- Added service-mesh organizational and capability architecture documentation:
+  - `architecture/ORGANIZATIONAL_BIG_PICTURE_AS_IS_TO_BE.md`
+  - `architecture/ENTERPRISE_CAPABILITY_MAP.md`
+  - `architecture/REPOSITORY_CLEAN_CODING_REVIEW.md`
+  - `architecture/WAVE_B_LEGACY_ROOT_RATIONALIZATION_PLAN.md`
+  - `GENERAL_BACKLOG.md`
 - Updated core indexes and root README links to current file locations.
 
 ## Core References
@@ -24,6 +30,13 @@ This is the top-level documentation hub for architecture, operations, security, 
 - `architecture/README.md`
 - `architecture/DIAGRAM_REFERENCE_INDEX.md`
 - `architecture/MONGODB_BCNF_DKNF_BASELINE.md`
+- `architecture/ORGANIZATIONAL_BIG_PICTURE_AS_IS_TO_BE.md`
+- `architecture/ENTERPRISE_CAPABILITY_MAP.md`
+- `architecture/REPOSITORY_CLEAN_CODING_REVIEW.md`
+- `architecture/REPOSITORY_STRUCTURE_POLICY.md`
+- `architecture/MODULE_OWNERSHIP_MAP.md`
+- `architecture/WAVE_B_LEGACY_ROOT_RATIONALIZATION_PLAN.md`
+- `GENERAL_BACKLOG.md`
 - `architecture/adr/` - Core ADRs
 - `architecture/decisions/` - Extended ADRs
 
@@ -56,6 +69,7 @@ This is the top-level documentation hub for architecture, operations, security, 
 ## Visual Architecture Assets
 - `images/security/` - Rendered architecture/security diagrams
 - `puml/` - PlantUML sources
+- `puml/service-mesh/` - Runtime, organizational as-is/to-be, and capability-map diagrams
 - `ci-cd.puml`
 - `ci-cd.svg`
 

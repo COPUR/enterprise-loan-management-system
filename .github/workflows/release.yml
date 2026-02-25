@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  JAVA_VERSION: "23"
+
+jobs:
+  publish:
+    name: Publish Release Assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v3
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build artifacts
+        run: ./gradlew --no-daemon assemble
+
+      - name: Collect release artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          find . -type f -path "*/build/libs/*.jar" -exec cp "{}" release-assets/ \;
+          ls -la release-assets
+
+      - name: Create release if missing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if ! gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release create "${GITHUB_REF_NAME}" --generate-notes
+          fi
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          files=(release-assets/*.jar)
+          if [ "${#files[@]}" -eq 0 ] || [ ! -e "${files[0]}" ]; then
+            echo "No release assets found"
+            exit 1
+          fi
+          gh release upload "${GITHUB_REF_NAME}" release-assets/*.jar --clobber
+

@@ -1,0 +1,13 @@
+openfinance:
+  security:
+    oauth2:
+      authorization-code-ttl: ${OPENFINANCE_CA_AUTH_CODE_TTL:PT5M}
+      access-token-ttl: ${OPENFINANCE_CA_ACCESS_TOKEN_TTL:PT15M}
+      refresh-token-ttl: ${OPENFINANCE_CA_REFRESH_TOKEN_TTL:PT12H}
+    softhsm:
+      enabled: ${OPENFINANCE_CA_SOFTHSM_ENABLED:true}
+      fallback-to-jdk: ${OPENFINANCE_CA_SOFTHSM_FALLBACK_TO_JDK:true}
+      library-path: ${OPENFINANCE_CA_SOFTHSM_LIBRARY_PATH:/opt/softhsm2-devel/lib/softhsm/libsofthsm2.so}
+      token-label: ${OPENFINANCE_CA_SOFTHSM_TOKEN_LABEL:first token}
+      slot-list-index: ${OPENFINANCE_CA_SOFTHSM_SLOT_LIST_INDEX:0}
+

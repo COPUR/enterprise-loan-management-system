@@ -1,0 +1,65 @@
+@startuml enterprise-capability-map
+!theme spacelab
+title Enterprise Capability Map (Current vs Target)
+
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+package "L1 Business Capabilities" as L1Business #lightyellow {
+  rectangle "Customer & Identity Management" as CapCustomer
+  rectangle "Open Finance Data Sharing" as CapOpenFinance
+  rectangle "Payment Initiation & Settlement" as CapPayments
+  rectangle "Lending & Credit Lifecycle" as CapLending
+  rectangle "Compliance & Risk Control" as CapCompliance
+}
+
+package "L1 Enabling Capabilities" as L1Enabling #lightgreen {
+  rectangle "Identity & Access Platform\n(Keycloak + LDAP + DPoP)" as CapAAA
+  rectangle "API & Integration Platform\n(Gateway + PAR + FAPI)" as CapAPI
+  rectangle "Service Mesh Security Runtime" as CapMesh
+  rectangle "Data Platform & Governance" as CapData
+  rectangle "Observability & SRE" as CapObs
+  rectangle "DevSecOps & Supply Chain" as CapDevSecOps
+}
+
+package "L1 Governance Capabilities" as L1Gov #lightgray {
+  rectangle "Architecture Governance" as CapArchGov
+  rectangle "Policy-as-Code Governance" as CapPolicy
+  rectangle "Audit, Liability & Evidence" as CapAudit
+  rectangle "Portfolio & Backlog Governance" as CapPortfolio
+}
+
+package "Capability Maturity Snapshot" as Maturity #mistyrose {
+  rectangle "As-Is: 2.1 / 5\n(fragmented platform controls)" as AsIsMaturity
+  rectangle "To-Be Target: 4.0 / 5\n(standardized, measurable platform)" as ToBeMaturity
+}
+
+CapCustomer --> CapAAA
+CapOpenFinance --> CapAPI
+CapPayments --> CapAPI
+CapPayments --> CapMesh
+CapLending --> CapData
+CapCompliance --> CapAudit
+
+CapAAA --> CapPolicy
+CapAPI --> CapPolicy
+CapMesh --> CapPolicy
+CapData --> CapArchGov
+CapObs --> CapAudit
+CapDevSecOps --> CapPolicy
+CapDevSecOps --> CapPortfolio
+
+AsIsMaturity --> ToBeMaturity
+CapArchGov --> ToBeMaturity
+CapPolicy --> ToBeMaturity
+CapAudit --> ToBeMaturity
+CapPortfolio --> ToBeMaturity
+
+note bottom of Maturity
+  Suggested maturity tracking:
+  - Score each L1 capability on Process, Automation, Compliance, and SLO control.
+  - Re-baseline quarterly through architecture board reviews.
+end note
+
+@enduml
+

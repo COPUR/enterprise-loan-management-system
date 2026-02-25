@@ -7,8 +7,12 @@ plugins {
 group = 'com.amanahfi.events'
 version = '1.0.0-SNAPSHOT'
 
+def modulePathPrefix = path.startsWith(':amanahfi-platform:') ? ':amanahfi-platform:' : ':'
+
+def resolveModulePath = { String moduleName -> "${modulePathPrefix}${moduleName}" }
+
 dependencies {
-    implementation project(':amanahfi-platform:shared-kernel')
+    implementation project(resolveModulePath('shared-kernel'))
     
     // Spring Kafka for event streaming
     implementation 'org.springframework.kafka:spring-kafka'

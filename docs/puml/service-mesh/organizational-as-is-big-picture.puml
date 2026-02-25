@@ -1,0 +1,77 @@
+@startuml organizational-as-is-big-picture
+!theme spacelab
+title Organizational Big Picture - As-Is
+
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+actor "Board / Executive Committee" as Board
+
+package "Enterprise Governance (As-Is)" as Gov #lightgray {
+  rectangle "Architecture Review\n(ad-hoc, project-triggered)" as ArchReview
+  rectangle "Risk & Compliance\n(late-stage gate)" as RiskCompliance
+  rectangle "Change Advisory Board\n(manual approvals)" as CAB
+}
+
+package "Delivery Organization (As-Is)" as Delivery #lightyellow {
+  package "Silo Team: Open Finance" as TeamOF #lightgoldenrodyellow {
+    rectangle "PO + Tech Lead + Engineers" as OFTeam
+    rectangle "Own auth rules in service code" as OFAuth
+  }
+  package "Silo Team: Lending" as TeamLoan #lightgoldenrodyellow {
+    rectangle "PO + Tech Lead + Engineers" as LoanTeam
+  }
+  package "Silo Team: Payments" as TeamPay #lightgoldenrodyellow {
+    rectangle "PO + Tech Lead + Engineers" as PayTeam
+  }
+  package "Shared Infra Team" as InfraTeam #lightgoldenrodyellow {
+    rectangle "K8s + network operations" as InfraOps
+    rectangle "Environment-by-environment changes" as EnvDrift
+  }
+}
+
+package "Security & Identity (As-Is)" as SecID #mistyrose {
+  rectangle "Gateway auth checks" as GwChecks
+  rectangle "Service-level token logic\n(duplicated implementation)" as ServiceAuth
+  rectangle "No single AAA control plane\nfor all domains" as NoCentralAAA
+}
+
+package "Operations (As-Is)" as Ops #lightblue {
+  rectangle "Partial observability coverage" as PartialObs
+  rectangle "Manual incident triage" as ManualIncident
+  rectangle "Reactive compliance evidence collection" as ReactiveAudit
+}
+
+Board --> ArchReview : periodic requests
+Board --> RiskCompliance : regulatory expectations
+ArchReview --> OFTeam : project guidance
+ArchReview --> LoanTeam
+ArchReview --> PayTeam
+
+RiskCompliance --> CAB : approval dependency
+CAB --> InfraOps : release window approval
+
+OFTeam --> OFAuth
+OFAuth --> ServiceAuth : domain-specific enforcement
+LoanTeam --> ServiceAuth
+PayTeam --> ServiceAuth
+GwChecks --> ServiceAuth : inconsistent boundaries
+
+InfraOps --> EnvDrift
+EnvDrift --> PartialObs
+PartialObs --> ManualIncident
+ManualIncident --> ReactiveAudit
+RiskCompliance --> ReactiveAudit
+
+NoCentralAAA --> GwChecks
+NoCentralAAA --> ServiceAuth
+
+note bottom of Delivery
+  As-Is organizational characteristics:
+  - Delivery is domain-siloed with limited platform abstraction.
+  - Security controls are split between gateway and service code.
+  - Governance and compliance are mostly end-of-cycle activities.
+end note
+
+@enduml
+

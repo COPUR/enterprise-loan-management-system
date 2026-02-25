@@ -26,6 +26,7 @@ dependencies {
 
 def nvdApiKey = System.getenv('NVD_API_KEY')?.trim()
 def hasNvdApiKey = nvdApiKey
+def isCi = ((System.getenv('CI') ?: '').toLowerCase() in ['1', 'true', 'yes'])
 def projectName = project.name
 def sourceJavaDir = project.layout.projectDirectory.dir('src/main/java').asFile
 def projectBuildDir = project.layout.buildDirectory.get().asFile
@@ -44,11 +45,13 @@ def collectJavaFiles = { File root ->
     javaFiles
 }
 
+def hasMainJavaSources = !collectJavaFiles(sourceJavaDir).isEmpty()
+
 // OWASP Dependency Check configuration
 dependencyCheck {
     autoUpdate = hasNvdApiKey
     format = 'ALL'
-    failOnError = false
+    failOnError = hasNvdApiKey && hasMainJavaSources
     
     // Fail build on CVSS score
     failBuildOnCVSS = 7.0
@@ -71,12 +74,26 @@ dependencyCheck {
 }
 
 tasks.named('dependencyCheckAnalyze').configure {
-    onlyIf {
-        hasNvdApiKey
-    }
+    enabled = hasNvdApiKey && hasMainJavaSources
+    notCompatibleWithConfigurationCache('OWASP dependency-check is not configuration-cache compatible. Run without configuration cache when enabling this task.')
     doFirst {
-        if (!hasNvdApiKey) {
-            logger.lifecycle("Skipping dependencyCheckAnalyze for ${projectName}: NVD_API_KEY is not set")
+        logger.lifecycle("Running dependencyCheckAnalyze for ${projectName}")
+    }
+}
+
+tasks.register('dependencyScanPreflight') {
+    description = 'Validate dependency scanning prerequisites'
+    group = 'security'
+
+    doLast {
+        if (isCi && hasMainJavaSources && !hasNvdApiKey) {
+            throw new GradleException("NVD_API_KEY must be set in CI for dependency vulnerability scanning on ${projectName}")
+        }
+
+        if (!hasMainJavaSources) {
+            logger.lifecycle("Skipping dependency vulnerability scan for ${projectName}: no Java source files")
+        } else if (!hasNvdApiKey) {
+            logger.lifecycle("Skipping dependency vulnerability scan for ${projectName}: NVD_API_KEY is not set")
         }
     }
 }
@@ -197,7 +214,10 @@ tasks.register('generateSecurityReport') {
     description = 'Generate comprehensive security report'
     group = 'security'
     
-    dependsOn dependencyCheckAnalyze, fapiComplianceTest, cryptographyTest
+    dependsOn fapiComplianceTest, cryptographyTest, dependencyScanPreflight
+    if (hasNvdApiKey && hasMainJavaSources) {
+        dependsOn dependencyCheckAnalyze
+    }
     
     doLast {
         def reportDir = new File(projectBuildDir, "reports/security")
@@ -262,29 +282,34 @@ tasks.register('securityCodeScan') {
         
         // Check for hardcoded secrets
         def secretPatterns = [
-            /password\s*=\s*"[^"]+"/,
-            /secret\s*=\s*"[^"]+"/,
-            /key\s*=\s*"[^"]+"/,
-            /token\s*=\s*"[^"]+"/,
-            /api[_-]?key\s*=\s*"[^"]+"/
+            ~/(?i)\b(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|private[_-]?key)\b\s*=\s*["'][^"']{4,}["']/,
+            ~/(?i)System\.setProperty\(\s*["'][^"']*(?:password|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|private[_-]?key)[^"']*["']\s*,\s*["'][^"']+["']\s*\)/
         ]
         
         def violations = []
         
         javaFiles.each { file ->
-            def content = file.text
-            secretPatterns.each { pattern ->
-                if (content.find(pattern)) {
-                    violations.add("Potential hardcoded secret in ${file.name}")
+            file.readLines().eachWithIndex { line, index ->
+                def trimmed = line.trim()
+                if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) {
+                    return
+                }
+
+                secretPatterns.each { pattern ->
+                    if ((line =~ pattern).find()) {
+                        violations.add("${file.path}:${index + 1} -> ${trimmed}")
+                    }
                 }
             }
         }
         
         if (!violations.isEmpty()) {
-            logger.warn("Security violations found:")
-            violations.each { logger.warn("  - ${it}") }
+            def previewLimit = 20
+            def findings = violations.take(previewLimit).collect { "  - ${it}" }.join('\n')
+            def suffix = violations.size() > previewLimit ? "\n  ... and ${violations.size() - previewLimit} more" : ""
+            throw new GradleException("Security code scan failed for ${projectName}. Potential hardcoded secrets found:\n${findings}${suffix}")
         } else {
-            logger.info("No security violations found")
+            logger.lifecycle("Security code scan passed for ${projectName}")
         }
     }
 }
@@ -337,7 +362,10 @@ def generateSecurityReportHtml(String projectName) {
 }
 
 // Task dependencies
-check.dependsOn dependencyCheckAnalyze, fapiComplianceTest, cryptographyTest, securityArchitectureTest
+check.dependsOn dependencyScanPreflight, fapiComplianceTest, cryptographyTest, securityArchitectureTest
+if (hasNvdApiKey && hasMainJavaSources) {
+    check.dependsOn dependencyCheckAnalyze
+}
 fapiComplianceTest.mustRunAfter test
 cryptographyTest.mustRunAfter fapiComplianceTest
 securityArchitectureTest.mustRunAfter cryptographyTest
