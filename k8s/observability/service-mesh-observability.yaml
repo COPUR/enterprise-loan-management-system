@@ -1,0 +1,1243 @@
+# Service Mesh Observability Configuration
+# Distributed Tracing, Metrics, and Logging for Enterprise Banking System
+# Jaeger, Prometheus, Grafana, Fluentd Integration
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: observability
+  labels:
+    istio-injection: enabled
+    app.kubernetes.io/name: observability
+    compliance.banking/audit-required: "true"
+    security.banking/monitoring-level: "comprehensive"
+
+---
+# Jaeger Distributed Tracing Configuration
+apiVersion: jaegertracing.io/v1
+kind: Jaeger
+metadata:
+  name: banking-jaeger
+  namespace: observability
+  labels:
+    app: jaeger
+    component: tracing
+spec:
+  strategy: production
+  storage:
+    type: elasticsearch
+    elasticsearch:
+      nodeCount: 3
+      redundancyPolicy: SingleRedundancy
+      resources:
+        requests:
+          memory: "2Gi"
+          cpu: "1"
+        limits:
+          memory: "4Gi" 
+          cpu: "2"
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 100Gi
+          storageClassName: fast-ssd
+  collector:
+    maxReplicas: 10
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "1Gi"
+        cpu: "1"
+    options:
+      collector:
+        zipkin:
+          host-port: ":9411"
+        otlp:
+          grpc:
+            host-port: ":4317"
+          http:
+            host-port: ":4318"
+  query:
+    replicas: 3
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    options:
+      query:
+        base-path: /jaeger
+        ui-config: /etc/jaeger/ui-config.json
+  agent:
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "128Mi"
+        cpu: "100m"
+    options:
+      agent:
+        grpc-server:
+          host-port: ":14250"
+  volumeMounts:
+    - name: ui-config
+      mountPath: /etc/jaeger
+  volumes:
+    - name: ui-config
+      configMap:
+        name: jaeger-ui-config
+
+---
+# Jaeger UI Configuration for Banking Context
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jaeger-ui-config
+  namespace: observability
+  labels:
+    app: jaeger
+    component: ui-config
+data:
+  ui-config.json: |
+    {
+      "monitor": {
+        "menuEnabled": true
+      },
+      "dependencies": {
+        "menuEnabled": true
+      },
+      "archiveEnabled": true,
+      "tracking": {
+        "gaID": "",
+        "trackErrors": true
+      },
+      "menu": [
+        {
+          "label": "Banking Services",
+          "items": [
+            {
+              "label": "Loan Management",
+              "url": "/search?service=loan-management"
+            },
+            {
+              "label": "Customer Service", 
+              "url": "/search?service=customer-service"
+            },
+            {
+              "label": "Payment Processing",
+              "url": "/search?service=payment-service"
+            },
+            {
+              "label": "Open Banking Gateway",
+              "url": "/search?service=open-banking-gateway"
+            }
+          ]
+        },
+        {
+          "label": "Infrastructure",
+          "items": [
+            {
+              "label": "API Gateway",
+              "url": "/search?service=api-gateway"
+            },
+            {
+              "label": "Envoy Proxy",
+              "url": "/search?service=envoy-proxy"
+            }
+          ]
+        }
+      ],
+      "linkPatterns": [
+        {
+          "type": "logs",
+          "key": "customer-id",
+          "url": "http://grafana.observability.svc.cluster.local:3000/explore?left=[\"now-1h\",\"now\",\"Loki\",{\"expr\":\"{app=\\\"banking\\\",customer_id=\\\"#{customer-id}\\\"}\"}]",
+          "text": "View Customer Logs"
+        },
+        {
+          "type": "metrics",
+          "key": "transaction-id", 
+          "url": "http://grafana.observability.svc.cluster.local:3000/explore?left=[\"now-1h\",\"now\",\"Prometheus\",{\"expr\":\"banking_transaction_duration{transaction_id=\\\"#{transaction-id}\\\"}\"}]",
+          "text": "View Transaction Metrics"
+        }
+      ]
+    }
+
+---
+# Banking Metrics Collection Service Monitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: banking-services-metrics
+  namespace: observability
+  labels:
+    app: banking-metrics
+    component: monitoring
+spec:
+  selector:
+    matchLabels:
+      monitoring: banking-enabled
+  namespaceSelector:
+    matchNames:
+      - banking-system
+      - istio-system
+  endpoints:
+  - port: metrics
+    interval: 15s
+    path: /metrics
+    honorLabels: true
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_service_name]
+      targetLabel: service
+    - sourceLabels: [__meta_kubernetes_namespace]
+      targetLabel: namespace
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_pod_container_name]
+      targetLabel: container
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'banking_.*|istio_.*|envoy_.*'
+      action: keep
+    - sourceLabels: [__name__]
+      regex: 'banking_transaction_(.*)'
+      targetLabel: transaction_metric
+      replacement: '${1}'
+
+---
+# Istio Service Mesh Metrics Collection
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: istio-mesh-metrics
+  namespace: observability
+  labels:
+    app: istio-metrics
+    component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: istiod
+  namespaceSelector:
+    matchNames:
+      - istio-system
+  endpoints:
+  - port: http-monitoring
+    interval: 15s
+    path: /stats/prometheus
+    honorLabels: true
+
+---
+# Envoy Proxy Metrics Collection
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: envoy-proxy-metrics
+  namespace: observability
+  labels:
+    app: envoy-metrics
+    component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: envoy-proxy
+  namespaceSelector:
+    matchNames:
+      - banking-system
+      - istio-system
+  endpoints:
+  - port: admin
+    interval: 15s
+    path: /stats/prometheus
+    honorLabels: true
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_namespace]
+      targetLabel: namespace
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'envoy_.*_(banking|swift|iso20022|open_banking)_.*'
+      action: keep
+
+---
+# Banking Application Metrics Collection
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: banking-applications-metrics
+  namespace: observability
+  labels:
+    app: banking-app-metrics
+    component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: banking-system
+  namespaceSelector:
+    matchNames:
+      - banking-system
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /actuator/prometheus
+    honorLabels: true
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_service_name]
+      targetLabel: banking_service
+    - sourceLabels: [__meta_kubernetes_pod_annotation_version]
+      targetLabel: version
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'jvm_.*|http_.*|banking_.*|loan_.*|customer_.*|payment_.*'
+      action: keep
+
+---
+# Grafana Configuration for Banking Observability
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: observability
+  labels:
+    app: grafana
+    component: config
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus:9090
+      isDefault: true
+      editable: true
+      jsonData:
+        timeInterval: "15s"
+        queryTimeout: "300s"
+        httpMethod: POST
+        customQueryParameters: "max_source_resolution=auto"
+      
+    - name: Jaeger
+      type: jaeger
+      access: proxy
+      url: http://banking-jaeger-query:16686
+      editable: true
+      jsonData:
+        tracesToLogs:
+          datasourceUid: loki
+          tags: [cluster, hostname, pod]
+          mappedTags:
+            - key: customer_id
+              value: customer_id
+            - key: transaction_id
+              value: transaction_id
+          mapTagNamesEnabled: true
+          spanStartTimeShift: "1m"
+          spanEndTimeShift: "1m"
+        nodeGraph:
+          enabled: true
+      
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki:3100
+      editable: true
+      jsonData:
+        timeout: 60
+        maxLines: 1000
+        derivedFields:
+          - datasourceUid: jaeger
+            matcherRegex: "trace_id=(\\w+)"
+            name: TraceID
+            url: "$${__value.raw}"
+          - datasourceUid: prometheus
+            matcherRegex: "customer_id=(\\w+)"
+            name: CustomerMetrics
+            url: "/explore?left=[\"now-1h\",\"now\",\"Prometheus\",{\"expr\":\"banking_customer_metrics{customer_id=\\\"$${__value.raw}\\\"}\"}]"
+
+---
+# Banking Observability Dashboards ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-dashboards
+  namespace: observability
+  labels:
+    grafana-dashboard: "true"
+    app: grafana
+data:
+  banking-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Banking System Overview",
+        "description": "Enterprise Banking System Health and Performance",
+        "tags": ["banking", "overview", "sla"],
+        "timezone": "UTC",
+        "refresh": "30s",
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "id": 1,
+            "title": "Service Health Status",
+            "type": "stat",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "targets": [
+              {
+                "expr": "up{job=\"banking-services\"}",
+                "legendFormat": "{{service}}",
+                "refId": "A"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "green", "value": 1}
+                  ]
+                },
+                "mappings": [
+                  {"type": "value", "value": "0", "text": "Down"},
+                  {"type": "value", "value": "1", "text": "Up"}
+                ]
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "Request Rate (RPS)",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(istio_requests_total{destination_service_namespace=\"banking-system\"}[5m])) by (destination_service_name)",
+                "legendFormat": "{{destination_service_name}}",
+                "refId": "A"
+              }
+            ],
+            "yAxes": [
+              {"label": "Requests/sec", "min": 0}
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Error Rate",
+            "type": "graph", 
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(rate(istio_requests_total{destination_service_namespace=\"banking-system\",response_code!~\"2..\"}[5m])) / sum(rate(istio_requests_total{destination_service_namespace=\"banking-system\"}[5m])) * 100",
+                "legendFormat": "Error Rate %",
+                "refId": "A"
+              }
+            ],
+            "yAxes": [
+              {"label": "Error %", "min": 0, "max": 100}
+            ],
+            "thresholds": [
+              {"value": 1, "colorMode": "critical", "op": "gt"},
+              {"value": 0.1, "colorMode": "warning", "op": "gt"}
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Response Time P99",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{destination_service_namespace=\"banking-system\"}[5m])) by (destination_service_name, le))",
+                "legendFormat": "{{destination_service_name}} P99",
+                "refId": "A"
+              }
+            ],
+            "yAxes": [
+              {"label": "Milliseconds", "min": 0}
+            ]
+          }
+        ]
+      }
+    }
+  
+  banking-transactions.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Banking Transactions",
+        "description": "Banking Transaction Processing Metrics",
+        "tags": ["banking", "transactions", "business"],
+        "timezone": "UTC",
+        "refresh": "15s",
+        "time": {
+          "from": "now-30m",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "id": 1,
+            "title": "Transaction Volume by Type",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(banking_transactions_total[5m])) by (transaction_type)",
+                "legendFormat": "{{transaction_type}}",
+                "refId": "A"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Transaction Success Rate",
+            "type": "stat",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(banking_transactions_total{status=\"success\"}[5m])) / sum(rate(banking_transactions_total[5m])) * 100",
+                "legendFormat": "Success Rate %",
+                "refId": "A"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 95},
+                    {"color": "green", "value": 99}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "id": 3,
+            "title": "SWIFT Message Processing",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(rate(envoy_banking_swift_messages_total[5m])) by (message_type)",
+                "legendFormat": "MT{{message_type}}",
+                "refId": "A"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "ISO 20022 Message Processing",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(rate(envoy_banking_iso20022_messages_total[5m])) by (document_type)",
+                "legendFormat": "{{document_type}}",
+                "refId": "A"
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+  service-mesh.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Service Mesh Observability",
+        "description": "Istio Service Mesh Performance and Security",
+        "tags": ["istio", "mesh", "security"],
+        "timezone": "UTC",
+        "refresh": "30s",
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "id": 1,
+            "title": "mTLS Success Rate",
+            "type": "stat",
+            "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(istio_requests_total{security_policy=\"mutual_tls\"}[5m])) / sum(rate(istio_requests_total[5m])) * 100",
+                "legendFormat": "mTLS %",
+                "refId": "A"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 95},
+                    {"color": "green", "value": 99}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "Service Dependencies",
+            "type": "nodeGraph",
+            "gridPos": {"h": 16, "w": 18, "x": 6, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(istio_requests_total[5m])) by (source_service_name, destination_service_name)",
+                "refId": "A"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Certificate Expiry",
+            "type": "table",
+            "gridPos": {"h": 8, "w": 6, "x": 0, "y": 8},
+            "targets": [
+              {
+                "expr": "istio_certificate_expiration_timestamp - time()",
+                "legendFormat": "{{service}}",
+                "refId": "A"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s",
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 604800},
+                    {"color": "green", "value": 2592000}
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+
+---
+# Loki Log Aggregation Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki-config
+  namespace: observability
+  labels:
+    app: loki
+    component: config
+data:
+  loki.yaml: |
+    auth_enabled: false
+    
+    server:
+      http_listen_port: 3100
+      grpc_listen_port: 9096
+    
+    common:
+      path_prefix: /loki
+      storage:
+        filesystem:
+          chunks_directory: /loki/chunks
+          rules_directory: /loki/rules
+      replication_factor: 1
+      ring:
+        instance_addr: 127.0.0.1
+        kvstore:
+          store: inmemory
+    
+    schema_config:
+      configs:
+        - from: 2020-10-24
+          store: boltdb-shipper
+          object_store: filesystem
+          schema: v11
+          index:
+            prefix: index_
+            period: 24h
+    
+    ruler:
+      alertmanager_url: http://alertmanager:9093
+      storage:
+        type: local
+        local:
+          directory: /loki/rules
+      rule_path: /loki/rules
+      ring:
+        kvstore:
+          store: inmemory
+      enable_api: true
+    
+    limits_config:
+      enforce_metric_name: false
+      reject_old_samples: true
+      reject_old_samples_max_age: 168h
+      ingestion_rate_mb: 10
+      ingestion_burst_size_mb: 20
+      max_query_parallelism: 32
+      max_streams_per_user: 10000
+
+---
+# Fluentd Log Collection Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-banking-config
+  namespace: observability
+  labels:
+    app: fluentd
+    component: logging
+data:
+  fluent.conf: |
+    <system>
+      root_dir /var/log/fluentd
+      log_level info
+    </system>
+    
+    # Banking Application Logs
+    <source>
+      @type tail
+      @label @banking_apps
+      path /var/log/containers/*banking*.log
+      pos_file /var/log/fluentd-banking-apps.log.pos
+      tag kubernetes.banking.apps
+      format json
+      time_key time
+      time_format %Y-%m-%dT%H:%M:%S.%NZ
+      refresh_interval 5
+      emit_unmatched_lines true
+      read_from_head true
+      <parse>
+        @type json
+        json_parser json
+        time_key timestamp
+        time_type string
+        time_format %iso8601
+      </parse>
+    </source>
+    
+    # Envoy Access Logs
+    <source>
+      @type tail
+      @label @envoy_access
+      path /var/log/envoy/access.log
+      pos_file /var/log/fluentd-envoy-access.log.pos
+      tag envoy.access
+      format json
+      time_key timestamp
+      time_format %Y-%m-%dT%H:%M:%S.%LZ
+      refresh_interval 1
+      emit_unmatched_lines true
+    </source>
+    
+    # Istio Pilot Logs
+    <source>
+      @type tail
+      @label @istio_control
+      path /var/log/containers/*istiod*.log
+      pos_file /var/log/fluentd-istio-control.log.pos
+      tag kubernetes.istio.control
+      format json
+      time_key time
+      time_format %Y-%m-%dT%H:%M:%S.%NZ
+      refresh_interval 5
+    </source>
+    
+    # Banking Applications Processing
+    <label @banking_apps>
+      <filter kubernetes.banking.**>
+        @type kubernetes_metadata
+        @log_level debug
+        skip_labels false
+        skip_container_metadata false
+        skip_master_url false
+        skip_namespace_metadata false
+      </filter>
+      
+      <filter kubernetes.banking.**>
+        @type parser
+        key_name log
+        reserve_data true
+        <parse>
+          @type json
+          json_parser json
+        </parse>
+      </filter>
+      
+      <filter kubernetes.banking.**>
+        @type record_transformer
+        enable_ruby true
+        <record>
+          cluster_name kubernetes
+          log_level ${record['level'] || 'INFO'}
+          service_name ${record['kubernetes']['labels']['app'] || 'unknown'}
+          namespace ${record['kubernetes']['namespace_name']}
+          pod_name ${record['kubernetes']['pod_name']}
+          container_name ${record['kubernetes']['container_name']}
+          customer_id ${record['customer_id'] || record['customerId'] || 'unknown'}
+          transaction_id ${record['transaction_id'] || record['transactionId'] || 'unknown'}
+          trace_id ${record['trace_id'] || record['traceId'] || 'unknown'}
+          span_id ${record['span_id'] || record['spanId'] || 'unknown'}
+          banking_protocol ${record['banking_protocol'] || record['protocol'] || 'unknown'}
+          compliance_level ${record['compliance_level'] || 'standard'}
+        </record>
+      </filter>
+      
+      <filter kubernetes.banking.**>
+        @type grep
+        <or>
+          <regexp>
+            key log_level
+            pattern /ERROR|WARN|INFO/
+          </regexp>
+          <regexp>
+            key message
+            pattern /BANKING|TRANSACTION|PAYMENT|LOAN|CUSTOMER/
+          </regexp>
+        </or>
+      </filter>
+      
+      <match kubernetes.banking.**>
+        @type loki
+        url http://loki:3100
+        flush_interval 5s
+        flush_at_shutdown true
+        buffer_chunk_limit 1m
+        buffer_queue_limit 32
+        <label>
+          app banking
+          environment ${ENV['ENVIRONMENT'] || 'production'}
+          cluster kubernetes
+          namespace
+          service_name
+          log_level
+          customer_id
+          transaction_id
+          trace_id
+          banking_protocol
+          compliance_level
+        </label>
+        <buffer>
+          @type file
+          path /var/log/fluentd-buffers/banking
+          flush_mode interval
+          flush_interval 5s
+          chunk_limit_size 1m
+          queue_limit_length 512
+          retry_max_interval 30
+          retry_forever true
+        </buffer>
+      </match>
+    </label>
+    
+    # Envoy Access Logs Processing
+    <label @envoy_access>
+      <filter envoy.**>
+        @type parser
+        key_name message
+        reserve_data true
+        <parse>
+          @type json
+        </parse>
+      </filter>
+      
+      <filter envoy.**>
+        @type record_transformer
+        enable_ruby true
+        <record>
+          source envoy_proxy
+          log_type access_log
+          method ${record['method'] || 'unknown'}
+          path ${record['path'] || 'unknown'}
+          status_code ${record['response_code'] || 0}
+          response_time ${record['duration'] || 0}
+          user_agent ${record['user_agent'] || 'unknown'}
+          x_forwarded_for ${record['x_forwarded_for'] || 'unknown'}
+          transaction_id ${record['x_transaction_id'] || record['x-transaction-id'] || 'unknown'}
+          banking_protocol ${record['x_banking_protocol'] || record['x-banking-protocol'] || 'unknown'}
+          compliance_verified ${record['x_compliance_verified'] || record['x-compliance-verified'] || 'false'}
+        </record>
+      </filter>
+      
+      <match envoy.**>
+        @type loki
+        url http://loki:3100
+        flush_interval 1s
+        <label>
+          app envoy
+          log_type access_log
+          method
+          status_code
+          banking_protocol
+          compliance_verified
+        </label>
+        <buffer>
+          @type file
+          path /var/log/fluentd-buffers/envoy
+          flush_mode interval
+          flush_interval 1s
+          chunk_limit_size 512k
+          queue_limit_length 128
+        </buffer>
+      </match>
+    </label>
+    
+    # Istio Control Plane Processing
+    <label @istio_control>
+      <filter kubernetes.istio.**>
+        @type kubernetes_metadata
+        skip_labels false
+        skip_container_metadata false
+      </filter>
+      
+      <filter kubernetes.istio.**>
+        @type record_transformer
+        <record>
+          component istio_control_plane
+          log_type ${record['kubernetes']['labels']['istio'] || 'pilot'}
+        </record>
+      </filter>
+      
+      <match kubernetes.istio.**>
+        @type loki
+        url http://loki:3100
+        <label>
+          app istio
+          component
+          log_type
+          namespace
+        </label>
+        <buffer>
+          @type file
+          path /var/log/fluentd-buffers/istio
+          flush_mode interval
+          flush_interval 10s
+        </buffer>
+      </match>
+    </label>
+
+---
+# Prometheus Alerting Rules for Banking Observability
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: banking-observability-alerts
+  namespace: observability
+  labels:
+    app: prometheus
+    component: alerting
+spec:
+  groups:
+  - name: banking.sla
+    interval: 30s
+    rules:
+    - alert: BankingServiceDown
+      expr: up{job="banking-services"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        service: "{{ $labels.service }}"
+        sla_impact: "high"
+      annotations:
+        summary: "Banking service {{ $labels.service }} is down"
+        description: "Banking service {{ $labels.service }} has been down for more than 1 minute"
+        runbook_url: "https://docs.banking.com/runbooks/service-down"
+        
+    - alert: HighErrorRate
+      expr: |
+        (
+          sum(rate(istio_requests_total{destination_service_namespace="banking-system",response_code!~"2.."}[5m])) /
+          sum(rate(istio_requests_total{destination_service_namespace="banking-system"}[5m]))
+        ) * 100 > 1
+      for: 2m
+      labels:
+        severity: warning
+        sla_impact: "medium"
+      annotations:
+        summary: "High error rate detected in banking services"
+        description: "Error rate is {{ $value }}% which is above the 1% threshold"
+        
+    - alert: HighLatency
+      expr: |
+        histogram_quantile(0.99,
+          sum(rate(istio_request_duration_milliseconds_bucket{destination_service_namespace="banking-system"}[5m]))
+          by (destination_service_name, le)
+        ) > 2000
+      for: 3m
+      labels:
+        severity: warning
+        sla_impact: "medium"
+      annotations:
+        summary: "High latency detected for {{ $labels.destination_service_name }}"
+        description: "P99 latency is {{ $value }}ms which is above 2000ms threshold"
+        
+  - name: banking.security
+    interval: 15s
+    rules:
+    - alert: mTLSFailure
+      expr: |
+        (
+          sum(rate(istio_requests_total{security_policy!="mutual_tls"}[5m])) /
+          sum(rate(istio_requests_total[5m]))
+        ) * 100 > 5
+      for: 1m
+      labels:
+        severity: critical
+        security_impact: "high"
+      annotations:
+        summary: "mTLS failure rate is high"
+        description: "{{ $value }}% of requests are not using mTLS"
+        
+    - alert: ComplianceViolation
+      expr: increase(envoy_banking_compliance_violations_total[5m]) > 0
+      for: 0s
+      labels:
+        severity: critical
+        compliance_impact: "high"
+      annotations:
+        summary: "Banking compliance violation detected"
+        description: "{{ $value }} compliance violations in the last 5 minutes"
+        
+    - alert: CertificateExpiringSoon
+      expr: (istio_certificate_expiration_timestamp - time()) / 86400 < 7
+      for: 0s
+      labels:
+        severity: warning
+        security_impact: "medium"
+      annotations:
+        summary: "Certificate for {{ $labels.service }} expires soon"
+        description: "Certificate expires in {{ $value }} days"
+        
+  - name: banking.business
+    interval: 60s
+    rules:
+    - alert: LowTransactionVolume
+      expr: sum(rate(banking_transactions_total[10m])) < 10
+      for: 5m
+      labels:
+        severity: warning
+        business_impact: "medium"
+      annotations:
+        summary: "Transaction volume is below normal"
+        description: "Only {{ $value }} transactions per second in the last 10 minutes"
+        
+    - alert: PaymentProcessingDelayed
+      expr: |
+        histogram_quantile(0.95,
+          sum(rate(banking_payment_processing_duration_seconds_bucket[5m]))
+          by (le)
+        ) > 30
+      for: 3m
+      labels:
+        severity: warning
+        business_impact: "high"
+      annotations:
+        summary: "Payment processing is delayed"
+        description: "P95 payment processing time is {{ $value }} seconds"
+
+---
+# OpenTelemetry Collector Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: observability
+  labels:
+    app: otel-collector
+    component: config
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      jaeger:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:14250
+          thrift_http:
+            endpoint: 0.0.0.0:14268
+          thrift_compact:
+            endpoint: 0.0.0.0:6831
+      zipkin:
+        endpoint: 0.0.0.0:9411
+      prometheus:
+        config:
+          scrape_configs:
+          - job_name: 'banking-services'
+            kubernetes_sd_configs:
+            - role: pod
+              namespaces:
+                names:
+                - banking-system
+            relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+              action: keep
+              regex: true
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+    
+    processors:
+      batch:
+        timeout: 1s
+        send_batch_size: 1024
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 512
+      resource:
+        attributes:
+        - key: cluster.name
+          value: banking-kubernetes
+          action: upsert
+        - key: environment
+          from_attribute: deployment.environment
+          action: upsert
+      # Banking-specific processing
+      transform:
+        error_mode: ignore
+        trace_statements:
+        - context: span
+          statements:
+          - set(attributes["banking.customer_id"], attributes["customer_id"]) where attributes["customer_id"] != nil
+          - set(attributes["banking.transaction_id"], attributes["transaction_id"]) where attributes["transaction_id"] != nil
+          - set(attributes["banking.protocol"], attributes["x-banking-protocol"]) where attributes["x-banking-protocol"] != nil
+          - set(attributes["banking.compliance_level"], attributes["x-banking-compliance-level"]) where attributes["x-banking-compliance-level"] != nil
+    
+    exporters:
+      jaeger:
+        endpoint: banking-jaeger-collector:14250
+        tls:
+          insecure: true
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        metric_relabeling_configs:
+        - source_labels: [__name__]
+          regex: '.*banking.*|.*transaction.*|.*payment.*'
+          target_label: __tmp_banking_metric
+          replacement: 'true'
+      loki:
+        endpoint: http://loki:3100/loki/api/v1/push
+        tenant_id: banking
+        labels:
+          attributes:
+            service.name: "service"
+            service.version: "version"
+            banking.customer_id: "customer_id"
+            banking.transaction_id: "transaction_id"
+      logging:
+        loglevel: info
+    
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+      pprof:
+        endpoint: 0.0.0.0:1777
+      zpages:
+        endpoint: 0.0.0.0:55679
+    
+    service:
+      extensions: [health_check, pprof, zpages]
+      pipelines:
+        traces:
+          receivers: [otlp, jaeger, zipkin]
+          processors: [memory_limiter, resource, transform, batch]
+          exporters: [jaeger, logging]
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [memory_limiter, resource, batch]
+          exporters: [prometheus, logging]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [loki, logging]
+
+---
+# Istio Telemetry Configuration for Enhanced Observability
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: banking-telemetry
+  namespace: banking-system
+  labels:
+    app: banking-telemetry
+    component: observability
+spec:
+  metrics:
+  - providers:
+    - name: prometheus
+  - overrides:
+    - match:
+        metric: ALL_METRICS
+      tagOverrides:
+        banking_customer_id:
+          value: "%{REQUEST_HEADERS['x-customer-id']}"
+        banking_transaction_id:
+          value: "%{REQUEST_HEADERS['x-transaction-id']}"
+        banking_protocol:
+          value: "%{REQUEST_HEADERS['x-banking-protocol']}"
+        compliance_level:
+          value: "%{REQUEST_HEADERS['x-banking-compliance-level']}"
+        regulatory_jurisdiction:
+          value: "%{REQUEST_HEADERS['x-regulatory-jurisdiction']}"
+  tracing:
+  - providers:
+    - name: jaeger
+  - customTags:
+      banking_customer_id:
+        header:
+          name: x-customer-id
+      banking_transaction_id:
+        header:
+          name: x-transaction-id
+      banking_protocol:
+        header:
+          name: x-banking-protocol
+      compliance_level:
+        header:
+          name: x-banking-compliance-level
+      regulatory_jurisdiction:
+        header:
+          name: x-regulatory-jurisdiction
+      audit_id:
+        header:
+          name: x-banking-audit-id
+  accessLogging:
+  - providers:
+    - name: otel
+  - format:
+      labels:
+        source_service: "%{SOURCE_SERVICE}"
+        destination_service: "%{DESTINATION_SERVICE}"
+        method: "%{REQUEST_HEADERS[':method']}"
+        path: "%{REQUEST_HEADERS[':path']}"
+        status_code: "%{RESPONSE_CODE}"
+        banking_customer_id: "%{REQUEST_HEADERS['x-customer-id']}"
+        banking_transaction_id: "%{REQUEST_HEADERS['x-transaction-id']}"
+        banking_protocol: "%{REQUEST_HEADERS['x-banking-protocol']}"
+        compliance_verified: "%{REQUEST_HEADERS['x-compliance-verified']}"
+        response_time: "%{DURATION}"
+        request_size: "%{REQUEST_SIZE}"
+        response_size: "%{RESPONSE_SIZE}"

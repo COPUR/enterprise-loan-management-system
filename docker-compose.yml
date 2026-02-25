@@ -1,0 +1,516 @@
+# Enterprise Loan Management System - Microservices Docker Compose
+# Following 12-Factor App methodology and banking best practices
+
+services:
+  # === DATABASE TIER (12-Factor: Backing Services) ===
+  
+  postgres:
+    image: postgres:15-alpine
+    container_name: banking-postgres
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-banking_system}
+      POSTGRES_USER: ${DATABASE_USER:-banking_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-banking_secure_pass}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/main/resources/db/migration:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-banking_user} -d ${DATABASE_NAME:-banking_system}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - banking-backend
+    labels:
+      - "com.banking.service=database"
+      - "com.banking.tier=data"
+      - "com.banking.compliance=pci"
+
+  # === CACHE TIER (12-Factor: Backing Services) ===
+  
+  redis:
+    image: redis:7-alpine
+    container_name: banking-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-banking_redis_pass} --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+      - ./config/redis-uat.conf:/usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-banking_redis_pass}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - banking-backend
+    labels:
+      - "com.banking.service=cache"
+      - "com.banking.tier=data"
+      - "com.banking.compliance=pci"
+
+  # === MESSAGE STREAMING (12-Factor: Backing Services) ===
+  
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: banking-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SYNC_LIMIT: 2
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - banking-backend
+    labels:
+      - "com.banking.service=zookeeper"
+      - "com.banking.tier=infrastructure"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: banking-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - banking-backend
+    labels:
+      - "com.banking.service=kafka"
+      - "com.banking.tier=infrastructure"
+
+  # === IDENTITY & ACCESS MANAGEMENT (OAuth2.1) ===
+  
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.4
+    container_name: banking-keycloak
+    command: start-dev --import-realm
+    environment:
+      # Admin Configuration
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-banking_keycloak_admin_2024}
+      
+      # Database Configuration (PostgreSQL)
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-banking_system}
+      KC_DB_USERNAME: ${DATABASE_USER:-banking_user}
+      KC_DB_PASSWORD: ${DATABASE_PASSWORD:-banking_secure_pass}
+      KC_DB_SCHEMA: keycloak
+      
+      # OAuth2.1 & Security Configuration
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+      KC_HTTPS_PORT: 8443
+      
+      # Banking Compliance Features
+      KC_FEATURES: authorization,account-api,admin-fine-grained-authz,declarative-user-profile,dynamic-scopes
+      KC_LOG_LEVEL: INFO
+      KC_METRICS_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      
+      # LDAP Integration Environment
+      KC_SPI_USER_FEDERATION_LDAP_ENABLED: true
+      
+      # Audit Configuration for Banking
+      KC_SPI_EVENTS_LISTENER_JBOSS_LOGGING_SUCCESS_LEVEL: info
+      KC_SPI_EVENTS_LISTENER_JBOSS_LOGGING_ERROR_LEVEL: warn
+    ports:
+      - "8090:8080"
+      - "8443:8443"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./config/keycloak/realms:/opt/keycloak/data/import:ro
+      - ./config/keycloak/themes:/opt/keycloak/themes:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ldap:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+    restart: unless-stopped
+    networks:
+      - banking-backend
+      - banking-frontend
+    labels:
+      - "com.banking.service=keycloak"
+      - "com.banking.tier=security"
+      - "com.banking.compliance=oauth2.1"
+
+  # === LDAP IDENTITY PROVIDER ===
+  
+  ldap:
+    image: osixia/openldap:1.5.0
+    container_name: banking-ldap
+    environment:
+      # LDAP Configuration
+      LDAP_ORGANISATION: "Banking Enterprise"
+      LDAP_DOMAIN: "banking.local"
+      LDAP_BASE_DN: "dc=banking,dc=local"
+      LDAP_ADMIN_PASSWORD: ${LDAP_ADMIN_PASSWORD:-banking_ldap_admin_2024}
+      LDAP_CONFIG_PASSWORD: ${LDAP_CONFIG_PASSWORD:-banking_ldap_config_2024}
+      
+      # Security Configuration
+      LDAP_READONLY_USER: true
+      LDAP_READONLY_USER_USERNAME: readonly
+      LDAP_READONLY_USER_PASSWORD: ${LDAP_READONLY_PASSWORD:-banking_ldap_readonly_2024}
+      
+      # Banking Compliance
+      LDAP_RFC2307BIS_SCHEMA: true
+      LDAP_BACKEND: mdb
+      LDAP_TLS: true
+      LDAP_TLS_CRT_FILENAME: ldap.crt
+      LDAP_TLS_KEY_FILENAME: ldap.key
+      LDAP_TLS_DH_PARAM_FILENAME: dhparam.pem
+      LDAP_TLS_CA_CRT_FILENAME: ca.crt
+      LDAP_TLS_ENFORCE: false
+      LDAP_TLS_CIPHER_SUITE: "SECURE256:+SECURE128:-VERS-TLS-ALL:+VERS-TLS1.2:-RSA:-DHE-DSS:-CAMELLIA-128-CBC:-CAMELLIA-256-CBC"
+      LDAP_TLS_PROTOCOL_MIN: 3.1
+      LDAP_TLS_VERIFY_CLIENT: demand
+    ports:
+      - "389:389"
+      - "636:636"
+    volumes:
+      - ldap_data:/var/lib/ldap
+      - ldap_config:/etc/ldap/slapd.d
+      - ./config/ldap/bootstrap:/container/service/slapd/assets/config/bootstrap/ldif/custom:ro
+      - ./config/ldap/certs:/container/service/slapd/assets/certs:ro
+    command: --copy-service --loglevel debug
+    healthcheck:
+      test: ["CMD", "ldapsearch", "-x", "-H", "ldap://localhost", "-b", "dc=banking,dc=local", "-D", "cn=admin,dc=banking,dc=local", "-w", "${LDAP_ADMIN_PASSWORD:-banking_ldap_admin_2024}", "(objectclass=*)", "-LLL", "-s", "base"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - banking-backend
+    labels:
+      - "com.banking.service=ldap"
+      - "com.banking.tier=identity"
+      - "com.banking.compliance=directory"
+
+  # === LDAP ADMIN UI ===
+  
+  phpldapadmin:
+    image: osixia/phpldapadmin:0.9.0
+    container_name: banking-ldap-admin
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: ldap
+      PHPLDAPADMIN_HTTPS: false
+    ports:
+      - "8091:80"
+    depends_on:
+      ldap:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - banking-backend
+      - banking-frontend
+    labels:
+      - "com.banking.service=ldap-admin"
+      - "com.banking.tier=management"
+
+  # === MAIN BANKING APPLICATION (12-Factor: Disposability, Concurrency) ===
+  
+  banking-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: enterprise-loan-system:1.0.0
+    container_name: banking-loan-management
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    environment:
+      # 12-Factor App: Configuration via Environment Variables
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-production,docker}
+      SERVER_PORT: 8080
+      
+      # Database Configuration (12-Factor: Backing Services)
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-banking_system}
+      DATABASE_USERNAME: ${DATABASE_USER:-banking_user}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-banking_secure_pass}
+      
+      # Cache Configuration (12-Factor: Backing Services)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-banking_redis_pass}
+      
+      # Message Streaming Configuration
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      
+      # OAuth2.1 Integration with Keycloak
+      KEYCLOAK_URL: "http://keycloak:8080"
+      KEYCLOAK_REALM: "banking-realm"
+      KEYCLOAK_CLIENT_ID: "banking-app"
+      
+      # Service Discovery (disabled for OAuth2.1)
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
+      EUREKA_CLIENT_FETCH_REGISTRY: "false"
+      
+      # Security Configuration
+      JWT_SECRET: ${JWT_SECRET:-secure_banking_jwt_secret_key_256_bit_minimum}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET:-secure_oauth_client_secret}
+      
+      # Banking Compliance Configuration
+      BANKING_COMPLIANCE_STRICT: "true"
+      FAPI_ENABLED: "true"
+      PCI_ENABLED: "true"
+      AUDIT_ENABLED: "true"
+      KYC_REQUIRED: "true"
+      
+      # Performance Configuration
+      LOAN_MAX_AMOUNT: ${LOAN_MAX_AMOUNT:-5000000}
+      TRANSACTION_DAILY_LIMIT: ${TRANSACTION_DAILY_LIMIT:-50000}
+      MAX_CONCURRENT_REQUESTS: ${MAX_CONCURRENT_REQUESTS:-100}
+      
+      # Monitoring Configuration
+      ACTUATOR_ENDPOINTS: health,info,metrics,prometheus
+      PROMETHEUS_ENABLED: "true"
+      
+      # Application Metadata
+      APP_NAME: "Enterprise Loan Management System"
+      APP_VERSION: "1.0.0"
+      
+      # JVM Configuration optimized for containers
+      JAVA_OPTS: >-
+        -server
+        -XX:+UseG1GC
+        -XX:MaxGCPauseMillis=200
+        -XX:G1HeapRegionSize=16m
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=75.0
+        -XX:InitialRAMPercentage=50.0
+        -XX:+ExitOnOutOfMemoryError
+        -XX:+HeapDumpOnOutOfMemoryError
+        -XX:HeapDumpPath=/app/logs/heapdump.hprof
+        -Djava.security.egd=file:/dev/./urandom
+        -Dspring.profiles.active=production,docker
+        -Dfile.encoding=UTF-8
+        -Duser.timezone=UTC
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    volumes:
+      - banking_logs:/app/logs
+      - banking_tmp:/app/tmp
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+    networks:
+      - banking-frontend
+      - banking-backend
+    labels:
+      - "com.banking.service=loan-management"
+      - "com.banking.tier=application"
+      - "com.banking.compliance=banking"
+      - "com.banking.version=1.0.0"
+
+  # === MONITORING STACK (12-Factor: Admin Processes) ===
+  
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: banking-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      - banking-app
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - banking-frontend
+      - banking-backend
+    labels:
+      - "com.banking.service=prometheus"
+      - "com.banking.tier=monitoring"
+
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: banking-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-banking_admin_pass}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - banking-frontend
+    labels:
+      - "com.banking.service=grafana"
+      - "com.banking.tier=monitoring"
+
+  # === REVERSE PROXY / API GATEWAY ===
+  
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: banking-gateway
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - banking-app
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - banking-frontend
+    labels:
+      - "com.banking.service=gateway"
+      - "com.banking.tier=edge"
+
+# === PERSISTENT VOLUMES ===
+volumes:
+  postgres_data:
+    driver: local
+    labels:
+      - "com.banking.persistence=database"
+  redis_data:
+    driver: local
+    labels:
+      - "com.banking.persistence=cache"
+  kafka_data:
+    driver: local
+    labels:
+      - "com.banking.persistence=streaming"
+  zookeeper_data:
+    driver: local
+  zookeeper_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+    labels:
+      - "com.banking.persistence=monitoring"
+  grafana_data:
+    driver: local
+    labels:
+      - "com.banking.persistence=monitoring"
+  banking_logs:
+    driver: local
+    labels:
+      - "com.banking.persistence=application-logs"
+  banking_tmp:
+    driver: local
+  keycloak_data:
+    driver: local
+    labels:
+      - "com.banking.persistence=keycloak"
+      - "com.banking.compliance=oauth2.1"
+  ldap_data:
+    driver: local
+    labels:
+      - "com.banking.persistence=ldap-data"
+      - "com.banking.compliance=directory"
+  ldap_config:
+    driver: local
+    labels:
+      - "com.banking.persistence=ldap-config"
+      - "com.banking.compliance=directory"
+
+# === NETWORK SEGMENTATION ===
+networks:
+  banking-frontend:
+    driver: bridge
+    name: banking-frontend
+    labels:
+      - "com.banking.network=frontend"
+      - "com.banking.security=dmz"
+  banking-backend:
+    driver: bridge
+    name: banking-backend
+    internal: false  # Allow external access for development
+    labels:
+      - "com.banking.network=backend"
+      - "com.banking.security=internal"

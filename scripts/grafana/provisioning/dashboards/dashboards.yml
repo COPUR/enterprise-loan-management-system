@@ -1,0 +1,67 @@
+# Enterprise Loan Management System - Grafana Dashboard Provisioning
+
+apiVersion: 1
+
+providers:
+  - name: 'Banking System Dashboards'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: true
+
+  - name: 'Banking Core Dashboards'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/banking-core
+      foldersFromFilesStructure: true
+
+  - name: 'Banking Security Dashboards'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/banking-security
+      foldersFromFilesStructure: true
+
+  - name: 'Banking Compliance Dashboards'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/banking-compliance
+      foldersFromFilesStructure: true
+
+  - name: 'Banking ML Dashboards'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/banking-ml
+      foldersFromFilesStructure: true
+
+  - name: 'Banking Infrastructure Dashboards'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/banking-infrastructure
+      foldersFromFilesStructure: true
+
+  - name: 'Banking Federation Dashboards'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/banking-federation
+      foldersFromFilesStructure: true
