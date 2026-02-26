@@ -4,16 +4,16 @@
 Assessed Open Finance HLDs and current implementation posture against 10 microservices design principles. This document captures gaps and proposes service‑specific roadmaps to reach a true microservice design.
 
 **Assessed HLDs**
-- `docs/architecture/open-finance/use-cases/hld/UC001_Personal_Financial_Management_HLD.md`
-- `docs/architecture/open-finance/use-cases/hld/UC003_Confirmation_of_Payee_HLD.md`
-- `docs/architecture/open-finance/use-cases/hld/UC006_Payments_HLD.md`
-- `docs/architecture/open-finance/use-cases/hld/HEXAGONAL_HLD_COMPLIANCE_CHECKLIST.md`
+- `docs/architecture/open-finance/capabilities/hld/personal-financial-management-hld.md`
+- `docs/architecture/open-finance/capabilities/hld/confirmation-of-payee-hld.md`
+- `docs/architecture/open-finance/capabilities/hld/payments-initiation-hld.md`
+- `docs/architecture/open-finance/capabilities/hld/hexagonal-hld-compliance-checklist.md`
 
 ## Gap Analysis Summary (Against 10 Principles)
 
 Legend: `Strong`, `Partial`, `Missing`
 
-| Principle | UC001 AIS | UC003 CoP | UC006 Payments | Cross‑Cutting Gap Summary |
+| Principle | Personal Financial Management AIS | Confirmation of Payee CoP | Payment Initiation Payments | Cross‑Cutting Gap Summary |
 | --- | --- | --- | --- | --- |
 | Independent & Autonomous Services | Partial | Partial | Partial | Data ownership boundaries and blast‑radius isolation not explicit. |
 | API Aggregation | Partial | Partial | Partial | API composition/BFF strategy not defined. |
@@ -79,7 +79,7 @@ These remediations are non-optional and must be completed before broad service r
 
 ## Service Roadmaps
 
-### UC001 AIS (Personal Financial Management)
+### Personal Financial Management AIS (Personal Financial Management)
 **Phase 1: Boundary Hardening (Weeks 0–2)**
 - Define AIS data ownership (read models + cache) and upstream CBS event contracts.
 - Document read model refresh policy and rehydration strategy.
@@ -97,7 +97,7 @@ These remediations are non-optional and must be completed before broad service r
 - Define API versioning and deprecation policy.
 - Implement CI/CD with staged rollout and rollback conditions.
 
-### UC003 CoP (Confirmation of Payee)
+### Confirmation of Payee CoP (Confirmation of Payee)
 **Phase 1: Boundary Hardening (Weeks 0–2)**
 - Establish ownership of directory index and audit store.
 - Document fallback response (`UnableToCheck`) under index/cache degradation.
@@ -113,7 +113,7 @@ These remediations are non-optional and must be completed before broad service r
 **Phase 4: DevOps & Versioning (Weeks 6–8)**
 - API versioning policy and release strategy with backward compatibility checks.
 
-### UC006 Payments (Single/International)
+### Payment Initiation Payments (Single/International)
 **Phase 1: Boundary Hardening (Weeks 0–3)**
 - Formalize payment state machine and compensation boundaries.
 - Define idempotency store ownership and TTL policy.
@@ -130,7 +130,7 @@ These remediations are non-optional and must be completed before broad service r
 **Phase 4: DevOps & Versioning (Weeks 9–12)**
 - Formal release policy with rollback triggers and idempotency guarantees during rollout.
 
-### UC013 Request to Pay
+### Request to Pay Request to Pay
 **Phase 1: Boundary Hardening (Weeks 0–2)**
 - Formalize ownership of request store and notification adapter contracts.
 - Document compensation and retry semantics for notification delivery.
@@ -142,7 +142,7 @@ These remediations are non-optional and must be completed before broad service r
 **Phase 3: Scalability & Operations (Weeks 4–6)**
 - Define autoscaling for burst traffic and cache hit ratio targets.
 
-### UC014 Open Products Data
+### Open Products Data Open Products Data
 **Phase 1: Boundary Hardening (Weeks 0–2)**
 - Document catalog ownership and cache revalidation policy.
 
@@ -150,7 +150,7 @@ These remediations are non-optional and must be completed before broad service r
 - Add metrics for cache hit rate, response latency, and invalid filter attempts.
 - Formalize public‑cache TTL policy and CDN integration.
 
-### UC015 ATM Open Data
+### ATM Open Data ATM Open Data
 **Phase 1: Boundary Hardening (Weeks 0–2)**
 - Define data ownership for ATM directory and update cadence.
 

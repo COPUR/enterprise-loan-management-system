@@ -102,7 +102,7 @@ public class FraudDetectionServiceAdapter implements FraudDetectionService {
         BigDecimal amount = payment.getAmount().getAmount();
         
         // Check for round numbers (potential fraud indicator)
-        if (amount.remainder(BigDecimal.valueOf(1000)).equals(BigDecimal.ZERO) && 
+        if (amount.remainder(BigDecimal.valueOf(1000)).compareTo(BigDecimal.ZERO) == 0 &&
             amount.compareTo(BigDecimal.valueOf(10000)) > 0) {
             return true;
         }

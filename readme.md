@@ -153,12 +153,28 @@ cd enterprise-loan-management-system
 ./gradlew clean bootJar
 
 # 3. Configure runtime via environment variables
-# (See .env.template for the full set of required variables)
+# (See .env.template for non-secret runtime flags only)
 
-# 4. Run the application
+# 4. Provision real secret material at runtime (never in .env/source)
+# POST /internal/v1/system/secrets
+# (stores masked/hash-only records in DB)
+
+# 5. Run the application
 java -jar build/libs/*.jar
 ```
  
+## Secret Handling Policy
+
+- Do not store real secrets in local `.env` or `.env.local` files.
+- Do not hardcode secrets in source code, test fixtures, or OpenAPI examples.
+- Provision real secret values only through runtime API:
+  - `POST /internal/v1/system/secrets`
+- Persist secret material as masked + hashed records; never expose raw values in API responses.
+- Apply data-at-rest controls for secret storage:
+  - encrypted database volumes/backups,
+  - least-privilege DB access,
+  - audit trails for secret mutation.
+
 ### Note
 
 Infrastructure, deployment, and CI/CD assets have been removed or redacted to keep this repository environment-agnostic.

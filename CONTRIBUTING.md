@@ -14,6 +14,8 @@
 3. Keep changes scoped and atomic.
 4. Run local quality gates:
    - `./gradlew --no-daemon check`
+5. Install local Git hooks (one-time per clone):
+   - `bash tools/validation/install-git-hooks.sh`
 5. Open a pull request using `.github/pull_request_template.md`.
 
 ## Pull Request Requirements
@@ -45,6 +47,8 @@
    - Relevant architecture docs
 5. CI enforces baseline repository governance checks via:
    - `tools/validation/validate-repo-governance.sh`
+6. Local pre-commit enforces staged governance checks via:
+   - `.githooks/pre-commit` (installed by `tools/validation/install-git-hooks.sh`)
 
 ## Commit Message Style
 

@@ -42,7 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = {
                 "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration",
-                "openfinance.security.softhsm.enabled=false"
+                "openfinance.security.softhsm.enabled=false",
+                "openfinance.internal.secrets.storage=memory"
         }
 )
 @AutoConfigureMockMvc(addFilters = false)

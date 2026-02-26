@@ -329,6 +329,14 @@ task securityTest(type: Test) {
     }
 }
 
+// Repository governance validation (legacy path rules + capability naming hygiene)
+tasks.register('governanceCheck', Exec) {
+    description = 'Run repository governance validator'
+    group = 'verification'
+    workingDir = rootDir
+    commandLine 'python3', "${rootDir}/tools/validation/repo_governance_validator.py"
+}
+
 // Performance Testing
 task performanceTest(type: Test) {
     description = 'Run performance and load tests'
@@ -350,4 +358,9 @@ task productionBuild {
     description = 'Build and verify for production deployment'
     group = 'build'
     dependsOn build, enterpriseQualityGate
+}
+
+// Enforce governance checks on standard verification flow.
+tasks.named('check') {
+    dependsOn tasks.named('governanceCheck')
 }

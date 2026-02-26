@@ -9,6 +9,20 @@ This backlog consolidates enterprise-level work required to move from current-st
 - Clean coding and repository hygiene
 - Capability maturity uplift
 
+## Execution Artifacts
+
+- Architecture scorecard baseline:
+  `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/enterprisearchitecture/implementation-development/transformation/outputs/architecture-scorecard-latest.md`
+- Architecture remediation plan:
+  `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/enterprisearchitecture/implementation-development/transformation/outputs/architecture-scorecard-remediation-plan.md`
+- First PR-ready backlog split by team:
+  `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/enterprisearchitecture/implementation-development/transformation/outputs/pr-ready-backlog-by-team.md`
+- GitHub milestone map:
+  `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/enterprisearchitecture/implementation-development/transformation/outputs/github-milestone-map.md`
+- GitHub issue drafts and creation guide:
+  `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/enterprisearchitecture/implementation-development/transformation/outputs/github-issue-drafts/`
+  `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/enterprisearchitecture/implementation-development/transformation/outputs/github-issue-creation-guide.md`
+
 ## Prioritization Model
 
 - `P0` Critical security/compliance or production stability blockers
@@ -102,6 +116,8 @@ This backlog consolidates enterprise-level work required to move from current-st
 | Duplicate legacy roots marked deprecated | Done | `bankwide/README.md`, `bank-wide-services/README.md`, `loan-service/README.md`, `payment-service/README.md` |
 | Deprecated-root CI enforcement added | Done | `tools/validation/validate-repo-governance.sh` |
 | Governance validator implemented with TDD and coverage gate | Done | `tools/validation/repo_governance_validator.py`, `tools/validation/tests/test_repo_governance_validator.py`, CI fail-under 90% |
+| Local pre-commit governance gate added | Done | `.githooks/pre-commit`, `tools/validation/install-git-hooks.sh` |
+| OpenAPI protected-operation DPoP parity governance gate added | Done | `tools/validation/repo_governance_validator.py` validates `api/openapi/*.yaml` security operations include required `DPoP` header |
 | Rationalization plan documented | Done | `docs/architecture/WAVE_B_LEGACY_ROOT_RATIONALIZATION_PLAN.md` |
 | Dependency/reference inventory for deprecated roots | Done | Build include dependency check enforced; references categorized (runtime service naming vs folder dependency) |
 | Residual tracked file cleanup in deprecated roots | Done | `bankwide/build.gradle` removed and deletion path allowed by governance validator |
@@ -109,3 +125,21 @@ This backlog consolidates enterprise-level work required to move from current-st
 | Jenkins and GitLab templates hardened with governance + coverage gates | Done | `ci/templates/microservice/Jenkinsfile`, `ci/templates/microservice/gitlab-ci.yml`, `ci/templates/bounded-context/gitlab-ci.yml` |
 | Open Finance service Jenkinsfiles aligned to hardened baseline | Done | All `services/openfinance-*/Jenkinsfile` include governance stage and strict security tooling checks |
 | Full relocation/archive of deprecated roots | Planned | Archive/remove deprecated roots after two release cycles and migration sign-off |
+
+## Wave C Execution Status (2026-02-25)
+
+| Item | Status | Evidence |
+| --- | --- | --- |
+| `risk-context` implemented with hexagonal module split | Done | `risk-context/risk-domain`, `risk-context/risk-application`, `risk-context/risk-infrastructure` |
+| `compliance-context` implemented with hexagonal module split | Done | `compliance-context/compliance-domain`, `compliance-context/compliance-application`, `compliance-context/compliance-infrastructure` |
+| Risk and compliance OpenAPI contracts moved from stub to executable contract tests | Done | `api/openapi/risk-context.yaml`, `api/openapi/compliance-context.yaml`, `*OpenApiContractTest` classes |
+| Coverage gate script extended for risk and compliance groups | Done | `tools/validation/validate-coverage-gates.sh`, `.github/workflows/ci.yml` |
+| Risk context gate at >=85% line coverage | Done | `build/reports/coverage-gates/risk-context.txt` |
+| Compliance context gate at >=85% line coverage | Done | `build/reports/coverage-gates/compliance-context.txt` |
+| All grouped coverage gates executed without failures for active contexts | Done | `build/reports/coverage-gates/all.txt` |
+| Incubating framework modules isolated into explicit non-wave gate group | Done | `tools/validation/validate-coverage-gates.sh --group incubating` |
+| Shared foundation and Masrufi coverage baseline uplift | Planned | `build/reports/coverage-gates/incubating.txt` (currently failing by design until tests are added) |
+| Runtime credential policy enforced (no real `.env` secrets) | Done | `services/openfinance-consent-authorization-service/README.md`, `docs/architecture/DATA_AT_REST_POLICY.md` |
+| Internal runtime secret API implemented | Done | `POST/GET /internal/v1/system/secrets*` in consent authorization service |
+| Data-at-rest handling for runtime secrets (masked + hash in DB) | Done | `InternalSystemSecret*` domain/application/persistence implementation |
+| Architecture scorecard refreshed after Wave C pass | Done | `docs/enterprisearchitecture/implementation-development/transformation/outputs/architecture-scorecard-latest.md` |

@@ -1,3 +1,17 @@
+spring:
+  datasource:
+    url: ${OPENFINANCE_CA_DATASOURCE_URL:jdbc:h2:mem:consentauth;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    driver-class-name: ${OPENFINANCE_CA_DATASOURCE_DRIVER:org.h2.Driver}
+    username: ${OPENFINANCE_CA_DATASOURCE_USERNAME:sa}
+    password: ${OPENFINANCE_CA_DATASOURCE_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: ${OPENFINANCE_CA_JPA_DDL_AUTO:update}
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
 openfinance:
   security:
     oauth2:
@@ -10,4 +24,17 @@ openfinance:
       library-path: ${OPENFINANCE_CA_SOFTHSM_LIBRARY_PATH:/opt/softhsm2-devel/lib/softhsm/libsofthsm2.so}
       token-label: ${OPENFINANCE_CA_SOFTHSM_TOKEN_LABEL:first token}
       slot-list-index: ${OPENFINANCE_CA_SOFTHSM_SLOT_LIST_INDEX:0}
-
+  internal:
+    secrets:
+      storage: ${OPENFINANCE_INTERNAL_SECRETS_STORAGE:database}
+    security:
+      issuer: ${OPENFINANCE_INTERNAL_ISSUER:openfinance-internal-auth}
+      audience: ${OPENFINANCE_INTERNAL_AUDIENCE:openfinance-internal-clients}
+      jwt-hmac-secret: ${OPENFINANCE_INTERNAL_JWT_HMAC_SECRET:RUNTIME_MANAGED__USE_SYSTEM_SECRETS_API}
+      access-token-ttl: ${OPENFINANCE_INTERNAL_ACCESS_TOKEN_TTL:PT15M}
+      allowed-clock-skew: ${OPENFINANCE_INTERNAL_ALLOWED_CLOCK_SKEW:PT30S}
+      internal-username: ${OPENFINANCE_INTERNAL_USERNAME:RUNTIME_MANAGED_INTERNAL_USERNAME}
+      internal-password: ${OPENFINANCE_INTERNAL_PASSWORD:RUNTIME_MANAGED_INTERNAL_PASSWORD}
+      max-failed-attempts: ${OPENFINANCE_INTERNAL_MAX_FAILED_ATTEMPTS:5}
+      failed-attempt-window: ${OPENFINANCE_INTERNAL_FAILED_ATTEMPT_WINDOW:PT15M}
+      lock-duration: ${OPENFINANCE_INTERNAL_LOCK_DURATION:PT15M}

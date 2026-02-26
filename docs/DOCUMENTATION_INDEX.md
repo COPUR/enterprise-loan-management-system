@@ -29,8 +29,8 @@ This index maps the current, active documentation set and reflects the latest re
 - `architecture/decisions/`
 - `architecture/MONGODB_BCNF_DKNF_BASELINE.md`
 - `architecture/PMD_HEXAGONAL_BIAN_REVIEW.md`
-- `architecture/open-finance/use-cases/hld/`
-- `architecture/open-finance/use-cases/test-suites/`
+- `architecture/open-finance/capabilities/hld/`
+- `architecture/open-finance/capabilities/test-suites/`
 
 ## Enterprise Architecture (TOGAF)
 - `enterprisearchitecture/README.md`

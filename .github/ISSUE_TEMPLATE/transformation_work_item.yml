@@ -1,0 +1,70 @@
+name: Transformation Work Item
+description: Create an assignee-ready transformation issue tied to milestone and gate criteria
+title: "[PR-XXX] <work item title>"
+labels:
+  - program:transformation
+  - type:engineering
+body:
+  - type: input
+    id: pr_id
+    attributes:
+      label: PR backlog ID
+      description: Backlog ID from transformation plan (e.g., PR-001)
+      placeholder: PR-001
+    validations:
+      required: true
+  - type: dropdown
+    id: team
+    attributes:
+      label: Owner team
+      options:
+        - DevSecOps Platform Team
+        - Architecture Enablement Team
+        - Customer Domain Team
+        - Loan Domain Team
+        - Payment Domain Team
+        - API Standards Team
+        - SRE Observability Team
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Module and path scope
+      placeholder: "root CI, customer-context, loan-context"
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Issue or PR dependencies
+      placeholder: "Depends on PR-001 / #123"
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Use checklist format
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+  - type: input
+    id: validation_command
+    attributes:
+      label: Validation command
+      placeholder: ./gradlew test jacocoTestCoverageVerification
+    validations:
+      required: true
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: Milestone target
+      options:
+        - MS1-Wave0-Gate-Hardening
+        - MS2-Wave1-Core-Context-Stabilization
+        - MS3-Scorecard-And-Observability-Closure
+    validations:
+      required: true

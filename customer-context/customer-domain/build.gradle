@@ -10,6 +10,8 @@ plugins {
     id 'banking-testing-conventions'
 }
 
+apply plugin: 'jacoco'
+
 description = 'Customer Domain - Core customer business logic and domain model'
 
 dependencies {
@@ -18,3 +20,31 @@ dependencies {
     
     // (Most dependencies are provided by convention plugins)
 }
+
+jacoco {
+    toolVersion = "0.8.14"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.85
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

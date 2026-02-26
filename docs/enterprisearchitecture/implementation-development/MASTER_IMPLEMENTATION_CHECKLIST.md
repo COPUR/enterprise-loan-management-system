@@ -1,6 +1,6 @@
 # Master Implementation Checklist: Open Finance Microservice
 
-**Objective:** Implement a single Use Case (e.g., UC006) from HLD to Production readiness.
+**Objective:** Implement a single Use Case (e.g., Payment Initiation) from HLD to Production readiness.
 **Architecture:** Hexagonal (Ports & Adapters) | **Methodology:** TDD & DDD | **Compliance:** FAPI & Open Finance Standards.
 
 ---
@@ -118,7 +118,7 @@
 - [ ] Lint & Format.
 - [ ] Final Test Run: full suite passes.
 - [ ] Coverage Check: >85%.
-- [ ] Commit: conventional message (e.g., `feat(payments): implement UC006 initiation logic`).
+- [ ] Commit: conventional message (e.g., `feat(payments): implement Payment Initiation initiation logic`).
 - [ ] Push: trigger CI pipeline.
 
 ### 5.3 Backlog Update

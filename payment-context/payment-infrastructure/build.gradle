@@ -1,3 +1,5 @@
+apply plugin: 'jacoco'
+
 description = 'Payment Infrastructure Layer - Persistence and external integrations'
 
 dependencies {
@@ -35,3 +37,47 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
 }
+
+jacoco {
+    toolVersion = "0.8.14"
+}
+
+def paymentInfrastructureCoverageIncludes = [
+    'com/bank/payment/infrastructure/external/**',
+    'com/bank/payment/infrastructure/persistence/InMemoryPaymentRepositoryAdapter*',
+    'com/bank/payment/infrastructure/web/PaymentController*'
+]
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect { dir ->
+            fileTree(dir: dir, include: paymentInfrastructureCoverageIncludes)
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect { dir ->
+            fileTree(dir: dir, include: paymentInfrastructureCoverageIncludes)
+        }))
+    }
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.85
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

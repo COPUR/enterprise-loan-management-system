@@ -5,6 +5,8 @@
 // Implements ports defined in domain and application layers
 // =================================================================
 
+apply plugin: 'jacoco'
+
 description = 'Loan Infrastructure - Persistence and external service implementations'
 
 dependencies {
@@ -37,3 +39,46 @@ dependencies {
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
 }
+
+jacoco {
+    toolVersion = "0.8.14"
+}
+
+def loanInfrastructureCoverageIncludes = [
+    'com/bank/loan/infrastructure/external/**',
+    'com/bank/loan/infrastructure/web/LoanController*'
+]
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect { dir ->
+            fileTree(dir: dir, include: loanInfrastructureCoverageIncludes)
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect { dir ->
+            fileTree(dir: dir, include: loanInfrastructureCoverageIncludes)
+        }))
+    }
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.85
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

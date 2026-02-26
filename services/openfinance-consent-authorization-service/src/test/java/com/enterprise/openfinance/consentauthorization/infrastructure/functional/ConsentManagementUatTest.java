@@ -46,7 +46,10 @@ import static org.hamcrest.Matchers.notNullValue;
 @SpringBootTest(
         classes = ConsentManagementUatTest.TestApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+        properties = {
+                "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration",
+                "openfinance.internal.secrets.storage=memory"
+        }
 )
 class ConsentManagementUatTest {
 

@@ -1,0 +1,237 @@
+openapi: 3.0.3
+info:
+  title: Internal JWT Lifecycle Service
+  version: 1.0.0
+  description: |
+    Internal-only service for JWT issuance, validation, and revocation.
+    This API is restricted to private network access and trusted service clients.
+servers:
+  - url: /internal/v1
+    description: Internal service base path
+paths:
+  /authenticate:
+    post:
+      summary: Authenticate and issue JWT
+      operationId: authenticateInternalClient
+      tags: [internal-jwt]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Authentication temporarily throttled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /logout:
+    post:
+      summary: Revoke active JWT
+      operationId: logoutInternalClient
+      tags: [internal-jwt]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /business:
+    get:
+      summary: Secured internal business endpoint
+      operationId: getSecuredBusinessPayload
+      tags: [internal-jwt]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Authorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /system/secrets:
+    post:
+      summary: Store or rotate internal secret metadata
+      description: |
+        Stores secret material through runtime API only.
+        Plaintext is never returned. Persistence stores masked and hashed values.
+      operationId: upsertInternalSystemSecret
+      tags: [internal-jwt, internal-secrets]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemSecretUpsertRequest'
+      responses:
+        '200':
+          description: Secret stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemSecretResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /system/secrets/{secretKey}:
+    get:
+      summary: Retrieve secret metadata by key
+      operationId: getInternalSystemSecretMetadata
+      tags: [internal-jwt, internal-secrets]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: secretKey
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Metadata found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemSecretResponse'
+        '404':
+          description: Secret key not found
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+    TokenResponse:
+      type: object
+      required: [token, tokenType, expiresIn, issuedAt, expiresAt]
+      properties:
+        token:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          format: int64
+        issuedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    BusinessResponse:
+      type: object
+      required: [status, subject, issuedAt, expiresAt]
+      properties:
+        status:
+          type: string
+          example: AUTHORIZED
+        subject:
+          type: string
+        issuedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        interactionId:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+    SystemSecretUpsertRequest:
+      type: object
+      required: [secretKey, secretValue]
+      properties:
+        secretKey:
+          type: string
+          example: INTERNAL.JWT_HMAC_SECRET
+        secretValue:
+          type: string
+          description: Plain secret value; persisted as masked/hash only
+        classification:
+          type: string
+          example: INTERNAL
+    SystemSecretResponse:
+      type: object
+      required: [secretKey, maskedValue, classification, version, createdAt, updatedAt]
+      properties:
+        secretKey:
+          type: string
+        maskedValue:
+          type: string
+          example: ab****yz
+        classification:
+          type: string
+        version:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

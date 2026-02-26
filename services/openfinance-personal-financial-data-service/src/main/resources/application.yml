@@ -7,7 +7,7 @@ openfinance:
       ttl: ${OPENFINANCE_PFD_CACHE_TTL:30s}
       key-prefix: ${OPENFINANCE_PFD_CACHE_KEY_PREFIX:openfinance:personalfinancialdata}
     security:
-      jwt-secret: ${OPENFINANCE_PFD_JWT_SECRET:0123456789abcdef0123456789abcdef}
+      jwt-secret: ${OPENFINANCE_PFD_JWT_SECRET:RUNTIME_MANAGED__USE_SYSTEM_SECRETS_API}
       issuer: ${OPENFINANCE_PFD_JWT_ISSUER:}
       audience: ${OPENFINANCE_PFD_JWT_AUDIENCE:}
       dpop-required: ${OPENFINANCE_PFD_DPOP_REQUIRED:true}
@@ -20,8 +20,8 @@ spring:
   data:
     mongodb:
       uri: ${OPENFINANCE_PFD_MONGODB_URI:mongodb://localhost:27017/open_finance_personal_financial_data}
-  redis:
-    url: ${OPENFINANCE_PFD_REDIS_URL:redis://localhost:6379}
+    redis:
+      url: ${OPENFINANCE_PFD_REDIS_URL:redis://localhost:6379}
 
 management:
   endpoints:

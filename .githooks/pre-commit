@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "${REPO_ROOT}"
+
+export GOVERNANCE_DIFF_MODE="staged"
+bash tools/validation/validate-repo-governance.sh

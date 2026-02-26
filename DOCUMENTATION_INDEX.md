@@ -48,18 +48,18 @@ Documents organized under **docs/enterprisearchitecture/architecture-design/**:
 - `COMPREHENSIVE_SECURITY_POSTURE.md` - Security architecture and design
 - `DATABASE_OPTIMIZATION_ANALYSIS.md` - Database architecture analysis
 
-Open Finance use-case HLDs under **docs/architecture/open-finance/use-cases/hld/**:
-- `OPEN_FINANCE_GUARDRAILS_STANDARDS_CATALOG.md` - Categorized project guardrails/standards with HLD compliance review
-- `UC001_UC015_Open_Finance_Use_Cases_Overview.md` - Consolidated architecture, APIs, and Postman structure for UC001-UC015
-- `UC001_Personal_Financial_Management_HLD.md` - Detailed HLD for retail AIS data retrieval
-- `UC003_Confirmation_of_Payee_HLD.md` - Detailed HLD for real-time payee verification
-- `UC006_Payments_HLD.md` - Detailed HLD for payment initiation and idempotent processing
-- `UC01_Consent_Management_System.md` - Foundational consent architecture, token flow, and revocation model
-- `UC02_Account_Information_Service.md` - Foundational AIS architecture for read-optimized account data access
-- `UC03_Payment_Initiation_Service.md` - Foundational PIS architecture for idempotent transactional payments
-- `UC05_UC08_Corporate_Treasury_Services.md` - Corporate treasury and bulk payment architecture for batch/event-driven processing
-- `UC09_UC10_Insurance_Services.md` - Insurance data and quote architecture using adapter/ACL integration
-- `UC11_FX_Services.md` - Real-time FX and remittance architecture with streaming rates and atomic booking
+Open Finance capability HLDs under **docs/architecture/open-finance/capabilities/hld/**:
+- `open-finance-guardrails-standards-catalog.md` - Categorized project guardrails/standards with HLD compliance review
+- `open-finance-capability-overview.md` - Consolidated architecture, APIs, and Postman structure for Open Finance Capability Set
+- `personal-financial-management-hld.md` - Detailed HLD for retail AIS data retrieval
+- `confirmation-of-payee-hld.md` - Detailed HLD for real-time payee verification
+- `payments-initiation-hld.md` - Detailed HLD for payment initiation and idempotent processing
+- `consent-management-system-hld.md` - Foundational consent architecture, token flow, and revocation model
+- `account-information-service-hld.md` - Foundational AIS architecture for read-optimized account data access
+- `payment-initiation-service-hld.md` - Foundational PIS architecture for idempotent transactional payments
+- `corporate-treasury-and-bulk-payments-hld.md` - Corporate treasury and bulk payment architecture for batch/event-driven processing
+- `insurance-data-and-quotes-hld.md` - Insurance data and quote architecture using adapter/ACL integration
+- `fx-remittance-services-hld.md` - Real-time FX and remittance architecture with streaming rates and atomic booking
 
 Transformation and operating model documents under **docs/architecture/**:
 - `ORGANIZATIONAL_BIG_PICTURE_AS_IS_TO_BE.md` - Organizational operating model transformation from current state to target state
@@ -70,26 +70,26 @@ Transformation and operating model documents under **docs/architecture/**:
 - `WAVE_B_LEGACY_ROOT_RATIONALIZATION_PLAN.md` - Deprecation and migration plan for duplicate/legacy service roots
 - `GENERAL_BACKLOG.md` - Cross-domain backlog for security, platform, architecture, and delivery changes
 
-Open Finance test suites under **docs/architecture/open-finance/use-cases/test-suites/**:
-- `TEST_UC001_UC002_Account_Information.md` - Functional, negative, security, and NFR tests for AIS retail/corporate data retrieval
-- `TEST_UC003_Confirmation_of_Payee.md` - Matching, performance, and anti-enumeration test cases for CoP
-- `TEST_UC004_Banking_Metadata.md` - Metadata enrichment and account-party/product metadata validation scenarios
-- `TEST_UC005_Corporate_Treasury_Data.md` - Corporate treasury virtual account, sweeping, freshness, and entitlement test cases
-- `TEST_UC006_UC008_Payments.md` - Single, international, and bulk payment test coverage with idempotency and integrity checks
-- `TEST_UC008_Corporate_Bulk_Payments.md` - Corporate bulk upload, validation, processing, and reporting scenarios
-- `TEST_UC007_Recurring_Payments.md` - VRP mandate, limit, revocation, and concurrency test scenarios
-- `TEST_UC013_Request_to_Pay.md` - Request-to-pay creation, notification, acceptance/rejection, and duplicate handling tests
-- `TEST_UC014_UC015_Open_Data.md` - Public ATM/product data functional, quality, and caching NFR tests
-- `TEST_UC009_UC010_Insurance.md` - Insurance data and quote/bind test cases including schema and tamper checks
-- `TEST_UC011_UC012_FX_Onboarding.md` - FX quote/booking and dynamic onboarding security/compliance tests
-- `TEST_Common_Security_NFR.md` - Cross-cutting security, TLS/mTLS, rate-limiting, and performance resilience guardrail tests
-- `TEST_Audit_Liability_Compliance.md` - Audit evidence, dispute simulation, and retention validation aligned to liability model controls
-- `TEST_Performance_Scripts_K6.md` - K6 load/stress script templates for UC001 and UC006 NFR validation
-- `TEST_Traceability_Matrix.md` - RTM mapping UC requirements to HLD components, APIs, and test-case coverage
-- `TEST_Postman_Automation_Strategy.md` - Collection design, reusable scripts, environment variables, and Newman CI execution model
-- `TEST_CAAP_Authentication_Redirection.md` - Mobile app deep-link redirection, PAR, and SCA/biometric validation for CAAP integration
-- `TEST_Trust_Framework_Onboarding.md` - Dynamic registration, SSA validation, and mTLS/JWKS trust-framework onboarding tests
-- `TEST_E2E_Certification_Checklist.md` - Production go-live functional, security, operational readiness, and sign-off checklist
+Open Finance test suites under **docs/architecture/open-finance/capabilities/test-suites/**:
+- `account-information-test-suite.md` - Functional, negative, security, and NFR tests for AIS retail/corporate data retrieval
+- `confirmation-of-payee-test-suite.md` - Matching, performance, and anti-enumeration test cases for CoP
+- `banking-metadata-test-suite.md` - Metadata enrichment and account-party/product metadata validation scenarios
+- `corporate-treasury-data-test-suite.md` - Corporate treasury virtual account, sweeping, freshness, and entitlement test cases
+- `payments-test-suite.md` - Single, international, and bulk payment test coverage with idempotency and integrity checks
+- `corporate-bulk-payments-test-suite.md` - Corporate bulk upload, validation, processing, and reporting scenarios
+- `recurring-payments-test-suite.md` - VRP mandate, limit, revocation, and concurrency test scenarios
+- `request-to-pay-test-suite.md` - Request-to-pay creation, notification, acceptance/rejection, and duplicate handling tests
+- `open-data-test-suite.md` - Public ATM/product data functional, quality, and caching NFR tests
+- `insurance-services-test-suite.md` - Insurance data and quote/bind test cases including schema and tamper checks
+- `fx-and-onboarding-test-suite.md` - FX quote/booking and dynamic onboarding security/compliance tests
+- `common-security-nfr-test-suite.md` - Cross-cutting security, TLS/mTLS, rate-limiting, and performance resilience guardrail tests
+- `audit-liability-compliance-test-suite.md` - Audit evidence, dispute simulation, and retention validation aligned to liability model controls
+- `performance-k6-test-suite.md` - K6 load/stress script templates for Personal Financial Management and Payment Initiation NFR validation
+- `requirement-traceability-matrix.md` - RTM mapping capability requirements to HLD components, APIs, and test-case coverage
+- `postman-automation-strategy.md` - Collection design, reusable scripts, environment variables, and Newman CI execution model
+- `caap-authentication-redirection-test-suite.md` - Mobile app deep-link redirection, PAR, and SCA/biometric validation for CAAP integration
+- `trust-framework-onboarding-test-suite.md` - Dynamic registration, SSA validation, and mTLS/JWKS trust-framework onboarding tests
+- `e2e-certification-checklist.md` - Production go-live functional, security, operational readiness, and sign-off checklist
 
 ### Implementation & Development
 Documents organized under **docs/enterprisearchitecture/implementation-development/**:

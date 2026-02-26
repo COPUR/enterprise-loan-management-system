@@ -5,6 +5,8 @@
 // Coordinates domain operations and external integrations
 // =================================================================
 
+apply plugin: 'jacoco'
+
 description = 'Customer Application - Application services and use case orchestration'
 
 dependencies {
@@ -27,4 +29,33 @@ dependencies {
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework:spring-test'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
 }
+
+jacoco {
+    toolVersion = "0.8.14"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.85
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

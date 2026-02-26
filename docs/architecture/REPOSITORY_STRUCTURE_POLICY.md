@@ -64,3 +64,6 @@ This policy is enforced by:
 2. CODEOWNERS review requirements.
 3. CI governance validation script:
    - `tools/validation/validate-repo-governance.sh`
+   - Includes source-level legacy use-case marker scan and OpenAPI protected-operation `DPoP` parity checks.
+4. Local Git pre-commit hook (staged governance checks):
+   - `bash tools/validation/install-git-hooks.sh`
