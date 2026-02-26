@@ -30,7 +30,7 @@ subprojects {
         kafkaVersion = '3.8.0'
         cordaVersion = '5.0.0'
         keycloakVersion = '26.0.0'
-        testcontainersVersion = '1.19.3'
+        testcontainersVersion = '1.21.4'
     }
 
     dependencies {
