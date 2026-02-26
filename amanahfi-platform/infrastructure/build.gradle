@@ -29,9 +29,9 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
     
     // Corda
-    implementation 'net.corda:corda-core:4.9'
-    implementation 'net.corda:corda-jackson:4.9'
-    implementation 'net.corda:corda-rpc:4.9'
+    implementation 'net.corda:corda-core:4.12.7'
+    implementation 'net.corda:corda-jackson:4.12.7'
+    implementation 'net.corda:corda-rpc:4.12.7'
     
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
