@@ -55,8 +55,8 @@ dependencies {
     api project(':common:common-domain')
     
     // Domain event support
-    api 'org.springframework:spring-context:6.1.0'
-    api 'org.springframework:spring-tx:6.1.0'
+    api 'org.springframework:spring-context:7.0.5'
+    api 'org.springframework:spring-tx:7.0.5'
     
     // Value object support
     compileOnly libs.lombok
