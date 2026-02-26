@@ -18,7 +18,7 @@ spring-cloud-openfeign = "4.1.5"
 spring-cloud-circuit-breaker = "3.1.5"
 spring-cloud-config = "4.1.7"
 spring-cloud-sleuth = "3.1.5"
-spring-cloud-stream = "4.1.6"
+spring-cloud-stream = "5.0.1"
 spring-cloud-contract = "4.1.6"
 
 # Database & Persistence
