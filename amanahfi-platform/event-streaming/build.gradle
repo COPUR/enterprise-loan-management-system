@@ -25,7 +25,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     
     // Avro for schema registry (Islamic finance compliance)
-    implementation 'org.apache.avro:avro:1.11.3'
+    implementation 'org.apache.avro:avro:1.12.1'
     implementation 'io.confluent:kafka-avro-serializer:7.5.0'
     
     // Jackson for JSON serialization

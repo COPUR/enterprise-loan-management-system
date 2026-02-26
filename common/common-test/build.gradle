@@ -9,12 +9,12 @@ dependencies {
     api project(':common:common-infrastructure')
     
     api 'org.junit.jupiter:junit-jupiter:5.10.1'
-    api 'org.testcontainers:testcontainers:1.19.3'
-    api 'org.testcontainers:junit-jupiter:1.19.3'
-    api 'org.testcontainers:postgresql:1.19.3'
-    api 'org.testcontainers:mongodb:1.19.3'
-    api 'org.mockito:mockito-core:5.8.0'
-    api 'org.assertj:assertj-core:3.24.2'
+    api 'org.testcontainers:testcontainers:1.21.4'
+    api 'org.testcontainers:junit-jupiter:1.21.4'
+    api 'org.testcontainers:postgresql:1.21.4'
+    api 'org.testcontainers:mongodb:1.21.4'
+    api 'org.mockito:mockito-core:5.21.0'
+    api 'org.assertj:assertj-core:3.27.7'
     
     compileOnly 'org.projectlombok:lombok:1.18.42'
     annotationProcessor 'org.projectlombok:lombok:1.18.42'
