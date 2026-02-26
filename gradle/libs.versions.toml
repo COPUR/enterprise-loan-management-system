@@ -72,7 +72,7 @@ awaitility = "4.2.0"
 jqwik = "1.8.2"
 
 # Code Quality & Analysis
-spotbugs = "5.2.1"
+spotbugs = "6.4.8"
 checkstyle = "10.12.7"
 pmd = "7.21.0"
 jacoco = "0.8.14"
