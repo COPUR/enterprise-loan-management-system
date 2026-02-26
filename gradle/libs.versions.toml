@@ -39,7 +39,7 @@ rabbitmq = "3.12.10"
 activemq = "6.0.1"
 
 # Security & Authentication
-oauth2-resource-server = "6.2.0"
+oauth2-resource-server = "7.0.3"
 oauth2-jose = "6.2.0"
 nimbus-jose-jwt = "9.37.3"
 oauth2-oidc-sdk = "11.9.1"
