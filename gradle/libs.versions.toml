@@ -121,7 +121,7 @@ hazelcast = "5.3.6"
 lombok = "1.18.42"
 mapstruct-processor = "1.5.5.Final"
 swagger-annotations = "2.2.20"
-springdoc-openapi = "2.3.0"
+springdoc-openapi = "3.0.1"
 openapi-generator = "7.2.0"
 springdoc-openapi-starter-webmvc-ui = "2.3.0"
 

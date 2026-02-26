@@ -29,7 +29,7 @@ dependencies {
     // Infrastructure-specific dependencies
     // (Most dependencies are provided by convention plugins)
     implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
     implementation 'org.springframework.boot:spring-boot-starter-websocket:3.3.6'
     
     // Resilience4J - specific to infrastructure
