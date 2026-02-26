@@ -165,6 +165,11 @@ docs/
 
 ## 🔗 Related Documentation
 
+- [API Catalogue](../API_CATALOGUE.md) - Contract-generated endpoint and security inventory
+- [Architecture Catalogue](./overview/ARCHITECTURE_CATALOGUE.md) - System-level architecture baseline
+- [Secure Microservices Architecture](./overview/SECURE_MICROSERVICES_ARCHITECTURE.md) - Enforceable AAA and zero-trust security chain
+- [Security Container Diagram](./security-architecture.puml) - Gateway, IdP, DPoP, mesh, bounded context security
+- [Security Request Sequence](./security-request-flow.uml) - PKCE + DPoP authorization sequence
 - [Component Diagram](./component-diagram.puml) - Detailed component relationships
 - [Hexagonal Architecture](./hexagonal-architecture.puml) - Ports and adapters pattern
 - [System Context](./system-context.puml) - External system dependencies

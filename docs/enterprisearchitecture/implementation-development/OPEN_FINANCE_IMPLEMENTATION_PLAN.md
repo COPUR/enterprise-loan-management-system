@@ -6,24 +6,24 @@ This implementation plan details the integration of UAE Open Finance capabilitie
 ## Delivery Backlog Status (Updated: 2026-02-10)
 
 ### Feature Delivery Snapshot
-All 15 use-case feature tracks are implemented in the repository. The current backlog priority is architecture/security/runtime hardening.
+All 15 capability feature tracks are implemented in the repository. The current backlog priority is architecture/security/runtime hardening.
 
-### Completed Use Cases
-- [x] UC01 Consent Management
-- [x] UC02 Account Information Service (AIS)
-- [x] UC03 Confirmation of Payee (CoP)
-- [x] UC04 Banking Metadata
-- [x] UC05 Corporate Treasury Data
-- [x] UC06 Payment Initiation (PIS)
-- [x] UC07 Variable Recurring Payments (VRP)
-- [x] UC08 Corporate Bulk Payments
-- [x] UC09 Insurance Data Sharing
-- [x] UC10 Insurance Quote Initiation
-- [x] UC11 FX & Remittance
-- [x] UC12 Dynamic Onboarding for FX
-- [x] UC13 Request to Pay
-- [x] UC014 Open Products Data
-- [x] UC015 ATM Open Data
+### Completed Capabilities
+- [x] Consent Management
+- [x] Account Information Service (AIS)
+- [x] Confirmation of Payee (CoP)
+- [x] Banking Metadata
+- [x] Corporate Treasury Data
+- [x] Payment Initiation (PIS)
+- [x] Recurring Payments (VRP)
+- [x] Corporate Bulk Payments
+- [x] Insurance Data Sharing
+- [x] Insurance Quote Initiation
+- [x] FX and Remittance Services
+- [x] Dynamic Onboarding
+- [x] Request to Pay
+- [x] Open Products Data
+- [x] ATM Open Data
 
 ### Next Implementation Queue (Mandatory Hardening Waves)
 - [ ] Wave 0: Implement shared FAPI runtime security with JWT, scope checks, and mandatory `DPoP` verification on protected APIs.
@@ -50,6 +50,7 @@ All 15 use-case feature tracks are implemented in the repository. The current ba
 - [x] Terraform service root stacks: added explicit AWS provider wiring (`aws_region`, default tags), standardized module outputs, and updated Terraform operational documentation.
 - [x] Personal Financial Data Service: runtime FAPI security chain added (JWT validation, scope authorization, mandatory DPoP verification) and security-enabled integration/UAT tests with signed proofs.
 - [x] Banking Metadata Service: runtime FAPI security chain added (JWT validation, scope authorization, mandatory DPoP verification) and security-enabled integration/UAT tests with signed proofs.
+- [x] Governance baseline: repository validator now enforces OpenAPI protected-operation DPoP parity across `api/openapi/*.yaml` and fails on missing/optional DPoP headers.
 
 ### Universal Task List (Cross-Service Guardrails)
 - [ ] OpenAPI parity: implementation paths/headers must match published contracts exactly.
@@ -60,44 +61,44 @@ All 15 use-case feature tracks are implemented in the repository. The current ba
 - [ ] Observability parity: request trace correlation, endpoint metrics, and structured logs with PII masking.
 - [ ] Delivery parity: CI/CD and IaC are executable, not placeholders.
 
-### UC07 Execution Summary
+### Recurring Payments Execution Summary
 - TDD flow completed: unit tests first, then domain/application/infrastructure implementation.
-- Hexagonal architecture applied with explicit UC07 input/output ports.
-- DDD boundaries enforced with UC-specific aggregate/value models and domain exceptions.
+- Hexagonal architecture applied with explicit Recurring Payments input/output ports.
+- DDD boundaries enforced with capability-specific aggregate/value models and domain exceptions.
 - FAPI-aware behavior implemented (`DPoP`, `X-FAPI-Interaction-ID`, idempotency keys, no-store cache directives).
 - Test pyramid completed (unit, integration, e2e/functional, UAT).
 
-### UC08 Execution Summary
+### Corporate Bulk Payments Execution Summary
 - TDD flow completed for corporate bulk uploads: red phase tests, implementation, and green/refactor cycle.
-- Hexagonal architecture enforced with explicit UC08 ports (`BulkPaymentUseCase`, consent/file/report/idempotency/cache output ports).
+- Hexagonal architecture enforced with explicit Corporate Bulk Payments ports (`BulkPaymentUseCase`, consent/file/report/idempotency/cache output ports).
 - DDD model implemented for file lifecycle, item-level outcomes, idempotency records, and consent context.
 - FAPI-aligned API behavior implemented (`DPoP`/`Bearer` auth, `X-FAPI-Interaction-ID`, idempotency semantics, `ETag` + `If-None-Match`, `no-store` cache-control).
 - Full test pyramid completed:
   - Unit: domain/application/infrastructure
   - Integration: MockMvc API contract + idempotency/rejection paths
   - E2E/UAT: REST-assured customer journey and replay scenarios
-- UC08 package line coverage achieved:
+- Corporate Bulk Payments package line coverage achieved:
   - Domain: 98.35%
   - Application: 90.48%
   - Infrastructure: 96.30%
 
-### UC09 Execution Summary
+### Insurance Data Sharing Execution Summary
 - TDD flow completed for insurance data sharing: tests first, implementation second, then integration/UAT hardening.
-- Hexagonal architecture applied with clear UC09 input/output ports (`InsuranceDataUseCase`, consent/read/cache ports).
+- Hexagonal architecture applied with clear Insurance Data Sharing input/output ports (`InsuranceDataUseCase`, consent/read/cache ports).
 - DDD model established for consent context, policy aggregate/value semantics, paging results, and domain exceptions.
 - FAPI-aligned behavior implemented (`DPoP`/`Bearer` validation, `X-FAPI-Interaction-ID`, `X-Consent-ID`, cache telemetry via `X-OF-Cache`, `ETag`/`If-None-Match`, `no-store` cache-control).
 - Full test pyramid completed:
   - Unit: domain/application/infrastructure
   - Integration: MockMvc API scenarios for policy listing/detail, security guardrails, and consent scope enforcement
   - E2E/UAT: REST-assured journey for policy retrieval and cache behavior
-- UC09 package line coverage achieved:
+- Insurance Data Sharing package line coverage achieved:
   - Domain: 89.94%
   - Application: 100.00%
   - Infrastructure: 92.59%
 
-### UC10 Execution Summary
+### Insurance Quote Initiation Execution Summary
 - TDD flow completed for insurance quote initiation: red-phase tests first, then domain/application/infrastructure implementation and refactoring.
-- Hexagonal architecture enforced with explicit UC10 ports (`InsuranceQuoteUseCase`, quote/idempotency/cache/pricing/policy issuance/event ports).
+- Hexagonal architecture enforced with explicit Insurance Quote Initiation ports (`InsuranceQuoteUseCase`, quote/idempotency/cache/pricing/policy issuance/event ports).
 - DDD model established for quote lifecycle (`Quoted` -> `Accepted`/`Expired`), idempotency records, command/query contracts, and domain exceptions.
 - FAPI-aligned behavior implemented (`DPoP`/`Bearer` validation, `X-FAPI-Interaction-ID`, `X-Idempotency-Key`, `X-OF-Idempotency`, `ETag`/`If-None-Match`, `no-store` cache-control).
 - Security/compliance controls implemented for TC-QT-003: bind request is rejected when risk snapshot parameters differ from original quote (`Quote bound to original inputs`).
@@ -105,87 +106,87 @@ All 15 use-case feature tracks are implemented in the repository. The current ba
   - Unit: domain/application/infrastructure
   - Integration: MockMvc API contract for create/bind/replay/get and manipulation/header-negative scenarios
   - E2E/UAT: REST-assured quote-to-policy journey, replay behavior, and manipulation rejection
-- UC10 package line coverage achieved:
+- Insurance Quote Initiation package line coverage achieved:
   - Domain: 89.80%
   - Application: 94.38%
   - Infrastructure: 91.03%
 
-### UC11 Execution Summary
+### FX and Remittance Services Execution Summary
 - TDD flow completed for FX quotes and deal booking: tests first (unit/integration/functional/UAT), then implementation and refactoring.
-- Hexagonal architecture applied with explicit UC11 ports (`FxUseCase`, rate/quote/deal/idempotency/cache/event output ports).
+- Hexagonal architecture applied with explicit FX and Remittance Services ports (`FxUseCase`, rate/quote/deal/idempotency/cache/event output ports).
 - DDD model implemented for quote/deal lifecycle (`Quoted` -> `Booked`/`Expired`), idempotency, and domain command/query contracts.
 - FAPI-aware behavior implemented (`DPoP`/`Bearer` header enforcement, `X-FAPI-Interaction-ID`, `X-Idempotency-Key`, `X-OF-Idempotency`, `X-OF-Cache`, `ETag`/`If-None-Match`, `no-store` cache control).
 - Test pyramid completed:
   - Unit: domain/application/infrastructure
   - Integration: MockMvc API contract (quote/deal/replay/cache/expired/header-negative)
   - E2E/UAT: REST-assured quote-to-deal journey, replay protection, and negative authorization path
-- UC11 package line coverage achieved:
+- FX and Remittance Services package line coverage achieved:
   - Domain: 86.22%
   - Application: 89.80%
   - Infrastructure: 90.85%
 
-### UC12 Execution Summary
+### Dynamic Onboarding Execution Summary
 - TDD flow completed for dynamic onboarding: red-phase tests first (unit + integration + functional/UAT), then implementation and refactor cycle.
-- Hexagonal architecture applied with explicit UC12 input/output ports (`OnboardingUseCase`, KYC decryption, sanctions screening, account/idempotency/cache/event ports).
+- Hexagonal architecture applied with explicit Dynamic Onboarding input/output ports (`OnboardingUseCase`, KYC decryption, sanctions screening, account/idempotency/cache/event ports).
 - DDD model implemented for onboarding account aggregate, applicant profile value object, idempotency record, command/query contracts, and domain exceptions.
 - FAPI-aware behavior implemented (`DPoP`/`Bearer` validation, `X-FAPI-Interaction-ID`, `X-Idempotency-Key`, `X-OF-Idempotency`, `X-OF-Cache`, `ETag`/`If-None-Match`, `no-store` cache controls).
 - 12-factor alignment applied for config and runtime boundaries:
-  - Config via typed properties beans (`Uc12CacheProperties`, `Uc12ComplianceProperties`).
+  - Config via typed properties beans (`DynamicOnboardingCacheProperties`, `DynamicOnboardingComplianceProperties`).
   - Stateless API/application processes with externalized state through ports/adapters.
 - Test pyramid completed:
   - Unit: domain/application/infrastructure
   - Integration: MockMvc API contract (create/replay/get, decryption/sanctions/authorization negatives)
   - E2E/UAT: REST-assured onboarding journey with replay and security negatives
-- UC12 package line coverage achieved:
+- Dynamic Onboarding package line coverage achieved:
   - Domain: 91.47%
   - Application: 91.30%
   - Infrastructure: 86.36%
 
-### UC13 Execution Summary
+### Request to Pay Execution Summary
 - TDD flow completed for request-to-pay: unit tests first, then domain/application/infrastructure implementation and refactor cycle.
-- Hexagonal architecture applied with explicit UC13 ports (`PayRequestUseCase`, repository/cache/notification output ports).
+- Hexagonal architecture applied with explicit Request to Pay ports (`PayRequestUseCase`, repository/cache/notification output ports).
 - DDD model implemented for pay-request aggregate, status lifecycle, command/query contracts, and domain exceptions.
 - FAPI-aware behavior implemented (`DPoP`/`Bearer` validation, `X-FAPI-Interaction-ID`, `X-OF-Cache`, `ETag`/`If-None-Match`, `no-store` cache control).
 - Test pyramid completed:
   - Unit: domain/application/infrastructure adapters + controller + exception mapping
   - Integration: MockMvc API contract (PAR create, status read, finalize, header negatives)
   - E2E/UAT: REST-assured request-to-pay journey and invalid authorization path
-- UC13 package line coverage achieved:
+- Request to Pay package line coverage achieved:
   - Domain/Application/Infrastructure: above 85% line coverage threshold.
 
-### UC14 Execution Summary
+### Open Products Data Execution Summary
 - TDD flow completed for open products data: tests first (domain/application/unit/integration/functional-UAT), then implementation and refactor cycle.
-- Hexagonal architecture applied with explicit UC14 ports (`ProductDataUseCase`, catalog/cache output ports).
+- Hexagonal architecture applied with explicit Open Products Data ports (`ProductDataUseCase`, catalog/cache output ports).
 - DDD model implemented for open product entity/value semantics, query validation invariants, settings, and cache-aware read results.
 - FAPI-aware/open-data behavior implemented (`Authorization` token-type validation when supplied, required `X-FAPI-Interaction-ID`, `X-OF-Cache`, `ETag`/`If-None-Match`).
 - Cache optimization implemented for read path:
-  - in-memory cache with TTL via externalized properties (`openfinance.uc14.cache.ttl`).
+  - in-memory cache with TTL via externalized properties (`openfinance.productcatalog.cache.ttl`).
   - `Cache-Control: public, max-age=60` response policy for public product catalog resources.
 - 12-factor alignment applied:
-  - runtime cache TTL externalized through `Uc14CacheProperties`.
+  - runtime cache TTL externalized through `ProductCatalogCacheProperties`.
   - stateless service logic with catalog/cache state delegated to output adapters.
 - Test pyramid completed:
   - Unit: domain/application/infrastructure adapters + controller + exception mapping
   - Integration: MockMvc API contract (PCA/SME filters, cache hit/revalidation, invalid auth/filter guards)
   - E2E/UAT: REST-assured public product journey and security negatives
-- UC14 package line coverage achieved:
+- Open Products Data package line coverage achieved:
   - Domain: 95.92%
   - Application: 100.00%
   - Infrastructure: 90.24%
 
-### UC15 Execution Summary
+### ATM Open Data Execution Summary
 - TDD flow completed for ATM open data: unit tests first, then domain/application/infrastructure implementation and refactor cycle.
-- Hexagonal architecture applied with explicit UC15 ports (`AtmDataUseCase`, directory/cache output ports).
+- Hexagonal architecture applied with explicit ATM Open Data ports (`AtmDataUseCase`, directory/cache output ports).
 - DDD model implemented for ATM directory entries, status enum, location query invariants, and cache-aware result model.
 - Open-data/FAPI-aware behavior implemented (`Authorization` token-type validation when supplied, required `X-FAPI-Interaction-ID`, `X-OF-Cache`, `ETag`/`If-None-Match`).
 - Cache optimization implemented for read path:
-  - in-memory cache with TTL via externalized properties (`openfinance.uc15.cache.ttl`).
+  - in-memory cache with TTL via externalized properties (`openfinance.atmdata.cache.ttl`).
   - `Cache-Control: public, max-age=60` response policy for public ATM resources.
 - Test pyramid completed:
   - Unit: domain/application/infrastructure adapters + controller + exception mapping
   - Integration: MockMvc API contract (location filter, cache hit, invalid auth/coords)
   - E2E/UAT: REST-assured ATM directory journey and revalidation flow
-- UC15 package line coverage achieved:
+- ATM Open Data package line coverage achieved:
   - Domain/Application/Infrastructure: above 85% line coverage threshold.
 
 ## Project Structure

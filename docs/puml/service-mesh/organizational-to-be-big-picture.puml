@@ -1,0 +1,103 @@
+@startuml organizational-to-be-big-picture
+!theme spacelab
+title Organizational Big Picture - To-Be
+
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+actor "Board / Executive Committee" as Board
+
+package "Enterprise Governance (To-Be)" as Gov #lightgray {
+  rectangle "Architecture Board\n(quarterly runway + ADR governance)" as ArchBoard
+  rectangle "Security & Compliance Council\n(policy owners + control stewards)" as SecCouncil
+  rectangle "Value Stream Governance\n(OKRs + capability funding)" as ValueGov
+}
+
+package "Domain Product Streams" as Domains #lightyellow {
+  package "Open Finance Stream" as OFStream #lightgoldenrodyellow {
+    rectangle "Product Owner + Domain Architect" as OFLeadership
+    rectangle "AIS / CoP / Consent squads" as OFSquads
+  }
+  package "Lending Stream" as LoanStream #lightgoldenrodyellow {
+    rectangle "Product Owner + Domain Architect" as LoanLeadership
+    rectangle "Origination / Servicing squads" as LoanSquads
+  }
+  package "Payments Stream" as PayStream #lightgoldenrodyellow {
+    rectangle "Product Owner + Domain Architect" as PayLeadership
+    rectangle "Initiation / Settlement squads" as PaySquads
+  }
+}
+
+package "Platform Engineering Capabilities" as Platform #lightgreen {
+  package "Identity Platform" as IdPlat #lightcyan {
+    rectangle "Keycloak (HA) + LDAP Federation" as KeycloakLDAP
+    rectangle "DPoP validation + replay cache" as DpopPlat
+  }
+  package "Mesh & Runtime Platform" as MeshPlat #lightcyan {
+    rectangle "Istio mesh policy baseline" as MeshPolicy
+    rectangle "Gateway policy + ext_authz/OPA" as AuthzPlatform
+  }
+  package "DevSecOps Platform" as DevSecOps #lightcyan {
+    rectangle "CI quality gates + policy-as-code" as CIGates
+    rectangle "Signed artifacts + IaC controls" as SupplyChain
+  }
+  package "Observability Platform" as ObsPlat #lightcyan {
+    rectangle "OpenTelemetry + SIEM pipeline" as OTelSiem
+    rectangle "SLO dashboard + incident automation" as SLOOps
+  }
+}
+
+package "Operational Excellence" as Ops #lightblue {
+  rectangle "SRE + Service Reliability Reviews" as SRE
+  rectangle "Compliance Engineering\n(continuous evidence)" as ComplianceEng
+  rectangle "DR & Resilience Program" as DRProgram
+}
+
+Board --> ArchBoard : strategic direction
+Board --> SecCouncil : regulatory accountability
+Board --> ValueGov : funding decisions
+
+ArchBoard --> OFLeadership
+ArchBoard --> LoanLeadership
+ArchBoard --> PayLeadership
+
+SecCouncil --> KeycloakLDAP : AAA standards
+SecCouncil --> DpopPlat : DPoP controls
+SecCouncil --> MeshPolicy : zero-trust controls
+SecCouncil --> ComplianceEng : control verification
+
+ValueGov --> OFLeadership : product outcomes
+ValueGov --> LoanLeadership
+ValueGov --> PayLeadership
+
+OFSquads --> KeycloakLDAP : shared identity plane
+LoanSquads --> KeycloakLDAP
+PaySquads --> KeycloakLDAP
+
+OFSquads --> MeshPolicy : secure service communication
+LoanSquads --> MeshPolicy
+PaySquads --> MeshPolicy
+
+AuthzPlatform --> OFSquads : fine-grained decisions
+AuthzPlatform --> LoanSquads
+AuthzPlatform --> PaySquads
+
+CIGates --> OFSquads : delivery controls
+CIGates --> LoanSquads
+CIGates --> PaySquads
+SupplyChain --> CIGates
+
+OTelSiem --> SLOOps
+SLOOps --> SRE
+ComplianceEng --> OTelSiem
+SRE --> DRProgram
+
+note bottom of Platform
+  To-Be organizational characteristics:
+  - Centralized AAA platform (Keycloak + LDAP + DPoP) as shared capability.
+  - Distributed domain squads with platform guardrails and policy-as-code.
+  - Continuous compliance and reliability integrated into delivery lifecycle.
+end note
+
+@enduml
+

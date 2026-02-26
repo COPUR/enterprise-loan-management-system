@@ -1,16 +1,381 @@
 openapi: 3.0.3
 info:
   title: Customer Context Service API
-  version: 0.1.0
+  version: 1.0.0
+  description: Customer profile and credit management APIs.
   license:
     name: Proprietary
     url: https://openfinance.example.com/license
-
 servers:
-  - url: https://api.sandbox.openfinance.ae/customers
-paths: {}
+  - url: https://api.sandbox.openfinance.ae
+    description: Sandbox
+
+tags:
+  - name: CustomerManagement
+
+paths:
+  /api/v1/customers:
+    post:
+      tags: [CustomerManagement]
+      summary: Create customer
+      operationId: createCustomer
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCustomerRequest'
+      responses:
+        '201':
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Business validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/customers/{customerId}:
+    get:
+      tags: [CustomerManagement]
+      summary: Get customer by id
+      operationId: getCustomer
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Customer found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/customers/{customerId}/credit-limit:
+    put:
+      tags: [CustomerManagement]
+      summary: Update customer credit limit
+      operationId: updateCreditLimit
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/CustomerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCreditLimitRequest'
+      responses:
+        '200':
+          description: Credit limit updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/customers/{customerId}/credit/reserve:
+    post:
+      tags: [CustomerManagement]
+      summary: Reserve credit
+      operationId: reserveCredit
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/CustomerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditMovementRequest'
+      responses:
+        '200':
+          description: Credit reserved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/customers/{customerId}/credit/release:
+    post:
+      tags: [CustomerManagement]
+      summary: Release reserved credit
+      operationId: releaseCredit
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/CustomerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditMovementRequest'
+      responses:
+        '200':
+          description: Credit released
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
+      bearerFormat: JWT
+    dpopAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: DPoP
+  parameters:
+    Authorization:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Access token.
+    DPoP:
+      name: DPoP
+      in: header
+      required: true
+      schema:
+        type: string
+      description: DPoP proof JWT.
+    InteractionId:
+      name: X-FAPI-Interaction-ID
+      in: header
+      required: true
+      schema:
+        type: string
+      description: End-to-end correlation identifier.
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    CreateCustomerRequest:
+      type: object
+      required: [firstName, lastName, email, initialCreditLimit]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phoneNumber:
+          type: string
+        initialCreditLimit:
+          type: number
+          format: double
+        currency:
+          type: string
+          example: USD
+
+    UpdateCreditLimitRequest:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+          example: USD
+
+    CreditMovementRequest:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+          example: USD
+
+    CustomerResponse:
+      type: object
+      required: [customerId, firstName, lastName, email, creditLimit, usedCredit, availableCredit, status, createdAt, lastModifiedAt]
+      properties:
+        customerId:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phoneNumber:
+          type: string
+          nullable: true
+        creditLimit:
+          type: number
+          format: double
+        usedCredit:
+          type: number
+          format: double
+        availableCredit:
+          type: number
+          format: double
+        status:
+          type: string
+        creditScore:
+          type: integer
+          nullable: true
+        monthlyIncome:
+          type: number
+          format: double
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        lastModifiedAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [code, message, interactionId, timestamp]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        interactionId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

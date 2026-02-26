@@ -5,6 +5,7 @@ pipeline {
     environment {
         SERVICE_DIR = 'services/openfinance-business-financial-data-service'
         IMAGE_NAME = 'openfinance-business-financial-data-service:' + (env.GIT_COMMIT ?: 'local')
+        STRICT_DEPRECATED_ROOTS = 'true'
     }
 
     stages {
@@ -14,6 +15,21 @@ pipeline {
                   set -euo pipefail
                   test -f "${SERVICE_DIR}/build.gradle"
                   test -x ./gradlew
+                '''
+            }
+        }
+        stage('Repository Governance') {
+            steps {
+                sh '''
+                  set -euo pipefail
+                  export STRICT_DEPRECATED_ROOTS="${STRICT_DEPRECATED_ROOTS:-true}"
+                  bash tools/validation/validate-repo-governance.sh
+
+                  python3 -m venv .venv-validation
+                  . .venv-validation/bin/activate
+                  python -m pip install --upgrade pip coverage
+                  python -m coverage run --source=tools/validation -m unittest discover -s tools/validation/tests -p 'test_*.py'
+                  python -m coverage report --include='*/repo_governance_validator.py' --fail-under=90
                 '''
             }
         }
@@ -31,18 +47,10 @@ pipeline {
                   set -euo pipefail
                   mkdir -p "${SERVICE_DIR}/build/reports/security"
                   ./gradlew -p "${SERVICE_DIR}" --no-daemon dependencies > "${SERVICE_DIR}/build/reports/security/dependencies.txt"
-
-                  if command -v trivy >/dev/null 2>&1; then
-                    trivy fs --exit-code 1 --severity HIGH,CRITICAL "${SERVICE_DIR}"
-                  else
-                    echo "trivy not installed; skipping vulnerability scan"
-                  fi
-
-                  if command -v gitleaks >/dev/null 2>&1; then
-                    gitleaks detect --no-git --source "${SERVICE_DIR}" --exit-code 1
-                  else
-                    echo "gitleaks not installed; skipping secret scan"
-                  fi
+                  command -v trivy >/dev/null 2>&1
+                  trivy fs --exit-code 1 --severity HIGH,CRITICAL "${SERVICE_DIR}"
+                  command -v gitleaks >/dev/null 2>&1
+                  gitleaks detect --no-git --source "${SERVICE_DIR}" --exit-code 1
                 '''
             }
         }

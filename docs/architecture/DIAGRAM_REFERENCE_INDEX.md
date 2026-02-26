@@ -10,7 +10,7 @@ This document provides a comprehensive index of all architectural diagrams, Plan
 
 | Diagram | Description | SVG Location | PlantUML Source | ADR Reference |
 |---------|-------------|--------------|-----------------|---------------|
-| **Enhanced Enterprise Banking Security Architecture** | Zero-trust security model with OAuth 2.1 | [SVG](../images/Enhanced%20Enterprise%20Banking%20Security%20Architecture.svg) | N/A | ADR-006, ADR-012 |
+| **Enhanced Enterprise Banking Security Architecture** | Zero-trust security model with OAuth 2.1 | [SVG](../images/Enhanced%20Enterprise%20Banking%20Security%20Architecture.svg) | [PlantUML](security-architecture.puml) | ADR-006, ADR-012 |
 | **Enhanced Enterprise Banking - Hexagonal Architecture** | Domain-driven design with hexagonal architecture | [SVG](../images/Enhanced%20Enterprise%20Banking%20-%20Hexagonal%20Architecture.svg) | N/A | ADR-002 |
 | **Enhanced Enterprise Banking - Service Mesh Architecture** | Istio service mesh implementation | [SVG](../images/Enhanced%20Enterprise%20Banking%20-%20Service%20Mesh%20Architecture.svg) | N/A | ADR-005, ADR-008 |
 
@@ -20,6 +20,8 @@ This document provides a comprehensive index of all architectural diagrams, Plan
 |---------|-------------|--------------|-----------------|---------------|
 | **OAuth 2.1 Authorization Code Flow with PKCE** | Complete OAuth 2.1 authentication flow | [SVG](../images/OAuth%202.1%20Authorization%20Code%20Flow%20with%20PKCE.svg) | [PlantUML](../puml/oauth2-sequence-flow.puml) | ADR-004 |
 | **OAuth 2.1 Keycloak Authentication Architecture** | Keycloak identity provider integration | [SVG](../images/OAuth%202.1%20Keycloak%20Authentication%20Architecture.svg) | [PlantUML](../puml/oauth2-keycloak-architecture.puml) | ADR-004 |
+| **Security Request Flow (PKCE + DPoP)** | Runtime authn/authz request flow for protected APIs | N/A | [PlantUML](security-request-flow.uml) | ADR-004, ADR-006 |
+| **Service-Level Security Flow** | JWT + DPoP + mTLS enforcement sequence | [SVG](../puml/security/docs/images/security/service-level-security.svg) | [PlantUML](../puml/security/service-level-security.puml) | ADR-006 |
 | **Enterprise Banking Security Architecture** | Legacy security architecture reference | [SVG](../images/Enterprise%20Banking%20Security%20Architecture.svg) | N/A | ADR-006 |
 
 ### Infrastructure & Deployment
@@ -39,6 +41,16 @@ This document provides a comprehensive index of all architectural diagrams, Plan
 ## PlantUML Source Files
 
 ### Authentication & Security
+- **security-architecture.puml** - canonical security container diagram
+  - Source location: `docs/architecture/security-architecture.puml`
+  - Covers gateway, IdP, DPoP replay store, mesh, and bounded contexts
+  - Aligned with `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/API_CATALOGUE.md`
+
+- **security-request-flow.uml** - PKCE and DPoP sequence for protected APIs
+  - Source location: `docs/architecture/security-request-flow.uml`
+  - Includes token issuance and request-time proof validation
+  - Used as security chain reference for integration tests
+
 - **oauth2-sequence-flow.puml** - OAuth 2.1 authorization flow with PKCE
   - Generated SVG: `OAuth 2.1 Authorization Code Flow with PKCE.svg`
   - Exception handling scenarios included

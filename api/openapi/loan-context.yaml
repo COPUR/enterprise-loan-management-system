@@ -1,16 +1,451 @@
 openapi: 3.0.3
 info:
   title: Loan Context Service API
-  version: 0.1.0
+  version: 1.0.0
+  description: Loan origination and servicing APIs.
   license:
     name: Proprietary
     url: https://openfinance.example.com/license
-
 servers:
-  - url: https://api.sandbox.openfinance.ae/loans
-paths: {}
+  - url: https://api.sandbox.openfinance.ae
+    description: Sandbox
+
+tags:
+  - name: LoanManagement
+
+paths:
+  /api/v1/loans:
+    post:
+      tags: [LoanManagement]
+      summary: Create loan application
+      operationId: createLoanApplication
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLoanRequest'
+      responses:
+        '201':
+          description: Loan created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Business validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/loans/{loanId}:
+    get:
+      tags: [LoanManagement]
+      summary: Get loan by id
+      operationId: getLoan
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/LoanId'
+      responses:
+        '200':
+          description: Loan found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Loan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/loans/{loanId}/approve:
+    post:
+      tags: [LoanManagement]
+      summary: Approve loan
+      operationId: approveLoan
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/LoanId'
+      responses:
+        '200':
+          description: Loan approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Loan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/loans/{loanId}/reject:
+    post:
+      tags: [LoanManagement]
+      summary: Reject loan
+      operationId: rejectLoan
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/LoanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: Loan rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Loan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/loans/{loanId}/disburse:
+    post:
+      tags: [LoanManagement]
+      summary: Disburse loan
+      operationId: disburseLoan
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/LoanId'
+      responses:
+        '200':
+          description: Loan disbursed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Loan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/loans/{loanId}/payments:
+    post:
+      tags: [LoanManagement]
+      summary: Make loan payment
+      operationId: makePayment
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/LoanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanPaymentRequest'
+      responses:
+        '200':
+          description: Payment applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Loan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/loans/{loanId}/cancel:
+    post:
+      tags: [LoanManagement]
+      summary: Cancel loan
+      operationId: cancelLoan
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/LoanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: Loan cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Loan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
+      bearerFormat: JWT
+    dpopAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: DPoP
+  parameters:
+    Authorization:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+    DPoP:
+      name: DPoP
+      in: header
+      required: true
+      schema:
+        type: string
+    InteractionId:
+      name: X-FAPI-Interaction-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    LoanId:
+      name: loanId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    CreateLoanRequest:
+      type: object
+      required: [customerId, principalAmount, annualInterestRate, termInMonths]
+      properties:
+        customerId:
+          type: string
+        principalAmount:
+          type: number
+          format: double
+        currency:
+          type: string
+          example: USD
+        annualInterestRate:
+          type: number
+          format: double
+        termInMonths:
+          type: integer
+          minimum: 1
+
+    LoanPaymentRequest:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+          example: USD
+
+    ReasonRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+
+    LoanResponse:
+      type: object
+      required: [loanId, customerId, principalAmount, annualInterestRate, termInMonths, status, applicationDate, outstandingBalance, monthlyPayment, createdAt, lastModifiedAt]
+      properties:
+        loanId:
+          type: string
+        customerId:
+          type: string
+        principalAmount:
+          type: number
+          format: double
+        annualInterestRate:
+          type: number
+          format: double
+        termInMonths:
+          type: integer
+        status:
+          type: string
+          enum: [CREATED, PENDING_APPROVAL, APPROVED, ACTIVE, DISBURSED, FULLY_PAID, DEFAULTED, REJECTED, CANCELLED, RESTRUCTURED, WRITTEN_OFF]
+        applicationDate:
+          type: string
+          format: date
+        approvalDate:
+          type: string
+          format: date
+          nullable: true
+        disbursementDate:
+          type: string
+          format: date
+          nullable: true
+        maturityDate:
+          type: string
+          format: date
+          nullable: true
+        outstandingBalance:
+          type: number
+          format: double
+        monthlyPayment:
+          type: number
+          format: double
+        createdAt:
+          type: string
+          format: date-time
+        lastModifiedAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [code, message, interactionId, timestamp]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        interactionId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

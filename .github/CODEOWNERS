@@ -1,0 +1,29 @@
+# Global ownership
+* @COPUR
+
+# Governance and architecture
+/docs/architecture/ @COPUR
+/docs/GENERAL_BACKLOG.md @COPUR
+
+# Build and CI ownership
+/.github/ @COPUR
+/buildSrc/ @COPUR
+/config/ @COPUR
+/tools/validation/ @COPUR
+
+# Domain contexts
+/open-finance-context/ @COPUR
+/customer-context/ @COPUR
+/payment-context/ @COPUR
+/loan-context/ @COPUR
+/risk-context/ @COPUR
+/compliance-context/ @COPUR
+
+# Service repositories in monorepo
+/services/ @COPUR
+/amanahfi-platform/ @COPUR
+/masrufi-framework/ @COPUR
+
+# Shared foundations require architecture-level review
+/shared-kernel/ @COPUR
+/shared-infrastructure/ @COPUR

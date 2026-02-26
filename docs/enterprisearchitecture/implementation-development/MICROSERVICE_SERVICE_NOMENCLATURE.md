@@ -1,6 +1,6 @@
 # Microservice Service Nomenclature
 
-This document defines the verbose, non‑UC service names, repo slugs, and extraction waves for the Open Finance transformation.
+This document defines verbose, capability-based service names, repo slugs, and extraction waves for the Open Finance transformation.
 
 ## Naming Rules
 - **Service names** are descriptive and avoid legacy use‑case codes.
@@ -34,4 +34,3 @@ This document defines the verbose, non‑UC service names, repo slugs, and extra
 - **Wave 2 (Read + consent coupling):** Personal/Business Financial Data, Banking Metadata, Consent and Authorization.
 - **Wave 3 (Moderate risk, workflow‑heavy):** Request to Pay, Recurring Payments, Bulk Payments, Corporate Treasury.
 - **Wave 4 (High risk, transactional):** Payment Initiation, FX/Remittance, Insurance Quote/Data, Dynamic Onboarding.
-

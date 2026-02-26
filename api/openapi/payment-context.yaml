@@ -1,16 +1,396 @@
 openapi: 3.0.3
 info:
   title: Payment Context Service API
-  version: 0.1.0
+  version: 1.0.0
+  description: Payment processing and lifecycle APIs.
   license:
     name: Proprietary
     url: https://openfinance.example.com/license
-
 servers:
-  - url: https://api.sandbox.openfinance.ae/payments
-paths: {}
+  - url: https://api.sandbox.openfinance.ae
+    description: Sandbox
+
+tags:
+  - name: PaymentProcessing
+
+paths:
+  /api/v1/payments:
+    post:
+      tags: [PaymentProcessing]
+      summary: Process payment
+      operationId: processPayment
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+      responses:
+        '201':
+          description: Payment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Business validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/payments/{paymentId}:
+    get:
+      tags: [PaymentProcessing]
+      summary: Get payment by id
+      operationId: getPayment
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/PaymentId'
+      responses:
+        '200':
+          description: Payment found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/payments/{paymentId}/confirm:
+    post:
+      tags: [PaymentProcessing]
+      summary: Confirm payment
+      operationId: confirmPayment
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/PaymentId'
+      responses:
+        '200':
+          description: Payment confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/payments/{paymentId}/fail:
+    post:
+      tags: [PaymentProcessing]
+      summary: Mark payment as failed
+      operationId: failPayment
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/PaymentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: Payment failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/payments/{paymentId}/cancel:
+    post:
+      tags: [PaymentProcessing]
+      summary: Cancel payment
+      operationId: cancelPayment
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/PaymentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: Payment cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/payments/{paymentId}/refund:
+    post:
+      tags: [PaymentProcessing]
+      summary: Refund payment
+      operationId: refundPayment
+      security:
+        - bearerAuth: []
+          dpopAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/DPoP'
+        - $ref: '#/components/parameters/InteractionId'
+        - $ref: '#/components/parameters/PaymentId'
+      responses:
+        '200':
+          description: Payment refunded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
+      bearerFormat: JWT
+    dpopAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: DPoP
+  parameters:
+    Authorization:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+    DPoP:
+      name: DPoP
+      in: header
+      required: true
+      schema:
+        type: string
+    InteractionId:
+      name: X-FAPI-Interaction-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    PaymentId:
+      name: paymentId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    CreatePaymentRequest:
+      type: object
+      required: [customerId, fromAccountId, toAccountId, amount, paymentType]
+      properties:
+        customerId:
+          type: string
+        fromAccountId:
+          type: string
+        toAccountId:
+          type: string
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+          example: USD
+        paymentType:
+          type: string
+          enum: [TRANSFER, WIRE_TRANSFER, ACH, CHECK, CREDIT_CARD, DEBIT_CARD, MOBILE_PAYMENT, LOAN_PAYMENT, BILL_PAYMENT]
+        description:
+          type: string
+
+    ReasonRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+
+    PaymentResponse:
+      type: object
+      required: [paymentId, customerId, fromAccountId, toAccountId, amount, fee, totalAmount, currency, paymentType, status, createdAt, lastModifiedAt]
+      properties:
+        paymentId:
+          type: string
+        customerId:
+          type: string
+        fromAccountId:
+          type: string
+        toAccountId:
+          type: string
+        amount:
+          type: number
+          format: double
+        fee:
+          type: number
+          format: double
+        totalAmount:
+          type: number
+          format: double
+        currency:
+          type: string
+        paymentType:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, PROCESSING, COMPLETED, FAILED, CANCELLED, REFUNDED, DISPUTED, SETTLED]
+        description:
+          type: string
+          nullable: true
+        failureReason:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastModifiedAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [code, message, interactionId, timestamp]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        interactionId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

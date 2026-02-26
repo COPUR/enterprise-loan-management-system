@@ -1,136 +1,124 @@
-@startuml Enterprise Banking Security Architecture
-!theme aws-orange
-!include <C4/C4_Container>
-!include <awslib/AWSCommon>
-!include <awslib/SecurityIdentityCompliance/IAM>
-!include <awslib/SecurityIdentityCompliance/Cognito>
-!include <awslib/NetworkingContentDelivery/CloudFront>
-!include <awslib/NetworkingContentDelivery/APIGateway>
+@startuml security-architecture
+!theme plain
+skinparam shadowing false
+skinparam componentStyle rectangle
+left to right direction
 
-title Enhanced Enterprise Banking System - Security Architecture\nFAPI-Compliant OAuth2.1 with Service Mesh and AI Integration
+title Security Architecture - Contract-Driven Microservices Runtime
 
-Person(customer, "Banking Customer", "End user accessing banking services")
-Person(loanOfficer, "Loan Officer", "Bank employee processing loans")
-Person(admin, "System Admin", "Administrative user")
-Person(auditor, "Compliance Auditor", "Regulatory compliance monitoring")
+actor "Retail App" as Retail
+actor "Corporate ERP" as Corporate
+actor "TPP Client" as Tpp
 
-Boundary(external, "External Zone") {
-    System_Ext(regulatoryApi, "Regulatory APIs", "PSD2/Open Banking APIs")
-    System_Ext(creditBureau, "Credit Bureau", "External credit data")
-    System_Ext(fraudService, "Fraud Detection", "Third-party fraud services")
-    System_Ext(aiProvider, "AI/LLM Provider", "OpenAI, Claude Opus")
+rectangle "Edge Security" {
+  component "API Gateway\n(TLS, WAF, Rate Limit)" as Gateway
+  component "Ingress Controller\n(Istio/Kong)" as Ingress
 }
 
-Boundary(dmz, "DMZ - Public Zone") {
-    Container(cdn, "CloudFront CDN", "AWS CloudFront", "Content delivery and DDoS protection")
-    Container(waf, "Web Application Firewall", "AWS WAF", "Application layer security")
-    Container(albPublic, "Application Load Balancer", "AWS ALB", "Public load balancer with SSL termination")
+rectangle "Identity and AAA" {
+  component "Keycloak Cluster\n(OAuth2.1/OIDC)" as Keycloak
+  database "LDAP/AD Federation" as Ldap
+  component "JWKS Cache" as JwksCache
+  database "DPoP Replay Store\n(Nonce/JTI TTL)" as DpopStore
 }
 
-Boundary(serviceNetworking, "Service Mesh Network Zone") {
-    Container(istioGateway, "Istio Gateway", "Istio Ingress", "Service mesh entry point with mTLS")
-    Container(envoyProxy, "Envoy Proxy", "Envoy Sidecar", "L7 proxy with advanced routing")
-    
-    Boundary(controlPlane, "Istio Control Plane") {
-        Container(istiod, "Istiod", "Control Plane", "Service mesh configuration")
-        Container(citadel, "Citadel", "Certificate Authority", "Automatic mTLS certificate management")
-    }
+rectangle "Service Mesh" {
+  component "Istio Control Plane" as Istio
+  component "Policy Engine\n(AuthorizationPolicy/OPA)" as Policy
 }
 
-Boundary(securityServices, "Security Services Zone") {
-    Container(keycloak, "Keycloak Enterprise", "Identity Provider", "FAPI-compliant OAuth2.1 server")
-    Container(vault, "HashiCorp Vault", "Secrets Manager", "Centralized secrets and encryption")
-    Container(fapiTokenMgmt, "FAPI Token Manager", "Token Management", "Distributed Redis token storage")
-    Container(rateLimiter, "Rate Limiter", "Throttling Service", "AI-powered adaptive rate limiting")
+rectangle "Protected Service Domain" {
+  component "Consent Authorization Service" as Consent
+  component "Personal Financial Data Service" as PersonalAis
+  component "Business Financial Data Service" as CorporateAis
+  component "Confirmation of Payee Service" as Cop
+
+  component "Payment Context" as PaymentContext
+  component "Customer Context" as CustomerContext
+  component "Loan Context" as LoanContext
+  component "Risk Context" as RiskContext
+  component "Compliance Context" as ComplianceContext
 }
 
-Boundary(applicationZone, "Application Security Zone") {
-    Container(bankingApp, "Banking Application", "Spring Boot", "Enhanced enterprise banking system")
-    Container(aiService, "AI/MCP Service", "Spring AI", "RAG and LLM integration")
-    Container(sagaOrchestrator, "SAGA Orchestrator", "Event Orchestration", "Intelligent transaction coordination")
-    Container(complianceEngine, "Compliance Engine", "Regulatory Check", "Berlin Group/BIAN compliance")
+rectangle "Data and Platform" {
+  database "PostgreSQL" as Postgres
+  database "Redis" as Redis
+  queue "Kafka" as Kafka
+  component "Secret Provider\n(Vault/Internal Secrets API)" as Secrets
+  component "OpenTelemetry Collector" as OTel
+  component "Metrics + Logs + Traces" as Obs
 }
 
-Boundary(dataZone, "Data Security Zone") {
-    ContainerDb(postgresCluster, "PostgreSQL Cluster", "Primary/Replica", "Encrypted banking data")
-    ContainerDb(redisCluster, "Redis Cluster", "Distributed Cache", "Token and session storage")
-    ContainerDb(vectorDb, "Vector Database", "Qdrant", "AI embeddings and RAG data")
-    Container(eventStore, "Event Store", "Kafka Cluster", "Encrypted event streaming")
-}
+Retail --> Gateway : HTTPS + OAuth redirect
+Corporate --> Gateway : mTLS + OAuth client credentials
+Tpp --> Gateway : DPoP bound API calls
 
-Boundary(monitoringZone, "Security Monitoring Zone") {
-    Container(prometheus, "Prometheus", "Metrics", "Security metrics collection")
-    Container(grafana, "Grafana", "Dashboards", "Security monitoring dashboards")
-    Container(jaeger, "Jaeger", "Tracing", "Distributed security tracing")
-    Container(auditLog, "Audit Logger", "Compliance Logs", "Immutable audit trail")
-}
+Gateway --> Ingress : validated request
+Ingress --> Keycloak : token validation/JWKS
+Keycloak --> Ldap : identity federation
+Ingress --> JwksCache : cached keys
+Ingress --> DpopStore : replay check
 
-' Security Flows
-Rel(customer, cdn, "HTTPS/TLS 1.3", "Encrypted communication")
-Rel(cdn, waf, "Filtered traffic", "Malicious request blocking")
-Rel(waf, albPublic, "Clean traffic", "Application layer filtering")
-Rel(albPublic, istioGateway, "TLS terminated", "Load balanced requests")
+Ingress --> Consent : mTLS + JWT + DPoP
+Ingress --> PersonalAis : mTLS + JWT + DPoP
+Ingress --> CorporateAis : mTLS + JWT + DPoP
+Ingress --> Cop : mTLS + JWT + DPoP
 
-' Service Mesh Security
-Rel(istioGateway, envoyProxy, "mTLS", "Mutual TLS authentication")
-Rel(envoyProxy, bankingApp, "Authorized requests", "JWT validated traffic")
-Rel(citadel, envoyProxy, "X.509 certificates", "Automatic certificate rotation")
-Rel(istiod, envoyProxy, "Security policies", "Dynamic security configuration")
+Ingress --> PaymentContext : mTLS + JWT + DPoP
+Ingress --> CustomerContext : mTLS + JWT + DPoP
+Ingress --> LoanContext : mTLS + JWT + DPoP
+Ingress --> RiskContext : mTLS + JWT + DPoP
+Ingress --> ComplianceContext : mTLS + JWT + DPoP
 
-' Authentication and Authorization Flow
-Rel(bankingApp, keycloak, "OAuth2.1 validation", "FAPI-compliant token validation")
-Rel(keycloak, fapiTokenMgmt, "Token storage", "Distributed token management")
-Rel(fapiTokenMgmt, redisCluster, "Token operations", "Encrypted Redis cluster")
-Rel(bankingApp, vault, "Secrets retrieval", "Dynamic secret injection")
+Istio --> Ingress : service identity + mTLS certs
+Policy --> Ingress : allow/deny decisions
 
-' AI Security Integration
-Rel(bankingApp, aiService, "Encrypted AI calls", "Secure AI processing")
-Rel(aiService, vectorDb, "Vector search", "Encrypted embeddings")
-Rel(aiService, aiProvider, "API calls", "External AI services")
+Consent --> Redis : consent cache/idempotency
+PaymentContext --> Postgres : transactions
+CustomerContext --> Postgres : customer data
+LoanContext --> Postgres : loan data
+RiskContext --> Kafka : risk events
+ComplianceContext --> Kafka : compliance events
 
-' Data Security
-Rel(bankingApp, postgresCluster, "Encrypted queries", "TDE and column encryption")
-Rel(sagaOrchestrator, eventStore, "Secure events", "Encrypted event streaming")
-Rel(complianceEngine, auditLog, "Compliance logs", "Immutable audit records")
+Consent --> Secrets
+PersonalAis --> Secrets
+CorporateAis --> Secrets
+Cop --> Secrets
+PaymentContext --> Secrets
+CustomerContext --> Secrets
+LoanContext --> Secrets
+RiskContext --> Secrets
+ComplianceContext --> Secrets
 
-' Rate Limiting and Throttling
-Rel(rateLimiter, redisCluster, "Rate data", "Distributed rate limiting")
-Rel(envoyProxy, rateLimiter, "Rate checks", "AI-powered throttling")
+Consent --> OTel
+PersonalAis --> OTel
+CorporateAis --> OTel
+Cop --> OTel
+PaymentContext --> OTel
+CustomerContext --> OTel
+LoanContext --> OTel
+RiskContext --> OTel
+ComplianceContext --> OTel
+OTel --> Obs
 
-' Security Monitoring
-Rel(bankingApp, prometheus, "Security metrics", "Application security metrics")
-Rel(envoyProxy, jaeger, "Security traces", "Request tracing")
-Rel(keycloak, auditLog, "Auth events", "Authentication audit")
+note right of Gateway
+- TLS termination
+- WAF and quota
+- Header normalization
+- Interaction ID enforcement
+end note
 
-note right of keycloak : **FAPI Security Features**\n- OAuth2.1 compliance\n- DPoP token binding\n- PKCE for public clients\n- Strong client authentication\n- Fine-grained authorization
+note right of Ingress
+Protected routes require:
+1) JWT validation
+2) DPoP proof validation
+3) Scope/consent checks
+4) Policy decision
+end note
 
-note right of fapiTokenMgmt : **Distributed Token Management**\n- Redis cluster storage\n- Token rotation\n- Session management\n- Rate limiting integration\n- Temporary token support
-
-note right of istioGateway : **Service Mesh Security**\n- Automatic mTLS\n- Zero-trust networking\n- Policy enforcement\n- Traffic encryption\n- Identity-based routing
-
-note right of aiService : **AI Security**\n- Secure AI processing\n- Data anonymization\n- Model access control\n- Vector database encryption\n- Audit trail for AI decisions
-
-note right of complianceEngine : **Regulatory Compliance**\n- Berlin Group PSD2\n- BIAN standards\n- GDPR compliance\n- SOX compliance\n- Real-time monitoring
-
-' Security Boundaries
-rectangle "**Security Zones**" as securityZones {
-    rectangle "Public Zone (DMZ)" as publicZone #lightblue
-    rectangle "Service Mesh Zone" as meshZone #lightgreen  
-    rectangle "Application Zone" as appZone #lightyellow
-    rectangle "Data Zone" as dataSecurityZone #lightcoral
-    rectangle "Monitoring Zone" as monitorZone #lightgray
-}
-
-' Security Controls Legend
-legend right
-|**Security Control**|**Implementation**|
-|Network Segmentation|VPC subnets, Security Groups|
-|Identity & Access|OAuth2.1, FAPI compliance|
-|Data Protection|TDE, Column encryption|
-|Transport Security|TLS 1.3, mTLS|
-|Application Security|WAF, Rate limiting|
-|Monitoring|SIEM, Audit logging|
-|Compliance|Berlin Group, BIAN|
-endlegend
+note bottom of Secrets
+Secrets are runtime-resolved only.
+No real secrets in source or .env files.
+end note
 
 @enduml

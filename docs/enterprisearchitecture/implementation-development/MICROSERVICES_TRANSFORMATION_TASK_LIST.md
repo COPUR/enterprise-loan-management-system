@@ -1,6 +1,6 @@
 # Master Task List: Open Finance Repository & Pipeline Strategy
 
-**Objective:** Transition from monolithic analysis to decentralized, deployable microservices for each Open Finance Use Case (e.g., UC001, UC006, UC003), fully automated via CI/CD.
+**Objective:** Transition from monolithic analysis to decentralized, deployable microservices for each Open Finance Use Case (e.g., Personal Financial Management, Payment Initiation, Confirmation of Payee), fully automated via CI/CD.
 **Policy Update:** `DPoP` is mandatory for protected Open Finance endpoints.
 
 ---
@@ -26,7 +26,7 @@
 - [x] Add CI contract tests to block future drift.
 - [x] Add runtime observability baseline (trace id propagation, request metrics, structured request-completion logs).
 
-- [ ] Wave 2 AIS Rollout:
+- [x] Wave 2 AIS Rollout:
 - [x] Apply Wave 1 observability baseline pattern to Personal Financial Data Service.
 - [x] Apply Wave 1 observability baseline pattern to Banking Metadata Service.
 - [x] Apply Wave 1 runtime FAPI chain pattern (JWT + scope + mandatory DPoP) to Personal Financial Data Service.
@@ -37,8 +37,10 @@
 - [x] Replace production in-memory cache adapters with Redis adapters in Personal Financial Data Service.
 - [x] Replace production in-memory cache adapters with Redis adapters in Banking Metadata Service.
 - [x] Pin Personal Financial Data and Banking Metadata integration/UAT suites to in-memory adapter mode for deterministic local test execution.
+- [x] Implement executable `risk-context` and `compliance-context` bounded contexts (domain/application/infrastructure) with TDD, OpenAPI contract tests, and 85%+ coverage gates.
 
 - [ ] Wave 3 Context Rollout:
+- [x] Publish source-of-truth ADR for Open Finance runtime ownership (`docs/architecture/adr/ADR-007-open-finance-source-of-truth.md`).
 - [ ] Roll out shared security/observability/pipeline/IaC standards to remaining bounded contexts.
 
 ---
@@ -85,9 +87,9 @@
 - [ ] Helm Chart: base template for Kubernetes deployment.
 
 - [ ] Initialize Use Case Repos: fork the template for each targeted use case:
-- [ ] `repo-uc001-account-info`
-- [ ] `repo-uc006-payment-initiation`
-- [ ] `repo-uc003-confirmation-payee`
+- [ ] `repo-account-information-service`
+- [ ] `repo-payment-initiation-service`
+- [ ] `repo-confirmation-of-payee-service`
 
 ### 2.2 Domain Implementation (Iterative per Repo)
 
@@ -123,6 +125,7 @@
 
 - [ ] Externalize Config: replace hardcoded values with environment variables (`DB_HOST`, `REDIS_URL`, `IDP_URL`).
 - [ ] Secret Management: integrate with Vault/Secrets Manager (do not commit secrets).
+- [x] Enforce "no real secrets in `.env`/source" policy and runtime provisioning path (`POST /internal/v1/system/secrets`).
 
 ---
 
@@ -200,5 +203,6 @@
 - [ ] Cross-service baseline upgrades:
 - [ ] Add security starter and enforce in integration tests.
 - [ ] Add observability starter (trace/metrics/logging).
+- [x] Add internal runtime secrets API with masked/hash-at-rest persistence and metadata-only retrieval.
 - [x] Replace Jenkins/GitLab placeholder steps with runnable gates.
 - [x] Replace Terraform output-only module with real provider resources.

@@ -6,21 +6,21 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 ## Backlog Update (2026-02-10)
 
 ### Delivered Feature Backlog Items
-- [x] UC01 Consent Management
-- [x] UC02 AIS (Account Information)
-- [x] UC03 Confirmation of Payee
-- [x] UC04 Banking Metadata
-- [x] UC05 Corporate Treasury Data
-- [x] UC06 Single/International Payments
-- [x] UC07 Variable Recurring Payments (VRP)
-- [x] UC08 Corporate Bulk Payments
-- [x] UC09 Insurance Data Sharing
-- [x] UC10 Insurance Quote Initiation
-- [x] UC11 FX & Remittance
-- [x] UC12 Dynamic Onboarding for FX
-- [x] UC013 Request to Pay
-- [x] UC014 Open Products Data
-- [x] UC015 ATM Open Data
+- [x] Consent Management Consent Management
+- [x] Account Information Service AIS (Account Information)
+- [x] Confirmation of Payee Confirmation of Payee
+- [x] Banking Metadata Banking Metadata
+- [x] Corporate Treasury Data Corporate Treasury Data
+- [x] Payment Initiation Single/International Payments
+- [x] Recurring Payments Variable Recurring Payments (VRP)
+- [x] Corporate Bulk Payments Corporate Bulk Payments
+- [x] Insurance Data Sharing Insurance Data Sharing
+- [x] Insurance Quote Initiation Insurance Quote Initiation
+- [x] FX and Remittance Services FX & Remittance
+- [x] Dynamic Onboarding Dynamic Onboarding for FX
+- [x] Request to Pay Request to Pay
+- [x] Open Products Data Open Products Data
+- [x] ATM Open Data ATM Open Data
 
 ### Active Backlog Queue (Mandatory Hardening Waves)
 - [ ] Wave 0: Implement shared FAPI security chain with mandatory `DPoP` for protected APIs.
@@ -44,6 +44,7 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Wave 2 (Personal Financial Data Service): Re-enable security filters in integration and functional/UAT suites using signed JWT + DPoP proofs.
 - [x] Wave 2 (Banking Metadata Service): Implement runtime FAPI security chain (JWT validation, scope authorization, mandatory DPoP verification).
 - [x] Wave 2 (Banking Metadata Service): Re-enable security filters in integration and functional/UAT suites using signed JWT + DPoP proofs.
+- [x] Wave 0 (Governance): Enforce OpenAPI protected-operation DPoP parity via repository validator across `api/openapi/*.yaml`.
 
 ### Universal Task List (Cross-Service)
 - [ ] Contract parity gate: each protected endpoint must have matching OpenAPI path, headers, and required fields.
@@ -54,12 +55,12 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [ ] Delivery parity gate: CI must fail on coverage < 85%, contract drift, critical vulnerabilities, and missing tests.
 - [ ] IaC parity gate: each extracted service has provider-backed Terraform module instantiation.
 
-### UC07 Story Completion Snapshot
+### Recurring Payments Story Completion Snapshot
 - [x] Domain stories: consent/payment/idempotency models, command/query contracts, domain exceptions.
 - [x] Application stories: VRP orchestration, consent lifecycle, idempotency replay/conflict, cumulative-limit locking.
 - [x] Infrastructure stories: in-memory adapters, REST API, exception mapping, FAPI headers, cache/ETag behavior.
 - [x] Testing stories: unit + integration + functional/e2e + UAT.
-- [x] Quality gate story: UC07-specific line coverage above 85%.
+- [x] Quality gate story: Recurring Payments-specific line coverage above 85%.
 
 ### Architecture Backlog (Microservices)
 - [x] Review HLDs against microservices principles and publish gap analysis + roadmaps (`MICROSERVICES_GAP_ANALYSIS_AND_ROADMAP.md`).
@@ -80,40 +81,40 @@ This document provides a comprehensive task breakdown for integrating UAE Open F
 - [x] Implement Personal Financial Data (AIS) microservice with full TDD stack (unit, integration, e2e/UAT) and >85% coverage (`services/openfinance-personal-financial-data-service`).
 - [x] Implement Business Financial Data (corporate AIS) microservice with full TDD stack (unit, integration, e2e/UAT) and >85% coverage (`services/openfinance-business-financial-data-service`).
 
-### UC11 Story Completion Snapshot
+### FX and Remittance Services Story Completion Snapshot
 - [x] Domain stories: quote/deal aggregates, command/query contracts, idempotency record, lifecycle/status models, domain exceptions.
 - [x] Application stories: FX orchestration, market-availability checks, idempotency replay/conflict handling, ownership and expiry enforcement.
 - [x] Infrastructure stories: in-memory adapters (rate/quote/deal/idempotency/cache/event), REST API, exception mapping, FAPI headers, ETag/cache semantics.
 - [x] Testing stories: unit + integration + functional/e2e + UAT completed with TDD sequence.
-- [x] Quality gate story: UC11 package line coverage above 85% in domain/application/infrastructure.
+- [x] Quality gate story: FX and Remittance Services package line coverage above 85% in domain/application/infrastructure.
 
-### UC12 Story Completion Snapshot
+### Dynamic Onboarding Story Completion Snapshot
 - [x] Domain stories: onboarding account aggregate, applicant profile value object, command/query contracts, idempotency record, domain exceptions.
 - [x] Application stories: onboarding orchestration (decrypt -> sanctions -> create account), ownership checks, idempotency replay/conflict, cache-aware reads.
 - [x] Infrastructure stories: in-memory adapters (decryption/sanctions/account/idempotency/cache/event), REST API, exception mapping, FAPI headers, ETag/cache semantics.
 - [x] Testing stories: unit + integration + functional/e2e + UAT completed with TDD sequence.
-- [x] Quality gate story: UC12 package line coverage above 85% in domain/application/infrastructure.
+- [x] Quality gate story: Dynamic Onboarding package line coverage above 85% in domain/application/infrastructure.
 
-### UC13 Story Completion Snapshot
+### Request to Pay Story Completion Snapshot
 - [x] Domain stories: pay-request aggregate, status model, command/query contracts, domain exceptions.
 - [x] Application stories: request lifecycle orchestration, ownership enforcement, cache-aware status reads, finalize handling.
 - [x] Infrastructure stories: in-memory repository/cache/notification adapters, REST API, exception mapping, FAPI headers, ETag/cache behavior.
 - [x] Testing stories: unit + integration + functional/e2e + UAT completed with TDD sequence.
-- [x] Quality gate story: UC13 package line coverage above 85% in domain/application/infrastructure.
+- [x] Quality gate story: Request to Pay package line coverage above 85% in domain/application/infrastructure.
 
-### UC14 Story Completion Snapshot
+### Open Products Data Story Completion Snapshot
 - [x] Domain stories: open product model, query invariants for safe filtering, cache settings/result models, input/output ports.
 - [x] Application stories: catalog retrieval orchestration, deterministic cache-key strategy, cache hit/miss behavior, sorted response model.
 - [x] Infrastructure stories: in-memory catalog + cache adapters, REST API, exception mapping, public-cache/ETag semantics, optional token-type validation.
 - [x] Testing stories: unit + integration + functional/e2e + UAT completed with TDD sequence.
-- [x] Quality gate story: UC14 package line coverage above 85% in domain/application/infrastructure.
+- [x] Quality gate story: Open Products Data package line coverage above 85% in domain/application/infrastructure.
 
-### UC15 Story Completion Snapshot
+### ATM Open Data Story Completion Snapshot
 - [x] Domain stories: ATM directory model, status enum, location query invariants, cache settings/result models, input/output ports.
 - [x] Application stories: directory retrieval orchestration, location filtering (lat/long/radius), deterministic cache-key strategy.
 - [x] Infrastructure stories: in-memory directory + cache adapters, REST API, exception mapping, public-cache/ETag semantics, optional token-type validation.
 - [x] Testing stories: unit + integration + functional/e2e + UAT completed with TDD sequence.
-- [x] Quality gate story: UC15 package line coverage above 85% in domain/application/infrastructure.
+- [x] Quality gate story: ATM Open Data package line coverage above 85% in domain/application/infrastructure.
 
 ## Task Organization
 

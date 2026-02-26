@@ -1,7 +1,6 @@
 package com.bank.customer.infrastructure.persistence;
 
 import com.bank.customer.domain.Customer;
-import com.bank.customer.domain.CreditProfile;
 import com.bank.shared.kernel.domain.CustomerId;
 import com.bank.shared.kernel.domain.Money;
 import jakarta.persistence.*;
@@ -89,7 +88,6 @@ public class CustomerJpaEntity {
     public Customer toDomain() {
         Money creditLimitMoney = Money.of(creditLimit, Currency.getInstance(currency));
         Money usedCreditMoney = Money.of(usedCredit, Currency.getInstance(currency));
-        CreditProfile creditProfile = CreditProfile.create(creditLimitMoney, usedCreditMoney);
         
         Customer customer = Customer.create(
             CustomerId.of(customerId),
@@ -99,8 +97,13 @@ public class CustomerJpaEntity {
             phoneNumber,
             creditLimitMoney
         );
-        
+
+        if (usedCreditMoney.getAmount().signum() > 0) {
+            customer.reserveCredit(usedCreditMoney);
+        }
+
         customer.setVersion(version);
+        customer.clearDomainEvents();
         return customer;
     }
     

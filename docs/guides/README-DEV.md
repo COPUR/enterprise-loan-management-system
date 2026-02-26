@@ -131,6 +131,7 @@ Development configuration is in `.env.local`:
 - Database: H2 in-memory
 - Security: Relaxed for development
 - Logging: Debug level enabled
+- Secrets: **Do not store real secrets in `.env.local`**. Use `RUNTIME_MANAGED` placeholders and inject real values via runtime API (`POST /internal/v1/system/secrets`).
 
 ### Profiles
 - `local` - Local development settings
@@ -158,7 +159,7 @@ Development configuration is in `.env.local`:
 ├── logs/dev/                   # Development logs
 ├── data/dev/                   # Development data
 ├── monitoring/                 # Monitoring configs
-├── .env.local                  # Local environment
+├── .env.local                  # Local non-secret environment flags only
 ├── dev-start.sh               # Quick start script
 ├── dev-test.sh                # Test script
 └── dev-reset-db.sh            # Database reset
@@ -190,7 +191,7 @@ lsof -ti:8080 | xargs kill -9
 1. Check logs in `logs/dev/`
 2. Verify H2 console at http://localhost:8080/h2-console
 3. Check actuator health at http://localhost:8080/actuator/health
-4. Review configuration in `.env.local`
+4. Review non-secret configuration in `.env.local` and provision secrets via runtime API
 
 ## Next Steps
 

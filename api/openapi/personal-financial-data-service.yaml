@@ -248,7 +248,7 @@ components:
     DPoP:
       name: DPoP
       in: header
-      required: false
+      required: true
       schema:
         type: string
     InteractionId:

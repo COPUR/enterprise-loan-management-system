@@ -14,8 +14,8 @@ spring:
   data:
     mongodb:
       uri: ${OPENFINANCE_BFD_MONGODB_URI:mongodb://localhost:27017/open_finance_business_financial_data}
-  redis:
-    url: ${OPENFINANCE_BFD_REDIS_URL:redis://localhost:6379}
+    redis:
+      url: ${OPENFINANCE_BFD_REDIS_URL:redis://localhost:6379}
 
 management:
   endpoints:

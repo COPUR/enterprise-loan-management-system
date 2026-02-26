@@ -1,0 +1,39 @@
+apply plugin: 'jacoco'
+
+description = 'Compliance Domain - AML and sanctions screening logic'
+
+dependencies {
+    api project(':shared-kernel')
+
+    testImplementation libs.junit.jupiter
+    testImplementation libs.assertj.core
+    testImplementation libs.archunit.junit5
+}
+
+jacoco {
+    toolVersion = '0.8.14'
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.85
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

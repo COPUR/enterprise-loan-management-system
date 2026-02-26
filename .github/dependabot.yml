@@ -1,0 +1,70 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    groups:
+      gradle-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "gradle"
+    directory: "/amanahfi-platform"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "gradle"
+    directory: "/services/openfinance-atm-directory-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:15"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "gradle"
+    directory: "/services/openfinance-confirmation-of-payee-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "gradle"
+    directory: "/services/openfinance-open-products-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:45"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "gradle"
+    directory: "/services/openfinance-consent-authorization-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+

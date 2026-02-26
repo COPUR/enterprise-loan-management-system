@@ -1,0 +1,181 @@
+@startuml to-be-open-finance-service-mesh
+!theme spacelab
+title To-Be Architecture (Service Mesh Target State)
+
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+actor "TPP / Internal Client" as Client
+
+cloud "North-South Edge" as Edge {
+  rectangle "API Gateway\n(Kong/Apigee)" as APIGW #lightyellow
+  rectangle "Mesh Ingress Gateway\n(Istio Ingress)" as MeshIngress #lightyellow
+}
+
+package "Kubernetes Cluster with Service Mesh" as Cluster #lightblue {
+  package "AAA Plane (Authentication, Authorization, Accounting)" as AAA #lavender {
+    package "Centralized Identity Provider (Preferred: Keycloak)" as IDP #lightpink {
+      rectangle "Keycloak Cluster\n(Active-Active)" as Keycloak
+      database "Keycloak DB\n(PostgreSQL HA)" as KeycloakDb
+      database "Enterprise LDAP/AD\n(User + Client Federation)" as Ldap
+      rectangle "JWKS / Token Introspection\nOIDC Discovery" as Jwks
+    }
+
+    package "Distributed Authorization + DPoP Enforcement" as AuthzDist #lightcyan {
+      rectangle "DPoP Verifier + Replay Cache\n(jti nonce store)" as DpopVerifier
+      rectangle "AuthZ Agents\n(OPA/ext_authz per namespace)" as AuthzAgents
+      rectangle "Audit & Compliance Sink\n(SIEM/immutable audit)" as AuditSink
+    }
+  }
+
+  package "Mesh Control Plane" as MeshControl #lightcyan {
+    rectangle "Istiod (xDS, cert distribution)" as Istiod
+    rectangle "Policy Engine\n(PeerAuth/AuthZ/RateLimit integration)" as PolicyEngine
+    rectangle "Egress Gateway" as EgressGw
+  }
+
+  package "Open Finance Namespace" as OF #lightgreen {
+    package "Consent Pod" as ConsentPod #lightgoldenrodyellow {
+      rectangle "Consent & Authorization App" as ConsentSvc
+      rectangle "Envoy Sidecar" as ConsentProxy
+    }
+    package "Personal AIS Pod" as PersonalPod #lightgoldenrodyellow {
+      rectangle "Personal Financial Data App" as PersonalAisSvc
+      rectangle "Envoy Sidecar" as PersonalProxy
+    }
+    package "Corporate AIS Pod" as CorporatePod #lightgoldenrodyellow {
+      rectangle "Business Financial Data App" as CorporateAisSvc
+      rectangle "Envoy Sidecar" as CorporateProxy
+    }
+    package "CoP Pod" as CopPod #lightgoldenrodyellow {
+      rectangle "Confirmation of Payee App" as CopSvc
+      rectangle "Envoy Sidecar" as CopProxy
+    }
+    package "Metadata Pod" as MetaPod #lightgoldenrodyellow {
+      rectangle "Banking Metadata App" as MetadataSvc
+      rectangle "Envoy Sidecar" as MetaProxy
+    }
+  }
+
+  package "Open Data Namespace" as OD #lightgreen {
+    package "Products Pod" as ProductsPod #lightgoldenrodyellow {
+      rectangle "Open Products App" as ProductsSvc
+      rectangle "Envoy Sidecar" as ProductsProxy
+    }
+    package "ATM Pod" as AtmPod #lightgoldenrodyellow {
+      rectangle "ATM Directory App" as AtmSvc
+      rectangle "Envoy Sidecar" as AtmProxy
+    }
+  }
+
+  package "Data Ownership" as Data #lightgray {
+    database "Consent DB + cache" as ConsentDb
+    database "AIS DB + distributed ETag cache" as AisDb
+    database "CoP directory + search index" as CopDb
+    database "Metadata DB/cache" as MetaDb
+    database "Open Data cache" as OpenDataCache
+  }
+
+  package "Observability Baseline" as Obs #mistyrose {
+    rectangle "OpenTelemetry Collector" as OTel
+    rectangle "Prometheus / Grafana" as Metrics
+    rectangle "Structured Logs Pipeline" as Logs
+    rectangle "Trace backend (Jaeger/Tempo)" as TraceBackend
+  }
+}
+
+cloud "External Dependencies" as External {
+  rectangle "Core Banking / Legacy Systems" as CoreBanking
+  rectangle "FX, Payments, Registry APIs" as ExternalApis
+}
+
+Client --> APIGW : HTTPS + OAuth2/OIDC + DPoP proof
+APIGW --> Keycloak : /authorize /token /par /introspect
+Keycloak --> KeycloakDb : sessions/clients/realm config
+Keycloak --> Ldap : federated identities + groups
+Keycloak --> Jwks : publish signing keys/metadata
+APIGW --> DpopVerifier : validate DPoP (htu, htm, iat, jti, ath, cnf.jkt)
+APIGW --> MeshIngress : HTTPS/mTLS + DPoP-bound access token
+MeshIngress --> ConsentProxy
+MeshIngress --> PersonalProxy
+MeshIngress --> CorporateProxy
+MeshIngress --> CopProxy
+MeshIngress --> MetaProxy
+MeshIngress --> ProductsProxy
+MeshIngress --> AtmProxy
+
+ConsentProxy --> ConsentSvc : localhost
+PersonalProxy --> PersonalAisSvc : localhost
+CorporateProxy --> CorporateAisSvc : localhost
+CopProxy --> CopSvc : localhost
+MetaProxy --> MetadataSvc : localhost
+ProductsProxy --> ProductsSvc : localhost
+AtmProxy --> AtmSvc : localhost
+
+ConsentProxy --> PersonalProxy : mTLS east-west + AuthZ policy
+ConsentProxy --> CorporateProxy : mTLS east-west + AuthZ policy
+PersonalProxy --> MetaProxy : mTLS east-west + retries/timeouts
+CorporateProxy --> MetaProxy : mTLS east-west + retries/timeouts
+CorporateProxy --> CopProxy : mTLS east-west + policy
+
+ConsentProxy --> AuthzAgents : ext_authz decision (scopes, roles, ABAC)
+PersonalProxy --> AuthzAgents : ext_authz decision
+CorporateProxy --> AuthzAgents : ext_authz decision
+CopProxy --> AuthzAgents : ext_authz decision
+MetaProxy --> AuthzAgents : ext_authz decision
+AuthzAgents --> Jwks : key discovery / token verification data
+AuthzAgents --> AuditSink : authz decision logs
+APIGW --> AuditSink : DPoP + authN audit trail
+
+ConsentSvc --> ConsentDb
+PersonalAisSvc --> AisDb
+CorporateAisSvc --> AisDb
+CopSvc --> CopDb
+MetadataSvc --> MetaDb
+ProductsSvc --> OpenDataCache
+AtmSvc --> OpenDataCache
+
+ConsentProxy --> EgressGw
+PersonalProxy --> EgressGw
+CorporateProxy --> EgressGw
+CopProxy --> EgressGw
+MetaProxy --> EgressGw
+EgressGw --> CoreBanking : controlled egress + TLS policies
+EgressGw --> ExternalApis : allow-listed egress + TLS policies
+
+ConsentProxy --> OTel
+PersonalProxy --> OTel
+CorporateProxy --> OTel
+CopProxy --> OTel
+MetaProxy --> OTel
+ProductsProxy --> OTel
+AtmProxy --> OTel
+OTel --> Metrics
+OTel --> Logs
+OTel --> TraceBackend
+
+Istiod --> ConsentProxy : xDS config + cert rotation
+Istiod --> PersonalProxy
+Istiod --> CorporateProxy
+Istiod --> CopProxy
+Istiod --> MetaProxy
+Istiod --> ProductsProxy
+Istiod --> AtmProxy
+PolicyEngine --> MeshIngress : gateway policy
+PolicyEngine --> ConsentProxy : workload policy
+PolicyEngine --> PersonalProxy : workload policy
+PolicyEngine --> CorporateProxy : workload policy
+PolicyEngine --> CopProxy : workload policy
+PolicyEngine --> MetaProxy : workload policy
+
+note bottom of Cluster
+  To-Be guardrails:
+  - Centralized IdP (Keycloak) with LDAP/AD federation.
+  - DPoP-bound tokens validated with replay protection.
+  - Strict mTLS for all east-west traffic.
+  - Distributed authz agents + centralized policy and controlled egress.
+  - Unified tracing, metrics, and structured logs across services.
+  - FAPI/DPoP/JWS business controls remain at API and application layers.
+end note
+
+@enduml

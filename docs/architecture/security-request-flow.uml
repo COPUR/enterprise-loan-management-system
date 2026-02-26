@@ -1,0 +1,31 @@
+@startuml security-auth-flow
+!theme plain
+skinparam shadowing false
+
+title Authentication and Authorization Flow (PKCE + DPoP)
+
+actor "TPP or End User Client" as Client
+participant "API Gateway" as Gateway
+participant "Keycloak Authorization Server" as IdP
+participant "Token Endpoint" as Token
+participant "Protected API" as Api
+database "DPoP Nonce/JTI Store" as ReplayStore
+
+== Authorization ==
+Client -> IdP: Authorization request (PKCE code_challenge)
+IdP --> Client: Authorization code
+
+== Token ==
+Client -> Token: Code + code_verifier + client auth
+Token --> Client: Access token (JWT) + optional refresh token
+
+== API Invocation ==
+Client -> Gateway: API call with DPoP-bound token + proof
+Gateway -> IdP: Verify JWT (jwks/introspection)
+IdP --> Gateway: Claims and token status
+Gateway -> ReplayStore: Validate DPoP jti/nonce
+ReplayStore --> Gateway: Proof accepted
+Gateway -> Api: Forward request with identity claims
+Api --> Client: Business response
+
+@enduml

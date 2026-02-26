@@ -7,7 +7,7 @@
 
 ## Catalog of Shared Assets
 - **Libraries:** `shared-kernel`, `shared-infrastructure`, `common-domain`, `common-test`.
-- **Documentation:** HLDs under `docs/architecture/open-finance/use-cases/hld/`.
+- **Documentation:** HLDs under `docs/architecture/open-finance/capabilities/hld/`.
 - **Testing:** Cross‑use case tests in `open-finance-context` and common test fixtures.
 
 ## Dependency Observations

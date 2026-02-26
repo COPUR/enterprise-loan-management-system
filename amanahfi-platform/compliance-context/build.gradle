@@ -2,12 +2,16 @@ plugins {
     id 'java-library'
 }
 
+def modulePathPrefix = path.startsWith(':amanahfi-platform:') ? ':amanahfi-platform:' : ':'
+
+def resolveModulePath = { String moduleName -> "${modulePathPrefix}${moduleName}" }
+
 dependencies {
-    implementation project(':amanahfi-platform:shared-kernel')
-    implementation project(':amanahfi-platform:onboarding-context')
-    implementation project(':amanahfi-platform:accounts-context')
-    implementation project(':amanahfi-platform:payments-context')
-    implementation project(':amanahfi-platform:murabaha-context')
+    implementation project(resolveModulePath('shared-kernel'))
+    implementation project(resolveModulePath('onboarding-context'))
+    implementation project(resolveModulePath('accounts-context'))
+    implementation project(resolveModulePath('payments-context'))
+    implementation project(resolveModulePath('murabaha-context'))
     
     // Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

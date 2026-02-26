@@ -10,6 +10,31 @@ The **Enhanced Enterprise Banking System Architecture Catalogue** provides a com
 
 ---
 
+## Contract-Driven Baseline (Current Repository)
+
+This catalogue now aligns with the OpenAPI contracts under `api/openapi` and the generated API inventory in `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/API_CATALOGUE.md`.
+
+### Source-of-Truth Rules
+
+- API routes and security requirements are defined in `api/openapi/*.yaml`.
+- Runtime controllers must match OpenAPI paths and verbs exactly.
+- Any route or security-chain change must update the matching OpenAPI first, then regenerate `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/API_CATALOGUE.md`.
+
+### Security Baseline Rules
+
+- External traffic enters through API gateway + service mesh ingress.
+- Protected APIs require OAuth2/OIDC access tokens and DPoP proof validation.
+- Service-to-service traffic is mTLS-only with identity-based authorization.
+- Secret material is resolved at runtime from a secret provider and never committed to source.
+
+### Referenced Security Diagrams
+
+- `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/architecture/security-architecture.puml`
+- `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/architecture/security-request-flow.uml`
+- `/Users/alicopur/Documents/GitHub/enterprise-loan-management-system/docs/puml/security/service-level-security.puml`
+
+---
+
 ## 🏗️ Architecture Overview
 
 ### System Context

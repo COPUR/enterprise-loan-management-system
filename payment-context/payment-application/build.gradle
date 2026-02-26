@@ -1,3 +1,5 @@
+apply plugin: 'jacoco'
+
 description = 'Payment Application Layer - Use cases and application services'
 
 dependencies {
@@ -20,5 +22,34 @@ dependencies {
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
     testImplementation 'org.assertj:assertj-core'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
+
+jacoco {
+    toolVersion = "0.8.14"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.85
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

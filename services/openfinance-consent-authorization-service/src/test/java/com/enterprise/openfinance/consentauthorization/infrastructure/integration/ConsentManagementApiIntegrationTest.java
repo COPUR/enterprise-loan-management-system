@@ -39,7 +39,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(
         classes = ConsentManagementApiIntegrationTest.TestApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-        properties = "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+        properties = {
+                "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration",
+                "openfinance.internal.secrets.storage=memory"
+        }
 )
 @AutoConfigureMockMvc(addFilters = false)
 class ConsentManagementApiIntegrationTest {
@@ -150,7 +153,7 @@ class ConsentManagementApiIntegrationTest {
 
     private static MockHttpServletRequestBuilder withSecurityHeaders(MockHttpServletRequestBuilder builder) {
         return builder
-                .header("Authorization", "DPoP uc01-integration-test-token")
+                .header("Authorization", "DPoP consent-management-integration-test-token")
                 .header("DPoP", "proof-jwt")
                 .header("X-FAPI-Interaction-ID", UUID.randomUUID().toString())
                 .accept("application/json");

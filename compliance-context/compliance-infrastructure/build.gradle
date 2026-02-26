@@ -1,0 +1,45 @@
+apply plugin: 'jacoco'
+
+description = 'Compliance Infrastructure - Web and persistence adapters for compliance context'
+
+dependencies {
+    implementation project(':compliance-context:compliance-domain')
+    implementation project(':compliance-context:compliance-application')
+    implementation project(':shared-kernel')
+    implementation project(':shared-infrastructure')
+
+    implementation libs.spring.boot.starter.web
+    implementation libs.spring.boot.starter.validation
+    implementation libs.springdoc.openapi.starter.webmvc.ui
+
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.assertj.core
+}
+
+jacoco {
+    toolVersion = '0.8.14'
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.85
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification
