@@ -40,7 +40,7 @@ activemq = "6.0.1"
 
 # Security & Authentication
 oauth2-resource-server = "6.2.0"
-oauth2-jose = "6.2.0"
+oauth2-jose = "7.0.3"
 nimbus-jose-jwt = "9.37.3"
 oauth2-oidc-sdk = "11.9.1"
 bouncycastle-provider = "1.77"
