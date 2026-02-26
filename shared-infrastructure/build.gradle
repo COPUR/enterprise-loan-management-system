@@ -28,15 +28,15 @@ dependencies {
     
     // Infrastructure-specific dependencies
     // (Most dependencies are provided by convention plugins)
-    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.2.3'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
     implementation 'org.springframework.boot:spring-boot-starter-websocket:3.3.6'
     
     // Resilience4J - specific to infrastructure
-    api 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
-    api 'io.github.resilience4j:resilience4j-circuitbreaker:2.2.0'
-    api 'io.github.resilience4j:resilience4j-retry:2.2.0'
-    api 'io.github.resilience4j:resilience4j-bulkhead:2.2.0'
-    api 'io.github.resilience4j:resilience4j-ratelimiter:2.2.0'
-    api 'io.github.resilience4j:resilience4j-timelimiter:2.2.0'
+    api 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
+    api 'io.github.resilience4j:resilience4j-circuitbreaker:2.3.0'
+    api 'io.github.resilience4j:resilience4j-retry:2.3.0'
+    api 'io.github.resilience4j:resilience4j-bulkhead:2.3.0'
+    api 'io.github.resilience4j:resilience4j-ratelimiter:2.3.0'
+    api 'io.github.resilience4j:resilience4j-timelimiter:2.3.0'
 }

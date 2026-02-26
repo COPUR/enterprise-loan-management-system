@@ -242,8 +242,8 @@ subprojects {
         dependencyManagement {
             dependencies {
                 // Override older BOM-managed Byte Buddy versions for JDK 23.
-                dependency 'net.bytebuddy:byte-buddy:1.18.4'
-                dependency 'net.bytebuddy:byte-buddy-agent:1.18.4'
+                dependency 'net.bytebuddy:byte-buddy:1.18.5'
+                dependency 'net.bytebuddy:byte-buddy-agent:1.18.5'
             }
         }
     }
