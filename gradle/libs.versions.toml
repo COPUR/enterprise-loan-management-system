@@ -34,7 +34,7 @@ lettuce = "6.3.0.RELEASE"
 # Message Queue & Streaming
 kafka = "3.6.1"
 apache-kafka = "3.6.1"
-spring-kafka = "3.1.0"
+spring-kafka = "4.0.3"
 rabbitmq = "3.12.10"
 activemq = "6.0.1"
 
