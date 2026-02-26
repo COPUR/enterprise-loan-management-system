@@ -1,0 +1,792 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-sidecar-template
+  namespace: banking
+  labels:
+    app: banking-sidecar
+    version: v1.0
+    compliance: fapi-2.0
+data:
+  sidecar-injection-template.yaml: |
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "true"
+            sidecar.istio.io/proxyCPU: "100m"
+            sidecar.istio.io/proxyMemory: "128Mi"
+            sidecar.istio.io/proxyCPULimit: "200m"
+            sidecar.istio.io/proxyMemoryLimit: "256Mi"
+            # Banking specific annotations
+            banking.sidecar/compliance-level: "FAPI-2.0"
+            banking.sidecar/audit-enabled: "true"
+            banking.sidecar/security-level: "high"
+            banking.sidecar/encryption: "required"
+        spec:
+          containers:
+          # Banking Security Sidecar
+          - name: banking-security-sidecar
+            image: banking-registry.com/security/banking-sidecar:v1.0.0
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 1000
+              runAsGroup: 1000
+              capabilities:
+                drop:
+                - ALL
+                add:
+                - NET_BIND_SERVICE
+            env:
+            - name: BANKING_SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: BANKING_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: BANKING_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: BANKING_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: BANKING_COMPLIANCE_LEVEL
+              value: "FAPI-2.0"
+            - name: BANKING_SECURITY_LEVEL
+              value: "HIGH"
+            - name: BANKING_AUDIT_LEVEL
+              value: "FULL"
+            ports:
+            - name: security-http
+              containerPort: 8090
+              protocol: TCP
+            - name: security-metrics
+              containerPort: 9090
+              protocol: TCP
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                cpu: 200m
+                memory: 256Mi
+            volumeMounts:
+            - name: banking-security-config
+              mountPath: /etc/banking/security
+              readOnly: true
+            - name: banking-certs
+              mountPath: /etc/banking/certs
+              readOnly: true
+            - name: tmp-security
+              mountPath: /tmp
+            - name: security-logs
+              mountPath: /var/log/banking
+            livenessProbe:
+              httpGet:
+                path: /health
+                port: 8090
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+            readinessProbe:
+              httpGet:
+                path: /ready
+                port: 8090
+              initialDelaySeconds: 10
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 2
+
+          # Banking Audit Sidecar
+          - name: banking-audit-sidecar
+            image: banking-registry.com/audit/banking-audit:v1.0.0
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 1001
+              runAsGroup: 1001
+              capabilities:
+                drop:
+                - ALL
+            env:
+            - name: BANKING_SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: BANKING_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: BANKING_AUDIT_ENDPOINT
+              value: "https://audit-service.banking.svc.cluster.local:8443"
+            - name: BANKING_AUDIT_BATCH_SIZE
+              value: "100"
+            - name: BANKING_AUDIT_FLUSH_INTERVAL
+              value: "30s"
+            - name: BANKING_COMPLIANCE_FRAMEWORK
+              value: "FAPI-2.0,PCI-DSS,SOX"
+            ports:
+            - name: audit-http
+              containerPort: 8091
+              protocol: TCP
+            - name: audit-metrics
+              containerPort: 9091
+              protocol: TCP
+            resources:
+              requests:
+                cpu: 25m
+                memory: 32Mi
+              limits:
+                cpu: 100m
+                memory: 128Mi
+            volumeMounts:
+            - name: banking-audit-config
+              mountPath: /etc/banking/audit
+              readOnly: true
+            - name: audit-logs
+              mountPath: /var/log/audit
+            - name: tmp-audit
+              mountPath: /tmp
+            livenessProbe:
+              httpGet:
+                path: /health
+                port: 8091
+              initialDelaySeconds: 30
+              periodSeconds: 10
+            readinessProbe:
+              httpGet:
+                path: /ready
+                port: 8091
+              initialDelaySeconds: 10
+              periodSeconds: 5
+
+          # Banking Compliance Sidecar
+          - name: banking-compliance-sidecar
+            image: banking-registry.com/compliance/banking-compliance:v1.0.0
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 1002
+              runAsGroup: 1002
+              capabilities:
+                drop:
+                - ALL
+            env:
+            - name: BANKING_SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: BANKING_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: BANKING_COMPLIANCE_ENDPOINT
+              value: "https://compliance-service.banking.svc.cluster.local:8443"
+            - name: BANKING_REGULATORY_FRAMEWORK
+              value: "FAPI-2.0,GDPR,PCI-DSS,SOX,BASEL-III"
+            - name: BANKING_JURISDICTION
+              value: "US,EU,UK"
+            - name: BANKING_ENTITY_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: banking-config
+                  key: entity.id
+            ports:
+            - name: compliance-http
+              containerPort: 8092
+              protocol: TCP
+            - name: compliance-metrics
+              containerPort: 9092
+              protocol: TCP
+            resources:
+              requests:
+                cpu: 25m
+                memory: 32Mi
+              limits:
+                cpu: 100m
+                memory: 128Mi
+            volumeMounts:
+            - name: banking-compliance-config
+              mountPath: /etc/banking/compliance
+              readOnly: true
+            - name: compliance-cache
+              mountPath: /var/cache/compliance
+            - name: tmp-compliance
+              mountPath: /tmp
+            livenessProbe:
+              httpGet:
+                path: /health
+                port: 8092
+              initialDelaySeconds: 30
+              periodSeconds: 10
+            readinessProbe:
+              httpGet:
+                path: /ready
+                port: 8092
+              initialDelaySeconds: 10
+              periodSeconds: 5
+
+          # Banking Metrics Sidecar
+          - name: banking-metrics-sidecar
+            image: banking-registry.com/observability/banking-metrics:v1.0.0
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 1003
+              runAsGroup: 1003
+              capabilities:
+                drop:
+                - ALL
+            env:
+            - name: BANKING_SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+            - name: BANKING_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: PROMETHEUS_ENDPOINT
+              value: "http://prometheus.monitoring.svc.cluster.local:9090"
+            - name: GRAFANA_ENDPOINT
+              value: "http://grafana.monitoring.svc.cluster.local:3000"
+            - name: BANKING_METRICS_PREFIX
+              value: "banking"
+            - name: BANKING_METRICS_INTERVAL
+              value: "15s"
+            ports:
+            - name: metrics-http
+              containerPort: 8093
+              protocol: TCP
+            - name: prom-metrics
+              containerPort: 9093
+              protocol: TCP
+            resources:
+              requests:
+                cpu: 25m
+                memory: 32Mi
+              limits:
+                cpu: 100m
+                memory: 128Mi
+            volumeMounts:
+            - name: banking-metrics-config
+              mountPath: /etc/banking/metrics
+              readOnly: true
+            - name: metrics-cache
+              mountPath: /var/cache/metrics
+            - name: tmp-metrics
+              mountPath: /tmp
+            livenessProbe:
+              httpGet:
+                path: /health
+                port: 8093
+              initialDelaySeconds: 30
+              periodSeconds: 10
+            readinessProbe:
+              httpGet:
+                path: /ready
+                port: 8093
+              initialDelaySeconds: 10
+              periodSeconds: 5
+
+          volumes:
+          # Banking Security Configuration
+          - name: banking-security-config
+            configMap:
+              name: banking-security-config
+              defaultMode: 0644
+          - name: banking-certs
+            secret:
+              secretName: banking-tls-certs
+              defaultMode: 0644
+          
+          # Banking Audit Configuration
+          - name: banking-audit-config
+            configMap:
+              name: banking-audit-config
+              defaultMode: 0644
+          
+          # Banking Compliance Configuration
+          - name: banking-compliance-config
+            configMap:
+              name: banking-compliance-config
+              defaultMode: 0644
+          
+          # Banking Metrics Configuration
+          - name: banking-metrics-config
+            configMap:
+              name: banking-metrics-config
+              defaultMode: 0644
+          
+          # Temporary volumes
+          - name: tmp-security
+            emptyDir:
+              sizeLimit: 50Mi
+          - name: tmp-audit
+            emptyDir:
+              sizeLimit: 50Mi
+          - name: tmp-compliance
+            emptyDir:
+              sizeLimit: 50Mi
+          - name: tmp-metrics
+            emptyDir:
+              sizeLimit: 50Mi
+          
+          # Log volumes
+          - name: security-logs
+            emptyDir:
+              sizeLimit: 100Mi
+          - name: audit-logs
+            emptyDir:
+              sizeLimit: 200Mi
+          
+          # Cache volumes
+          - name: compliance-cache
+            emptyDir:
+              sizeLimit: 100Mi
+          - name: metrics-cache
+            emptyDir:
+              sizeLimit: 100Mi
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-security-config
+  namespace: banking
+  labels:
+    app: banking-sidecar
+    component: security
+    compliance: fapi-2.0
+data:
+  security.properties: |
+    # Banking Security Sidecar Configuration
+    # FAPI 2.0 Compliance Settings
+    
+    # Security Level Configuration
+    banking.security.level=HIGH
+    banking.security.compliance.framework=FAPI-2.0
+    banking.security.encryption.required=true
+    banking.security.mtls.enabled=true
+    
+    # Authentication Configuration
+    banking.security.jwt.validation.enabled=true
+    banking.security.jwt.issuer.validation=strict
+    banking.security.jwt.audience.validation=strict
+    banking.security.jwt.signature.validation=required
+    
+    # FAPI Specific Configuration
+    banking.security.fapi.interaction.id.required=true
+    banking.security.fapi.auth.date.validation=true
+    banking.security.fapi.customer.ip.tracking=true
+    banking.security.fapi.request.signing.required=false
+    banking.security.fapi.response.signing.required=false
+    
+    # Rate Limiting Configuration
+    banking.security.ratelimit.enabled=true
+    banking.security.ratelimit.requests.per.minute=1000
+    banking.security.ratelimit.burst.capacity=100
+    banking.security.ratelimit.client.identification=jwt_sub
+    
+    # Request Validation
+    banking.security.request.size.limit=5242880
+    banking.security.request.timeout=30s
+    banking.security.request.headers.validation=strict
+    
+    # Response Security
+    banking.security.response.headers.enabled=true
+    banking.security.response.cors.enabled=true
+    banking.security.response.csp.enabled=true
+    
+    # Threat Detection
+    banking.security.threat.detection.enabled=true
+    banking.security.threat.detection.sql.injection=true
+    banking.security.threat.detection.xss=true
+    banking.security.threat.detection.csrf=true
+    
+    # Logging and Monitoring
+    banking.security.logging.level=INFO
+    banking.security.metrics.enabled=true
+    banking.security.health.check.enabled=true
+
+  fapi-validation.rules: |
+    # FAPI 2.0 Validation Rules
+    # These rules are applied to incoming requests
+    
+    # Required Headers for Open Banking
+    open_banking_required_headers:
+      - x-fapi-interaction-id
+      - authorization
+      - x-fapi-auth-date
+      - x-fapi-customer-ip-address
+    
+    # Optional Headers
+    open_banking_optional_headers:
+      - x-fapi-customer-last-logged-time
+      - x-customer-user-agent
+      - x-idempotency-key
+    
+    # Content Type Validation
+    allowed_content_types:
+      - application/json
+      - application/jose+json
+      - application/jwt
+    
+    # HTTP Methods Validation
+    allowed_methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+      - HEAD
+    
+    # Path Validation Patterns
+    secure_path_patterns:
+      - ^/open-banking/v3\.1/.*
+      - ^/api/v1/.*
+      - ^/health$
+      - ^/ready$
+    
+    # JWT Validation Rules
+    jwt_validation:
+      algorithm_whitelist:
+        - RS256
+        - PS256
+        - ES256
+      required_claims:
+        - iss
+        - sub
+        - aud
+        - exp
+        - iat
+        - jti
+      max_token_age: 3600
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-audit-config
+  namespace: banking
+  labels:
+    app: banking-sidecar
+    component: audit
+    compliance: fapi-2.0
+data:
+  audit.properties: |
+    # Banking Audit Sidecar Configuration
+    # Comprehensive Audit Trail for Banking Operations
+    
+    # Audit Configuration
+    banking.audit.enabled=true
+    banking.audit.level=FULL
+    banking.audit.async.enabled=true
+    banking.audit.batch.size=100
+    banking.audit.flush.interval=30s
+    
+    # Compliance Frameworks
+    banking.audit.compliance.frameworks=FAPI-2.0,PCI-DSS,SOX,GDPR
+    banking.audit.regulatory.requirements=true
+    banking.audit.data.retention.days=2555
+    
+    # Audit Event Types
+    banking.audit.events.authentication=true
+    banking.audit.events.authorization=true
+    banking.audit.events.data.access=true
+    banking.audit.events.data.modification=true
+    banking.audit.events.security.violations=true
+    banking.audit.events.compliance.violations=true
+    
+    # Sensitive Data Handling
+    banking.audit.sensitive.data.masking=true
+    banking.audit.pii.redaction=true
+    banking.audit.financial.data.encryption=true
+    
+    # Audit Storage
+    banking.audit.storage.endpoint=https://audit-service.banking.svc.cluster.local:8443
+    banking.audit.storage.encryption=true
+    banking.audit.storage.integrity.checks=true
+    
+    # Performance Configuration
+    banking.audit.buffer.size=10000
+    banking.audit.worker.threads=4
+    banking.audit.compression.enabled=true
+    
+    # Monitoring
+    banking.audit.metrics.enabled=true
+    banking.audit.health.check.enabled=true
+    banking.audit.error.notification.enabled=true
+
+  audit-fields.json: |
+    {
+      "audit_fields": {
+        "mandatory": [
+          "timestamp",
+          "event_type",
+          "user_id",
+          "session_id",
+          "ip_address",
+          "user_agent",
+          "request_id",
+          "service_name",
+          "endpoint",
+          "http_method",
+          "response_status",
+          "compliance_framework"
+        ],
+        "optional": [
+          "request_headers",
+          "response_headers",
+          "request_body_hash",
+          "response_body_hash",
+          "processing_time",
+          "error_details",
+          "security_context",
+          "business_context"
+        ],
+        "sensitive": [
+          "authorization_header",
+          "jwt_payload",
+          "customer_data",
+          "financial_data",
+          "personal_data"
+        ]
+      },
+      "masking_rules": {
+        "authorization_header": "mask_after_bearer",
+        "jwt_payload": "hash_content",
+        "customer_data": "pii_redaction",
+        "financial_data": "encrypt_content",
+        "personal_data": "anonymize"
+      }
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-compliance-config
+  namespace: banking
+  labels:
+    app: banking-sidecar
+    component: compliance
+    compliance: fapi-2.0
+data:
+  compliance.properties: |
+    # Banking Compliance Sidecar Configuration
+    # Multi-jurisdictional Compliance Framework
+    
+    # Compliance Configuration
+    banking.compliance.enabled=true
+    banking.compliance.real.time.validation=true
+    banking.compliance.async.reporting=true
+    
+    # Regulatory Frameworks
+    banking.compliance.frameworks=FAPI-2.0,GDPR,PCI-DSS,SOX,BASEL-III,CCAR
+    banking.compliance.jurisdictions=US,EU,UK,CA,AU
+    banking.compliance.entity.validation=true
+    
+    # FAPI 2.0 Compliance
+    banking.compliance.fapi.version=2.0
+    banking.compliance.fapi.security.profile=FAPI2-Security-Profile
+    banking.compliance.fapi.message.signing=optional
+    banking.compliance.fapi.mtls.required=true
+    
+    # GDPR Compliance
+    banking.compliance.gdpr.data.classification=true
+    banking.compliance.gdpr.consent.validation=true
+    banking.compliance.gdpr.right.to.erasure=true
+    banking.compliance.gdpr.data.portability=true
+    
+    # PCI DSS Compliance
+    banking.compliance.pci.cardholder.data.protection=true
+    banking.compliance.pci.encryption.in.transit=true
+    banking.compliance.pci.encryption.at.rest=true
+    banking.compliance.pci.access.controls=strict
+    
+    # SOX Compliance
+    banking.compliance.sox.financial.reporting=true
+    banking.compliance.sox.internal.controls=true
+    banking.compliance.sox.audit.trail=comprehensive
+    
+    # Data Sovereignty
+    banking.compliance.data.sovereignty.enabled=true
+    banking.compliance.data.localization.rules=strict
+    banking.compliance.cross.border.transfer.validation=true
+    
+    # Monitoring and Reporting
+    banking.compliance.monitoring.enabled=true
+    banking.compliance.violation.alerting=true
+    banking.compliance.reporting.interval=daily
+    banking.compliance.regulatory.reporting=automatic
+
+  jurisdiction-rules.json: |
+    {
+      "jurisdictions": {
+        "US": {
+          "frameworks": ["SOX", "CCAR", "FFIEC"],
+          "data_residency": "required",
+          "encryption_standards": ["FIPS-140-2"],
+          "audit_retention": "7_years",
+          "regulatory_reporting": "quarterly"
+        },
+        "EU": {
+          "frameworks": ["GDPR", "PSD2", "EBA-GL"],
+          "data_residency": "required",
+          "encryption_standards": ["Common_Criteria"],
+          "audit_retention": "6_years",
+          "regulatory_reporting": "quarterly",
+          "consent_management": "explicit"
+        },
+        "UK": {
+          "frameworks": ["FCA", "PRA", "UK_GDPR"],
+          "data_residency": "required",
+          "encryption_standards": ["CESG"],
+          "audit_retention": "6_years",
+          "regulatory_reporting": "quarterly"
+        }
+      },
+      "compliance_checks": {
+        "data_classification": {
+          "personal_data": "GDPR_applicable",
+          "financial_data": "PCI_DSS_applicable",
+          "payment_data": "PSD2_applicable"
+        },
+        "consent_validation": {
+          "required_for": ["personal_data", "marketing", "profiling"],
+          "storage_period": "consent_duration",
+          "withdrawal_mechanism": "automated"
+        }
+      }
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: banking-metrics-config
+  namespace: banking
+  labels:
+    app: banking-sidecar
+    component: metrics
+    compliance: fapi-2.0
+data:
+  metrics.properties: |
+    # Banking Metrics Sidecar Configuration
+    # Comprehensive Observability for Banking Services
+    
+    # Metrics Configuration
+    banking.metrics.enabled=true
+    banking.metrics.collection.interval=15s
+    banking.metrics.export.interval=30s
+    banking.metrics.aggregation.enabled=true
+    
+    # Prometheus Configuration
+    banking.metrics.prometheus.enabled=true
+    banking.metrics.prometheus.endpoint=http://prometheus.monitoring.svc.cluster.local:9090
+    banking.metrics.prometheus.job.name=banking-sidecar
+    banking.metrics.prometheus.scrape.interval=15s
+    
+    # Grafana Integration
+    banking.metrics.grafana.enabled=true
+    banking.metrics.grafana.endpoint=http://grafana.monitoring.svc.cluster.local:3000
+    banking.metrics.grafana.dashboard.auto.provision=true
+    
+    # Custom Banking Metrics
+    banking.metrics.business.kpis=true
+    banking.metrics.compliance.violations=true
+    banking.metrics.security.events=true
+    banking.metrics.performance.sla=true
+    
+    # Metric Categories
+    banking.metrics.categories.authentication=true
+    banking.metrics.categories.authorization=true
+    banking.metrics.categories.transactions=true
+    banking.metrics.categories.compliance=true
+    banking.metrics.categories.security=true
+    banking.metrics.categories.performance=true
+    
+    # SLA Monitoring
+    banking.metrics.sla.response.time.threshold=500ms
+    banking.metrics.sla.availability.threshold=99.9
+    banking.metrics.sla.error.rate.threshold=0.1
+    
+    # Alerting
+    banking.metrics.alerting.enabled=true
+    banking.metrics.alerting.webhook.url=https://alertmanager.monitoring.svc.cluster.local:9093
+    banking.metrics.alerting.slack.enabled=true
+    banking.metrics.alerting.email.enabled=true
+
+  custom-metrics.json: |
+    {
+      "banking_metrics": {
+        "authentication": {
+          "login_attempts_total": {
+            "type": "counter",
+            "description": "Total number of login attempts",
+            "labels": ["service", "status", "method"]
+          },
+          "jwt_validation_duration": {
+            "type": "histogram",
+            "description": "JWT validation processing time",
+            "labels": ["service", "issuer"]
+          }
+        },
+        "fapi_compliance": {
+          "fapi_requests_total": {
+            "type": "counter",
+            "description": "Total FAPI compliant requests",
+            "labels": ["service", "api_version", "endpoint"]
+          },
+          "fapi_violations_total": {
+            "type": "counter",
+            "description": "Total FAPI compliance violations",
+            "labels": ["service", "violation_type", "severity"]
+          }
+        },
+        "business_kpis": {
+          "loan_applications_total": {
+            "type": "counter",
+            "description": "Total loan applications processed",
+            "labels": ["service", "status", "loan_type"]
+          },
+          "payment_transactions_total": {
+            "type": "counter",
+            "description": "Total payment transactions",
+            "labels": ["service", "payment_type", "status"]
+          },
+          "customer_interactions_total": {
+            "type": "counter",
+            "description": "Total customer interactions",
+            "labels": ["service", "channel", "interaction_type"]
+          }
+        },
+        "security": {
+          "security_violations_total": {
+            "type": "counter",
+            "description": "Total security violations detected",
+            "labels": ["service", "violation_type", "severity"]
+          },
+          "threat_detection_events_total": {
+            "type": "counter",
+            "description": "Total threat detection events",
+            "labels": ["service", "threat_type", "action_taken"]
+          }
+        }
+      }
+    }

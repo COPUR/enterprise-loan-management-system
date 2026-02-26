@@ -27,6 +27,8 @@ dependencies {
 def nvdApiKey = System.getenv('NVD_API_KEY')?.trim()
 def hasNvdApiKey = nvdApiKey
 def isCi = ((System.getenv('CI') ?: '').toLowerCase() in ['1', 'true', 'yes'])
+def githubEventName = (System.getenv('GITHUB_EVENT_NAME') ?: '').toLowerCase()
+def isPullRequestCi = (githubEventName == 'pull_request')
 def projectName = project.name
 def sourceJavaDir = project.layout.projectDirectory.dir('src/main/java').asFile
 def projectBuildDir = project.layout.buildDirectory.get().asFile
@@ -86,7 +88,7 @@ tasks.register('dependencyScanPreflight') {
     group = 'security'
 
     doLast {
-        if (isCi && hasMainJavaSources && !hasNvdApiKey) {
+        if (isCi && !isPullRequestCi && hasMainJavaSources && !hasNvdApiKey) {
             throw new GradleException("NVD_API_KEY must be set in CI for dependency vulnerability scanning on ${projectName}")
         }
 

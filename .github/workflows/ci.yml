@@ -113,8 +113,22 @@ jobs:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
 
-      - name: Validate Gradle wrapper
+      - name: Validate Gradle wrapper (attempt 1)
+        id: wrapper_validation_1
         uses: gradle/actions/wrapper-validation@v3
+        continue-on-error: true
+
+      - name: Validate Gradle wrapper (attempt 2)
+        id: wrapper_validation_2
+        if: steps.wrapper_validation_1.outcome == 'failure'
+        uses: gradle/actions/wrapper-validation@v3
+        continue-on-error: true
+
+      - name: Fail if Gradle wrapper validation did not pass
+        if: steps.wrapper_validation_1.outcome == 'failure' && steps.wrapper_validation_2.outcome == 'failure'
+        run: |
+          echo "::error::Gradle wrapper validation failed twice. Check network connectivity and wrapper metadata."
+          exit 1
 
       - name: Set up Gradle cache
         uses: gradle/actions/setup-gradle@v3
